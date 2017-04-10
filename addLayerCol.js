@@ -2,11 +2,12 @@
  * Author: Rodrigo E. Principe
  * License: Apache 2.0
  
-HOW TO USE
+PURPOSE:
 This function adds all images of a collection to the Map with the given
 visualization parameters
 
-USAGE:
+EXAMPLE:
+var viz = {bands:["B5","B4","B6"], min:0, max:5000}
 addLayerCol(collection, viz)
 */
 
