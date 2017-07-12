@@ -12,7 +12,7 @@ import ee
 ee.Initialize()
 
 
-def exportByFeat(img, fc, prop, folder, scale=1000):
+def exportByFeat(img, fc, prop, folder, scale=1000, type="float"):
     """ Export an image clipped by features (Polygons)
     
     :Parameters:
@@ -26,6 +26,9 @@ def exportByFeat(img, fc, prop, folder, scale=1000):
     :type folder: str
     :param scale: same as ee.Export. Default to 1000
     :type scale: int
+    :param type: as downloaded images **must** have the same data type in all
+        bands, you have to set it here. Can be one of: "float",
+    :type type: str
     """
 
     featlist = fc.getInfo()["features"]
