@@ -170,9 +170,3 @@ def downloadCol(col, folder, scale=30, maxImgs=100, dataType="float",
         tasklist.append(task)
 
     return tasklist
-
-if __name__ == "__main__":
-    # DEBUGGING
-    img = ee.Image("UMD/hansen/global_forest_change_2015_v1_3")
-    fc = ee.FeatureCollection("ft:1oIKpRmlPWgmuLyuJ38drHnYt1h0JWBXGFDTjpq07").filterMetadata("id_ft2","less_than",6)
-    exportByFeat(img, fc, "id_ft2", "Pruebas_geetools", scale=30)
