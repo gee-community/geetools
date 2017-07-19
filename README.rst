@@ -17,7 +17,7 @@ and then you can use it:
     from gee_tools_py import geetools as gee
 
     col = ee.ImageCollection("your_ID")
-    task = gee.col2asset(col)
+    tasklist = gee.col2asset(col)
 
 
 Any contribution is welcome.
