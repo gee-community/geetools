@@ -14,7 +14,8 @@ and then you can use it:
 
 .. code:: python
 
-    from gee_tools_py import geetools as gee    
+    from gee_tools_py import geetools as gee
+
     col = ee.ImageCollection("your_ID")
     task = gee.col2asset(col)
 
