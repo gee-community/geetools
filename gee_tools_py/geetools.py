@@ -118,14 +118,14 @@ def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
     return tasklist
 
 
-def downloadCol(col, folder, scale=30, maxImgs=100, dataType="float",
+def col2drive(col, folder, scale=30, maxImgs=100, dataType="float",
                 region=None, **kwargs):
-    """ Download all images from one collection. You can use the same arguments
-    as the original function ee.batch.export.image.toDrive
+    """ Upload all images from one collection to Google Drive. You can use the
+    same arguments as the original function ee.batch.export.image.toDrive
 
-    :param col: Collection to download
+    :param col: Collection to upload
     :type col: ee.ImageCollection
-    :param region: area to download. Defualt to the footprint of the first
+    :param region: area to upload. Defualt to the footprint of the first
         image in the collection
     :type region: ee.Geometry.Rectangle or ee.Feature
     :param scale: scale of the image (side of one pixel). Defults to 30
@@ -164,6 +164,53 @@ def downloadCol(col, folder, scale=30, maxImgs=100, dataType="float",
                                              description=name,
                                              folder=folder,
                                              fileNamePrefix=name,
+                                             region=region,
+                                             scale=scale, **kwargs)
+        task.start()
+        tasklist.append(task)
+
+    return tasklist
+
+def col2asset(col, assetPath, scale=30, maxImgs=100, region=None, **kwargs):
+    """ Upload all images from one collection to a Earth Engine Asset. You can
+    use the same arguments as the original function ee.batch.export.image.toDrive
+
+    :param col: Collection to upload
+    :type col: ee.ImageCollection
+    :param assetPath: path of the asset where images will go
+    :type assetPath: str
+    :param region: area to upload. Defualt to the footprint of the first
+        image in the collection
+    :type region: ee.Geometry.Rectangle or ee.Feature
+    :param scale: scale of the image (side of one pixel). Defults to 30
+        (Landsat resolution)
+    :type scale: int
+    :param maxImgs: maximum number of images inside the collection
+    :type maxImgs: int
+    :param dataType: as downloaded images **must** have the same data type in all
+        bands, you have to set it here. Can be one of: "float", "double", "int",
+        "Uint8", "Int8" or a casting function like *ee.Image.toFloat*
+    :type dataType: str
+    :return: list of tasks
+    :rtype: list
+    """
+    alist = col.toList(maxImgs)
+    size = alist.size().getInfo()
+    tasklist = []
+
+    if region is None:
+        region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
+
+    for idx in range(0, size):
+        img = alist.get(idx)
+        img = ee.Image(img)
+        name = img.id().getInfo().split("/")[-1]
+
+        assetId = assetPath+"/"+name
+
+        task = ee.batch.Export.image.toAsset(image=img,
+                                             assetId=assetId,
+                                             description=name,
                                              region=region,
                                              scale=scale, **kwargs)
         task.start()
