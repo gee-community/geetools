@@ -37,10 +37,35 @@ Function's Examples
         info = execli(img.getInfo)()
         print info
 
-        # try with custom param (2 times 5 seconds)
-        info2 = execli(img.getInfo, 2, 5)
+        # try with custom param (2 times 5 seconds with traceback)
+        info2 = execli(img.getInfo, 2, 5, True)
         print info2
 
+``execli_deco``
+
+.. code:: python
+
+        from geetools import execli_deco
+        import ee
+        ee.Initialize()
+
+        # TRY TO GET THE INFO OF AN IMAGE WITH DEFAULT PARAMETERS
+
+        @execli_deco()
+        def info():
+            # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
+            img = ee.Image("wrongparam")
+
+            return img.getInfo()
+
+        # TRY WITH CUSTOM PARAM (2 times 5 seconds and traceback)
+
+        @execli_deco(2, 5, True)
+        def info():
+            # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
+            img = ee.Image("wrongparam")
+
+            return img.getInfo()
 
 Any contribution is welcome.
 

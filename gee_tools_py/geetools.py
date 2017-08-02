@@ -23,7 +23,7 @@ def execli_deco(times=10, wait=0, trace=False):
     :Example:
     .. code:: python
 
-        from geetools import execli_dec
+        from geetools import execli_deco
         import ee
         ee.Initialize()
 
@@ -38,7 +38,7 @@ def execli_deco(times=10, wait=0, trace=False):
 
         # TRY WITH CUSTOM PARAM (2 times 5 seconds and traceback)
 
-        @execli_dec(2, 5, True)
+        @execli_deco(2, 5, True)
         def info():
             # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
             img = ee.Image("wrongparam")
@@ -101,7 +101,7 @@ def execli(function, times=10, wait=0, trace=False):
         print info
 
         # try with custom param (2 times 5 seconds with traceback)
-        info2 = execli(img.getInfo, 2, 5)
+        info2 = execli(img.getInfo, 2, 5, True)
         print info2
 
 
