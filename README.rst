@@ -31,7 +31,7 @@ Function's Examples
         import ee
         ee.Initialize()
 
-        # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
+        # This image doesn't exist so it will throw an error
         img = ee.Image("wrongparam")
 
         # try to get the info with default parameters (10 times, wait 0 sec)
