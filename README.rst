@@ -19,6 +19,28 @@ and then you can use it:
     col = ee.ImageCollection("your_ID")
     tasklist = gee.col2asset(col)
 
+Function's Examples
+-------------------
+
+``execli``
+
+.. code:: python
+
+        from geetools import execli
+        import ee
+        ee.Initialize()
+
+        # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
+        img = ee.Image("wrongparam")
+
+        # try to get the info with default parameters (10 times, wait 0 sec)
+        info = execli(img.getInfo)()
+        print info
+
+        # try with custom param (2 times 5 seconds)
+        info2 = execli(img.getInfo, 2, 5)
+        print info2
+
 
 Any contribution is welcome.
 

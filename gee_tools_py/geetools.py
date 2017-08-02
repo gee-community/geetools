@@ -2,6 +2,9 @@
 """
 This file contains a bunch of useful functions to use in Google Earth Engine
 """
+import time
+import traceback
+
 import ee
 ee.Initialize()
 
@@ -11,6 +14,132 @@ TYPES = {'float': ee.Image.toFloat,
          'int8': ee.Image.toInt8,
          'double': ee.Image.toDouble}
 
+
+# DECORATORS
+def execli_deco(times=10, wait=0, trace=False):
+    """ This is a decorating function to excecute a client side Earth Engine
+    function and retry as many times as needed
+
+    :Example:
+    .. code:: python
+
+        from geetools import execli_dec
+        import ee
+        ee.Initialize()
+
+        # TRY TO GET THE INFO OF AN IMAGE WITH DEFAULT PARAMETERS
+
+        @execli_deco()
+        def info():
+            # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
+            img = ee.Image("wrongparam")
+
+            return img.getInfo()
+
+        # TRY WITH CUSTOM PARAM (2 times 5 seconds and traceback)
+
+        @execli_dec(2, 5, True)
+        def info():
+            # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
+            img = ee.Image("wrongparam")
+
+            return img.getInfo()
+
+
+
+    :param times: number of times it will try to excecute the function
+    :type times: int
+    :param wait: waiting time to excetue the function again
+    :type wait: int
+    :param trace: print the traceback
+    :type trace: bool
+    """
+    try:
+        times = int(times)
+        wait = int(wait)
+    except:
+        print type(times)
+        print type(wait)
+        raise ValueError("'times' and 'wait' parameters must be numbers")
+
+    def wrap(f):
+        def wrapper(*args, **kwargs):
+            r = range(times)
+            for i in r:
+                try:
+                    result = f(*args, **kwargs)
+                except Exception as e:
+                    print "try n°", i, "ERROR:", e
+                    if trace:
+                        traceback.print_exc()
+                    if i < r[-1] and wait > 0:
+                        print "waiting {} seconds...".format(str(wait))
+                        time.sleep(wait)
+                else:
+                    return result
+
+        return wrapper
+    return wrap
+
+
+def execli(function, times=10, wait=0, trace=False):
+    """ This function tries to excecute a client side Earth Engine function
+    and retry as many times as needed
+
+    :Example:
+    .. code:: python
+
+        from geetools import execli
+        import ee
+        ee.Initialize()
+
+        # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
+        img = ee.Image("wrongparam")
+
+        # try to get the info with default parameters (10 times, wait 0 sec)
+        info = execli(img.getInfo)()
+        print info
+
+        # try with custom param (2 times 5 seconds with traceback)
+        info2 = execli(img.getInfo, 2, 5)
+        print info2
+
+
+    :param times: number of times it will try to excecute the function
+    :type times: int
+    :param wait: waiting time to excetue the function again
+    :type wait: int
+    :param trace: print the traceback
+    :type trace: bool
+    """
+    try:
+        times = int(times)
+        wait = int(wait)
+    except:
+        print type(times)
+        print type(wait)
+        raise ValueError("'times' and 'wait' parameters must be numbers")
+
+    def wrap(f):
+        def wrapper(*args, **kwargs):
+            r = range(times)
+            for i in r:
+                try:
+                    result = f(*args, **kwargs)
+                except Exception as e:
+                    print "try n°", i, "ERROR:", e
+                    if trace:
+                        traceback.print_exc()
+                    if i < r[-1] and wait > 0:
+                        print "waiting {} seconds...".format(str(wait))
+                        time.sleep(wait)
+                else:
+                    return result
+
+        return wrapper
+    return wrap(function)
+
+
 def mask2zero(img):
     """ Converts masked pixels into zeros
 
@@ -19,6 +148,7 @@ def mask2zero(img):
     """
     theMask = img.mask()
     return theMask.where(1, img)
+
 
 def mask2number(col, number):
     """ Converts masked pixels into the specified number in each image of
@@ -42,6 +172,7 @@ def mask2number(col, number):
     return col.map(mapping)
 
 
+@execli_deco()
 def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
     """ Export an image clipped by features (Polygons). You can use the same
     arguments as the original function ee.batch.export.image.toDrive
@@ -118,6 +249,7 @@ def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
     return tasklist
 
 
+@execli_deco()
 def col2drive(col, folder, scale=30, maxImgs=100, dataType="float",
                 region=None, **kwargs):
     """ Upload all images from one collection to Google Drive. You can use the
@@ -171,6 +303,8 @@ def col2drive(col, folder, scale=30, maxImgs=100, dataType="float",
 
     return tasklist
 
+
+@execli_deco()
 def col2asset(col, assetPath, scale=30, maxImgs=100, region=None, **kwargs):
     """ Upload all images from one collection to a Earth Engine Asset. You can
     use the same arguments as the original function ee.batch.export.image.toDrive
