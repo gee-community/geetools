@@ -75,6 +75,9 @@ def execli_deco(times=10, wait=0, trace=False):
                     if i < r[-1] and wait > 0:
                         print "waiting {} seconds...".format(str(wait))
                         time.sleep(wait)
+                    elif i == r[-1]:
+                        raise RuntimeError("An error occured tring to excecute"\
+                                           "the funcion '{0}'".format(f.__name__))
                 else:
                     return result
 
@@ -133,6 +136,9 @@ def execli(function, times=10, wait=0, trace=False):
                     if i < r[-1] and wait > 0:
                         print "waiting {} seconds...".format(str(wait))
                         time.sleep(wait)
+                    elif i == r[-1]:
+                        raise RuntimeError("An error occured tring to excecute" \
+                                           "the funcion '{0}'".format(f.__name__))
                 else:
                     return result
 
