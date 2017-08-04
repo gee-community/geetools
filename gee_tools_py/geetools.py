@@ -14,9 +14,12 @@ TYPES = {'float': ee.Image.toFloat,
          'int8': ee.Image.toInt8,
          'double': ee.Image.toDouble}
 
+_execli_trace = False
+_execli_times = 10
+_execli_wait = 0
 
 # DECORATORS
-def execli_deco(times=10, wait=0, trace=False):
+def execli_deco(times=None, wait=None, trace=None):
     """ This is a decorating function to excecute a client side Earth Engine
     function and retry as many times as needed
 
@@ -54,6 +57,13 @@ def execli_deco(times=10, wait=0, trace=False):
     :param trace: print the traceback
     :type trace: bool
     """
+    if trace is None:
+        trace = _execli_trace
+    if times is None:
+        times = _execli_times
+    if wait is None:
+        wait = _execli_wait
+
     try:
         times = int(times)
         wait = int(wait)
@@ -85,7 +95,7 @@ def execli_deco(times=10, wait=0, trace=False):
     return wrap
 
 
-def execli(function, times=10, wait=0, trace=False):
+def execli(function, times=None, wait=None, trace=None):
     """ This function tries to excecute a client side Earth Engine function
     and retry as many times as needed
 
@@ -115,6 +125,13 @@ def execli(function, times=10, wait=0, trace=False):
     :param trace: print the traceback
     :type trace: bool
     """
+    if trace is None:
+        trace = _execli_trace
+    if times is None:
+        times = _execli_times
+    if wait is None:
+        wait = _execli_wait
+
     try:
         times = int(times)
         wait = int(wait)
