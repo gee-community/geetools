@@ -6,7 +6,6 @@ import time
 import traceback
 
 import ee
-ee.Initialize()
 
 TYPES = {'float': ee.Image.toFloat,
          'int': ee.Image.toInt,
@@ -162,6 +161,8 @@ def execli(function, times=None, wait=None, trace=None):
         return wrapper
     return wrap(function)
 
+# INITIALIZE EARTH ENGINE USING EXECLI FUNCTION
+execli(ee.Initialize)()
 
 def mask2zero(img):
     """ Converts masked pixels into zeros
