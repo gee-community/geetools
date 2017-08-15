@@ -429,6 +429,7 @@ def addConstantBands(value=None, *names, **pairs):
     img_final = reduce(lambda x, y: x.addBands(y), lista_img)
 
     def apply(img):
-        return img.addBands(img_final)
+        return ee.Image(img).addBands(ee.Image(img_final))
 
     return apply
+
