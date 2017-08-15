@@ -29,7 +29,6 @@ Function's Examples
 
         from geetools import execli
         import ee
-        ee.Initialize()
 
         # This image doesn't exist so it will throw an error
         img = ee.Image("wrongparam")
@@ -48,7 +47,6 @@ Function's Examples
 
         from geetools import execli_deco
         import ee
-        ee.Initialize()
 
         # TRY TO GET THE INFO OF AN IMAGE WITH DEFAULT PARAMETERS
 
@@ -68,6 +66,30 @@ Function's Examples
 
             return img.getInfo()
 
-Any contribution is welcome.
+``addConstantBands``
 
-Any bug or question please use the github issue tracker.
+.. code:: python
+
+        from geetools import addConstantBands
+        import ee
+
+        col = ee.ImageCollection(ID)
+
+        # Option 1 - arguments
+        addC = addConstantBands(0, "a", "b", "c")
+        newcol = col.map(addC)
+
+        # Option 2 - keyword arguments
+        addC = addConstantBands(a=0, b=1, c=2)
+        newcol = col.map(addC)
+
+        # Option 3 - Combining
+        addC = addC = addConstantBands(0, "a", "b", "c", d=1, e=2)
+        newcol = col.map(addC)
+
+Any contribution is welcome.
+Any bug or question please use the `github issue tracker`__.
+
+.. _issues: https://github.com/gee-community/gee_tools/issues
+
+__ issues_

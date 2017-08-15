@@ -7,12 +7,6 @@ import traceback
 
 import ee
 
-TYPES = {'float': ee.Image.toFloat,
-         'int': ee.Image.toInt,
-         'Uint8': ee.Image.toUint8,
-         'int8': ee.Image.toInt8,
-         'double': ee.Image.toDouble}
-
 _execli_trace = False
 _execli_times = 10
 _execli_wait = 0
@@ -27,7 +21,7 @@ def execli_deco(times=None, wait=None, trace=None):
 
         from geetools import execli_deco
         import ee
-        ee.Initialize()
+
 
         # TRY TO GET THE INFO OF AN IMAGE WITH DEFAULT PARAMETERS
 
@@ -103,7 +97,6 @@ def execli(function, times=None, wait=None, trace=None):
 
         from geetools import execli
         import ee
-        ee.Initialize()
 
         # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
         img = ee.Image("wrongparam")
@@ -163,6 +156,12 @@ def execli(function, times=None, wait=None, trace=None):
 
 # INITIALIZE EARTH ENGINE USING EXECLI FUNCTION
 execli(ee.Initialize)()
+
+TYPES = {'float': ee.Image.toFloat,
+         'int': ee.Image.toInt,
+         'Uint8': ee.Image.toUint8,
+         'int8': ee.Image.toInt8,
+         'double': ee.Image.toDouble}
 
 def mask2zero(img):
     """ Converts masked pixels into zeros
@@ -375,3 +374,61 @@ def col2asset(col, assetPath, scale=30, maxImgs=100, region=None, **kwargs):
         tasklist.append(task)
 
     return tasklist
+
+
+def addConstantBands(value=None, *names, **pairs):
+    """ Adds bands with a constant value
+
+    :param names: final names for the additional bands
+    :type names: list
+    :param value: constant value
+    :type value: int or float
+    :param pairs: keywords for the bands (see example)
+    :type pairs: dict
+    :return: the function for ee.ImageCollection.map()
+    :rtype: function
+
+    :Example:
+
+    .. code:: python
+
+        from geetools import addConstantBands
+        import ee
+
+        col = ee.ImageCollection(ID)
+
+        # Option 1 - arguments
+        addC = addConstantBands(0, "a", "b", "c")
+        newcol = col.map(addC)
+
+        # Option 2 - keyword arguments
+        addC = addConstantBands(a=0, b=1, c=2)
+        newcol = col.map(addC)
+
+        # Option 3 - Combining
+        addC = addC = addConstantBands(0, "a", "b", "c", d=1, e=2)
+        newcol = col.map(addC)
+    """
+    is_val_n = type(value) is int or type(value) is float
+
+    if is_val_n and names:
+        list1 = [ee.Image.constant(value).select([0], [n]) for n in names]
+    else:
+        list1 = []
+
+    if pairs:
+        list2 = [ee.Image.constant(val).select([0], [key]) for key, val in pairs.iteritems()]
+    else:
+        list2 = []
+
+    if list1 or list2:
+        lista_img = list1 + list2
+    else:
+        return lambda x: x
+
+    img_final = reduce(lambda x, y: x.addBands(y), lista_img)
+
+    def apply(img):
+        return img.addBands(img_final)
+
+    return apply
