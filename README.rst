@@ -21,9 +21,12 @@ and then you can use it:
     tasklist = gee.col2asset(col)
 
 Function's Examples
--------------------
+===================
 
-``execli``
+execli
+------
+Executes a client-side function (e.g. ``getInfo`` ) as many time as needes and
+waits beetween each call as much as needed
 
 .. code:: python
 
@@ -41,7 +44,9 @@ Function's Examples
         info2 = execli(img.getInfo, 2, 5, True)
         print info2
 
-``execli_deco``
+execli_deco
+-----------
+Performs the same action that ``execli`` but it is ment to use as a decorator
 
 .. code:: python
 
@@ -66,7 +71,9 @@ Function's Examples
 
             return img.getInfo()
 
-``addConstantBands``
+addConstantBands
+----------------
+Adds constant bands to an image. You can use it in 3 ways (see example below)
 
 .. code:: python
 
