@@ -423,8 +423,10 @@ def addConstantBands(value=None, *names, **pairs):
 
     if list1 or list2:
         lista_img = list1 + list2
+    elif value is None:
+        raise ValueError("Parameter 'value' must be a number")
     else:
-        return lambda x: x
+        return addConstantBands(value, "constant")
 
     img_final = reduce(lambda x, y: x.addBands(y), lista_img)
 
