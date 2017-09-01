@@ -435,3 +435,44 @@ def addConstantBands(value=None, *names, **pairs):
 
     return apply
 
+def replace(img, to_replace, to_add):
+    """ Replace one band of the image with a provided band
+
+    :param img: Image containing the band to replace
+    :type img: ee.Image
+    :param to_replace: name of the band to replace. If the image hasn't got
+        that band, it will be added to the image.
+    :type to_replace: str
+    :param to_add: Image (one band) containing the band to add. If an Image
+        with more than one band is provided, it uses the first band.
+    :type to_add: ee.Image
+    :return: Same Image provided with the band replaced
+    :rtype: ee.Image
+    """
+    band = to_add.select([0])
+    bands = img.bandNames()
+    band = band.select([0], [to_replace])
+    resto = bands.remove(to_replace)
+    img_resto = img.select(resto)
+    img_final = img_resto.addBands(band)
+    return img_final
+
+def get_value(img, point, scale=10):
+    """ Return the value of all bands of the image in the specified point
+
+    :param img: Image to get the info from
+    :type img: ee.Image
+    :param point: Point from where to get the info
+    :type point: ee.Geometry.Point
+    :param scale: The scale to use in the reducer. It defaults to 10 due to the
+        minimum scale available in EE (Sentinel 10m)
+    :type scale: int
+    :return: Values of all bands in the ponit
+    :rtype: dict
+    """
+    scale = int(scale)
+    type = point.getInfo()["type"]
+    if type != "Point":
+        raise ValueError("Point must be ee.Geometry.Point")
+
+    return img.reduceRegion(ee.Reducer.first(), point, scale).getInfo()
