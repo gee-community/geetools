@@ -476,3 +476,4 @@ def get_value(img, point, scale=10):
         raise ValueError("Point must be ee.Geometry.Point")
 
     return img.reduceRegion(ee.Reducer.first(), point, scale).getInfo()
+
