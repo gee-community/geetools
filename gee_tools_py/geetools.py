@@ -435,6 +435,7 @@ def addConstantBands(value=None, *names, **pairs):
 
     return apply
 
+
 def replace(img, to_replace, to_add):
     """ Replace one band of the image with a provided band
 
@@ -457,6 +458,7 @@ def replace(img, to_replace, to_add):
     img_final = img_resto.addBands(band)
     return img_final
 
+
 def get_value(img, point, scale=10):
     """ Return the value of all bands of the image in the specified point
 
@@ -477,3 +479,48 @@ def get_value(img, point, scale=10):
 
     return img.reduceRegion(ee.Reducer.first(), point, scale).getInfo()
 
+
+def sumBands(name="sum", bands=None):
+    """ Adds all *bands* values and puts the result on *name*.
+
+    There are 2 ways to use it:
+
+    :ONE IMAGE:
+
+    .. code:: python
+
+        img = ee.Image("LANDSAT/LC8_L1T_TOA_FMASK/LC82310902013344LGN00")
+        fsum = sumBands("added_bands", ("B1", "B2", "B3"))
+        newimg = fsum(img)
+
+    :COLLECTION:
+
+    .. code:: python
+
+        col = ee.ImageCollection("LANDSAT/LC8_L1T_TOA_FMASK")
+        fsum = sumBands("added_bands", ("B1", "B2", "B3"))
+        newcol = col.map(fsum)
+
+    :param name: name for the band that contains the added values of bands
+    :type name: str
+    :param bands: names of the bands to be added
+    :type bands: tuple
+    :return: The function to use in ee.ImageCollection.map()
+    :rtype: function
+    """
+    def wrap(image):
+        if bands is None:
+            bn = image.bandNames()
+        else:
+            bn = ee.List(list(bands))
+
+        nim = ee.Image(0).select([0], [name])
+
+        # TODO: check if passed band names are in band names
+        def sumBandas(n, ini):
+            return ee.Image(ini).add(image.select([n]))
+
+        newimg = ee.Image(bn.iterate(sumBandas, nim))
+
+        return image.addBands(newimg)
+    return wrap
