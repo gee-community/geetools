@@ -173,16 +173,15 @@ def mask2zero(img):
     return theMask.where(1, img)
 
 
-def mask2number(col, number):
+def mask2number(number):
     """ Converts masked pixels into the specified number in each image of
     the collection. As *number* has to be a float, the resulting Image will
     have all bands converted to Float.
 
-    :param col: Collection that contains the images to process
-    :type col: ee.ImageCollection
     :param number: number to fill masked pixels
     :type number: float
-    :return: the Collection containing all images converted
+    :return: the function for mapping
+    :rtype: function
     """
     # TODO: let the user choose the type of the output
     value = ee.Image(number).toFloat()
@@ -192,7 +191,7 @@ def mask2number(col, number):
         test = mask.Not()
         return img.where(test, value)
 
-    return col.map(mapping)
+    return mapping
 
 
 @execli_deco()
@@ -523,4 +522,62 @@ def sumBands(name="sum", bands=None):
         newimg = ee.Image(bn.iterate(sumBandas, nim))
 
         return image.addBands(newimg)
+    return wrap
+
+
+def replace_many(listEE, replace):
+    """ Replace elements of a Earth Engine List object
+
+    :param listEE: list
+    :type listEE: ee.List
+    :param toreplace: values to replace
+    :type toreplace: dict
+    :return: list with replaced values
+    :rtype: ee.List
+
+    :EXAMPLE:
+
+    .. code:: python
+
+        list = ee.List(["one", "two", "three", 4])
+        newlist = replace_many(list, {"one": 1, 4:"four"})
+
+        print newlist.getInfo()
+
+    >> [1, "two", "three", "four"]
+
+    """
+    for key, val in replace.iteritems():
+        listEE = listEE.replace(key, val)
+    return listEE
+
+
+def rename_bands(names):
+    """ Renames bands of images. Can be used in one image or in a collection
+
+    :param names: matching names where key is original name and values the
+        new name
+    :type names: dict
+    :return: a function to rename images
+    :rtype: function
+
+    :EXAMPLE:
+
+    .. code:: python
+
+        imagen = ee.Image("LANDSAT/LC8_L1T_TOA_FMASK/LC82310902013344LGN00")
+        p = ee.Geometry.Point(-71.72029495239258, -42.78997046797438)
+
+        i = rename_bands({"B1":"BLUE", "B2":"GREEN"})(imagen)
+
+        print get_value(imagen, p)
+        print get_value(i, p)
+
+    >> {u'B1': 0.10094200074672699, u'B2': 0.07873955368995667, u'B3': 0.057160500437021255}
+    >> {u'BLUE': 0.10094200074672699, u'GREEN': 0.07873955368995667, u'B3': 0.057160500437021255}
+    """
+    def wrap(img):
+        bandnames = img.bandNames()
+        newnames = replace_many(bandnames, names)
+        return img.select(bandnames, newnames)
     return wrap
