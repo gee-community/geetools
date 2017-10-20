@@ -1,6 +1,7 @@
 /* 
  * Author: Rodrigo E. Principe
  * License: Apache 2.0
+ * email: fitoprincipe82 at gmail dot com
  
 Purpose: Reclassification
 
