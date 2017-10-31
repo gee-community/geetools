@@ -7,7 +7,7 @@ pasted to the code editor.
 
 For the Python module, clone the repository and copy the folder *gee_tools_py*
 to the folder you have the scripts. As it is a module, you can import it
-direcltly like:
+directly like:
 
 ``from gee_tools_py import geetools as gee``
 
@@ -25,8 +25,8 @@ Function's Examples
 
 execli
 ------
-Executes a client-side function (e.g. ``getInfo`` ) as many time as needes and
-waits beetween each call as much as needed
+Executes a client-side function (e.g. ``getInfo`` ) as many time as needed and
+waits between each call as much as needed.
 
 .. code:: python
 
@@ -46,7 +46,7 @@ waits beetween each call as much as needed
 
 execli_deco
 -----------
-Performs the same action that ``execli`` but it is ment to use as a decorator
+Performs the same action as ``execli`` but is meant to be used as a decorator.
 
 .. code:: python
 
