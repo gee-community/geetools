@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 """
 This file contains a bunch of useful functions to use in Google Earth Engine
 """
@@ -157,6 +157,21 @@ def execli(function, times=None, wait=None, trace=None):
 # INITIALIZE EARTH ENGINE USING EXECLI FUNCTION
 execli(ee.Initialize)()
 
+@execli_deco()
+def getRegion(geom):
+    """
+
+    :param geom: geometry to get region of
+    :type geom: ee.Feature, ee.Geometry
+    :return: region coordinates ready to use in a client-side EE function
+    :rtype: json
+    """
+    if isinstance(geom, ee.Geometry):
+        region = geom.getInfo()["coordinates"]
+    elif isinstance(geom, ee.Feature) or isinstance(geom, ee.Image):
+        region = geom.geometry().getInfo()["coordinates"]
+    return region
+
 TYPES = {'float': ee.Image.toFloat,
          'int': ee.Image.toInt,
          'Uint8': ee.Image.toUint8,
@@ -300,6 +315,8 @@ def col2drive(col, folder, scale=30, maxImgs=100, dataType="float",
 
     if region is None:
         region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
+    else:
+        region = getRegion(region)
 
     for idx in range(0, size):
         img = alist.get(idx)
@@ -356,6 +373,8 @@ def col2asset(col, assetPath, scale=30, maxImgs=100, region=None, **kwargs):
 
     if region is None:
         region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
+    else:
+        region = getRegion(region)
 
     for idx in range(0, size):
         img = alist.get(idx)
@@ -526,7 +545,7 @@ def sumBands(name="sum", bands=None):
 
 
 def replace_many(listEE, replace):
-    """ Replace elements of a Earth Engine List object
+    """ Replace many elements of a Earth Engine List object
 
     :param listEE: list
     :type listEE: ee.List
@@ -548,7 +567,8 @@ def replace_many(listEE, replace):
 
     """
     for key, val in replace.iteritems():
-        listEE = listEE.replace(key, val)
+        if val:
+            listEE = listEE.replace(key, val)
     return listEE
 
 
@@ -581,3 +601,139 @@ def rename_bands(names):
         newnames = replace_many(bandnames, names)
         return img.select(bandnames, newnames)
     return wrap
+
+
+def pass_prop(img_with, img_without, properties):
+    """ Pass properties from one image to another
+
+    :param img_with: image that has the properties to tranpass
+    :type img_with: ee.Image
+    :param img_without: image that will recieve the properties
+    :type img_without: ee.Image
+    :param properties: properies to transpass
+    :type properties: list
+    :return: the image with the new properties
+    :rtype: ee.Image
+    """
+    p = img_with.get(properties)
+    return img_without.set(properties, p)
+
+
+def pass_date(img_with, img_without):
+    """ Pass date property from one image to another """
+    return pass_prop(img_with, img_without, "system:time_start")
+
+
+def list_intersection(listEE1, listEE2):
+    """ Find matching values. If listEE1 has duplicated values that are present
+    on listEE2, all values from listEE1 will apear in the result
+
+    :param listEE1: one Earth Engine List
+    :param listEE2: the other Earth Engine List
+    :return: list with the intersection (matching values)
+    :rtype: ee.List
+    """
+    newlist = ee.List([])
+    def wrap(element, first):
+        first = ee.List(first)
+
+        return ee.Algorithms.If(listEE2.contains(element), first.add(element), first)
+
+    return ee.List(listEE1.iterate(wrap, newlist))
+
+
+def list_diff(listEE1, listEE2):
+    """ Difference between two earth engine lists
+
+    :param listEE1: one list
+    :param listEE2: the other list
+    :return: list with the values of the difference
+    :rtype: ee.List
+    """
+    return listEE1.removeAll(listEE2).add(listEE2.removeAll(listEE1)).flatten()
+
+
+def parametrize(range_from, range_to, bands=None):
+    """ Parametrize from a original known range to a fixed new range
+
+    :Parameters:
+    :param range_from: Original range. example: (0, 5000)
+    :type range_from: tuple
+    :param range_to: Fixed new range. example: (500, 1000)
+    :type range_to: tuple
+    :param bands: bands to parametrize. If *None* all bands will be
+    parametrized.
+    :type bands: list
+
+    :return: Function to use in map() or alone
+    :rtype: function
+    """
+
+    rango_orig = range_from if isinstance(range_from, ee.List) else ee.List(
+        range_from)
+    rango_final = range_to if isinstance(range_to, ee.List) else ee.List(range_to)
+
+    # Imagenes del min y max originales
+    min0 = ee.Image.constant(rango_orig.get(0))
+    max0 = ee.Image.constant(rango_orig.get(1))
+
+    # Rango de min a max
+    rango0 = max0.subtract(min0)
+
+    # Imagenes del min y max final
+    min1 = ee.Image.constant(rango_final.get(0))
+    max1 = ee.Image.constant(rango_final.get(1))
+
+    # Rango final
+    rango1 = max1.subtract(min1)
+
+    def wrap(img):
+        # todas las bandas
+        todas = img.bandNames()
+
+        # bandas a parametrizar. Si no se especifica se usan todas
+        if bands:
+            bandasEE = ee.List(bands)
+        else:
+            bandasEE = img.bandNames()
+
+        inter = list_intersection(bandasEE, todas)
+        diff = list_diff(todas, inter)
+        imagen = img.select(inter)
+
+        # Porcentaje del valor actual de la banda en el rango de valores
+        porcent = imagen.subtract(min0).divide(rango0)
+
+        # Teniendo en cuenta el porcentaje en el que se encuentra el valor
+        # real en el rango real, calculo el valor en el que se encuentra segun
+        # el rango final. Porcentaje*rango_final + min_final
+
+        final = porcent.multiply(rango1).add(min1)
+
+        # Agrego el resto de las bandas que no se parametrizaron
+        final = img.select(diff).addBands(final)
+
+        return pass_date(img, final)
+    return wrap
+
+def compute_bits(image, start, end, newName):
+    """ Compute the bits of an image
+
+    :param image: image that contains the band with the bit information
+    :type image: ee.Image
+    :param start: start bit
+    :type start: int
+    :param end: end bit
+    :type end: int
+    :param newName: new name for the band
+    :type newName: str
+    :return: a single band image of the extracted bits, giving the band
+        a new name
+    :rtype: ee.Image
+    """
+    pattern = 0
+
+    for i in range(start, end + 1):
+        pattern += 2**i
+
+    return image.select([0], [newName]).bitwiseAnd(pattern).rightShift(start)
