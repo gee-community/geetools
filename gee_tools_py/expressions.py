@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 ''' Expression generator for Google Earth Engine '''
-import ee
-import geetools as gee
 
 class ExpGen(object):
     def __init__(self):

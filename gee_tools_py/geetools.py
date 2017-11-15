@@ -4,6 +4,7 @@ This file contains a bunch of useful functions to use in Google Earth Engine
 """
 import time
 import traceback
+import functools
 
 import ee
 
@@ -11,10 +12,12 @@ _execli_trace = False
 _execli_times = 10
 _execli_wait = 0
 
-# DECORATORS
+# DECORATOR
 def execli_deco(times=None, wait=None, trace=None):
     """ This is a decorating function to excecute a client side Earth Engine
-    function and retry as many times as needed
+    function and retry as many times as needed.
+    Parameters can be set by modifing module's variables `_execli_trace`,
+    `_execli_times` and `_execli_wait`
 
     :Example:
     .. code:: python
@@ -66,6 +69,7 @@ def execli_deco(times=None, wait=None, trace=None):
         raise ValueError("'times' and 'wait' parameters must be numbers")
 
     def wrap(f):
+        @functools.wraps(f)
         def wrapper(*args, **kwargs):
             r = range(times)
             for i in r:
@@ -87,10 +91,10 @@ def execli_deco(times=None, wait=None, trace=None):
         return wrapper
     return wrap
 
-
 def execli(function, times=None, wait=None, trace=None):
     """ This function tries to excecute a client side Earth Engine function
-    and retry as many times as needed
+    and retry as many times as needed. It is ment to use in cases when you
+    cannot access to the original function. See example.
 
     :Example:
     .. code:: python
@@ -159,10 +163,11 @@ execli(ee.Initialize)()
 
 @execli_deco()
 def getRegion(geom):
-    """
+    """ Gets the region of a given geometry to use in exporting tasks. The
+    argument can be a Geometry, Feature or Image
 
     :param geom: geometry to get region of
-    :type geom: ee.Feature, ee.Geometry
+    :type geom: ee.Feature, ee.Geometry, ee.Image
     :return: region coordinates ready to use in a client-side EE function
     :rtype: json
     """
@@ -187,7 +192,6 @@ def mask2zero(img):
     theMask = img.mask()
     return theMask.where(1, img)
 
-
 def mask2number(number):
     """ Converts masked pixels into the specified number in each image of
     the collection. As *number* has to be a float, the resulting Image will
@@ -199,7 +203,6 @@ def mask2number(number):
     :rtype: function
     """
     # TODO: let the user choose the type of the output
-    # value = ee.Image.constant(number)#.toFloat()
 
     def mapping(img):
         mask = img.mask()
@@ -208,7 +211,6 @@ def mask2number(number):
         return img.where(test, number)
 
     return mapping
-
 
 @execli_deco()
 def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
@@ -286,7 +288,6 @@ def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
 
     return tasklist
 
-
 @execli_deco()
 def col2drive(col, folder, scale=30, maxImgs=100, dataType="float",
                 region=None, **kwargs):
@@ -343,7 +344,6 @@ def col2drive(col, folder, scale=30, maxImgs=100, dataType="float",
 
     return tasklist
 
-
 @execli_deco()
 def col2asset(col, assetPath, scale=30, maxImgs=100, region=None, **kwargs):
     """ Upload all images from one collection to a Earth Engine Asset. You can
@@ -393,7 +393,6 @@ def col2asset(col, assetPath, scale=30, maxImgs=100, region=None, **kwargs):
         tasklist.append(task)
 
     return tasklist
-
 
 def addConstantBands(value=None, *names, **pairs):
     """ Adds bands with a constant value
@@ -454,7 +453,6 @@ def addConstantBands(value=None, *names, **pairs):
 
     return apply
 
-
 def replace(img, to_replace, to_add):
     """ Replace one band of the image with a provided band
 
@@ -477,7 +475,6 @@ def replace(img, to_replace, to_add):
     img_final = img_resto.addBands(band)
     return img_final
 
-
 def get_value(img, point, scale=10):
     """ Return the value of all bands of the image in the specified point
 
@@ -497,7 +494,6 @@ def get_value(img, point, scale=10):
         raise ValueError("Point must be ee.Geometry.Point")
 
     return img.reduceRegion(ee.Reducer.first(), point, scale).getInfo()
-
 
 def sumBands(name="sum", bands=None):
     """ Adds all *bands* values and puts the result on *name*.
@@ -544,7 +540,6 @@ def sumBands(name="sum", bands=None):
         return image.addBands(newimg)
     return wrap
 
-
 def replace_many(listEE, replace):
     """ Replace many elements of a Earth Engine List object
 
@@ -571,7 +566,6 @@ def replace_many(listEE, replace):
         if val:
             listEE = listEE.replace(key, val)
     return listEE
-
 
 def rename_bands(names):
     """ Renames bands of images. Can be used in one image or in a collection
@@ -603,7 +597,6 @@ def rename_bands(names):
         return img.select(bandnames, newnames)
     return wrap
 
-
 def pass_prop(img_with, img_without, properties):
     """ Pass properties from one image to another
 
@@ -625,7 +618,6 @@ def pass_date(img_with, img_without):
     """ Pass date property from one image to another """
     return pass_prop(img_with, img_without, "system:time_start")
 
-
 def list_intersection(listEE1, listEE2):
     """ Find matching values. If listEE1 has duplicated values that are present
     on listEE2, all values from listEE1 will apear in the result
@@ -643,7 +635,6 @@ def list_intersection(listEE1, listEE2):
 
     return ee.List(listEE1.iterate(wrap, newlist))
 
-
 def list_diff(listEE1, listEE2):
     """ Difference between two earth engine lists
 
@@ -653,7 +644,6 @@ def list_diff(listEE1, listEE2):
     :rtype: ee.List
     """
     return listEE1.removeAll(listEE2).add(listEE2.removeAll(listEE1)).flatten()
-
 
 def parametrize(range_from, range_to, bands=None):
     """ Parametrize from a original known range to a fixed new range

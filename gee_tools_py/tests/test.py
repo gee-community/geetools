@@ -30,6 +30,17 @@ class TestTools(unittest.TestCase):
         self.list1 = ee.List([1,2,3,4,5])
         self.list2 = ee.List([4,5,6,7])
 
+    def test_getRegion(self):
+        expected = [[0.0,0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0], [0.0, 0.0]]
+        pol = ee.Geometry.Polygon(expected)
+        feat = ee.Feature(pol)
+
+        region_geom = geetools.getRegion(pol)
+        region_feat = geetools.getRegion(feat)
+
+        self.assertEqual(region_geom, [expected])
+        self.assertEqual(region_feat, [expected])
+
     def test_mask2(self):
         masked_img = self.l8SR.updateMask(self.l8SR.select(["cfmask"]).eq(0))
 
