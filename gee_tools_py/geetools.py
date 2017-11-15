@@ -199,12 +199,13 @@ def mask2number(number):
     :rtype: function
     """
     # TODO: let the user choose the type of the output
-    value = ee.Image(number).toFloat()
+    # value = ee.Image.constant(number)#.toFloat()
 
     def mapping(img):
         mask = img.mask()
         test = mask.Not()
-        return img.where(test, value)
+        img = mask2zero(img)
+        return img.where(test, number)
 
     return mapping
 
@@ -615,9 +616,10 @@ def pass_prop(img_with, img_without, properties):
     :return: the image with the new properties
     :rtype: ee.Image
     """
-    p = img_with.get(properties)
-    return img_without.set(properties, p)
-
+    for prop in properties:
+        p = img_with.get(prop)
+        img_without = img_without.set(prop, p)
+    return img_without
 
 def pass_date(img_with, img_without):
     """ Pass date property from one image to another """
