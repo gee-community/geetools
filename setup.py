@@ -2,7 +2,7 @@
 
 import os
 from setuptools import setup, find_packages
-from gee_tools_py import __version__
+from geetools import __version__
 
 
 # Utility function to read the README file.

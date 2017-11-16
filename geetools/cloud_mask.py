@@ -1,7 +1,7 @@
 # !/usr/bin/env python
 # coding=utf-8
 
-import geetools
+import tools
 
 # MODIS
 def modis(img):
@@ -12,11 +12,11 @@ def modis(img):
     `masked = collection.map(cloud_mask.modis)`
     """
     cmask = img.select("state_1km")
-    cloud = geetools.compute_bits(cmask, 1, 1, "cloud")
-    mix = geetools.compute_bits(cmask, 0, 0, "mix")
-    shadow = geetools.compute_bits(cmask, 2, 2, "shadow")
-    cloud2 = geetools.compute_bits(cmask, 10, 10, "cloud2")
-    snow = geetools.compute_bits(cmask, 11, 11, "snow")
+    cloud = tools.compute_bits(cmask, 1, 1, "cloud")
+    mix = tools.compute_bits(cmask, 0, 0, "mix")
+    shadow = tools.compute_bits(cmask, 2, 2, "shadow")
+    cloud2 = tools.compute_bits(cmask, 10, 10, "cloud2")
+    snow = tools.compute_bits(cmask, 11, 11, "snow")
 
     mask = cloud.Or(mix).Or(shadow).Or(cloud2).Or(snow)
 
@@ -31,8 +31,8 @@ def sentinel2(image):
     `masked = collection.map(cloud_mask.sentinel2)`
     """
     nubes = image.select("QA60")
-    opaque = geetools.compute_bits(nubes, 10, 10, "opaque")
-    cirrus = geetools.compute_bits(nubes, 11, 11, "cirrus")
+    opaque = tools.compute_bits(nubes, 10, 10, "opaque")
+    cirrus = tools.compute_bits(nubes, 11, 11, "cirrus")
     mask = opaque.Or(cirrus)
     result = image.updateMask(mask.Not())
     return result
@@ -48,9 +48,9 @@ def ledaps(image):
     """
     cmask = image.select('QA')
 
-    valid_data_mask = geetools.compute_bits(cmask, 1, 1, 'valid_data')
-    cloud_mask = geetools.compute_bits(cmask, 2, 2, 'cloud')
-    snow_mask = geetools.compute_bits(cmask, 4, 4, 'snow')
+    valid_data_mask = tools.compute_bits(cmask, 1, 1, 'valid_data')
+    cloud_mask = tools.compute_bits(cmask, 2, 2, 'cloud')
+    snow_mask = tools.compute_bits(cmask, 4, 4, 'snow')
 
     good_pix = cloud_mask.eq(0).And(valid_data_mask.eq(0)).And(snow_mask.eq(0))
     result = image.updateMask(good_pix)
@@ -101,7 +101,7 @@ def usgs(image):
 if __name__ == "__main__":
     import ee
     from ee import mapclient
-    import geetools
+    import tools
     s2 = ee.Image("COPERNICUS/S2/20170416T142751_20170416T143935_T18GYT")
     led = ee.Image("LEDAPS/LT5_L1T_SR/LT52310762002106COA00")
     fm = ee.Image("LANDSAT/LC8_L1T_TOA_FMASK/LC82310902017099LGN00")

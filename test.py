@@ -1,4 +1,4 @@
-from gee_tools_py.tests import test
+from geetools.tests import test
 import unittest
 
 unittest.main(test)
