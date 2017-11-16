@@ -1,19 +1,21 @@
 Google Earth Engine tools
 #########################
 
-These are a set tools for Google Earth Engine that may help
+These are a set of tools for Google Earth Engine that may help
 to solve or automatize some processes.
 
 There are some JavaScript functions that you can use in the Code Editor
-(https://code.earthengine.google.com/) placed in a folder called `js`
+(https://code.earthengine.google.com/) placed in a folder called ``js``
 
 The rest of the repository is oriented to the GEE Python API. You can install
-these tools as a normal python package:
+these tools as a normal python package.
 
 Installation
 ============
 
-`pip install geetools`
+.. code:: bash
+
+    pip install geetools
 
 Basic Usage
 ===========
