@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>gee_tools_py.cloud_mask &#8212; GEE Tools 0.0.2 documentation</title>
+    <title>geetools.cloud_mask &#8212; GEE Tools 0.0.2 documentation</title>
     <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -44,14 +44,14 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <h1>Source code for gee_tools_py.cloud_mask</h1><div class="highlight"><pre>
+  <h1>Source code for geetools.cloud_mask</h1><div class="highlight"><pre>
 <span></span><span class="c1"># !/usr/bin/env python</span>
 <span class="c1"># coding=utf-8</span>
 
-<span class="kn">import</span> <span class="nn">geetools</span>
+<span class="kn">import</span> <span class="nn">tools</span>
 
 <span class="c1"># MODIS</span>
-<div class="viewcode-block" id="modis"><a class="viewcode-back" href="../../cloud_mask.html#gee_tools_py.cloud_mask.modis">[docs]</a><span class="k">def</span> <span class="nf">modis</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+<div class="viewcode-block" id="modis"><a class="viewcode-back" href="../../cloud_mask.html#geetools.cloud_mask.modis">[docs]</a><span class="k">def</span> <span class="nf">modis</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Function to use in MODIS Collection</span>
 
 <span class="sd">    Use:</span>
@@ -59,18 +59,18 @@
 <span class="sd">    `masked = collection.map(cloud_mask.modis)`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cmask</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;state_1km&quot;</span><span class="p">)</span>
-    <span class="n">cloud</span> <span class="o">=</span> <span class="n">geetools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cloud&quot;</span><span class="p">)</span>
-    <span class="n">mix</span> <span class="o">=</span> <span class="n">geetools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;mix&quot;</span><span class="p">)</span>
-    <span class="n">shadow</span> <span class="o">=</span> <span class="n">geetools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;shadow&quot;</span><span class="p">)</span>
-    <span class="n">cloud2</span> <span class="o">=</span> <span class="n">geetools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;cloud2&quot;</span><span class="p">)</span>
-    <span class="n">snow</span> <span class="o">=</span> <span class="n">geetools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="s2">&quot;snow&quot;</span><span class="p">)</span>
+    <span class="n">cloud</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cloud&quot;</span><span class="p">)</span>
+    <span class="n">mix</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;mix&quot;</span><span class="p">)</span>
+    <span class="n">shadow</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;shadow&quot;</span><span class="p">)</span>
+    <span class="n">cloud2</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;cloud2&quot;</span><span class="p">)</span>
+    <span class="n">snow</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="s2">&quot;snow&quot;</span><span class="p">)</span>
 
     <span class="n">mask</span> <span class="o">=</span> <span class="n">cloud</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">mix</span><span class="p">)</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">shadow</span><span class="p">)</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">cloud2</span><span class="p">)</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">snow</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">updateMask</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">Not</span><span class="p">())</span></div>
 
 <span class="c1"># SENTINEL 2</span>
-<div class="viewcode-block" id="sentinel2"><a class="viewcode-back" href="../../cloud_mask.html#gee_tools_py.cloud_mask.sentinel2">[docs]</a><span class="k">def</span> <span class="nf">sentinel2</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+<div class="viewcode-block" id="sentinel2"><a class="viewcode-back" href="../../cloud_mask.html#geetools.cloud_mask.sentinel2">[docs]</a><span class="k">def</span> <span class="nf">sentinel2</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Function to use in SENTINEL2 Collection</span>
 
 <span class="sd">    Use:</span>
@@ -78,14 +78,14 @@
 <span class="sd">    `masked = collection.map(cloud_mask.sentinel2)`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nubes</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;QA60&quot;</span><span class="p">)</span>
-    <span class="n">opaque</span> <span class="o">=</span> <span class="n">geetools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">nubes</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;opaque&quot;</span><span class="p">)</span>
-    <span class="n">cirrus</span> <span class="o">=</span> <span class="n">geetools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">nubes</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="s2">&quot;cirrus&quot;</span><span class="p">)</span>
+    <span class="n">opaque</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">nubes</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;opaque&quot;</span><span class="p">)</span>
+    <span class="n">cirrus</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">nubes</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="s2">&quot;cirrus&quot;</span><span class="p">)</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">opaque</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">cirrus</span><span class="p">)</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">updateMask</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">Not</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">result</span></div>
 
 <span class="c1"># LEDAPS</span>
-<div class="viewcode-block" id="ledaps"><a class="viewcode-back" href="../../cloud_mask.html#gee_tools_py.cloud_mask.ledaps">[docs]</a><span class="k">def</span> <span class="nf">ledaps</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+<div class="viewcode-block" id="ledaps"><a class="viewcode-back" href="../../cloud_mask.html#geetools.cloud_mask.ledaps">[docs]</a><span class="k">def</span> <span class="nf">ledaps</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Function to use in Surface Reflectance Collections computed by</span>
 <span class="sd">    LEDAPS</span>
 
@@ -95,9 +95,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cmask</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;QA&#39;</span><span class="p">)</span>
 
-    <span class="n">valid_data_mask</span> <span class="o">=</span> <span class="n">geetools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;valid_data&#39;</span><span class="p">)</span>
-    <span class="n">cloud_mask</span> <span class="o">=</span> <span class="n">geetools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;cloud&#39;</span><span class="p">)</span>
-    <span class="n">snow_mask</span> <span class="o">=</span> <span class="n">geetools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;snow&#39;</span><span class="p">)</span>
+    <span class="n">valid_data_mask</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;valid_data&#39;</span><span class="p">)</span>
+    <span class="n">cloud_mask</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;cloud&#39;</span><span class="p">)</span>
+    <span class="n">snow_mask</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">compute_bits</span><span class="p">(</span><span class="n">cmask</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;snow&#39;</span><span class="p">)</span>
 
     <span class="n">good_pix</span> <span class="o">=</span> <span class="n">cloud_mask</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">valid_data_mask</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">snow_mask</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">updateMask</span><span class="p">(</span><span class="n">good_pix</span><span class="p">)</span>
@@ -105,7 +105,7 @@
     <span class="k">return</span> <span class="n">result</span></div>
 
 <span class="c1"># FMASK</span>
-<div class="viewcode-block" id="fmask"><a class="viewcode-back" href="../../cloud_mask.html#gee_tools_py.cloud_mask.fmask">[docs]</a><span class="k">def</span> <span class="nf">fmask</span><span class="p">(</span><span class="n">bandname</span><span class="o">=</span><span class="s2">&quot;fmask&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="fmask"><a class="viewcode-back" href="../../cloud_mask.html#geetools.cloud_mask.fmask">[docs]</a><span class="k">def</span> <span class="nf">fmask</span><span class="p">(</span><span class="n">bandname</span><span class="o">=</span><span class="s2">&quot;fmask&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Function to use in Collections that have a quality band computed with</span>
 <span class="sd">    fmask algorithm</span>
 
@@ -133,7 +133,7 @@
         <span class="k">return</span> <span class="n">imgMask</span>
     <span class="k">return</span> <span class="n">fmask</span></div>
 
-<div class="viewcode-block" id="usgs"><a class="viewcode-back" href="../../cloud_mask.html#gee_tools_py.cloud_mask.usgs">[docs]</a><span class="k">def</span> <span class="nf">usgs</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+<div class="viewcode-block" id="usgs"><a class="viewcode-back" href="../../cloud_mask.html#geetools.cloud_mask.usgs">[docs]</a><span class="k">def</span> <span class="nf">usgs</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Function to use in Surface Reflectance Collections computed by USGS</span>
 
 <span class="sd">    Use:</span>
@@ -148,7 +148,7 @@
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">ee</span>
     <span class="kn">from</span> <span class="nn">ee</span> <span class="k">import</span> <span class="n">mapclient</span>
-    <span class="kn">import</span> <span class="nn">geetools</span>
+    <span class="kn">import</span> <span class="nn">tools</span>
     <span class="n">s2</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="s2">&quot;COPERNICUS/S2/20170416T142751_20170416T143935_T18GYT&quot;</span><span class="p">)</span>
     <span class="n">led</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="s2">&quot;LEDAPS/LT5_L1T_SR/LT52310762002106COA00&quot;</span><span class="p">)</span>
     <span class="n">fm</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="s2">&quot;LANDSAT/LC8_L1T_TOA_FMASK/LC82310902017099LGN00&quot;</span><span class="p">)</span>

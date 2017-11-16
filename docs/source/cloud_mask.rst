@@ -1,7 +1,7 @@
 cloud mask module
 =================
 
-.. automodule:: gee_tools_py.cloud_mask
+.. automodule:: geetools.cloud_mask
     :members:
     :undoc-members:
     :show-inheritance:

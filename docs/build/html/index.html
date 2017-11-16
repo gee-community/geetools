@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Welcome to GEE tools’s documentation &#8212; GEE Tools 0.0.1 documentation</title>
+    <title>Welcome to GEE tools’s documentation &#8212; GEE Tools 0.0.2 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.0.1',
+        VERSION:     '0.0.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -38,7 +38,7 @@
         <li class="right" >
           <a href="Documentation.html" title="Documentation"
              accesskey="N">next</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">GEE Tools 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="#">GEE Tools 0.0.2 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -54,7 +54,7 @@
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="Documentation.html">Documentation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="geetools.html">geetools module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools.html">geetools module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cloud_mask.html">cloud mask module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="expressions.html">expressions module</a></li>
 </ul>
@@ -67,6 +67,20 @@
 <div class="code bash highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">geetools</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="basic-usage">
+<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">geetools</span> <span class="k">import</span> <span class="n">tools</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;aband&quot;</span><span class="p">])</span>
+<span class="n">point</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="n">scale</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">point</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;aband&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>More in the <a class="reference internal" href="Documentation.html"><span class="doc">Documentation</span></a></p>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
@@ -88,6 +102,7 @@
   <ul>
 <li><a class="reference internal" href="#">Welcome to GEE tools’s documentation</a><ul>
 <li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
@@ -129,7 +144,7 @@
         <li class="right" >
           <a href="Documentation.html" title="Documentation"
              >next</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">GEE Tools 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="#">GEE Tools 0.0.2 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

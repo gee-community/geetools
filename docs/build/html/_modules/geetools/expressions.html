@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>gee_tools_py.expressions &#8212; GEE Tools 0.0.2 documentation</title>
+    <title>geetools.expressions &#8212; GEE Tools 0.0.2 documentation</title>
     <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -44,15 +44,15 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <h1>Source code for gee_tools_py.expressions</h1><div class="highlight"><pre>
+  <h1>Source code for geetools.expressions</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&#39;&#39;&#39; Expression generator for Google Earth Engine &#39;&#39;&#39;</span>
 
-<div class="viewcode-block" id="ExpGen"><a class="viewcode-back" href="../../expressions.html#gee_tools_py.expressions.ExpGen">[docs]</a><span class="k">class</span> <span class="nc">ExpGen</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="ExpGen"><a class="viewcode-back" href="../../expressions.html#geetools.expressions.ExpGen">[docs]</a><span class="k">class</span> <span class="nc">ExpGen</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
-<div class="viewcode-block" id="ExpGen.max"><a class="viewcode-back" href="../../expressions.html#gee_tools_py.expressions.ExpGen.max">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="ExpGen.max"><a class="viewcode-back" href="../../expressions.html#geetools.expressions.ExpGen.max">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">max</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Generates the expression for max(a, b)</span>
 
@@ -65,7 +65,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;(</span><span class="si">{a}</span><span class="s2">&gt;</span><span class="si">{b}</span><span class="s2">)?</span><span class="si">{a}</span><span class="s2">:</span><span class="si">{b}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="o">=</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span> <span class="n">b</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ExpGen.min"><a class="viewcode-back" href="../../expressions.html#gee_tools_py.expressions.ExpGen.min">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="ExpGen.min"><a class="viewcode-back" href="../../expressions.html#geetools.expressions.ExpGen.min">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">min</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Generates the expression for min(a, b)</span>
 

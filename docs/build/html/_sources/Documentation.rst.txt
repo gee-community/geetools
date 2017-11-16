@@ -2,6 +2,6 @@ Documentation
 =============
 
 .. toctree::
-    geetools
+    tools
     cloud_mask
     expressions

@@ -22,7 +22,7 @@ def execli_deco(times=None, wait=None, trace=None):
     :Example:
     .. code:: python
 
-        from geetools import execli_deco
+        from geetools.tools import execli_deco
         import ee
 
 
@@ -99,7 +99,7 @@ def execli(function, times=None, wait=None, trace=None):
     :Example:
     .. code:: python
 
-        from geetools import execli
+        from geetools.tools import execli
         import ee
 
         # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
@@ -410,7 +410,7 @@ def addConstantBands(value=None, *names, **pairs):
 
     .. code:: python
 
-        from geetools import addConstantBands
+        from geetools.tools import addConstantBands
         import ee
 
         col = ee.ImageCollection(ID)

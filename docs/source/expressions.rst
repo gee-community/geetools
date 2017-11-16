@@ -1,7 +1,7 @@
 expressions module
 ==================
 
-.. automodule:: gee_tools_py.expressions
+.. automodule:: geetools.expressions
     :members:
     :undoc-members:
     :show-inheritance:

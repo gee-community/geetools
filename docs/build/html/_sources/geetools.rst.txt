@@ -1,7 +1,7 @@
 geetools module
 ===============
 
-.. automodule:: gee_tools_py.geetools
+.. automodule:: geetools.tools
     :members:
     :undoc-members:
     :show-inheritance:

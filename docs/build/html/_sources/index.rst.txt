@@ -23,6 +23,22 @@ You can install it like any other python package
 
     pip install geetools
 
+Basic Usage
+-----------
+
+.. code:: python
+
+    from geetools import tools
+
+    image = ee.Image(0).select([0], ["aband"])
+    point = ee.Geometry.Point([0, 0])
+    scale = 30
+    value = tools.get_value(image, point, scale)
+
+    print(value["aband"])
+
+More in the :doc:`Documentation`
+
 Indices and tables
 ==================
 

@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>gee_tools_py.geetools &#8212; GEE Tools 0.0.2 documentation</title>
+    <title>geetools.tools &#8212; GEE Tools 0.0.2 documentation</title>
     <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -44,7 +44,7 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <h1>Source code for gee_tools_py.geetools</h1><div class="highlight"><pre>
+  <h1>Source code for geetools.tools</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding=utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This file contains a bunch of useful functions to use in Google Earth Engine</span>
@@ -60,7 +60,7 @@
 <span class="n">_execli_wait</span> <span class="o">=</span> <span class="mi">0</span>
 
 <span class="c1"># DECORATOR</span>
-<div class="viewcode-block" id="execli_deco"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.execli_deco">[docs]</a><span class="k">def</span> <span class="nf">execli_deco</span><span class="p">(</span><span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="execli_deco"><a class="viewcode-back" href="../../tools.html#geetools.tools.execli_deco">[docs]</a><span class="k">def</span> <span class="nf">execli_deco</span><span class="p">(</span><span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; This is a decorating function to excecute a client side Earth Engine</span>
 <span class="sd">    function and retry as many times as needed.</span>
 <span class="sd">    Parameters can be set by modifing module&#39;s variables `_execli_trace`,</span>
@@ -69,7 +69,7 @@
 <span class="sd">    :Example:</span>
 <span class="sd">    .. code:: python</span>
 
-<span class="sd">        from geetools import execli_deco</span>
+<span class="sd">        from geetools.tools import execli_deco</span>
 <span class="sd">        import ee</span>
 
 
@@ -138,7 +138,7 @@
         <span class="k">return</span> <span class="n">wrapper</span>
     <span class="k">return</span> <span class="n">wrap</span></div>
 
-<div class="viewcode-block" id="execli"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.execli">[docs]</a><span class="k">def</span> <span class="nf">execli</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="execli"><a class="viewcode-back" href="../../tools.html#geetools.tools.execli">[docs]</a><span class="k">def</span> <span class="nf">execli</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; This function tries to excecute a client side Earth Engine function</span>
 <span class="sd">    and retry as many times as needed. It is ment to use in cases when you</span>
 <span class="sd">    cannot access to the original function. See example.</span>
@@ -146,7 +146,7 @@
 <span class="sd">    :Example:</span>
 <span class="sd">    .. code:: python</span>
 
-<span class="sd">        from geetools import execli</span>
+<span class="sd">        from geetools.tools import execli</span>
 <span class="sd">        import ee</span>
 
 <span class="sd">        # THIS IMAGE DOESN&#39;E EXISTE SO IT WILL THROW AN ERROR</span>
@@ -208,7 +208,7 @@
 <span class="c1"># INITIALIZE EARTH ENGINE USING EXECLI FUNCTION</span>
 <span class="n">execli</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">)()</span>
 
-<div class="viewcode-block" id="getRegion"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.getRegion">[docs]</a><span class="nd">@execli_deco</span><span class="p">()</span>
+<div class="viewcode-block" id="getRegion"><a class="viewcode-back" href="../../tools.html#geetools.tools.getRegion">[docs]</a><span class="nd">@execli_deco</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">getRegion</span><span class="p">(</span><span class="n">geom</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Gets the region of a given geometry to use in exporting tasks. The</span>
 <span class="sd">    argument can be a Geometry, Feature or Image</span>
@@ -230,7 +230,7 @@
          <span class="s1">&#39;int8&#39;</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">toInt8</span><span class="p">,</span>
          <span class="s1">&#39;double&#39;</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">toDouble</span><span class="p">}</span>
 
-<div class="viewcode-block" id="mask2zero"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.mask2zero">[docs]</a><span class="k">def</span> <span class="nf">mask2zero</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+<div class="viewcode-block" id="mask2zero"><a class="viewcode-back" href="../../tools.html#geetools.tools.mask2zero">[docs]</a><span class="k">def</span> <span class="nf">mask2zero</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Converts masked pixels into zeros</span>
 
 <span class="sd">    :param img: Image contained in the Collection</span>
@@ -239,7 +239,7 @@
     <span class="n">theMask</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">mask</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">theMask</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">img</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="mask2number"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.mask2number">[docs]</a><span class="k">def</span> <span class="nf">mask2number</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+<div class="viewcode-block" id="mask2number"><a class="viewcode-back" href="../../tools.html#geetools.tools.mask2number">[docs]</a><span class="k">def</span> <span class="nf">mask2number</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Converts masked pixels into the specified number in each image of</span>
 <span class="sd">    the collection. As *number* has to be a float, the resulting Image will</span>
 <span class="sd">    have all bands converted to Float.</span>
@@ -259,7 +259,7 @@
 
     <span class="k">return</span> <span class="n">mapping</span></div>
 
-<div class="viewcode-block" id="exportByFeat"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.exportByFeat">[docs]</a><span class="nd">@execli_deco</span><span class="p">()</span>
+<div class="viewcode-block" id="exportByFeat"><a class="viewcode-back" href="../../tools.html#geetools.tools.exportByFeat">[docs]</a><span class="nd">@execli_deco</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">exportByFeat</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">fc</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">dataType</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Export an image clipped by features (Polygons). You can use the same</span>
 <span class="sd">    arguments as the original function ee.batch.export.image.toDrive</span>
@@ -335,7 +335,7 @@
 
     <span class="k">return</span> <span class="n">tasklist</span></div>
 
-<div class="viewcode-block" id="col2drive"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.col2drive">[docs]</a><span class="nd">@execli_deco</span><span class="p">()</span>
+<div class="viewcode-block" id="col2drive"><a class="viewcode-back" href="../../tools.html#geetools.tools.col2drive">[docs]</a><span class="nd">@execli_deco</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">col2drive</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">maxImgs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">dataType</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
                 <span class="n">region</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Upload all images from one collection to Google Drive. You can use the</span>
@@ -391,7 +391,7 @@
 
     <span class="k">return</span> <span class="n">tasklist</span></div>
 
-<div class="viewcode-block" id="col2asset"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.col2asset">[docs]</a><span class="nd">@execli_deco</span><span class="p">()</span>
+<div class="viewcode-block" id="col2asset"><a class="viewcode-back" href="../../tools.html#geetools.tools.col2asset">[docs]</a><span class="nd">@execli_deco</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">col2asset</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">assetPath</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">maxImgs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Upload all images from one collection to a Earth Engine Asset. You can</span>
 <span class="sd">    use the same arguments as the original function ee.batch.export.image.toDrive</span>
@@ -441,7 +441,7 @@
 
     <span class="k">return</span> <span class="n">tasklist</span></div>
 
-<div class="viewcode-block" id="addConstantBands"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.addConstantBands">[docs]</a><span class="k">def</span> <span class="nf">addConstantBands</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">names</span><span class="p">,</span> <span class="o">**</span><span class="n">pairs</span><span class="p">):</span>
+<div class="viewcode-block" id="addConstantBands"><a class="viewcode-back" href="../../tools.html#geetools.tools.addConstantBands">[docs]</a><span class="k">def</span> <span class="nf">addConstantBands</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">names</span><span class="p">,</span> <span class="o">**</span><span class="n">pairs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Adds bands with a constant value</span>
 
 <span class="sd">    :param names: final names for the additional bands</span>
@@ -457,7 +457,7 @@
 
 <span class="sd">    .. code:: python</span>
 
-<span class="sd">        from geetools import addConstantBands</span>
+<span class="sd">        from geetools.tools import addConstantBands</span>
 <span class="sd">        import ee</span>
 
 <span class="sd">        col = ee.ImageCollection(ID)</span>
@@ -500,7 +500,7 @@
 
     <span class="k">return</span> <span class="n">apply</span></div>
 
-<div class="viewcode-block" id="replace"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.replace">[docs]</a><span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">to_replace</span><span class="p">,</span> <span class="n">to_add</span><span class="p">):</span>
+<div class="viewcode-block" id="replace"><a class="viewcode-back" href="../../tools.html#geetools.tools.replace">[docs]</a><span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">to_replace</span><span class="p">,</span> <span class="n">to_add</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Replace one band of the image with a provided band</span>
 
 <span class="sd">    :param img: Image containing the band to replace</span>
@@ -522,7 +522,7 @@
     <span class="n">img_final</span> <span class="o">=</span> <span class="n">img_resto</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">img_final</span></div>
 
-<div class="viewcode-block" id="get_value"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.get_value">[docs]</a><span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">point</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<div class="viewcode-block" id="get_value"><a class="viewcode-back" href="../../tools.html#geetools.tools.get_value">[docs]</a><span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">point</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Return the value of all bands of the image in the specified point</span>
 
 <span class="sd">    :param img: Image to get the info from</span>
@@ -542,7 +542,7 @@
 
     <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">reduceRegion</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">first</span><span class="p">(),</span> <span class="n">point</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="sumBands"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.sumBands">[docs]</a><span class="k">def</span> <span class="nf">sumBands</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="n">bands</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="sumBands"><a class="viewcode-back" href="../../tools.html#geetools.tools.sumBands">[docs]</a><span class="k">def</span> <span class="nf">sumBands</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="n">bands</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Adds all *bands* values and puts the result on *name*.</span>
 
 <span class="sd">    There are 2 ways to use it:</span>
@@ -587,7 +587,7 @@
         <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">newimg</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrap</span></div>
 
-<div class="viewcode-block" id="replace_many"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.replace_many">[docs]</a><span class="k">def</span> <span class="nf">replace_many</span><span class="p">(</span><span class="n">listEE</span><span class="p">,</span> <span class="n">replace</span><span class="p">):</span>
+<div class="viewcode-block" id="replace_many"><a class="viewcode-back" href="../../tools.html#geetools.tools.replace_many">[docs]</a><span class="k">def</span> <span class="nf">replace_many</span><span class="p">(</span><span class="n">listEE</span><span class="p">,</span> <span class="n">replace</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Replace many elements of a Earth Engine List object</span>
 
 <span class="sd">    :param listEE: list</span>
@@ -614,7 +614,7 @@
             <span class="n">listEE</span> <span class="o">=</span> <span class="n">listEE</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">listEE</span></div>
 
-<div class="viewcode-block" id="rename_bands"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.rename_bands">[docs]</a><span class="k">def</span> <span class="nf">rename_bands</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+<div class="viewcode-block" id="rename_bands"><a class="viewcode-back" href="../../tools.html#geetools.tools.rename_bands">[docs]</a><span class="k">def</span> <span class="nf">rename_bands</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Renames bands of images. Can be used in one image or in a collection</span>
 
 <span class="sd">    :param names: matching names where key is original name and values the</span>
@@ -644,7 +644,7 @@
         <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">bandnames</span><span class="p">,</span> <span class="n">newnames</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrap</span></div>
 
-<div class="viewcode-block" id="pass_prop"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.pass_prop">[docs]</a><span class="k">def</span> <span class="nf">pass_prop</span><span class="p">(</span><span class="n">img_with</span><span class="p">,</span> <span class="n">img_without</span><span class="p">,</span> <span class="n">properties</span><span class="p">):</span>
+<div class="viewcode-block" id="pass_prop"><a class="viewcode-back" href="../../tools.html#geetools.tools.pass_prop">[docs]</a><span class="k">def</span> <span class="nf">pass_prop</span><span class="p">(</span><span class="n">img_with</span><span class="p">,</span> <span class="n">img_without</span><span class="p">,</span> <span class="n">properties</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Pass properties from one image to another</span>
 
 <span class="sd">    :param img_with: image that has the properties to tranpass</span>
@@ -661,11 +661,11 @@
         <span class="n">img_without</span> <span class="o">=</span> <span class="n">img_without</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">img_without</span></div>
 
-<div class="viewcode-block" id="pass_date"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.pass_date">[docs]</a><span class="k">def</span> <span class="nf">pass_date</span><span class="p">(</span><span class="n">img_with</span><span class="p">,</span> <span class="n">img_without</span><span class="p">):</span>
+<div class="viewcode-block" id="pass_date"><a class="viewcode-back" href="../../tools.html#geetools.tools.pass_date">[docs]</a><span class="k">def</span> <span class="nf">pass_date</span><span class="p">(</span><span class="n">img_with</span><span class="p">,</span> <span class="n">img_without</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Pass date property from one image to another &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">pass_prop</span><span class="p">(</span><span class="n">img_with</span><span class="p">,</span> <span class="n">img_without</span><span class="p">,</span> <span class="s2">&quot;system:time_start&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="list_intersection"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.list_intersection">[docs]</a><span class="k">def</span> <span class="nf">list_intersection</span><span class="p">(</span><span class="n">listEE1</span><span class="p">,</span> <span class="n">listEE2</span><span class="p">):</span>
+<div class="viewcode-block" id="list_intersection"><a class="viewcode-back" href="../../tools.html#geetools.tools.list_intersection">[docs]</a><span class="k">def</span> <span class="nf">list_intersection</span><span class="p">(</span><span class="n">listEE1</span><span class="p">,</span> <span class="n">listEE2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Find matching values. If listEE1 has duplicated values that are present</span>
 <span class="sd">    on listEE2, all values from listEE1 will apear in the result</span>
 
@@ -682,7 +682,7 @@
 
     <span class="k">return</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">listEE1</span><span class="o">.</span><span class="n">iterate</span><span class="p">(</span><span class="n">wrap</span><span class="p">,</span> <span class="n">newlist</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="list_diff"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.list_diff">[docs]</a><span class="k">def</span> <span class="nf">list_diff</span><span class="p">(</span><span class="n">listEE1</span><span class="p">,</span> <span class="n">listEE2</span><span class="p">):</span>
+<div class="viewcode-block" id="list_diff"><a class="viewcode-back" href="../../tools.html#geetools.tools.list_diff">[docs]</a><span class="k">def</span> <span class="nf">list_diff</span><span class="p">(</span><span class="n">listEE1</span><span class="p">,</span> <span class="n">listEE2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Difference between two earth engine lists</span>
 
 <span class="sd">    :param listEE1: one list</span>
@@ -692,7 +692,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">listEE1</span><span class="o">.</span><span class="n">removeAll</span><span class="p">(</span><span class="n">listEE2</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">listEE2</span><span class="o">.</span><span class="n">removeAll</span><span class="p">(</span><span class="n">listEE1</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="parametrize"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.parametrize">[docs]</a><span class="k">def</span> <span class="nf">parametrize</span><span class="p">(</span><span class="n">range_from</span><span class="p">,</span> <span class="n">range_to</span><span class="p">,</span> <span class="n">bands</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="parametrize"><a class="viewcode-back" href="../../tools.html#geetools.tools.parametrize">[docs]</a><span class="k">def</span> <span class="nf">parametrize</span><span class="p">(</span><span class="n">range_from</span><span class="p">,</span> <span class="n">range_to</span><span class="p">,</span> <span class="n">bands</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Parametrize from a original known range to a fixed new range</span>
 
 <span class="sd">    :Parameters:</span>
@@ -755,7 +755,7 @@
         <span class="k">return</span> <span class="n">pass_date</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">final</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrap</span></div>
 
-<div class="viewcode-block" id="compute_bits"><a class="viewcode-back" href="../../geetools.html#gee_tools_py.geetools.compute_bits">[docs]</a><span class="k">def</span> <span class="nf">compute_bits</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">newName</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_bits"><a class="viewcode-back" href="../../tools.html#geetools.tools.compute_bits">[docs]</a><span class="k">def</span> <span class="nf">compute_bits</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">newName</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Compute the bits of an image</span>
 
 <span class="sd">    :param image: image that contains the band with the bit information</span>

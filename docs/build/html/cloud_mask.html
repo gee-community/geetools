@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>cloud mask module &#8212; GEE Tools 0.0.1 documentation</title>
+    <title>cloud mask module &#8212; GEE Tools 0.0.2 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.0.1',
+        VERSION:     '0.0.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="geetools.html" title="geetools module"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GEE Tools 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GEE Tools 0.0.2 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="Documentation.html" accesskey="U">Documentation</a> &#187;</li> 
       </ul>
     </div>  
@@ -52,11 +52,11 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-gee_tools_py.cloud_mask">
-<span id="cloud-mask-module"></span><h1>cloud mask module<a class="headerlink" href="#module-gee_tools_py.cloud_mask" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-geetools.cloud_mask">
+<span id="cloud-mask-module"></span><h1>cloud mask module<a class="headerlink" href="#module-geetools.cloud_mask" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt id="gee_tools_py.cloud_mask.fmask">
-<code class="descclassname">gee_tools_py.cloud_mask.</code><code class="descname">fmask</code><span class="sig-paren">(</span><em>bandname='fmask'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gee_tools_py/cloud_mask.html#fmask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gee_tools_py.cloud_mask.fmask" title="Permalink to this definition">¶</a></dt>
+<dt id="geetools.cloud_mask.fmask">
+<code class="descclassname">geetools.cloud_mask.</code><code class="descname">fmask</code><span class="sig-paren">(</span><em>bandname='fmask'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geetools/cloud_mask.html#fmask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geetools.cloud_mask.fmask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to use in Collections that have a quality band computed with
 fmask algorithm</p>
 <p>The use of this function is a little different from the other because it
@@ -78,8 +78,8 @@ function to use in map:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gee_tools_py.cloud_mask.ledaps">
-<code class="descclassname">gee_tools_py.cloud_mask.</code><code class="descname">ledaps</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gee_tools_py/cloud_mask.html#ledaps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gee_tools_py.cloud_mask.ledaps" title="Permalink to this definition">¶</a></dt>
+<dt id="geetools.cloud_mask.ledaps">
+<code class="descclassname">geetools.cloud_mask.</code><code class="descname">ledaps</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geetools/cloud_mask.html#ledaps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geetools.cloud_mask.ledaps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to use in Surface Reflectance Collections computed by
 LEDAPS</p>
 <p>Use:</p>
@@ -87,24 +87,24 @@ LEDAPS</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gee_tools_py.cloud_mask.modis">
-<code class="descclassname">gee_tools_py.cloud_mask.</code><code class="descname">modis</code><span class="sig-paren">(</span><em>img</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gee_tools_py/cloud_mask.html#modis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gee_tools_py.cloud_mask.modis" title="Permalink to this definition">¶</a></dt>
+<dt id="geetools.cloud_mask.modis">
+<code class="descclassname">geetools.cloud_mask.</code><code class="descname">modis</code><span class="sig-paren">(</span><em>img</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geetools/cloud_mask.html#modis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geetools.cloud_mask.modis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to use in MODIS Collection</p>
 <p>Use:</p>
 <p><cite>masked = collection.map(cloud_mask.modis)</cite></p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gee_tools_py.cloud_mask.sentinel2">
-<code class="descclassname">gee_tools_py.cloud_mask.</code><code class="descname">sentinel2</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gee_tools_py/cloud_mask.html#sentinel2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gee_tools_py.cloud_mask.sentinel2" title="Permalink to this definition">¶</a></dt>
+<dt id="geetools.cloud_mask.sentinel2">
+<code class="descclassname">geetools.cloud_mask.</code><code class="descname">sentinel2</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geetools/cloud_mask.html#sentinel2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geetools.cloud_mask.sentinel2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to use in SENTINEL2 Collection</p>
 <p>Use:</p>
 <p><cite>masked = collection.map(cloud_mask.sentinel2)</cite></p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gee_tools_py.cloud_mask.usgs">
-<code class="descclassname">gee_tools_py.cloud_mask.</code><code class="descname">usgs</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gee_tools_py/cloud_mask.html#usgs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gee_tools_py.cloud_mask.usgs" title="Permalink to this definition">¶</a></dt>
+<dt id="geetools.cloud_mask.usgs">
+<code class="descclassname">geetools.cloud_mask.</code><code class="descname">usgs</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geetools/cloud_mask.html#usgs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geetools.cloud_mask.usgs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to use in Surface Reflectance Collections computed by USGS</p>
 <p>Use:</p>
 <p><cite>masked = collection.map(cloud_mask.usgs)</cite></p>
@@ -160,7 +160,7 @@ LEDAPS</p>
         <li class="right" >
           <a href="geetools.html" title="geetools module"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GEE Tools 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GEE Tools 0.0.2 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="Documentation.html" >Documentation</a> &#187;</li> 
       </ul>
     </div>
