@@ -9,16 +9,14 @@ For the Python module, clone the repository and copy the folder *gee_tools_py*
 to the folder you have the scripts. As it is a module, you can import it
 directly like:
 
-``from gee_tools_py import geetools as gee``
+``from geetools import tools``
 
 and then you can use it:
 
 .. code:: python
 
-    from gee_tools_py import geetools as gee
-
     col = ee.ImageCollection("your_ID")
-    tasklist = gee.col2asset(col)
+    tasklist = tools.col2asset(col)
 
 Function's Examples
 ===================
@@ -30,7 +28,7 @@ waits between each call as much as needed.
 
 .. code:: python
 
-        from geetools import execli
+        from geetools.tools import execli
         import ee
 
         # This image doesn't exist so it will throw an error
@@ -50,7 +48,7 @@ Performs the same action as ``execli`` but is meant to be used as a decorator.
 
 .. code:: python
 
-        from geetools import execli_deco
+        from geetools.tools import execli_deco
         import ee
 
         # TRY TO GET THE INFO OF AN IMAGE WITH DEFAULT PARAMETERS
@@ -77,7 +75,7 @@ Adds constant bands to an image. You can use it in 3 ways (see example below)
 
 .. code:: python
 
-        from geetools import addConstantBands
+        from geetools.tools import addConstantBands
         import ee
 
         col = ee.ImageCollection(ID)
