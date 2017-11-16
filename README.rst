@@ -1,25 +1,37 @@
 Google Earth Engine tools
 #########################
 
-These are a bunch of Google Earth Engine Scripts with some tools that may help
-to solve or automatize some processes. The JavaScript scripts here can only be
-pasted to the code editor.
+These are a set tools for Google Earth Engine that may help
+to solve or automatize some processes.
 
-For the Python module, clone the repository and copy the folder *gee_tools_py*
-to the folder you have the scripts. As it is a module, you can import it
-directly like:
+There are some JavaScript functions that you can use in the Code Editor
+(https://code.earthengine.google.com/) placed in a folder called `js`
 
-``from geetools import tools``
+The rest of the repository is oriented to the GEE Python API. You can install
+these tools as a normal python package:
 
-and then you can use it:
+Installation
+============
+
+`pip install geetools`
+
+Basic Usage
+===========
 
 .. code:: python
+
+    from geetools import tools
 
     col = ee.ImageCollection("your_ID")
     tasklist = tools.col2asset(col)
 
-Function's Examples
-===================
+Full documentation
+==================
+
+http://geetools.readthedocs.io
+
+Some Examples
+=============
 
 execli
 ------
