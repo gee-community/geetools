@@ -17,6 +17,13 @@ Installation
 
     pip install geetools
 
+Upgrade
+=======
+
+.. code:: bash
+
+    pip install --upgrade geetools
+
 Basic Usage
 ===========
 
