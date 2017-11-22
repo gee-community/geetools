@@ -160,7 +160,10 @@ def execli(function, times=None, wait=None, trace=None):
     return wrap(function)
 
 # INITIALIZE EARTH ENGINE USING EXECLI FUNCTION
-execli(ee.Initialize)()
+try:
+    execli(ee.Initialize)()
+except:
+    pass
 
 @execli_deco()
 def getRegion(geom):
