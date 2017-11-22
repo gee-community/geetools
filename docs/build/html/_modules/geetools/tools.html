@@ -88,6 +88,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../tools.html">geetools module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../cloud_mask.html">cloud mask module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../expressions.html">expressions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../imagestrip.html">imagestrip module</a></li>
 </ul>
 </li>
 </ul>
@@ -161,6 +162,7 @@
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="kn">import</span> <span class="nn">ee</span>
 
@@ -885,6 +887,33 @@
         <span class="n">pattern</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">**</span><span class="n">i</span>
 
     <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">newName</span><span class="p">])</span><span class="o">.</span><span class="n">bitwiseAnd</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">rightShift</span><span class="p">(</span><span class="n">start</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="downloadFile"><a class="viewcode-back" href="../../tools.html#geetools.tools.downloadFile">[docs]</a><span class="k">def</span> <span class="nf">downloadFile</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Download a file from a given url</span>
+
+<span class="sd">    :param url: full url</span>
+<span class="sd">    :type url: str</span>
+<span class="sd">    :param name: name for the file (can contain a path)</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param ext: extension for the file</span>
+<span class="sd">    :type ext: str</span>
+<span class="sd">    :return: the created file (closed)</span>
+<span class="sd">    :rtype: file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span>
+
+    <span class="k">while</span> <span class="n">code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">():</span>
+            <span class="n">handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">handle</span></div>
 </pre></div>
 
            </div>

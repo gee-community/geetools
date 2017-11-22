@@ -1,0 +1,722 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>geetools.imagestrip &mdash; GEE Tools 0.0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="GEE Tools 0.0.2 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> GEE Tools
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Documentation.html">Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tools.html">geetools module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cloud_mask.html">cloud mask module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../expressions.html">expressions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../imagestrip.html">imagestrip module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">GEE Tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>geetools.imagestrip</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for geetools.imagestrip</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding=utf-8</span>
+<span class="sd">&#39;&#39;&#39; Creation of strip of images &#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">tools</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span> <span class="k">as</span> <span class="n">ImPIL</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">ImageDraw</span><span class="p">,</span> <span class="n">ImageFont</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">ee</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<div class="viewcode-block" id="ImageStrip"><a class="viewcode-back" href="../../imagestrip.html#geetools.imagestrip.ImageStrip">[docs]</a><span class="k">class</span> <span class="nc">ImageStrip</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Create an image strip &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param name: File name</span>
+<span class="sd">        :type name: str</span>
+
+<span class="sd">        :Opcionals:</span>
+
+<span class="sd">        :param ext: Extention. Default: png</span>
+<span class="sd">        :type ext: str</span>
+<span class="sd">        :param body_size: Body size. Defaults to 18</span>
+<span class="sd">        :type body_size: int</span>
+<span class="sd">        :param title_size: Title&#39;s font size. Defaults to 30</span>
+<span class="sd">        :type title_size: int</span>
+<span class="sd">        :param font: Font for all texts. defaults to &quot;DejaVuSerif.ttf&quot;</span>
+<span class="sd">        :type font: str</span>
+<span class="sd">        :param background_color: Background color. defaults to &quot;white&quot;</span>
+<span class="sd">        :type background_color: str</span>
+<span class="sd">        :param title_color: Title&#39;s font color. defaults to &quot;black&quot;</span>
+<span class="sd">        :type title_color: str</span>
+<span class="sd">        :param body_color: Body&#39;s text color. defaults to &quot;red&quot;</span>
+<span class="sd">        :type body_color:  str</span>
+<span class="sd">        :param general_width: defaults to 0</span>
+<span class="sd">        :type general_width: int</span>
+<span class="sd">        :param general_height: defaults to 0</span>
+<span class="sd">        :type general_height: int</span>
+<span class="sd">        :param y_space: Space between lines or rows. defaults to 10</span>
+<span class="sd">        :type y_space: int</span>
+<span class="sd">        :param x_space: Space between columns. defaults to 15</span>
+<span class="sd">        :type x_space: int</span>
+<span class="sd">        :param description: Description that will go beneath the title</span>
+<span class="sd">        :type description: str</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ext</span> <span class="o">=</span> <span class="n">ext</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">body_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;body_size&quot;</span><span class="p">,</span> <span class="mi">18</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;title_size&quot;</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;font&quot;</span><span class="p">,</span> <span class="s2">&quot;DejaVuSerif.ttf&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">background_color</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;background_color&quot;</span><span class="p">,</span> <span class="s2">&quot;white&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_color</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;title_color&quot;</span><span class="p">,</span> <span class="s2">&quot;black&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">body_color</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;body_color&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">general_width</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;general_width&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">general_height</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;general_height&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_space</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;y_space&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_space</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x_space&quot;</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ImageStrip.unpack"><a class="viewcode-back" href="../../imagestrip.html#geetools.imagestrip.ImageStrip.unpack">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">unpack</span><span class="p">(</span><span class="n">doublelist</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">doublelist</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ImageStrip.create"><a class="viewcode-back" href="../../imagestrip.html#geetools.imagestrip.ImageStrip.create">[docs]</a>    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imlist</span><span class="p">,</span> <span class="n">namelist</span><span class="p">,</span> <span class="n">desclist</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Main method to create the actual strip</span>
+<span class="sd">        </span>
+<span class="sd">        :param imlist: PIL images, ej: [[img1, img2],[img3, img4]]</span>
+<span class="sd">        :type imlist: list of lists</span>
+<span class="sd">        :param namelist: Names for the images. Must match imlist size</span>
+<span class="sd">        :type namelist: list of lists</span>
+<span class="sd">        :param desclist: Descriptions for the images. Must match imlist size</span>
+<span class="sd">        :type desclist: list of lists</span>
+<span class="sd">        :return:</span>
+<span class="sd">        :rtype:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># SANITY CHECK</span>
+        <span class="n">err1</span> <span class="o">=</span> <span class="s2">&quot;dimension of imlist must match dimension of namelist&quot;</span>
+        <span class="n">err2</span> <span class="o">=</span> <span class="s2">&quot;dimension of nested lists must be equal&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">imlist</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">namelist</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">imlist</span><span class="p">]</span> <span class="o">!=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">namelist</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">desclist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">desclist</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">imlist</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">imlist</span><span class="p">]</span> <span class="o">!=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">desclist</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err2</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">line_height</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">font</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Calculate height for a multiline text</span>
+<span class="sd">            </span>
+<span class="sd">            :param text: multiline text</span>
+<span class="sd">            :type text: str</span>
+<span class="sd">            :param font: utilized font</span>
+<span class="sd">            :type font: ImageFont</span>
+<span class="sd">            :return: text height</span>
+<span class="sd">            :rtype: float</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">lista</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">alt</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">linea</span> <span class="ow">in</span> <span class="n">lista</span><span class="p">:</span>
+                <span class="n">alt</span> <span class="o">+=</span> <span class="n">font</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">linea</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">alt</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_space</span>
+
+        <span class="c1"># FUENTES</span>
+        <span class="n">font</span> <span class="o">=</span> <span class="n">ImageFont</span><span class="o">.</span><span class="n">truetype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">body_size</span><span class="p">)</span>
+        <span class="n">fontit</span> <span class="o">=</span> <span class="n">ImageFont</span><span class="o">.</span><span class="n">truetype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">title_size</span><span class="p">)</span>
+        <span class="n">font_desc</span> <span class="o">=</span> <span class="n">ImageFont</span><span class="o">.</span><span class="n">truetype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">title_size</span> <span class="o">-</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="c1"># TITULO</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">title_height</span> <span class="o">=</span> <span class="n">line_height</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontit</span><span class="p">)</span>
+        
+        <span class="c1"># DIMENSIONES DESCRIPCION</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">desc_height</span> <span class="o">=</span> <span class="n">line_height</span><span class="p">(</span><span class="n">description</span><span class="p">,</span> <span class="n">font_desc</span><span class="p">)</span>
+        <span class="n">desc_width</span> <span class="o">=</span> <span class="n">font_desc</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">description</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># ALTURA NOMBRES</span>
+        <span class="k">if</span> <span class="n">desclist</span><span class="p">:</span>
+            <span class="n">all_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">desclist</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">all_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">namelist</span><span class="p">)]</span>
+
+        <span class="n">all_height</span> <span class="o">=</span> <span class="p">[</span><span class="n">line_height</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">font</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">all_names</span><span class="p">]</span>
+        <span class="n">name_height</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="o">*</span><span class="n">all_height</span><span class="p">)</span> <span class="c1">#+ 2</span>
+        <span class="c1"># print alturatodos, alturanombres</span>
+
+        <span class="c1"># CALCULO EL ANCHO DE LA PLANTILLA</span>
+        <span class="n">imgs_width</span> <span class="o">=</span> <span class="p">[[</span><span class="n">ii</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_space</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">imlist</span><span class="p">]</span>
+        <span class="n">imgs_width_sum</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">imgs_width</span><span class="p">]</span>
+
+        <span class="c1"># CALCULO EL MAXIMO ANCHO DE LA LISTA DE ANCHOS</span>
+        <span class="n">max_width</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">imgs_width_sum</span><span class="p">)</span>
+        <span class="n">strip_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_width</span><span class="p">)</span>
+
+        <span class="c1"># CALCULO EL ALTO MAX</span>
+
+        <span class="c1"># POR AHORA LO CALCULA CON EL ALTO DE LA 1ER COLUMNA</span>
+        <span class="c1"># PERO SE PODRIA CALCULAR CUAL ES LA IMG MAS ALTA Y CUAL</span>
+        <span class="c1"># ES EL TITULO MAS ALTO, Y COMBINAR AMBOS...</span>
+
+        <span class="c1"># Tener en cuenta que listaimgs es una lista de listas [[i1,i2], [i3,i4]]</span>
+
+        <span class="c1"># print &quot;calculando general_height de la plantilla...&quot;</span>
+
+        <span class="n">imgs_height</span> <span class="o">=</span> <span class="p">[[</span><span class="n">ii</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">imlist</span><span class="p">]</span>
+        <span class="n">max_imgs_height</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="o">*</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">name_height</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_space</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">imgs_height</span><span class="p">]</span>
+        <span class="n">max_height</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">max_imgs_height</span><span class="p">)</span>
+
+        <span class="n">strip_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">((</span><span class="n">title_height</span><span class="p">,</span> <span class="n">desc_height</span><span class="p">,</span> <span class="n">max_height</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">y_space</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)))</span>
+
+        <span class="n">strip</span> <span class="o">=</span> <span class="n">ImPIL</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">strip_width</span><span class="p">,</span> <span class="n">strip_height</span><span class="p">),</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">background_color</span><span class="p">)</span>
+
+        <span class="n">draw</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">strip</span><span class="p">)</span>
+
+        <span class="c1"># DIBUJA LOS ELEMENTOS DENTRO DE LA PLANTILLA</span>
+
+        <span class="c1"># COORD INICIALES</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># DIBUJA EL TITULO</span>
+        <span class="n">draw</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">title</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">fontit</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">title_color</span><span class="p">)</span>
+
+        <span class="c1"># DIBUJA LA DESCRIPCION</span>
+        <span class="n">y</span> <span class="o">+=</span> <span class="n">title_height</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_space</span> <span class="c1"># aumento y</span>
+        <span class="c1"># print &quot;y de la descripcion:&quot;, y</span>
+        <span class="n">draw</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">description</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font_desc</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">title_color</span><span class="p">)</span>
+
+        <span class="c1"># DIBUJA LAS FILAS</span>
+
+        <span class="c1"># logging.debug((&quot;altura de la descripcion (calculada):&quot;, desc_height))</span>
+        <span class="c1"># logging.debug((&quot;altura de la desc&quot;, font_desc.getsize(description)[1]))</span>
+        <span class="n">y</span> <span class="o">+=</span> <span class="n">desc_height</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_space</span> <span class="c1"># aumento y</span>
+
+        <span class="c1"># DIBUJA LAS FILAS Y COLUMNAS</span>
+
+        <span class="k">if</span> <span class="n">desclist</span><span class="p">:</span>
+            <span class="n">namelist</span> <span class="o">=</span> <span class="n">desclist</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">alto</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">imlist</span><span class="p">,</span> <span class="n">namelist</span><span class="p">,</span> <span class="n">max_imgs_height</span><span class="p">):</span>
+            <span class="c1"># RESETEO LA POSICION HORIZONTAL</span>
+            <span class="n">xn</span> <span class="o">=</span> <span class="n">x</span> <span class="c1"># hago esto porque en cada iteracion aumento solo xn y desp vuelvo a x</span>
+            <span class="k">for</span> <span class="n">image</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+                <span class="c1"># LA COLUMNA ES: (imagen, name, anchocolumna)</span>
+                <span class="c1"># print image, name</span>
+
+                <span class="n">ancho_i</span><span class="p">,</span> <span class="n">alto_i</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">size</span>
+
+                <span class="c1"># DIBUJO imagen</span>
+                <span class="n">strip</span><span class="o">.</span><span class="n">paste</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">xn</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+
+                <span class="c1"># aumento y para pegar el texto</span>
+                <span class="n">_y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">alto_i</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_space</span>
+
+                <span class="c1"># DIBUJO name</span>
+                <span class="n">draw</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">xn</span><span class="p">,</span> <span class="n">_y</span><span class="p">),</span>
+                          <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">),</span>
+                          <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span>
+                          <span class="n">fill</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body_color</span><span class="p">)</span>
+
+                <span class="c1"># AUMENTO y</span>
+                <span class="n">xn</span> <span class="o">+=</span> <span class="n">ancho_i</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_space</span>
+
+            <span class="c1"># AUMENTO x</span>
+            <span class="n">y</span> <span class="o">+=</span> <span class="n">alto</span>
+
+        <span class="n">strip</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ext</span><span class="p">)</span>
+        <span class="n">strip</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">strip</span></div>
+
+<div class="viewcode-block" id="ImageStrip.from_list"><a class="viewcode-back" href="../../imagestrip.html#geetools.imagestrip.ImageStrip.from_list">[docs]</a>    <span class="k">def</span> <span class="nf">from_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imlist</span><span class="p">,</span> <span class="n">namelist</span><span class="p">,</span> <span class="n">viz_bands</span><span class="p">,</span> <span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span>
+                  <span class="n">folder</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desclist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Download every image and create the strip</span>
+
+<span class="sd">        :param imlist: Satellite Images (not PIL!!!!!!)</span>
+<span class="sd">        :type imlist: list of ee.Image</span>
+<span class="sd">        :param namelist: Names for the images. Must match imlist</span>
+<span class="sd">        :type namelist: list of str</span>
+<span class="sd">        :param desclist: list of descriptions for every image. Optional</span>
+<span class="sd">        :type desclist: list of str</span>
+<span class="sd">        :param viz_bands: Visualization bands. ej: [&quot;NIR&quot;,&quot;SWIR&quot;,&quot;RED&quot;]</span>
+<span class="sd">        :type viz_bands: list of str</span>
+<span class="sd">        :param min: min value for visualization</span>
+<span class="sd">        :type min: int</span>
+<span class="sd">        :param max: max value for visualization</span>
+<span class="sd">        :type max: int</span>
+<span class="sd">        :param region: coordinate list. Optional</span>
+<span class="sd">        :type region: list</span>
+<span class="sd">        :param folder: folder to downlaod files. Do not use &#39;/&#39; at the end</span>
+<span class="sd">        :type folder: str</span>
+<span class="sd">        :param check: Check if file exists, and if it does, omits the downlaod</span>
+<span class="sd">        :type check: bool</span>
+<span class="sd">        :param draw_polygons: Polygons to draw over the image. Must be a list of list of</span>
+<span class="sd">            coordinates. Optional</span>
+<span class="sd">        :type draw_polygons: list of list</span>
+<span class="sd">        :param draw_lines: Lines to draw over the image</span>
+<span class="sd">        :type draw_lines: list of list</span>
+<span class="sd">        :param draw_points: Points to draw over the image</span>
+<span class="sd">        :type draw_points: list of list</span>
+<span class="sd">        :param general_width: Images width</span>
+<span class="sd">        :type general_width: int</span>
+
+<span class="sd">        :return: A file with the name passed to StripImage() in the folder</span>
+<span class="sd">            passed to the method. Opens the generated file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">region</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">execli</span><span class="p">(</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span><span class="n">region</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">)()[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+
+        <span class="c1"># TODO: modificar este metodo para que se pueda pasar listas de listas</span>
+        <span class="n">general_width</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;general_width&quot;</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+
+        <span class="n">draw_polygons</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;draw_polygons&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">draw_lines</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;draw_lines&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">draw_points</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;draw_points&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># desclist = kwargs.get(&quot;desclist&quot;, None)</span>
+
+        <span class="n">list_of_lists</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># logging.debug((&quot;verificar archivo?&quot;, check))</span>
+
+        <span class="c1"># for i in range(0, len(imlist)):</span>
+        <span class="k">for</span> <span class="n">img_list</span><span class="p">,</span> <span class="n">nom_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">imlist</span><span class="p">,</span> <span class="n">namelist</span><span class="p">):</span>
+            <span class="n">pil_img_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">image</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">img_list</span><span class="p">,</span> <span class="n">nom_list</span><span class="p">):</span>
+                <span class="c1"># name = namelist[i]</span>
+                <span class="c1"># exist = os.path.exists(folder+&quot;/&quot;+name)</span>
+                <span class="c1"># path = &quot;{0}/{1}.{2}&quot;.format(folder, name, self.ext)</span>
+
+                <span class="c1"># CHECK CARPETA</span>
+                <span class="n">abscarp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">abscarp</span><span class="p">):</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">abscarp</span><span class="p">)</span>
+
+                <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                <span class="n">fullpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">ext</span>
+                <span class="n">exist</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fullpath</span><span class="p">)</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">((</span><span class="s2">&quot;existe </span><span class="si">{}</span><span class="s2">?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fullpath</span><span class="p">),</span> <span class="n">exist</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">check</span> <span class="ow">and</span> <span class="n">exist</span><span class="p">:</span>
+                    <span class="n">im</span> <span class="o">=</span> <span class="n">ImPIL</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fullpath</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">img</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+                    <span class="n">urlviz</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">bands</span><span class="o">=</span><span class="n">viz_bands</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="nb">max</span><span class="p">,</span>
+                                           <span class="n">forceRgbOutput</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                    <span class="n">url</span> <span class="o">=</span> <span class="n">urlviz</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">({</span><span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="n">region</span><span class="p">,</span>
+                                              <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ext</span><span class="p">,</span>
+                                              <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span> <span class="n">general_width</span><span class="p">})</span>
+
+                    <span class="c1"># archivo = funciones.downloadFile3(url, folder+&quot;/&quot;+name, self.ext)</span>
+                    <span class="n">file</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">downloadFile</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ext</span><span class="p">)</span>
+
+                    <span class="n">im</span> <span class="o">=</span> <span class="n">ImPIL</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="c1"># listaimPIL.append(im)</span>
+
+                <span class="n">dr</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+
+                <span class="n">general_width</span><span class="p">,</span> <span class="n">general_height</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">size</span>
+                <span class="c1"># print &quot;general_width:&quot;, general_width, &quot;general_height:&quot;, general_height</span>
+
+                <span class="c1"># nivel de &#39;anidado&#39; (nested)</span>
+                <span class="k">def</span> <span class="nf">nested_level</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+                    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">while</span> <span class="nb">type</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="n">l</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">return</span> <span class="n">n</span>
+
+                <span class="n">region</span> <span class="o">=</span> <span class="n">region</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">nested_level</span><span class="p">(</span><span class="n">region</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">region</span>
+                <span class="n">region</span> <span class="o">=</span> <span class="n">region</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">region</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span> <span class="k">else</span> <span class="n">region</span>
+
+                <span class="n">p0</span> <span class="o">=</span> <span class="n">region</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="n">region</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">p3</span> <span class="o">=</span> <span class="n">region</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">distX</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">distY</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">p3</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+                <span class="c1"># FACTORES DE ESCALADO</span>
+                <span class="n">width_ratio</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">general_width</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">distX</span><span class="p">)</span>
+                <span class="n">height_ratio</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">general_height</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">distY</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">draw_polygons</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">pol</span> <span class="ow">in</span> <span class="n">draw_polygons</span><span class="p">:</span>
+                        <span class="n">pol</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pol</span><span class="p">]</span>
+
+                        <span class="n">newpol</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">p0</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">width_ratio</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="o">-</span><span class="n">p0</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">height_ratio</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">pol</span><span class="p">]</span>
+
+                        <span class="c1"># logging.debug(&quot;nuevas coords {}&quot;.format(newpol))</span>
+
+                        <span class="c1">#print &quot;\n\n&quot;, pol, &quot;\n\n&quot;</span>
+                        <span class="n">dr</span><span class="o">.</span><span class="n">polygon</span><span class="p">(</span><span class="n">newpol</span><span class="p">,</span> <span class="n">outline</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+
+                <span class="n">pil_img_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+            <span class="n">list_of_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pil_img_list</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">desclist</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">list_of_lists</span><span class="p">,</span> <span class="n">namelist</span><span class="p">,</span> <span class="n">desclist</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">list_of_lists</span><span class="p">,</span> <span class="n">namelist</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ImageStrip.from_collection"><a class="viewcode-back" href="../../imagestrip.html#geetools.imagestrip.ImageStrip.from_collection">[docs]</a>    <span class="k">def</span> <span class="nf">from_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collections</span><span class="p">,</span> <span class="n">viz_param</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">drawRegion</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create an image strip from a given ee.ImageCollection or ee.List</span>
+
+<span class="sd">        :param collections: contains the images (ee.Image)</span>
+<span class="sd">        :type collections: list of ee.ImageCollection or ee.List</span>
+<span class="sd">        :param viz_param: visualization parameters. If None will use data of</span>
+<span class="sd">            the first 3 bands.</span>
+<span class="sd">        :type viz_param: dict</span>
+<span class="sd">        :param region: region from where to create the image strip. If None,</span>
+<span class="sd">            the region of the first image is used</span>
+<span class="sd">        :type region: list of list</span>
+<span class="sd">        :param name: name for the folder. If None the name of the</span>
+<span class="sd">            collection will be used</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param folder: folder to save the file. If None, the name of the</span>
+<span class="sd">            collection will be used</span>
+<span class="sd">        :type folder: str</span>
+<span class="sd">        :param properties: properties to add as a description of every image</span>
+<span class="sd">        :type properties: list</span>
+<span class="sd">        :param drawRegion: draw a polygon in the given region</span>
+<span class="sd">        :type drawRegion: bool</span>
+<span class="sd">        :param zoom: doesn&#39;t match EE zoom, this strats from 0 (no zoom).</span>
+<span class="sd">        :type zoom: int</span>
+<span class="sd">        :param description: Paragraph that serves as a decription of the image</span>
+<span class="sd">            strip</span>
+<span class="sd">        :type description: str</span>
+<span class="sd">        :param kwargs: other parameters passed to the creation of the</span>
+<span class="sd">            ImageStrip object.</span>
+<span class="sd">        :type kwargs: dict</span>
+<span class="sd">        :return: A file with the name passed to StripImage() in the folder</span>
+<span class="sd">            passed to the method. Opens the generated file</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># SANITY CHECK</span>
+        <span class="n">coltypes_imcol</span> <span class="o">=</span> <span class="p">[</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">collections</span><span class="p">]</span>
+        <span class="n">coltypes_imlist</span> <span class="o">=</span> <span class="p">[</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">collections</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">min</span><span class="p">(</span><span class="n">coltypes_imcol</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">min</span><span class="p">(</span><span class="n">coltypes_imlist</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;collection&#39; parameter must be a list of &quot;</span> \
+                <span class="s2">&quot;ee.ImageCollection or a list of ee.List containing ee.Image&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">folder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">folder</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="c1"># TOMA DATOS DE LA PRIMER IMAGEN POR SI NO SE ESPECIFICA LA REGION O LOS</span>
+        <span class="c1"># PARAMETROS PARA LA VISUALIZACION</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">collections</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">first</span><span class="p">())</span>
+        <span class="n">first_info</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">execli</span><span class="p">(</span><span class="n">first</span><span class="o">.</span><span class="n">getInfo</span><span class="p">)()</span>
+
+        <span class="c1"># OBTENGO LA REGION, DE ESTE MODO SE PUEDE ESPECIFICAR UN AREA MAS CHICA</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">region</span><span class="p">:</span>
+            <span class="n">region</span> <span class="o">=</span> <span class="n">first</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">bounds</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+
+        <span class="n">original_region</span> <span class="o">=</span> <span class="n">region</span>
+
+        <span class="n">maxError</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maxError&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">zoom</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">pol</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="n">pol</span><span class="o">.</span><span class="n">centroid</span><span class="p">()</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">center</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">zoom</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="n">maxError</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">()</span>
+            <span class="n">region</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">execli</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">getInfo</span><span class="p">)()[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">viz_param</span><span class="p">:</span>
+            <span class="n">bands</span> <span class="o">=</span> <span class="n">viz_param</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bands&quot;</span><span class="p">)</span>
+            <span class="n">minV</span> <span class="o">=</span> <span class="n">viz_param</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">)</span>
+            <span class="n">maxV</span> <span class="o">=</span> <span class="n">viz_param</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bandtype</span> <span class="o">=</span> <span class="n">first_info</span><span class="p">[</span><span class="s2">&quot;bands&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;data_type&quot;</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span>
+            <span class="n">bandmax</span> <span class="o">=</span> <span class="n">first_info</span><span class="p">[</span><span class="s2">&quot;bands&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;data_type&quot;</span><span class="p">][</span><span class="s2">&quot;max&quot;</span><span class="p">]</span>
+            <span class="n">b1</span> <span class="o">=</span> <span class="n">first_info</span><span class="p">[</span><span class="s2">&quot;bands&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+            <span class="n">b2</span> <span class="o">=</span> <span class="n">first_info</span><span class="p">[</span><span class="s2">&quot;bands&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+            <span class="n">b3</span> <span class="o">=</span> <span class="n">first_info</span><span class="p">[</span><span class="s2">&quot;bands&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+            <span class="n">bands</span> <span class="o">=</span> <span class="p">[</span><span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">b3</span><span class="p">]</span>
+            <span class="n">minV</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">bandtype</span> <span class="o">==</span> <span class="s2">&quot;int&quot;</span> <span class="ow">and</span> <span class="n">bandmax</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="p">:</span>
+                <span class="n">maxV</span> <span class="o">=</span> <span class="mi">5000</span>
+            <span class="k">elif</span> <span class="n">bandtype</span> <span class="o">==</span> <span class="s2">&quot;float&quot;</span><span class="p">:</span>
+                <span class="n">maxV</span> <span class="o">=</span> <span class="mf">0.5</span>
+            <span class="k">elif</span> <span class="n">bandtype</span> <span class="o">==</span> <span class="s2">&quot;int&quot;</span> <span class="ow">and</span> <span class="n">bandmax</span> <span class="o">==</span> <span class="mi">255</span><span class="p">:</span>
+                <span class="n">maxV</span> <span class="o">=</span> <span class="mi">125</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">maxV</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+        <span class="n">zoom_str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">zoom</span><span class="p">)</span>
+        <span class="n">region_str</span> <span class="o">=</span> <span class="s2">&quot;with_region&quot;</span> <span class="k">if</span> <span class="n">drawRegion</span> <span class="k">else</span> <span class="s2">&quot;without_region&quot;</span>
+
+        <span class="n">name</span> <span class="o">+=</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">zoom_str</span><span class="p">,</span> <span class="n">region_str</span><span class="p">))</span>
+
+        <span class="n">pl</span> <span class="o">=</span> <span class="n">ImageStrip</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">)</span>
+
+        <span class="n">nested_imgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">nested_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">nested_desc</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">collections</span><span class="p">:</span>
+            <span class="c1"># TRANSFORMO LA COLECCION EN UNA LISTA</span>
+            <span class="n">lista</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">toList</span><span class="p">(</span><span class="mi">5000</span><span class="p">)</span>
+            <span class="n">listaPy</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">descriptions</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># description para cada imagen</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">execli</span><span class="p">(</span><span class="n">lista</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">)()</span>
+            <span class="c1"># colID = funciones.execli(col.getInfo)()[&quot;id&quot;].split(&quot;/&quot;)[-1]</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">lista</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                <span class="n">listaPy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+                <span class="n">date</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">execli</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">date</span><span class="p">()</span><span class="o">.</span><span class="n">format</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">)()</span>
+                <span class="n">imID</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">execli</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">id</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">)()</span>
+                <span class="n">propname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">if</span> <span class="n">properties</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">execli</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span><span class="o">.</span><span class="n">getInfo</span><span class="p">)()</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="s2">&quot;no </span><span class="si">{}</span><span class="s2"> property&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                        <span class="n">propname</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">_&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+                <span class="c1"># desc = &quot;{fecha}&quot;.format(id=imID, fecha=date)</span>
+                <span class="n">desc</span> <span class="o">=</span> <span class="s2">&quot;ID: </span><span class="si">{imID}</span><span class="s2">_date: </span><span class="si">{date}</span><span class="s2">_</span><span class="si">{propname}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+                <span class="c1"># nn = &quot;_&quot;.join((colID, str(date), zoom_str, buff_str))</span>
+                <span class="n">nn</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">imID</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">date</span><span class="p">),</span> <span class="n">zoom_str</span><span class="p">))</span>
+
+                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="p">)</span>
+                <span class="n">descriptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+
+            <span class="c1"># logging.debug((&quot;descripciones&quot;, descripciones))</span>
+            <span class="c1"># logging.debug((&quot;nombres&quot;, nombres))</span>
+
+            <span class="n">nested_imgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">listaPy</span><span class="p">)</span>
+            <span class="n">nested_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+            <span class="n">nested_desc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">descriptions</span><span class="p">)</span>
+
+        <span class="n">arguments</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">imlist</span><span class="o">=</span><span class="n">nested_imgs</span><span class="p">,</span>
+            <span class="n">namelist</span><span class="o">=</span><span class="n">nested_names</span><span class="p">,</span>
+            <span class="n">desclist</span><span class="o">=</span><span class="n">nested_desc</span><span class="p">,</span>
+            <span class="n">viz_bands</span><span class="o">=</span><span class="n">bands</span><span class="p">,</span>
+            <span class="nb">min</span><span class="o">=</span><span class="n">minV</span><span class="p">,</span>
+            <span class="nb">max</span><span class="o">=</span><span class="n">maxV</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+            <span class="n">folder</span><span class="o">=</span><span class="n">folder</span><span class="p">,</span>
+            <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">drawRegion</span><span class="p">:</span>
+            <span class="n">arguments</span><span class="p">[</span><span class="s2">&quot;draw_polygons&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">original_region</span><span class="p">)</span>
+
+        <span class="c1"># print arguments[&quot;draw_polygons&quot;]</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="o">**</span><span class="n">arguments</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">i</span></div></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Rodrigo E. Principe.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

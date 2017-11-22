@@ -5,3 +5,4 @@ Documentation
     tools
     cloud_mask
     expressions
+    imagestrip

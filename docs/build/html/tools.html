@@ -90,6 +90,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">geetools module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cloud_mask.html">cloud mask module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="expressions.html">expressions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="imagestrip.html">imagestrip module</a></li>
 </ul>
 </li>
 </ul>
@@ -291,6 +292,31 @@ a new name</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ee.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="geetools.tools.downloadFile">
+<code class="descclassname">geetools.tools.</code><code class="descname">downloadFile</code><span class="sig-paren">(</span><em>url</em>, <em>name</em>, <em>ext</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geetools/tools.html#downloadFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geetools.tools.downloadFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download a file from a given url</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>url</strong> (<em>str</em>) – full url</li>
+<li><strong>name</strong> (<em>str</em>) – name for the file (can contain a path)</li>
+<li><strong>ext</strong> (<em>str</em>) – extension for the file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the created file (closed)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">file</p>
 </td>
 </tr>
 </tbody>
