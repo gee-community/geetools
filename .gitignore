@@ -79,3 +79,9 @@ venv.bak/
 
 .idea/
 gee_tools.iml
+
+files/
+*.png
+
+test.py
+geetools/tests/test.py

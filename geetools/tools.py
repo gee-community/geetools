@@ -5,6 +5,7 @@ This file contains a bunch of useful functions to use in Google Earth Engine
 import time
 import traceback
 import functools
+import requests
 
 import ee
 
@@ -729,3 +730,30 @@ def compute_bits(image, start, end, newName):
         pattern += 2**i
 
     return image.select([0], [newName]).bitwiseAnd(pattern).rightShift(start)
+
+def downloadFile(url, name, ext):
+    """ Download a file from a given url
+
+    :param url: full url
+    :type url: str
+    :param name: name for the file (can contain a path)
+    :type name: str
+    :param ext: extension for the file
+    :type ext: str
+    :return: the created file (closed)
+    :rtype: file
+    """
+    response = requests.get(url, stream=True)
+    code = response.status_code
+
+    while code != 200:
+        if code == 400:
+            return None
+        response = requests.get(url, stream=True)
+        code = response.status_code
+
+    with open(name + "." + ext, "wb") as handle:
+        for data in response.iter_content():
+            handle.write(data)
+
+    return handle

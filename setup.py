@@ -25,7 +25,7 @@ setup(
     keywords='google earth engine raster image processing gis satelite',
     packages=find_packages(exclude=('docs', 'js')),
     include_package_data=True,
-    install_requires=[],
+    install_requires=['requests', 'Pillow'],
     extras_require={
     'dev': [],
     'docs': [],
