@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-This file contains a bunch of useful functions to use in Google Earth Engine
+This file contains a set of useful functions to use in Google Earth Engine
 """
 import time
 import traceback

@@ -2,7 +2,7 @@
 
 import unittest
 import ee
-from geetools import tools, cloud_mask, expressions
+from geetools import tools
 ee.Initialize()
 
 class TestTools(unittest.TestCase):
@@ -29,6 +29,13 @@ class TestTools(unittest.TestCase):
 
         self.list1 = ee.List([1,2,3,4,5])
         self.list2 = ee.List([4,5,6,7])
+
+        self.pol_L8SR = ee.Geometry.Polygon([[[-66, -25],
+                                              [-66, -24.5],
+                                              [-65.5, -24.5],
+                                              [-65.5, -25]]])
+
+        self.l8SR_col = ee.ImageCollection("LANDSAT/LC8_SR")
 
     def test_getRegion(self):
         expected = [[0.0,0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0], [0.0, 0.0]]
@@ -141,6 +148,7 @@ class TestTools(unittest.TestCase):
         self.assertEqual(vals["B3"], 824)
 
     def test_cloud_mask(self):
+        from geetools import cloud_mask
         # LANDSAT 4 TOA
         masked_l4toa = cloud_mask.fmask("fmask")(self.l4toa)
         p_l4toa = ee.Geometry.Point([-72.2736, -44.6062])
@@ -214,6 +222,7 @@ class TestTools(unittest.TestCase):
         self.assertEqual(vals_te["sur_refl_b01"], None)
 
     def test_expressions(self):
+        from geetools import expressions
         generator = expressions.ExpGen()
         exp_max = generator.max("b('B1')", "b('B2')")
         exp_min = generator.min("b('B1')", "b('B2')")
