@@ -314,8 +314,7 @@ def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
     return tasklist
 
 @execli_deco()
-def col2drive(col, folder, scale=30, maxImgs=100, dataType="float",
-                region=None, **kwargs):
+def col2drive(col, folder, scale=30, dataType="float", region=None, **kwargs):
     """ Upload all images from one collection to Google Drive. You can use the
     same arguments as the original function ee.batch.export.image.toDrive
 
@@ -336,8 +335,8 @@ def col2drive(col, folder, scale=30, maxImgs=100, dataType="float",
     :return: list of tasks
     :rtype: list
     """
-    alist = col.toList(maxImgs)
-    size = alist.size().getInfo()
+    size = col.size().getInfo()
+    alist = col.toList(size)
     tasklist = []
 
     if region is None:
@@ -370,8 +369,7 @@ def col2drive(col, folder, scale=30, maxImgs=100, dataType="float",
     return tasklist
 
 @execli_deco()
-def col2asset(col, assetPath, scale=30, maxImgs=100, region=None,
-              create=True, **kwargs):
+def col2asset(col, assetPath, scale=30, region=None, create=True, **kwargs):
     """ Upload all images from one collection to a Earth Engine Asset. You can
     use the same arguments as the original function ee.batch.export.image.toDrive
 
@@ -394,9 +392,12 @@ def col2asset(col, assetPath, scale=30, maxImgs=100, region=None,
     :return: list of tasks
     :rtype: list
     """
-    alist = col.toList(maxImgs)
-    size = alist.size().getInfo()
+    size = col.size().getInfo()
+    alist = col.toList(size)
     tasklist = []
+
+    if create:
+        create_assets(assetPath, 'ImageCollection', True)
 
     if region is None:
         region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
