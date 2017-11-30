@@ -216,6 +216,27 @@ def mask2number(number):
 
     return mapping
 
+def create_assets(asset_ids, asset_type, mk_parents):
+    """Creates the specified assets if they do not exist.
+
+    This is a fork of the original function in 'ee.data' module, it will be
+    here until I can pull requests to the original repo
+    """
+    for asset_id in asset_ids:
+        if ee.data.getInfo(asset_id):
+            print('Asset %s already exists' % asset_id)
+            continue
+        if mk_parents:
+            parts = asset_id.split('/')
+            root = "/".join(parts[:2])
+            root += "/"
+            for part in parts[2:-1]:
+                root += part
+                if ee.data.getInfo(root) is None:
+                    ee.data.createAsset({'type': 'Folder'}, root)
+                root += '/'
+        ee.data.createAsset({'type': asset_type}, asset_id)
+
 @execli_deco()
 def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
     """ Export an image clipped by features (Polygons). You can use the same
@@ -349,7 +370,8 @@ def col2drive(col, folder, scale=30, maxImgs=100, dataType="float",
     return tasklist
 
 @execli_deco()
-def col2asset(col, assetPath, scale=30, maxImgs=100, region=None, **kwargs):
+def col2asset(col, assetPath, scale=30, maxImgs=100, region=None,
+              create=True, **kwargs):
     """ Upload all images from one collection to a Earth Engine Asset. You can
     use the same arguments as the original function ee.batch.export.image.toDrive
 
