@@ -30,7 +30,7 @@ var addLayerCol = function(col, viz, active, label) {
     if (label == "ID") {
       var id = img.id().getInfo();
       var laylabel = label+" "+id;
-    } else if (label == "date") {
+    } else if (label == "system_date") {
       var date = img.date().format().getInfo()
       var laylabel = label+" "+date;
     } else if (img.propertyNames().contains(label).getInfo() == true) {
