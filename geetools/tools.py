@@ -2,6 +2,7 @@
 """
 This file contains a set of useful functions to use in Google Earth Engine
 """
+from __future__ import print_function
 import time
 import traceback
 import functools
@@ -14,7 +15,8 @@ _execli_times = 10
 _execli_wait = 0
 
 # DECORATOR
-def execli_deco(times=None, wait=None, trace=None):
+# def execli_deco(times=None, wait=None, trace=None):
+def execli_deco():
     """ This is a decorating function to excecute a client side Earth Engine
     function and retry as many times as needed.
     Parameters can be set by modifing module's variables `_execli_trace`,
@@ -45,8 +47,6 @@ def execli_deco(times=None, wait=None, trace=None):
 
             return img.getInfo()
 
-
-
     :param times: number of times it will try to excecute the function
     :type times: int
     :param wait: waiting time to excetue the function again
@@ -54,38 +54,47 @@ def execli_deco(times=None, wait=None, trace=None):
     :param trace: print the traceback
     :type trace: bool
     """
-    if trace is None:
-        trace = _execli_trace
-    if times is None:
-        times = _execli_times
-    if wait is None:
-        wait = _execli_wait
-
-    try:
-        times = int(times)
-        wait = int(wait)
-    except:
-        print type(times)
-        print type(wait)
-        raise ValueError("'times' and 'wait' parameters must be numbers")
-
     def wrap(f):
+        '''
+        if trace is None:
+            global trace
+            trace = _execli_trace
+        if times is None:
+            global times
+            times = _execli_times
+        if wait is None:
+            global wait
+            wait = _execli_wait
+
+        try:
+            times = int(times)
+            wait = int(wait)
+        except:
+            print(type(times))
+            print(type(wait))
+            raise ValueError("'times' and 'wait' parameters must be numbers")
+        '''
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
+
+            trace = _execli_trace
+            times = _execli_times
+            wait = _execli_wait
+
             r = range(times)
             for i in r:
                 try:
                     result = f(*args, **kwargs)
                 except Exception as e:
-                    print "try n°", i, "ERROR:", e
+                    print("try n°", i, "ERROR:", e)
                     if trace:
                         traceback.print_exc()
                     if i < r[-1] and wait > 0:
-                        print "waiting {} seconds...".format(str(wait))
+                        print("waiting {} seconds...".format(str(wait)))
                         time.sleep(wait)
                     elif i == r[-1]:
                         raise RuntimeError("An error occured tring to excecute"\
-                                           "the funcion '{0}'".format(f.__name__))
+                                           " the function '{0}'".format(f.__name__))
                 else:
                     return result
 
@@ -133,8 +142,8 @@ def execli(function, times=None, wait=None, trace=None):
         times = int(times)
         wait = int(wait)
     except:
-        print type(times)
-        print type(wait)
+        print(type(times))
+        print(type(wait))
         raise ValueError("'times' and 'wait' parameters must be numbers")
 
     def wrap(f):
@@ -144,11 +153,11 @@ def execli(function, times=None, wait=None, trace=None):
                 try:
                     result = f(*args, **kwargs)
                 except Exception as e:
-                    print "try n°", i, "ERROR:", e
+                    print("try n°", i, "ERROR:", e)
                     if trace:
                         traceback.print_exc()
                     if i < r[-1] and wait > 0:
-                        print "waiting {} seconds...".format(str(wait))
+                        print("waiting {} seconds...".format(str(wait)))
                         time.sleep(wait)
                     elif i == r[-1]:
                         raise RuntimeError("An error occured tring to excecute" \
@@ -179,6 +188,10 @@ def getRegion(geom):
         region = geom.getInfo()["coordinates"]
     elif isinstance(geom, ee.Feature) or isinstance(geom, ee.Image):
         region = geom.geometry().getInfo()["coordinates"]
+    elif isinstance(geom, list):
+        condition = all([type(item) == list for item in geom])
+        if condition:
+            region = geom
     return region
 
 TYPES = {'float': ee.Image.toFloat,
@@ -294,7 +307,7 @@ def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
         elif type(dis) is str:
             disS = dis
         else:
-            print "unknown property's type"
+            print("unknown property's type")
             break
 
         finalname = "{0}_{1}_{2}".format(name, prop, disS)
@@ -308,7 +321,7 @@ def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
             scale=scale, **kwargs)
 
         task.start()
-        print "exporting", finalname
+        print("exporting", finalname)
         tasklist.append(task)
 
     return tasklist
@@ -397,7 +410,7 @@ def col2asset(col, assetPath, scale=30, region=None, create=True, **kwargs):
     tasklist = []
 
     if create:
-        create_assets(assetPath, 'ImageCollection', True)
+        create_assets([assetPath], 'ImageCollection', True)
 
     if region is None:
         region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
@@ -502,6 +515,7 @@ def replace(img, to_replace, to_add):
     img_final = img_resto.addBands(band)
     return img_final
 
+@execli_deco()
 def get_value(img, point, scale=10):
     """ Return the value of all bands of the image in the specified point
 
