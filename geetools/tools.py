@@ -516,7 +516,7 @@ def replace(img, to_replace, to_add):
     return img_final
 
 @execli_deco()
-def get_value(img, point, scale=10):
+def get_value(img, point, scale=10, side="server"):
     """ Return the value of all bands of the image in the specified point
 
     :param img: Image to get the info from
@@ -526,15 +526,61 @@ def get_value(img, point, scale=10):
     :param scale: The scale to use in the reducer. It defaults to 10 due to the
         minimum scale available in EE (Sentinel 10m)
     :type scale: int
+    :param side: 'server' or 'client' side
+    :type side: str
     :return: Values of all bands in the ponit
-    :rtype: dict
+    :rtype: ee.Dictionary or dict
     """
     scale = int(scale)
     type = point.getInfo()["type"]
     if type != "Point":
         raise ValueError("Point must be ee.Geometry.Point")
 
-    return img.reduceRegion(ee.Reducer.first(), point, scale).getInfo()
+    result = img.reduceRegion(ee.Reducer.first(), point, scale)
+
+    if side == 'server':
+        return result
+    elif side == 'client':
+        return result.getInfo()
+    else:
+        raise ValueError("side parameter must be 'server' or 'client'")
+
+@execli_deco()
+def get_values(col, point, scale=10, side='server'):
+    """ Return all values of all bands of an image collection in the specified
+    point
+
+    :param col: ImageCollection to get the info from
+    :type col: ee.ImageCollection
+    :param point: Point from where to get the info
+    :type point: ee.Geometry.Point
+    :param scale: The scale to use in the reducer. It defaults to 10 due to the
+    minimum scale available in EE (Sentinel 10m)
+    :type scale: int
+    :param side: 'server' or 'client' side
+    :type side: str
+    :return: Values of all bands in the ponit
+    :rtype: dict
+    """
+    type = point.getInfo()["type"]
+    if type != "Point":
+        raise ValueError("Point must be ee.Geometry.Point")
+
+    scale = int(scale)
+    def listval(img, it):
+        id = ee.String(img.id())
+        values = img.reduceRegion(ee.Reducer.first(), point, scale)
+        return ee.Dictionary(it).set(id, ee.Dictionary(values))
+
+    result = col.iterate(listval, ee.Dictionary({}))
+    result = ee.Dictionary(result)
+
+    if side == 'server':
+        return result
+    elif side == 'client':
+        return result.getInfo()
+    else:
+        raise ValueError("side parameter must be 'server' or 'client'")
 
 def sumBands(name="sum", bands=None):
     """ Adds all *bands* values and puts the result on *name*.
