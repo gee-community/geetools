@@ -97,14 +97,3 @@ def usgs(image):
     cloud = image.select("sr_cloud_qa").neq(255)
     shad = image.select("sr_cloud_shadow_qa").neq(255)
     return image.updateMask(cloud).updateMask(shad)
-
-if __name__ == "__main__":
-    import ee
-    from ee import mapclient
-    import tools
-    s2 = ee.Image("COPERNICUS/S2/20170416T142751_20170416T143935_T18GYT")
-    led = ee.Image("LEDAPS/LT5_L1T_SR/LT52310762002106COA00")
-    fm = ee.Image("LANDSAT/LC8_L1T_TOA_FMASK/LC82310902017099LGN00")
-    cfm = ee.Image("LANDSAT/LC8_SR/LC82310762015094")
-
-    mapclient.addToMap(s2, {'bands':["B8", "B11", "B4"], 'max':5000})
