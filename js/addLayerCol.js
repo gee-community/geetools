@@ -1,7 +1,7 @@
 /* 
  * Author: Rodrigo E. Principe
  * License: Apache 2.0
- * email: fitoprincipe82 at gmail dot com
+ * email: fitoprincipe82@gmail.com
  
 PURPOSE:
 This function adds all images from one Collection to the Map. You can label
