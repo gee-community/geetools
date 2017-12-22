@@ -2,6 +2,7 @@
 # coding=utf-8
 
 import tools
+import ee
 
 # MODIS
 def modis(img):
@@ -97,3 +98,40 @@ def usgs(image):
     cloud = image.select("sr_cloud_qa").neq(255)
     shad = image.select("sr_cloud_shadow_qa").neq(255)
     return image.updateMask(cloud).updateMask(shad)
+
+def cfmask_bits(image):
+    """ Function to use in new Surface Reflectance Collections assets.
+    LANDSAT/LT04/C01/T1_SR, LANDSAT/LT05/C01/T1_SR, LANDSAT/LE07/C01/T1_SR,
+    LANDSAT/LC08/C01/T1_SR
+
+    Use:
+
+    `masked = collection.map(cloud_mask.cfmask_bits)`
+    """
+    bands = image.bandNames()
+    contains_sr = bands.contains('sr_cloud_qa')
+
+    def sr():
+        mask = image.select('sr_cloud_qa')
+        cloud_mask = tools.compute_bits(mask, 1, 1, 'cloud')
+        shadow_mask = tools.compute_bits(mask, 2, 2, 'shadow')
+        adjacent_mask = tools.compute_bits(mask, 3, 3, 'adjacent')
+        snow_mask = tools.compute_bits(mask, 4, 4, 'snow')
+
+        good_pix = cloud_mask.eq(0).And(shadow_mask.eq(0)).And(snow_mask.eq(0)).And(adjacent_mask.eq(0))
+        return good_pix
+
+    def pix():
+        mask = image.select('pixel_qa')
+        cloud_mask = tools.compute_bits(mask, 5, 5, 'cloud')
+        shadow_mask = tools.compute_bits(mask, 3, 3, 'shadow')
+        snow_mask = tools.compute_bits(mask, 4, 4, 'snow')
+
+        good_pix = cloud_mask.eq(0).And(shadow_mask.eq(0)).And(snow_mask.eq(0))
+        return good_pix
+
+    good_pix = ee.Algorithms.If(contains_sr, sr(), pix())
+
+    result = image.updateMask(good_pix)
+
+    return result
