@@ -169,10 +169,10 @@ def execli(function, times=None, wait=None, trace=None):
     return wrap(function)
 
 # INITIALIZE EARTH ENGINE USING EXECLI FUNCTION
-try:
-    execli(ee.Initialize)()
-except:
-    pass
+#try:
+#    ee.Initialize()
+#except:
+#    pass
 
 @execli_deco()
 def getRegion(geom):
@@ -194,11 +194,14 @@ def getRegion(geom):
             region = geom
     return region
 
-TYPES = {'float': ee.Image.toFloat,
-         'int': ee.Image.toInt,
-         'Uint8': ee.Image.toUint8,
-         'int8': ee.Image.toInt8,
-         'double': ee.Image.toDouble}
+try:
+    TYPES = {'float': ee.Image.toFloat,
+             'int': ee.Image.toInt,
+             'Uint8': ee.Image.toUint8,
+             'int8': ee.Image.toInt8,
+             'double': ee.Image.toDouble}
+except:
+    raise ImportError('must initialize EE before using geetools')
 
 def mask2zero(img):
     """ Converts masked pixels into zeros
