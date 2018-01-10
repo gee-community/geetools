@@ -846,3 +846,40 @@ def downloadFile(url, name, ext):
             handle.write(data)
 
     return handle
+
+def empty_image(value=0, bandnames=None, bands=None):
+    ''' Create an empty image with the given bandnames and value, or from
+     a dictionary of {name: value}
+
+    :param bandnames: list of bandnames
+    :type bandnames: ee.List or list
+    :param value: value for every band of the resulting image
+    :type value: int or float
+    :param bands: if this is specified, other params will be ignored and the
+        image will be created with values from `bands` dict: {name: value}
+    :type bands: dict
+    '''
+    if bandnames:
+        bandnames = bandnames if isinstance(bandnames, ee.List) else ee.List(bandnames)
+        ini = ee.Image(0)
+        def bn(name, img):
+            img = ee.Image(img)
+            newi = ee.Image(value).select([0], [name])
+            return img.addBands(newi)
+        finali = ee.Image(bandnames.iterate(bn, ini))
+
+        # return finali.select(bandnames)
+    elif bands:
+        bandnames = ee.List(bands.keys())
+        finali = ee.Image(0)
+        for name, value in bands.iteritems():
+            i = ee.Image(value).select([0], [name])
+            finali = finali.addBands(i)
+
+        # return finali.select(bandnames)
+    else:
+        bandnames = ['constant']
+        finali = ee.Image.constant(value)
+
+    return finali.select(bandnames)
+
