@@ -10,10 +10,19 @@ import requests
 
 import ee
 
+import ee.data
+if not ee.data._initialized: ee.Initialize()
+
 _execli_trace = False
 _execli_times = 10
 _execli_wait = 0
 
+'''
+initialized = False
+
+if not initialized:
+    ee.Initialize()
+'''
 # DECORATOR
 # def execli_deco(times=None, wait=None, trace=None):
 def execli_deco():
@@ -194,14 +203,12 @@ def getRegion(geom):
             region = geom
     return region
 
-try:
-    TYPES = {'float': ee.Image.toFloat,
-             'int': ee.Image.toInt,
-             'Uint8': ee.Image.toUint8,
-             'int8': ee.Image.toInt8,
-             'double': ee.Image.toDouble}
-except:
-    raise ImportError('must initialize EE before using geetools')
+
+TYPES = {'float': ee.Image.toFloat,
+         'int': ee.Image.toInt,
+         'Uint8': ee.Image.toUint8,
+         'int8': ee.Image.toInt8,
+         'double': ee.Image.toDouble}
 
 def mask2zero(img):
     """ Converts masked pixels into zeros
