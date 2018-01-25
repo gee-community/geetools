@@ -4,6 +4,9 @@
 import tools
 import ee
 
+import ee.data
+if not ee.data._initialized: ee.Initialize()
+
 # MODIS
 def modis(img):
     """ Function to use in MODIS Collection
@@ -13,13 +16,18 @@ def modis(img):
     `masked = collection.map(cloud_mask.modis)`
     """
     cmask = img.select("state_1km")
-    cloud = tools.compute_bits(cmask, 1, 1, "cloud")
-    mix = tools.compute_bits(cmask, 0, 0, "mix")
+    cloud = tools.compute_bits(cmask, 0, 0, "cloud")
+    mix = tools.compute_bits(cmask, 1, 1, "mix")
     shadow = tools.compute_bits(cmask, 2, 2, "shadow")
     cloud2 = tools.compute_bits(cmask, 10, 10, "cloud2")
-    snow = tools.compute_bits(cmask, 11, 11, "snow")
+    snow = tools.compute_bits(cmask, 12, 12, "snow")
 
-    mask = cloud.Or(mix).Or(shadow).Or(cloud2).Or(snow)
+    mask = (cloud
+        .Or(mix)
+        # .Or(shadow)  # Cloud shadow seems to be miscomputed (MODIS/MYD09GA/MYD09GA_005_2015_09_18)
+        .Or(cloud2)
+        .Or(snow)
+    )
 
     return img.updateMask(mask.Not())
 
