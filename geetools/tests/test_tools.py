@@ -1,7 +1,7 @@
 # coding=utf-8
 import unittest
 import ee
-from geetools import tools
+from .. import tools
 ee.Initialize()
 
 class TestTools(unittest.TestCase):
