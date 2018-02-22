@@ -7,6 +7,27 @@ import ee
 import ee.data
 if not ee.data._initialized: ee.Initialize()
 
+# GENERIC APPLICATION OF MASKS
+def apply_masks(masks):
+    """
+    Get a single mask from many
+
+    :param masks: list of ee.Image
+    :type masks: list
+    :return: the resulting mask
+    :rtype: ee.Image
+    """
+    masks = ee.List(masks) if isinstance(masks, list) else masks
+    first = ee.Image.constant(0)
+
+    def compute(mask, first):
+        first = ee.Image(first)
+        return first.Or(mask)
+
+    final_mask = ee.Image(masks.iterate(compute, first))
+
+    return final_mask
+
 # MODIS
 def modis(img):
     """ Function to use in MODIS Collection
@@ -108,7 +129,7 @@ def usgs(image):
     return image.updateMask(cloud).updateMask(shad)
 
 def cfmask_bits(image):
-    """ Function to use in new Surface Reflectance Collections assets.
+    """ Function to use in Landsat Surface Reflectance Collections:
     LANDSAT/LT04/C01/T1_SR, LANDSAT/LT05/C01/T1_SR, LANDSAT/LE07/C01/T1_SR,
     LANDSAT/LC08/C01/T1_SR
 
@@ -143,3 +164,35 @@ def cfmask_bits(image):
     result = image.updateMask(good_pix)
 
     return result
+
+def landsatTOA(masks=['cloud', 'shadow', 'snow']):
+    ''' Function to mask out clouds, shadows and snow in Landsat 4 5 & 7 TOA:
+    LANDSAT/LT04/C01/T1_TOA, LANDSAT/LT05/C01/T1_TOA, LANDSAT/LE07/C01/T1_TOA
+    and LANDSAT/LC08/C01/T1_TOA
+
+    :param masks: list of mask to compute
+    :type masks: list
+    :return: the funtion to apply in a map algorithm
+    :rtype: function
+    '''
+    options = ee.List(masks)
+
+    def wrap(img):
+        mask = img.select('BQA')
+        cloud_mask = tools.compute_bits(mask, 4, 4, 'cloud').eq(0)  # clouds=0, good_pix=1
+        shadow_mask = tools.compute_bits(mask, 7, 8, 'shadow').eq(0)
+        snow_mask = tools.compute_bits(mask, 9, 10, 'snow').eq(0)
+
+        relation = ee.Dictionary({
+            'cloud': cloud_mask,
+            'shadow': shadow_mask,
+            'snow': snow_mask
+            })
+
+        masks_list = tools.get_from_dict(options, relation)  # make a list of masks
+
+        good_pix = apply_masks(masks_list)
+
+        return img.updateMask(good_pix)
+
+    return wrap
