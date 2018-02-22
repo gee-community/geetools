@@ -17,12 +17,6 @@ _execli_trace = False
 _execli_times = 10
 _execli_wait = 0
 
-'''
-initialized = False
-
-if not initialized:
-    ee.Initialize()
-'''
 # DECORATOR
 # def execli_deco(times=None, wait=None, trace=None):
 def execli_deco():
@@ -890,3 +884,34 @@ def empty_image(value=0, bandnames=None, bands=None):
 
     return finali.select(bandnames)
 
+def list_remove_duplicates(listEE):
+    """ Remove duplicated values from a EE list object """
+    newlist = ee.List([])
+    def wrap(element, init):
+        init = ee.List(init)
+        contained = init.contains(element)
+        return ee.Algorithms.If(contained, init, init.add(element))
+    return ee.List(listEE.iterate(wrap, newlist))
+
+def get_from_dict(a_list, a_dict):
+    """ Get a list of Dict's values from a list object. Keys must be unique
+
+    :param a_list: list of keys
+    :type a_list: ee.List
+    :param a_dict: dict to get the values for list's keys
+    :type a_dict: ee.Dictionary
+    :return: a list of values
+    :rtype: ee.List
+    """
+    a_list = ee.List(a_list) if isinstance(a_list, list) else a_list
+    a_dict = ee.Dictionary(a_dict) if isinstance(a_dict, dict) else a_dict
+
+    empty = ee.List([])
+
+    def wrap(el, first):
+        f = ee.List(first)
+        cond = a_dict.contains(el)
+        return ee.Algorithms.If(cond, f.add(a_dict.get(el)), f)
+
+    values = ee.List(a_list.iterate(wrap, empty))
+    return values
