@@ -13,7 +13,7 @@ def apply_masks(masks):
     Get a single mask from many
 
     :param masks: list of ee.Image
-    :type masks: list
+    :type masks: list | ee.List
     :return: the resulting mask
     :rtype: ee.Image
     """
@@ -24,9 +24,10 @@ def apply_masks(masks):
         first = ee.Image(first)
         return first.Or(mask)
 
-    final_mask = ee.Image(masks.iterate(compute, first))
+    bad_pixels = ee.Image(masks.iterate(compute, first))
+    good_pixels = bad_pixels.Not()
 
-    return final_mask
+    return good_pixels
 
 # MODIS
 def modis(img):
@@ -166,7 +167,7 @@ def cfmask_bits(image):
     return result
 
 def landsatTOA(masks=['cloud', 'shadow', 'snow']):
-    ''' Function to mask out clouds, shadows and snow in Landsat 4 5 & 7 TOA:
+    ''' Function to mask out clouds, shadows and snow in Landsat 4 5 7 8 TOA:
     LANDSAT/LT04/C01/T1_TOA, LANDSAT/LT05/C01/T1_TOA, LANDSAT/LE07/C01/T1_TOA
     and LANDSAT/LC08/C01/T1_TOA
 
@@ -178,10 +179,11 @@ def landsatTOA(masks=['cloud', 'shadow', 'snow']):
     options = ee.List(masks)
 
     def wrap(img):
+        # mask = img.select('pixel_qa')
         mask = img.select('BQA')
-        cloud_mask = tools.compute_bits(mask, 4, 4, 'cloud').eq(0)  # clouds=0, good_pix=1
-        shadow_mask = tools.compute_bits(mask, 7, 8, 'shadow').eq(0)
-        snow_mask = tools.compute_bits(mask, 9, 10, 'snow').eq(0)
+        cloud_mask = tools.compute_bits(mask, 4, 4, 'cloud')
+        shadow_mask = tools.compute_bits(mask, 8, 8, 'shadow')
+        snow_mask = tools.compute_bits(mask, 10, 10, 'snow')
 
         relation = ee.Dictionary({
             'cloud': cloud_mask,
@@ -190,7 +192,6 @@ def landsatTOA(masks=['cloud', 'shadow', 'snow']):
             })
 
         masks_list = tools.get_from_dict(options, relation)  # make a list of masks
-
         good_pix = apply_masks(masks_list)
 
         return img.updateMask(good_pix)

@@ -1,7 +1,7 @@
 # coding=utf-8
 import unittest
 import ee
-from geetools import tools, cloud_mask
+from .. import tools, cloud_mask
 ee.Initialize()
 
 area = ee.Geometry.Point([-65.80, -25.01])
@@ -39,21 +39,48 @@ def show(iid, image, masked, bands, min, max):
 
 
 class TestL4TOA(unittest.TestCase):
-    def test(self):
-        iid = 'LANDSAT/LT04/C01/T1_TOA'
-        collection = ee.ImageCollection(iid)
+    def setUp(self):
+        self.iid = 'LANDSAT/LT04/C01/T1_TOA'
+        collection = ee.ImageCollection(self.iid)
         date = '1989-07-25'
-        p_cloud = ee.Geometry.Point([-65.506, -24.9263])
+        self.p_cloud = ee.Geometry.Point([-65.506, -24.9263])
         p_clear = ee.Geometry.Point([-64.6133, -24.4522])
 
-        image = getimage(collection, date, area)
+        self.image = getimage(collection, date, area)
 
-        masked = cloud_mask.landsatTOA()(image)
-        vals = tools.get_value(masked, p_cloud, 30, 'client')
+        print '{}/{}'.format(self.iid, self.image.id().getInfo())
 
-        show(iid, image, masked, bands457, 0, 0.5)
+    def test_all(self):
+        masked = cloud_mask.landsatTOA()(self.image)
+        vals = tools.get_value(masked, self.p_cloud, 30, 'client')
+
+        show(self.iid, self.image, masked, bands457, 0, 0.5)
 
         self.assertEqual(vals["B1"], None)
+
+    def test_clouds(self):
+        masked = cloud_mask.landsatTOA(['cloud'])(self.image)
+        vals = tools.get_value(masked, self.p_cloud, 30, 'client')
+
+        show(self.iid, self.image, masked, bands457, 0, 0.5)
+
+        self.assertEqual(vals["B1"], None)
+
+    def test_shadows(self):
+        masked = cloud_mask.landsatTOA(['shadow'])(self.image)
+        vals = tools.get_value(masked, self.p_cloud, 30, 'client')
+
+        show(self.iid, self.image, masked, bands457, 0, 0.5)
+
+        # self.assertEqual(vals["B1"], None)
+
+    def test_snow(self):
+        masked = cloud_mask.landsatTOA(['snow'])(self.image)
+        vals = tools.get_value(masked, self.p_cloud, 30, 'client')
+
+        show(self.iid, self.image, masked, bands457, 0, 0.5)
+
+        # self.assertEqual(vals["B1"], None)
 
 
 class TestL5TOA(unittest.TestCase):
