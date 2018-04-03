@@ -47,7 +47,7 @@ def binary(conditions, classes, mask_name='dt_mask'):
     # CREATE INITIAL DICT
     def createinitial(baseclass, ini):
         ini = ee.Dictionary(ini)
-        var i = ee.Image.constant(0).select([0], [baseclass])
+        i = ee.Image.constant(0).select([0], [baseclass])
         return ini.set(baseclass, i)
 
     ini = ee.Dictionary(unique.iterate(createinitial, ee.Dictionary({})))
