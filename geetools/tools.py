@@ -417,7 +417,10 @@ def col2asset(col, assetPath, scale=30, region=None, create=True, **kwargs):
         create_assets([assetPath], 'ImageCollection', True)
 
     if region is None:
-        region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
+        first_img = ee.Image(alist.get(0))
+        region = getRegion(first_img)
+        print(region)
+        # region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
     else:
         region = getRegion(region)
 
@@ -513,7 +516,7 @@ def replace(img, to_replace, to_add):
     """
     band = to_add.select([0])
     bands = img.bandNames()
-    band = band.select([0], [to_replace])
+    # band = band.select([0], [to_replace])
     resto = bands.remove(to_replace)
     img_resto = img.select(resto)
     img_final = img_resto.addBands(band)
@@ -799,7 +802,43 @@ def parametrize(range_from, range_to, bands=None):
         return pass_date(img, final)
     return wrap
 
-def compute_bits(image, start, end, newName):
+# Compute Bits
+def compute_bits(start, end, newName):
+    """ Compute the bits of an image
+
+    :param start: start bit
+    :type start: int
+    :param end: end bit
+    :type end: int
+    :param newName: new name for the band
+    :type newName: str
+    :return: A function which single argument is the image and returns a single
+        band image of the extracted bits, giving the band a new name
+    :rtype: function
+    """
+    pattern = ee.Number(0)
+    start = ee.Number(start).toInt()
+    end = ee.Number(end).toInt()
+    newName = ee.String(newName)
+
+    seq = ee.List.sequence(start, end)
+
+    def toiterate(element, ini):
+        ini = ee.Number(ini)
+        bit = ee.Number(2).pow(ee.Number(element))
+        return ini.add(bit)
+
+    patt = seq.iterate(toiterate, pattern)
+
+    patt = ee.Number(patt).toInt()
+
+    def wrap(image):
+        good_pix = image.select([0], [newName]).bitwiseAnd(patt).rightShift(start)
+        return good_pix.toInt()
+
+    return wrap
+
+def compute_bits_client(image, start, end, newName):
     """ Compute the bits of an image
 
     :param image: image that contains the band with the bit information
@@ -850,7 +889,8 @@ def downloadFile(url, name, ext):
 
 def empty_image(value=0, bandnames=None, bands=None):
     ''' Create an empty image with the given bandnames and value, or from
-     a dictionary of {name: value}
+     a dictionary of {name: value}. If you use `bandnames` parameter, `bands`
+     parameter will be omitted
 
     :param bandnames: list of bandnames
     :type bandnames: ee.List or list
