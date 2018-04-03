@@ -147,7 +147,8 @@ class TestL4SR(unittest.TestCase):
 
         image = getimage(collection, date, area)
 
-        masked = cloud_mask.cfmask_bits(image)
+        # masked = cloud_mask.cfmask_bits(image)
+        masked = cloud_mask.landsatSR()(image)
         vals = tools.get_value(masked, p_cloud, 30, 'client')
 
         show(iid, image, masked, bands457, 0, 5000)
@@ -165,7 +166,8 @@ class TestL5SR(unittest.TestCase):
 
         image = getimage(collection, date, area)
 
-        masked = cloud_mask.cfmask_bits(image)
+        # masked = cloud_mask.cfmask_bits(image)
+        masked = cloud_mask.landsatSR()(image)
         vals = tools.get_value(masked, p_cloud, 30, 'client')
         show(iid, image, masked, bands457, 0, 5000)
 
@@ -182,7 +184,8 @@ class TestL7SR(unittest.TestCase):
 
         image = getimage(collection, date, area)
 
-        masked = cloud_mask.cfmask_bits(image)
+        # masked = cloud_mask.cfmask_bits(image)
+        masked = cloud_mask.landsatSR()(image)
         vals = tools.get_value(masked, p_cloud, 30, 'client')
         show(iid, image, masked, bands457, 0, 5000)
 
@@ -199,7 +202,8 @@ class TestL8SR(unittest.TestCase):
 
         image = getimage(collection, date, area)
 
-        masked = cloud_mask.cfmask_bits(image)
+        # masked = cloud_mask.cfmask_bits(image)
+        masked = cloud_mask.landsatSR()(image)
         vals = tools.get_value(masked, p_cloud, 30, 'client')
         show(iid, image, masked, bands8, 0, 5000)
 
@@ -215,7 +219,24 @@ class TestSentinel2(unittest.TestCase):
 
         image = getimage(collection, date, area)
 
-        masked = cloud_mask.sentinel2(image)
+        masked = cloud_mask.sentinel2()(image)
+        vals = tools.get_value(masked, p_cloud, 30, 'client')
+
+        show(iid, image, masked, bandsS2, 0, 5000)
+
+        self.assertEqual(vals["B1"], None)
+
+class TestHollstein(unittest.TestCase):
+    def test(self):
+        iid = 'COPERNICUS/S2'
+        collection = ee.ImageCollection(iid)
+        date = '2017-03-07'
+        p_cloud = ee.Geometry.Point([-65.84304, -24.82382])
+        p_clear = ee.Geometry.Point([-65.88415, -24.82608])
+
+        image = getimage(collection, date, area)
+
+        masked = cloud_mask.hollstein_S2(['cloud','snow','shadow', 'cirrus'])(image)
         vals = tools.get_value(masked, p_cloud, 30, 'client')
 
         show(iid, image, masked, bandsS2, 0, 5000)
