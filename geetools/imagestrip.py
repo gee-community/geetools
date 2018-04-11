@@ -8,6 +8,18 @@ import os.path
 import ee
 import logging
 
+def listEE2list(listEE, type='Image'):
+    relation = {'Image': ee.Image,
+                'Number': ee.Number,
+                'String': ee.String,
+                'Feature': ee.Feature}
+    size = listEE.size().getInfo()
+    newlist = []
+    for el in range(size):
+        newlist.append(relation[type](listEE.get(el)))
+
+    return newlist
+
 class ImageStrip(object):
     ''' Create an image strip '''
     def __init__(self, name, ext="png", description="", **kwargs):
@@ -251,6 +263,9 @@ class ImageStrip(object):
         :return: A file with the name passed to StripImage() in the folder
             passed to the method. Opens the generated file
         """
+
+        if isinstance(imlist, ee.List):
+            imlist = listEE2list(imlist, 'Image')
 
         region = tools.execli(
             ee.Geometry.Polygon(region).bounds().getInfo)()["coordinates"]
