@@ -195,6 +195,8 @@ def getRegion(geom):
         condition = all([type(item) == list for item in geom])
         if condition:
             region = geom
+    else:
+        region = geom
     return region
 
 
@@ -235,9 +237,18 @@ def mask2number(number):
 
 def create_assets(asset_ids, asset_type, mk_parents):
     """Creates the specified assets if they do not exist.
-
     This is a fork of the original function in 'ee.data' module, it will be
     here until I can pull requests to the original repo
+
+    :param asset_ids: list of paths
+    :type asset_ids: list
+    :param asset_type: the type of the assets. Options: "ImageCollection" or
+        "Folder"
+    :type asset_type: str
+    :param mk_parents: make the parents?
+    :type mk_parents: bool
+    :return: A description of the saved asset, including a generated ID
+
     """
     for asset_id in asset_ids:
         if ee.data.getInfo(asset_id):
@@ -252,7 +263,7 @@ def create_assets(asset_ids, asset_type, mk_parents):
                 if ee.data.getInfo(root) is None:
                     ee.data.createAsset({'type': 'Folder'}, root)
                 root += '/'
-        ee.data.createAsset({'type': asset_type}, asset_id)
+        return ee.data.createAsset({'type': asset_type}, asset_id)
 
 @execli_deco()
 def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
@@ -440,6 +451,42 @@ def col2asset(col, assetPath, scale=30, region=None, create=True, **kwargs):
         tasklist.append(task)
 
     return tasklist
+
+@execli_deco()
+def img2asset(image, assetPath, to='Folder', scale=30, region=None,
+              create=True, **kwargs):
+    """ Upload an Image to an Asset. Similar to Export.image.toAsset but this
+    function can create folders and ImageCollections on the fly. You can pass
+    the same params as the original function
+
+    :param image: the image to upload
+    :type image: ee.Image
+    :param assetPath: path to upload the image
+    :type assetPath: str
+    :param to: where to save the image. Options: 'Folder' or 'ImageCollection'
+    :param region: area to upload. Defualt to the footprint of the first
+        image in the collection
+    :type region: ee.Geometry.Rectangle or ee.Feature
+    :param scale: scale of the image (side of one pixel). Defults to 30
+        (Landsat resolution)
+    :type scale: int
+    :param dataType: as downloaded images **must** have the same data type in all
+        bands, you have to set it here. Can be one of: "float", "double", "int",
+        "Uint8", "Int8" or a casting function like *ee.Image.toFloat*
+    :type dataType: str
+    :return: the tasks
+    :rtype: ee.batch.Task
+    """
+    if create:
+        path2create = '/'.join(assetPath.split('/')[:-1])
+        create_assets([path2create], to, True)
+
+    region = getRegion(region)
+
+    task = ee.batch.Export.image.toAsset(image, assetId=assetPath,
+                                         region=region, scale=scale, **kwargs)
+    task.start()
+    return task
 
 def addConstantBands(value=None, *names, **pairs):
     """ Adds bands with a constant value
@@ -833,7 +880,8 @@ def compute_bits(start, end, newName):
     patt = ee.Number(patt).toInt()
 
     def wrap(image):
-        good_pix = image.select([0], [newName]).bitwiseAnd(patt).rightShift(start)
+        good_pix = image.select([0], [newName]).toInt()\
+                        .bitwiseAnd(patt).rightShift(start)
         return good_pix.toInt()
 
     return wrap
@@ -955,3 +1003,22 @@ def get_from_dict(a_list, a_dict):
 
     values = ee.List(a_list.iterate(wrap, empty))
     return values
+
+def trim_decimals(places=2):
+    """ Decrease the number of decimals in a ee.Number
+
+    :param places: number of decimal places to leave
+    :return: a function to map over a list
+    """
+    factor = ee.Number(10).pow(ee.Number(places).toInt())
+
+    def wrap(number):
+        n = ee.Number(number)
+
+        floor = n.floor()
+        decimals = n.subtract(floor)
+        take = decimals.multiply(factor).toInt()
+        newdecimals = take.toFloat().divide(factor)
+        return floor.add(newdecimals).toFloat()
+
+    return wrap
