@@ -477,6 +477,12 @@ def img2asset(image, assetPath, to='Folder', scale=30, region=None,
     :return: the tasks
     :rtype: ee.batch.Task
     """
+    is_user = (assetPath.split('/')[0] == 'users')
+
+    if not is_user:
+        user = ee.batch.data.getAssetRoots()[0]['id']
+        assetPath = "{}/{}".format(user, assetPath)
+
     if create:
         path2create = '/'.join(assetPath.split('/')[:-1])
         create_assets([path2create], to, True)
