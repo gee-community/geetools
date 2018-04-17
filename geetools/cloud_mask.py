@@ -313,7 +313,8 @@ def landsatTOA(options=['cloud', 'shadow', 'snow']):
         return image.updateMask(good_pix)
     return wrap
 
-def hollstein_S2(options=['cloud', 'snow', 'shadow', 'water', 'cirrus']):
+def hollstein_S2(options=['cloud', 'snow', 'shadow', 'water', 'cirrus'],
+                 updateMask=True):
 
     def difference(a, b):
         def wrap(img):
@@ -366,6 +367,8 @@ def hollstein_S2(options=['cloud', 'snow', 'shadow', 'water', 'cirrus']):
                          }, 'hollstein')
 
         results = dtf
-
-        return img.addBands(results).updateMask(results.select('hollstein'))
+        if updateMask:
+            return img.addBands(results).updateMask(results.select('hollstein'))
+        else:
+            return img.addBands(results)
     return compute_dt
