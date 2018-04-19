@@ -2,7 +2,8 @@
 
 import unittest
 import ee
-from geetools import tools
+# from geetools import tools
+from .. import tools
 ee.Initialize()
 
 class TestTools(unittest.TestCase):

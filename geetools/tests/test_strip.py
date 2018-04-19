@@ -1,7 +1,7 @@
 # coding=utf-8
 import unittest
 import ee
-from geetools import imagestrip
+from .. import imagestrip
 from PIL.Image import Image
 ee.Initialize()
 

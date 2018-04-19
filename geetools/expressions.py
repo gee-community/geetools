@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 ''' Expression generator for Google Earth Engine '''
+from __future__ import print_function
 
 class ExpGen(object):
     def __init__(self):
