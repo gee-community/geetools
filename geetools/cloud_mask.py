@@ -1,9 +1,10 @@
 # !/usr/bin/env python
 # coding=utf-8
 
-import tools
-import decision_tree
+from . import tools
+from . import decision_tree
 import ee
+from __future__ import print_function
 
 import ee.data
 if not ee.data._initialized: ee.Initialize()

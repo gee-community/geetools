@@ -7,6 +7,7 @@ import ee
 
 import ee.data
 if not ee.data._initialized: ee.Initialize()
+from __future__ import print_function
 
 def date_range(range):
     """ Filter by DateRange

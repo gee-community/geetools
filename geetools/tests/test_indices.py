@@ -4,6 +4,7 @@ import ee
 from .. import tools, indices
 ee.Initialize()
 from __init__ import TEST_CLOUD_IMAGES
+from __future__ import print_function
 
 p = ee.Geometry.Point([-71.69, -42.07])
 image = ee.Image(TEST_CLOUD_IMAGES['S2'])
