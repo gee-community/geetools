@@ -207,7 +207,7 @@ def minscale(image):
     return ee.Number(bands.slice(1).iterate(wrap, ini))
 
 @execli_deco()
-def getRegion(geom):
+def getRegion(geom, bounds=False):
     """ Gets the region of a given geometry to use in exporting tasks. The
     argument can be a Geometry, Feature or Image
 
@@ -217,9 +217,15 @@ def getRegion(geom):
     :rtype: json
     """
     if isinstance(geom, ee.Geometry):
+        geom = geom.bounds() if bounds else geom
         region = geom.getInfo()["coordinates"]
-    elif isinstance(geom, ee.Feature) or isinstance(geom, ee.Image):
-        region = geom.geometry().getInfo()["coordinates"]
+    elif isinstance(geom, ee.Feature) or \
+         isinstance(geom, ee.Image) or \
+         isinstance(geom, ee.FeatureCollection) or\
+         isinstance(geom, ee.ImageCollection):
+
+        geom = geom.geometry().bounds() if bounds else geom.geometry()
+        region = geom.getInfo()["coordinates"]
     elif isinstance(geom, list):
         condition = all([type(item) == list for item in geom])
         if condition:
