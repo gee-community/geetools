@@ -1,8 +1,8 @@
 # coding=utf-8
 
+from __future__ import print_function
 from . import tools
 import ee
-from __future__ import print_function
 
 def binary(conditions, classes, mask_name='dt_mask'):
 
