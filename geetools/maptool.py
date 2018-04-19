@@ -92,10 +92,25 @@ class Map(folium.Map):
         The zoom level, from 1 to 24. If unspecified, computed based on the object's bounding box.
         :return:
         """
-        if not isinstance(object, ee.Image):
-            raise ValueError('centerObject currently supports ee.Image as object argument')
+        if isinstance(object, list):
+            bounds = object
+        else:
+            # Make a buffer if object is a Point
+            if isinstance(object, ee.Geometry):
+                t = object.type().getInfo()
+                if t == 'Point':
+                    object = object.buffer(1000)
 
-        bounds = object.geometry().bounds(1).getInfo()['coordinates']
+            bounds = tools.getRegion(object, True)
+
+        # Catch unbounded images
+        unbounded = [[[-180.0, -90.0], [180.0, -90.0],
+                      [180.0, 90.0], [-180.0, 90.0],
+                      [-180.0, -90.0]]]
+
+        if bounds == unbounded:
+            print("can't center object because it is unbounded")
+
         bounds = inverse_coordinates(bounds)
         self.fit_bounds([bounds[0], bounds[2]], max_zoom=zoom)
 
