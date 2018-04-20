@@ -2,10 +2,13 @@
 
 ''' This module is designed to use in the Jupyter Notebook. It uses folium and
 branca, and is inspired in https://github.com/mccarthyryanc/folium_gee '''
-
+from __future__ import print_function
 import folium
+from folium import features
 import ee
 from copy import copy
+from . import tools
+import json
 
 if not ee.data._initialized: ee.Initialize()
 
