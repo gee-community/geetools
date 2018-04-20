@@ -1,7 +1,9 @@
 # coding=utf-8
 
-''' This module is designed to use in the Jupyter Notebook. It uses folium and
-branca, and is inspired in https://github.com/mccarthyryanc/folium_gee '''
+''' This module is designed to use in the Jupyter Notebook or generating Maps
+for Web applications. It uses folium and branca, and is inspired in
+https://github.com/mccarthyryanc/folium_gee '''
+
 from __future__ import print_function
 import folium
 from folium import features
@@ -9,6 +11,7 @@ import ee
 from copy import copy
 from . import tools
 import json
+import math
 
 if not ee.data._initialized: ee.Initialize()
 
@@ -94,100 +97,45 @@ class Map(folium.Map):
 
         Returns: ui.Map.Layer
         """
-        thename = name
-        def do_image(image):
-            # image = eeObject
 
-            name = thename if thename else image.id().getInfo()
-
-            params = visParams if visParams else {}
-
-            if params:
-                got_default = params.has_key('bands') \
-                              and params.has_key('min') \
-                              and params.has_key('max')
-            else:
-                got_default = False
-
-            # Default parameters
-            if not got_default:
-                default = get_default_vis(image)
-                params.update(default)
-            else:
-                default = {}
-                default.update(params)
-                params = default
-
-            # Take away bands from parameters
-            newVisParams = {}
-            for key, val in params.iteritems():
-                if key == 'bands': continue
-                newVisParams[key] = val
-
-            # Get the MapID and Token after applying parameters
-            image_info = image.select(params['bands']).getMapId(newVisParams)
-            mapid = image_info['mapid']
-            token = image_info['token']
-
-            tiles = "https://earthengine.googleapis.com/map/%s/{z}/{x}/{y}?token=%s"%(mapid,token)
-            folium_kwargs = {'attr': 'Map Data &copy; <a href="https://earthengine.google.com/">Google Earth Engine</a> ',
-                             'tiles': tiles,
-                             'name': name,
-                             'overlay': True,
-                             # 'show': show
-                             }
-
-            layer = folium.TileLayer(**folium_kwargs)
+        def addImage(image):
+            params = get_image_tile(image, visParams, name, show, opacity)
+            layer = folium.TileLayer(attr=params['attribution'],
+                                     name=params['name'],
+                                     overlay=params['overlay'],
+                                     tiles=params['url'])
             layer.add_to(self)
-
             return self
 
-        def do_geometry(geometry):
-            info = geometry.getInfo()
-            type = info['type']
+        def addGeoJson(geometry):
+            params = get_geojson_tile(self, geometry, name, inspect)
+            geojson = json.dumps(params['geojson'])
+            layer = features.GeoJson(geojson,
+                                     name=params['name'])
+            pop = folium.Popup(params['pop'])
 
-            gjson_types = ['Polygon', 'LineString', 'MultiPolygon',
-                           'LinearRing', 'MultiLineString', 'MultiPoint',
-                           'Point', 'Polygon', 'Rectangle',
-                           'GeometryCollection']
+            layer.add_child(pop)
 
-            newname = thename if thename else "{} {}".format(type, self.added_geometries)
-
-            if type in gjson_types:
-                data = inspect['data']
-                red = inspect.get('reducer','first')
-                sca = inspect.get('scale', None)
-                popval = get_data(geometry, data, red, sca) if data else type
-
-                layer = features.GeoJson(json.dumps(geometry.getInfo()),
-                                         name=newname)
-                pop = folium.Popup(popval)
-
-                layer.add_child(pop)
-
-                self.added_geometries += 1
-                self.add_child(layer)
-            else:
-                print('unrecognized object type to add to map')
+            self.added_geometries += 1
+            self.add_child(layer)
 
         # CASE: ee.Image
         if isinstance(eeObject, ee.Image):
-            do_image(eeObject)
+            addImage(eeObject)
 
         elif isinstance(eeObject, ee.Geometry):
-            do_geometry(eeObject)
+            addGeoJson(eeObject)
 
         elif isinstance(eeObject, ee.Feature):
-            print('feature')
             geom = eeObject.geometry()
-            do_geometry(geom)
+            addGeoJson(geom)
 
         elif isinstance(eeObject, ee.ImageCollection):
             pass
         else:
             raise ValueError('addLayer currently supports ee.Image as eeObject argument')
 
-    def centerObject(self, object, zoom=None):
+    def centerObject(self, eeObject, zoom=None):
         """
         Centers the map view on a given object.
 
@@ -201,29 +149,33 @@ class Map(folium.Map):
         The zoom level, from 1 to 24. If unspecified, computed based on the object's bounding box.
         :return:
         """
-        if isinstance(object, list):
-            bounds = object
-        else:
-            # Make a buffer if object is a Point
-            if isinstance(object, ee.Geometry):
-                t = object.type().getInfo()
-                if t == 'Point':
-                    object = object.buffer(1000)
-
-            bounds = tools.getRegion(object, True)
-
-        # Catch unbounded images
-        unbounded = [[[-180.0, -90.0], [180.0, -90.0],
-                      [180.0, 90.0], [-180.0, 90.0],
-                      [-180.0, -90.0]]]
-
-        if bounds == unbounded:
-            print("can't center object because it is unbounded")
-
-        bounds = inverse_coordinates(bounds)
+        bounds = get_bounds(eeObject)
         self.fit_bounds([bounds[0], bounds[2]], max_zoom=zoom)
 
         return self
+
+def get_bounds(eeObject):
+    if isinstance(eeObject, list):
+        bounds = eeObject
+    else:
+        # Make a buffer if object is a Point
+        if isinstance(eeObject, ee.Geometry):
+            t = eeObject.type().getInfo()
+            if t == 'Point':
+                eeObject = eeObject.buffer(1000)
+
+        bounds = tools.getRegion(eeObject, True)
+
+        # Catch unbounded images
+    unbounded = [[[-180.0, -90.0], [180.0, -90.0],
+                  [180.0, 90.0], [-180.0, 90.0],
+                  [-180.0, -90.0]]]
+
+    if bounds == unbounded:
+        print("can't center object because it is unbounded")
+
+    bounds = inverse_coordinates(bounds)
+    return bounds
 
 def get_default_vis(image, stretch=0.8):
     bandnames = image.bandNames().getInfo()
@@ -296,6 +248,129 @@ def inverse_coordinates(coords):
         return newcoords
     else:
         return [coords[1], coords[0]]
+
+def get_image_tile(image, visParams, name, show=True, opacity=None,
+                   overlay=True):
+
+    name = name if name else image.id().getInfo()
+
+    params = visParams if visParams else {}
+
+    if params:
+        got_default = params.has_key('bands') \
+                      and params.has_key('min') \
+                      and params.has_key('max')
+    else:
+        got_default = False
+
+    # Default parameters
+    if not got_default:
+        default = get_default_vis(image)
+        params.update(default)
+    else:
+        default = {}
+        default.update(params)
+        params = default
+
+    # Take away bands from parameters
+    newVisParams = {}
+    for key, val in params.iteritems():
+        if key == 'bands': continue
+        newVisParams[key] = val
+
+    # Get the MapID and Token after applying parameters
+    image_info = image.select(params['bands']).getMapId(newVisParams)
+    mapid = image_info['mapid']
+    token = image_info['token']
+    tiles = "https://earthengine.googleapis.com/map/%s/{z}/{x}/{y}?token=%s"%(mapid,token)
+    attribution = 'Map Data &copy; <a href="https://earthengine.google.com/">Google Earth Engine</a> '
+    overlay = overlay
+
+    return {'url': tiles,
+            'attribution': attribution,
+            'overlay': overlay,
+            'name':name,
+            'show': show,
+            'opacity': opacity,
+            }
+
+def get_geojson_tile(map, geometry, name,
+                     inspect={'data':None, 'reducer':None, 'scale':None}):
+    info = geometry.getInfo()
+    type = info['type']
+
+    gjson_types = ['Polygon', 'LineString', 'MultiPolygon',
+                   'LinearRing', 'MultiLineString', 'MultiPoint',
+                   'Point', 'Polygon', 'Rectangle',
+                   'GeometryCollection']
+
+    newname = name if name else "{} {}".format(type, map.added_geometries)
+
+    if type in gjson_types:
+        data = inspect['data']
+        red = inspect.get('reducer','first')
+        sca = inspect.get('scale', None)
+        popval = get_data(geometry, data, red, sca) if data else type
+        geojson = geometry.getInfo()
+
+        return {'geojson':geojson,
+                'pop': popval,
+                'name': newname}
+    else:
+        print('unrecognized object type to add to map')
+
+def get_zoom(bounds, method=1):
+    '''
+    as ipyleaflet does not have a fit bounds method, try to get the zoom to fit
+
+    from: https://stackoverflow.com/questions/6048975/google-maps-v3-how-to-calculate-the-zoom-level-for-a-given-bounds
+    '''
+    sw = bounds[0]
+    ne = bounds[2]
+
+    sw_lon = sw[1]
+    sw_lat = sw[0]
+    ne_lon = ne[1]
+    ne_lat = ne[0]
+
+    def method1():
+        # Method 1
+        WORLD_DIM = {'height': 256, 'width': 256}
+        ZOOM_MAX = 21
+
+        def latRad(lat):
+            sin = math.sin(lat * math.pi / 180)
+            radX2 = math.log((1 + sin) / (1 - sin)) / 2
+            return max(min(radX2, math.pi), -math.pi) / 2
+
+        def zoom(mapPx, worldPx, fraction):
+            return math.floor(math.log(mapPx / worldPx / fraction) / math.log(2))
+
+        latFraction = float(latRad(ne_lat) - latRad(sw_lat)) / math.pi
+
+        lngDiff = ne_lon - sw_lon
+
+        lngFraction = (lngDiff + 360) if (lngDiff < 0) else lngDiff
+        lngFraction = lngFraction / 360
+
+        latZoom = zoom(400, WORLD_DIM['height'], latFraction)
+        lngZoom = zoom(970, WORLD_DIM['width'], lngFraction)
+
+        return int(min(latZoom, lngZoom, ZOOM_MAX))
+
+    def method2():
+        scale = 111319.49
+
+        GLOBE_WIDTH = 256 # a constant in Google's map projection
+
+        angle = ne_lon - sw_lon
+        if angle < 0:
+            angle += 360
+        zoom = math.floor(math.log(scale * 360 / angle / GLOBE_WIDTH) / math.log(2))
+        return int(zoom)-8
+
+    finalzoom = method1() if method == 1 else method2()
+    return finalzoom
 
 # TODO: Multiple dispatch! https://www.artima.com/weblogs/viewpost.jsp?thread=101605
 def get_data(geometry, obj, reducer='first', scale=None):
