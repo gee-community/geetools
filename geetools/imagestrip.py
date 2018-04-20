@@ -1,13 +1,13 @@
 # coding=utf-8
 ''' Creation of strip of images '''
 
+from __future__ import print_function
 from . import tools
 from PIL import Image as ImPIL
 from PIL import ImageDraw, ImageFont
 import os.path
 import ee
 import logging
-from __future__ import print_function
 
 def listEE2list(listEE, type='Image'):
     relation = {'Image': ee.Image,
