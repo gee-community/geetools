@@ -9,7 +9,7 @@ import ee
 import ee.data
 if not ee.data._initialized: ee.Initialize()
 
-def compute(image, mask_band, bits, options=None):
+def compute(image, mask_band, bits, options=None, name_all='all_masks'):
     """ Compute bits using a specified band, a bit's relation and a list of
     options
 
@@ -22,6 +22,9 @@ def compute(image, mask_band, bits, options=None):
     :param options: list of 'bits' to compute. Example: ['cloud', 'snow']. If
         None, will use all keys of the relation's dict
     :type options: list
+    :param name_all: name for the band that holds the final mask. Default:
+        'all_masks'
+    :type name_all: str
     :return: The computed mask
     :rtype: ee.Image
     """
@@ -30,24 +33,36 @@ def compute(image, mask_band, bits, options=None):
     opt = ee.List(options) if options else bits_dict.keys()
     image = ee.Image(image).select(mask_band)
 
-    first = ee.Image.constant(0) # init image
+    first = ee.Image.constant(0).select([0], [name_all]) # init image
 
     # function for iterate over the options
     def for_iterate(option, ini):
         i = ee.Image(ini) # cast ini
+        all = i.select([name_all])
 
         # bits relation dict contains the option?
         cond = bits_dict.contains(option)
 
-        # get the mask for the option
-        mask = tools.compute_bits(bits_dict.get(option), bits_dict.get(option), option)(image)
-        return ee.Image(ee.Algorithms.If(cond,
-                                         i.Or(mask),
-                                         i))
+        def for_true():
+            ''' function to execute if condition == True '''
+            # get the mask for the option
+            mask = tools.compute_bits(bits_dict.get(option),
+                                      bits_dict.get(option),
+                                      option)(image)
+
+            # name the mask
+            # mask = ee.Image(mask).select([0], [option])
+            newmask = all.Or(mask)
+
+            # return ee.Image(all.Or(mask)).addBands(mask)
+            return tools.replace(i, name_all, newmask).addBands(mask)
+
+        return ee.Image(ee.Algorithms.If(cond, for_true(), i))
 
     good_pix = ee.Image(opt.iterate(for_iterate, first))
 
-    return good_pix.Not()
+    # return good_pix.Not()
+    return good_pix
 
 ### DEPRECATED FUNCTIONS ###
 # GENERIC APPLICATION OF MASKS
@@ -232,32 +247,59 @@ def landsatTOA_(masks=['cloud', 'shadow', 'snow']):
     return wrap
 #############################
 
-def modis(options=['cloud', 'mix', 'shadow', 'cloud2', 'snow']):
-    bits = ee.Dictionary({
+def modis(options=['cloud', 'mix', 'shadow', 'cloud2', 'snow'], name='modis_mask',
+          addBands=False, updateMask=True):
+    bits = {
         'cloud': 0,
         'mix': 1,
         'shadow': 2,
         'cloud2':10,
-        'snow':12
-    })
+        'snow':12}
 
     mask_band = 'state_1km'
 
     options = ee.List(options)
     def wrap(image):
-        good_pix = compute(image, mask_band, bits, options)
-        return image.updateMask(good_pix);
+        good_pix = compute(image, mask_band, bits, options, name_all=name)
+
+        mask = good_pix.select([name]).Not()
+
+        if addBands and updateMask:
+            return image.updateMask(mask).addBands(good_pix)
+        elif addBands:
+            return image.addBands(good_pix)
+        elif updateMask:
+            return image.updateMask(mask)
+        else:
+            return image
 
     return wrap
 
-def sentinel2(options=['opaque', 'cirrus']):
+def sentinel2(options=['opaque', 'cirrus'], name='esa_mask',
+              addBands=False, updateMask=True):
+    """ ESA Cloud cover assessment
+
+    :param options: category to mask out. Can be: 'opaque' or/and 'cirrus'
+    :type options: list
+    :return: the function to mask out clouds
+    """
 
     rel = {'opaque': 10, 'cirrus':11}
     band = 'QA60'
 
     def wrap(img):
-        good_pix = compute(img, band, rel, options)
-        return img.updateMask(good_pix)
+        good_pix = compute(img, band, rel, options, name_all=name)
+        mask = good_pix.select([name]).Not()
+
+        if addBands and updateMask:
+            return img.updateMask(mask).addBands(good_pix)
+        elif addBands:
+            return img.addBands(good_pix)
+        elif updateMask:
+            return img.updateMask(mask)
+        else:
+            return img
+
     return wrap
 
 # LEDAPS
@@ -280,7 +322,24 @@ def ledaps(image):
 
     return result
 
-def landsatSR(options=['cloud', 'shadow', 'adjacent', 'snow']):
+def landsatSR(options=['cloud', 'shadow', 'adjacent', 'snow'], name='sr_mask',
+              addBands=False, updateMask=True):
+    """ Function to use in Landsat Surface Reflectance Collections:
+    LANDSAT/LT04/C01/T1_SR, LANDSAT/LT05/C01/T1_SR, LANDSAT/LE07/C01/T1_SR,
+    LANDSAT/LC08/C01/T1_SR
+
+    :param options: masks to apply. Options: 'cloud', 'shadow', 'adjacent',
+        'snow'
+    :type options: list
+    :param name: name of the band that will hold the final mask. Default: 'toa_mask'
+    :type name: str
+    :param addBands: add all bands to the image. Default: False
+    :type addBands: bool
+    :param updateMask: update the mask of the Image. Default: True
+    :type updateMask: bool
+    :return: a function for applying the mask
+    :rtype: function
+    """
     sr = {'bits': ee.Dictionary({'cloud': 1, 'shadow': 2, 'adjacent': 3, 'snow': 4}),
           'band': 'sr_cloud_qa'}
 
@@ -294,14 +353,39 @@ def landsatSR(options=['cloud', 'shadow', 'adjacent', 'snow']):
         bands = image.bandNames()
         contains_sr = bands.contains('sr_cloud_qa')
         good_pix = ee.Image(ee.Algorithms.If(contains_sr,
-                                             compute(image, sr['band'], sr['bits'], options),
-                                             compute(image, pix['band'], pix['bits'], options)))
+                   compute(image, sr['band'], sr['bits'], options, name_all=name),
+                   compute(image, pix['band'], pix['bits'], options, name_all=name)))
 
-        return image.updateMask(good_pix)
+        mask = good_pix.select([name]).Not()
+
+        if addBands and updateMask:
+            return image.updateMask(mask).addBands(good_pix)
+        elif addBands:
+            return image.addBands(good_pix)
+        elif updateMask:
+            return image.updateMask(mask)
+        else:
+            return image
 
     return wrap
 
-def landsatTOA(options=['cloud', 'shadow', 'snow']):
+def landsatTOA(options=['cloud', 'shadow', 'snow'], name='toa_mask',
+               addBands=False, updateMask=True):
+    """ Function to mask out clouds, shadows and snow in Landsat 4 5 7 8 TOA:
+    LANDSAT/LT04/C01/T1_TOA, LANDSAT/LT05/C01/T1_TOA, LANDSAT/LE07/C01/T1_TOA
+    and LANDSAT/LC08/C01/T1_TOA
+
+    :param options: masks to apply. Options: 'cloud', 'shadow', 'snow'
+    :type options: list
+    :param name: name of the band that will hold the final mask. Default: 'toa_mask'
+    :type name: str
+    :param addBands: add all bands to the image. Default: False
+    :type addBands: bool
+    :param updateMask: update the mask of the Image. Default: True
+    :type updateMask: bool
+    :return: a function for applying the mask
+    :rtype: function
+    """
     bits = ee.Dictionary({'cloud': 4, 'shadow': 8, 'snow': 10})
     mask_band = 'BQA'
 
@@ -310,12 +394,37 @@ def landsatTOA(options=['cloud', 'shadow', 'snow']):
     options = ee.List(opt)
 
     def wrap(image):
-        good_pix = compute(image, mask_band, bits, options)
-        return image.updateMask(good_pix)
+        good_pix = compute(image, mask_band, bits, options, name_all=name)
+
+        mask = good_pix.select([name]).Not()
+
+        if addBands and updateMask:
+            return image.updateMask(mask).addBands(good_pix)
+        elif addBands:
+            return image.addBands(good_pix)
+        elif updateMask:
+            return image.updateMask(mask)
+        else:
+            return image
+
     return wrap
 
 def hollstein_S2(options=['cloud', 'snow', 'shadow', 'water', 'cirrus'],
-                 updateMask=True):
+                 name='hollstein', addBands=False, updateMask=True):
+    """
+
+    :param options: masks to apply. Options: 'cloud', 'shadow', 'snow',
+        'cirrus', 'water'
+    :type options: list
+    :param name: name of the band that will hold the final mask. Default: 'hollstein'
+    :type name: str
+    :param addBands: add all bands to the image. Default: False
+    :type addBands: bool
+    :param updateMask: update the mask of the Image. Default: True
+    :type updateMask: bool
+    :return: a function for applying the mask
+    :rtype: function
+    """
 
     def difference(a, b):
         def wrap(img):
@@ -350,26 +459,41 @@ def hollstein_S2(options=['cloud', 'snow', 'shadow', 'water', 'cirrus'],
         s911 = difference('B9', 'B11')(img).lt(210)
         s911_2 = difference('B9', 'B11')(img).lt(-970)
 
+        snow = {'snow':[['1',0], ['22',0], ['34',0]]}
+        cloud = {'cloud-1':[['1',0], ['22',1],['33',1],['44',1]],
+                 'cloud-2':[['1',0], ['22',1],['33',0],['45',0]]}
+        cirrus = {'cirrus-1':[['1',0], ['22',1],['33',1],['44',0]],
+                  'cirrus-2':[['1',1], ['21',0],['32',1],['43',0]]}
+        shadow = {'shadow-1':[['1',1], ['21',1],['31',1],['41',0]],
+                  'shadow-2':[['1',1], ['21',1],['31',0],['42',0]],
+                  'shadow-3':[['1',0], ['22',0],['34',1],['46',0]]}
+        water = {'water':[['1',1], ['21',1],['31',0],['42',1]]}
+
+        all = {'cloud':cloud,
+               'snow': snow,
+               'shadow':shadow,
+               'water':water,
+               'cirrus':cirrus}
+
+        final = {}
+
+        for option in options:
+            final.update(all[option])
+
         dtf = decision_tree.binary(
                         {'1':b3,
                          '21':b8a, '22':r511,
                          '31':s37, '32':r210, '33':s1110, '34':b3_3,
                          '41': s911_2, '42':s911, '43':r29, '44':s67, '45':b1, '46':r15
-                         },
-                        {'snow':[['1',0], ['22',0], ['34',0]],
-                         'cloud-1':[['1',0], ['22',1],['33',1],['44',1]],
-                         'cloud-2':[['1',0], ['22',1],['33',0],['45',0]],
-                         'cirrus-1':[['1',0], ['22',1],['33',1],['44',0]],
-                         'cirrus-2':[['1',1], ['21',0],['32',1],['43',0]],
-                         'shadow-1':[['1',1], ['21',1],['31',1],['41',0]],
-                         'shadow-2':[['1',1], ['21',1],['31',0],['42',0]],
-                         'shadow-3':[['1',0], ['22',0],['34',1],['46',0]],
-                         'water':[['1',1], ['21',1],['31',0],['42',1]],
-                         }, 'hollstein')
+                         }, final, name)
 
         results = dtf
-        if updateMask:
-            return img.addBands(results).updateMask(results.select('hollstein'))
-        else:
+
+        if updateMask and addBands:
+            return img.addBands(results).updateMask(results.select(name))
+        elif addBands:
             return img.addBands(results)
+        elif updateMask:
+            return img.updateMask(results.select(name))
+
     return compute_dt
