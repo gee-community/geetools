@@ -22,10 +22,13 @@ class Map(ipyleaflet.Map):
         kwargs.setdefault('zoom', 2)
         super(Map, self).__init__(**kwargs)
         self.added_geometries = 0
+        self.is_shown = False
 
     def show(self):
-        lc = ipyleaflet.LayersControl()
-        self.add_control(lc)
+        if not self.is_shown:
+            lc = ipyleaflet.LayersControl()
+            self.add_control(lc)
+            self.is_shown = True
         display(self)
 
     def addLayer(self, eeObject, visParams=None, name=None, show=True,
@@ -47,48 +50,24 @@ class Map(ipyleaflet.Map):
             self.added_geometries += 1
             self.add_layer(layer)
 
-        def do_geometry(geometry):
-            info = geometry.getInfo()
-            type = info['type']
-
-            gjson_types = ['Polygon', 'LineString', 'MultiPolygon',
-                           'LinearRing', 'MultiLineString', 'MultiPoint',
-                           'Point', 'Polygon', 'Rectangle',
-                           'GeometryCollection']
-
-            newname = thename if thename else "{} {}".format(type, self.added_geometries)
-
-            if type in gjson_types:
-                data = inspect['data']
-                red = inspect.get('reducer','first')
-                sca = inspect.get('scale', None)
-                popval = get_data(geometry, data, red, sca) if data else type
-
-                layer = ipyleaflet.GeoJSON(data=json.dumps(geometry.getInfo()),
-                                           name=newname, popup=popval)
-                self.added_geometries += 1
-                self.add_layer(layer)
-
-            else:
-                print('unrecognized object type to add to map')
-
         # CASE: ee.Image
         if isinstance(eeObject, ee.Image):
             addImage(eeObject)
 
         elif isinstance(eeObject, ee.Geometry):
-            # do_geometry(eeObject)
             addGeoJson(eeObject)
 
         elif isinstance(eeObject, ee.Feature):
             geom = eeObject.geometry()
-            # do_geometry(geom)
             addGeoJson(geom)
 
         elif isinstance(eeObject, ee.ImageCollection):
+            print('`addLayer` currently supports to add only ee.Image,\
+                   ee.Geometry and ee.Feature')
             pass
         else:
-            raise ValueError('addLayer currently supports ee.Image as eeObject argument')
+            raise ValueError('addLayer currently supports ee.Image as eeObject\
+                              argument')
 
     def centerObject(self, eeObject, zoom=None, method=1):
         """ Center an eeObject
@@ -110,3 +89,15 @@ class Map(ipyleaflet.Map):
             self.zoom = zoom
         else:
             self.zoom = get_zoom(bounds, method)
+
+    def getCenter(self):
+        """ Returns the coordinates at the center of the map.
+
+        No arguments.
+        Returns: Geometry.Point
+
+        :return:
+        """
+        center = self.center
+        coords = inverse_coordinates(center)
+        return ee.Geometry.Point(coords)
