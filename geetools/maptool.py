@@ -1,7 +1,9 @@
 # coding=utf-8
 
-''' This module is designed to use in the Jupyter Notebook. It uses folium and
-branca, and is inspired in https://github.com/mccarthyryanc/folium_gee '''
+''' This module is designed to use in the Jupyter Notebook or generating Maps
+for Web applications. It uses folium and branca, and is inspired in
+https://github.com/mccarthyryanc/folium_gee '''
+
 from __future__ import print_function
 import folium
 from folium import features
@@ -9,20 +11,64 @@ import ee
 from copy import copy
 from . import tools
 import json
+import math
 
 if not ee.data._initialized: ee.Initialize()
 
+
 class Map(folium.Map):
+
     def __init__(self, **kwargs):
         super(Map, self).__init__(**kwargs)
+        self.added_geometries = 0
 
     def show(self):
         LC = folium.LayerControl()
         self.add_child(LC)
         return self
 
+    def addMarker(self, point, visParams=None, data=None, scale=None):
+        """ Adds a marker with a popup given the data from an Image if
+        data param is specified
+
+        :param point: point
+        :type point: ee.Geometry or ee.Feature
+        :param visParams: visualization parameters
+        :type visParams: dict
+        :param data: Image from where to get the data from
+        :type data: ee.Image
+        :return:
+        """
+        if isinstance(point, ee.Geometry):
+            geometry = point
+        elif isinstance(point, ee.Feature):
+            geometry = point.geometry()
+
+        info = geometry.getInfo()
+        type = info['type']
+        coords = info['coordinates']
+        coords = inverse_coordinates(coords)
+
+        if data:
+            # Try to get the image scale
+            scale = data.projection().nominalScale().getInfo() if not scale else scale
+
+            # Reduce if computed scale is too big
+            scale = 1 if scale > 500 else scale
+
+            values = tools.get_value(data, geometry, scale, 'client')
+            val_str = ''
+            for key, val in values.iteritems():
+                val_str += '<b>{}:</b> {}</br>'.format(key, val)
+                marker = folium.Marker(location=coords,
+                                       popup=folium.Popup(val_str))
+        else:
+            marker = folium.Marker(location=coords)
+
+        self.add_child(marker)
+
     def addLayer(self, eeObject, visParams=None, name=None, show=True,
-                 opacity=None):
+                 opacity=None, inspect={'data':None, 'reducer':None, 'scale':None}):
         """
         Adds a given EE object to the map as a layer.
 
@@ -30,58 +76,66 @@ class Map(folium.Map):
 
         Arguments:
         eeObject (Collection|Feature|Image|MapId):
-        The object to add to the map.
+            The object to add to the map.
 
-        visParams (FeatureVisualizationParameters|ImageVisualizationParameters, optional):
-        The visualization parameters. For Images and ImageCollection, see ee.data.getMapId for valid parameters. For Features and FeatureCollections, the only supported key is "color", as a CSS 3.0 color string or a hex string in "RRGGBB" format.
+        visParams (FeatureVisualizationParameters|ImageVisualizationParameters,
+        optional):
+            The visualization parameters. For Images and ImageCollection,
+            see ee.data.getMapId for valid parameters. For Features and
+            FeatureCollections, the only supported key is "color",
+            as a CSS 3.0 color string or a hex string in "RRGGBB" format.
 
         name (String, optional):
-        The name of the layer. Defaults to "Layer N".
+            The name of the layer. Defaults to "Layer N".
 
         shown (Boolean, optional):
-        A flag indicating whether the layer should be on by default.
+            A flag indicating whether the layer should be on by default.
 
         opacity (Number, optional):
-        The layer's opacity represented as a number between 0 and 1. Defaults to 1.
+            The layer's opacity represented as a number between 0 and 1.
+            Defaults to 1.
 
         Returns: ui.Map.Layer
         """
-        if not isinstance(eeObject, ee.Image):
+
+        def addImage(image):
+            params = get_image_tile(image, visParams, name, show, opacity)
+            layer = folium.TileLayer(attr=params['attribution'],
+                                     name=params['name'],
+                                     overlay=params['overlay'],
+                                     tiles=params['url'])
+            layer.add_to(self)
+            return self
+
+        def addGeoJson(geometry):
+            params = get_geojson_tile(self, geometry, name, inspect)
+            geojson = json.dumps(params['geojson'])
+            layer = features.GeoJson(geojson,
+                                     name=params['name'])
+            pop = folium.Popup(params['pop'])
+
+            layer.add_child(pop)
+
+            self.added_geometries += 1
+            self.add_child(layer)
+
+        # CASE: ee.Image
+        if isinstance(eeObject, ee.Image):
+            addImage(eeObject)
+
+        elif isinstance(eeObject, ee.Geometry):
+            addGeoJson(eeObject)
+
+        elif isinstance(eeObject, ee.Feature):
+            geom = eeObject.geometry()
+            addGeoJson(geom)
+
+        elif isinstance(eeObject, ee.ImageCollection):
+            pass
+        else:
             raise ValueError('addLayer currently supports ee.Image as eeObject argument')
 
-        image = eeObject
-
-        name = name if name else image.id().getInfo()
-
-        # Default parameters
-        default = get_default_vis(image)
-        default.update(visParams)
-
-        # Take away bands from parameters
-        newVisParams = {}
-        for key, val in default.iteritems():
-            if key == 'bands': continue
-            newVisParams[key] = val
-
-        # Get the MapID and Token after applying parameters
-        image_info = image.select(visParams['bands']).getMapId(newVisParams)
-        mapid = image_info['mapid']
-        token = image_info['token']
-
-        tiles = "https://earthengine.googleapis.com/map/%s/{z}/{x}/{y}?token=%s"%(mapid,token)
-        folium_kwargs = {'attr': 'Map Data &copy; <a href="https://earthengine.google.com/">Google Earth Engine</a> ',
-                         'tiles': tiles,
-                         'name': name,
-                         'overlay': True,
-                         # 'show': show
-                         }
-
-        layer = folium.TileLayer(**folium_kwargs)
-        layer.add_to(self)
-
-        return self
-
-    def centerObject(self, object, zoom=None):
+    def centerObject(self, eeObject, zoom=None):
         """
         Centers the map view on a given object.
 
@@ -95,29 +149,33 @@ class Map(folium.Map):
         The zoom level, from 1 to 24. If unspecified, computed based on the object's bounding box.
         :return:
         """
-        if isinstance(object, list):
-            bounds = object
-        else:
-            # Make a buffer if object is a Point
-            if isinstance(object, ee.Geometry):
-                t = object.type().getInfo()
-                if t == 'Point':
-                    object = object.buffer(1000)
-
-            bounds = tools.getRegion(object, True)
-
-        # Catch unbounded images
-        unbounded = [[[-180.0, -90.0], [180.0, -90.0],
-                      [180.0, 90.0], [-180.0, 90.0],
-                      [-180.0, -90.0]]]
-
-        if bounds == unbounded:
-            print("can't center object because it is unbounded")
-
-        bounds = inverse_coordinates(bounds)
+        bounds = get_bounds(eeObject)
         self.fit_bounds([bounds[0], bounds[2]], max_zoom=zoom)
 
         return self
+
+def get_bounds(eeObject):
+    if isinstance(eeObject, list):
+        bounds = eeObject
+    else:
+        # Make a buffer if object is a Point
+        if isinstance(eeObject, ee.Geometry):
+            t = eeObject.type().getInfo()
+            if t == 'Point':
+                eeObject = eeObject.buffer(1000)
+
+        bounds = tools.getRegion(eeObject, True)
+
+        # Catch unbounded images
+    unbounded = [[[-180.0, -90.0], [180.0, -90.0],
+                  [180.0, 90.0], [-180.0, 90.0],
+                  [-180.0, -90.0]]]
+
+    if bounds == unbounded:
+        print("can't center object because it is unbounded")
+
+    bounds = inverse_coordinates(bounds)
+    return bounds
 
 def get_default_vis(image, stretch=0.8):
     bandnames = image.bandNames().getInfo()
@@ -134,17 +192,24 @@ def get_default_vis(image, stretch=0.8):
     types = bands[0]['data_type']
 
     maxs = {'float':1,
+            'double': 1,
             'int8': 127, 'uint8': 255,
             'int16': 32767, 'uint16': 65535,
             'int32': 2147483647, 'uint32': 4294967295,
             'int64': 9223372036854776000}
 
-    if types['precision'] == 'float':
+    precision = types['precision']
+
+    if precision == 'float':
         btype = 'float'
-    else:
+    elif precision == 'double':
+        btype = 'double'
+    elif precision == 'int':
         max = types['max']
-        maxsi = dict((val, key) for key, val in maxs.iteritems())
-        btype = maxsi[int(max)]
+        maxs_inverse = dict((val, key) for key, val in maxs.iteritems())
+        btype = maxs_inverse[int(max)]
+    else:
+        raise ValueError('Unknown data type {}'.format(precision))
 
     limits = {'float': 0.8}
 
@@ -172,11 +237,170 @@ def inverse_coordinates(coords):
         for n in range(nest-1):
             coords = coords[0]
 
-    newcoords = []
-    for coord in coords:
-        newcoord = [coord[1], coord[0]]
-        newcoords.append(newcoord)
+    if nest > 0:
+        newcoords = []
+        for coord in coords:
+            newcoord = [coord[1], coord[0]]
+            newcoords.append(newcoord)
 
-    # Nest again? NO
+        # Nest again? NO
 
-    return newcoords
+        return newcoords
+    else:
+        return [coords[1], coords[0]]
+
+def get_image_tile(image, visParams, name, show=True, opacity=None,
+                   overlay=True):
+
+    name = name if name else image.id().getInfo()
+
+    params = visParams if visParams else {}
+
+    if params:
+        got_default = params.has_key('bands') \
+                      and params.has_key('min') \
+                      and params.has_key('max')
+    else:
+        got_default = False
+
+    # Default parameters
+    if not got_default:
+        default = get_default_vis(image)
+        params.update(default)
+    else:
+        default = {}
+        default.update(params)
+        params = default
+
+    # Take away bands from parameters
+    newVisParams = {}
+    for key, val in params.iteritems():
+        if key == 'bands': continue
+        newVisParams[key] = val
+
+    # Get the MapID and Token after applying parameters
+    image_info = image.select(params['bands']).getMapId(newVisParams)
+    mapid = image_info['mapid']
+    token = image_info['token']
+    tiles = "https://earthengine.googleapis.com/map/%s/{z}/{x}/{y}?token=%s"%(mapid,token)
+    attribution = 'Map Data &copy; <a href="https://earthengine.google.com/">Google Earth Engine</a> '
+    overlay = overlay
+
+    return {'url': tiles,
+            'attribution': attribution,
+            'overlay': overlay,
+            'name':name,
+            'show': show,
+            'opacity': opacity,
+            }
+
+def get_geojson_tile(map, geometry, name,
+                     inspect={'data':None, 'reducer':None, 'scale':None}):
+    info = geometry.getInfo()
+    type = info['type']
+
+    gjson_types = ['Polygon', 'LineString', 'MultiPolygon',
+                   'LinearRing', 'MultiLineString', 'MultiPoint',
+                   'Point', 'Polygon', 'Rectangle',
+                   'GeometryCollection']
+
+    newname = name if name else "{} {}".format(type, map.added_geometries)
+
+    if type in gjson_types:
+        data = inspect['data']
+        red = inspect.get('reducer','first')
+        sca = inspect.get('scale', None)
+        popval = get_data(geometry, data, red, sca) if data else type
+        geojson = geometry.getInfo()
+
+        return {'geojson':geojson,
+                'pop': popval,
+                'name': newname}
+    else:
+        print('unrecognized object type to add to map')
+
+def get_zoom(bounds, method=1):
+    '''
+    as ipyleaflet does not have a fit bounds method, try to get the zoom to fit
+
+    from: https://stackoverflow.com/questions/6048975/google-maps-v3-how-to-calculate-the-zoom-level-for-a-given-bounds
+    '''
+    sw = bounds[0]
+    ne = bounds[2]
+
+    sw_lon = sw[1]
+    sw_lat = sw[0]
+    ne_lon = ne[1]
+    ne_lat = ne[0]
+
+    def method1():
+        # Method 1
+        WORLD_DIM = {'height': 256, 'width': 256}
+        ZOOM_MAX = 21
+
+        def latRad(lat):
+            sin = math.sin(lat * math.pi / 180)
+            radX2 = math.log((1 + sin) / (1 - sin)) / 2
+            return max(min(radX2, math.pi), -math.pi) / 2
+
+        def zoom(mapPx, worldPx, fraction):
+            return math.floor(math.log(mapPx / worldPx / fraction) / math.log(2))
+
+        latFraction = float(latRad(ne_lat) - latRad(sw_lat)) / math.pi
+
+        lngDiff = ne_lon - sw_lon
+
+        lngFraction = (lngDiff + 360) if (lngDiff < 0) else lngDiff
+        lngFraction = lngFraction / 360
+
+        latZoom = zoom(400, WORLD_DIM['height'], latFraction)
+        lngZoom = zoom(970, WORLD_DIM['width'], lngFraction)
+
+        return int(min(latZoom, lngZoom, ZOOM_MAX))
+
+    def method2():
+        scale = 111319.49
+
+        GLOBE_WIDTH = 256 # a constant in Google's map projection
+
+        angle = ne_lon - sw_lon
+        if angle < 0:
+            angle += 360
+        zoom = math.floor(math.log(scale * 360 / angle / GLOBE_WIDTH) / math.log(2))
+        return int(zoom)-8
+
+    finalzoom = method1() if method == 1 else method2()
+    return finalzoom
+
+# TODO: Multiple dispatch! https://www.artima.com/weblogs/viewpost.jsp?thread=101605
+def get_data(geometry, obj, reducer='first', scale=None):
+    accepted = (ee.Image, ee.ImageCollection, ee.Feature, ee.FeatureCollection)
+
+    reducers = {'first': ee.Reducer.first(),
+                'mean': ee.Reducer.mean(),
+                'median': ee.Reducer.median(),
+                'sum':ee.Reducer.sum()}
+
+    if not isinstance(obj, accepted):
+        return "Can't get data from that Object"
+    elif isinstance(obj, ee.Image):
+        t = geometry.type().getInfo()
+        # Try to get the image scale
+        scale = obj.select([0]).projection().nominalScale().getInfo()\
+                if not scale else scale
+
+        # Reduce if computed scale is too big
+        scale = 1 if scale > 500 else scale
+        if t == 'Point':
+            values = tools.get_value(obj, geometry, scale, 'client')
+            val_str = ''
+            for key, val in values.iteritems():
+                val_str += '<b>{}:</b> {}</br>'.format(key, val)
+            return val_str
+        elif t == 'Polygon':
+            red = reducer if reducer in reducers.keys() else 'first'
+            values = obj.reduceRegion(reducers[red], geometry, scale, maxPixels=1e13).getInfo()
+            val_str = '<h3>{}:</h3>\n'.format(red)
+            for key, val in values.iteritems():
+                val_str += '<b>{}:</b> {}</br>'.format(key, val)
+            return val_str

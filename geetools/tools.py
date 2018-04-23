@@ -7,6 +7,8 @@ import time
 import traceback
 import functools
 import requests
+import os
+import sys
 
 import ee
 
@@ -176,6 +178,33 @@ def execli(function, times=None, wait=None, trace=None):
 #    ee.Initialize()
 #except:
 #    pass
+
+def minscale(image):
+    """ Get the minimal scale of an Image, looking at all Image's bands.
+    For example if:
+        B1 = 30
+        B2 = 60
+        B3 = 10
+    the function will return 10
+
+    :param image: the Image
+    :type image: ee.Image
+    :return: the minimal scale
+    :rtype: ee.Number
+    """
+    bands = image.bandNames()
+
+    first = image.select([ee.String(bands.get(0))])
+    ini = ee.Number(first.projection().nominalScale())
+
+    def wrap(name, i):
+        i = ee.Number(i)
+        scale = ee.Number(image.select([name]).projection().nominalScale())
+        condition = scale.lte(i)
+        newscale = ee.Algorithms.If(condition, scale, i)
+        return newscale
+
+    return ee.Number(bands.slice(1).iterate(wrap, ini))
 
 @execli_deco()
 def getRegion(geom, bounds=False):
@@ -459,7 +488,7 @@ def col2asset(col, assetPath, scale=30, region=None, create=True, **kwargs):
     return tasklist
 
 @execli_deco()
-def img2asset(image, assetPath, to='Folder', scale=30, region=None,
+def img2asset(image, assetPath, to='Folder', scale=None, region=None,
               create=True, **kwargs):
     """ Upload an Image to an Asset. Similar to Export.image.toAsset but this
     function can create folders and ImageCollections on the fly. You can pass
@@ -473,7 +502,7 @@ def img2asset(image, assetPath, to='Folder', scale=30, region=None,
     :param region: area to upload. Defualt to the footprint of the first
         image in the collection
     :type region: ee.Geometry.Rectangle or ee.Feature
-    :param scale: scale of the image (side of one pixel). Defults to 30
+    :param scale: scale of the image (side of one pixel)
         (Landsat resolution)
     :type scale: int
     :param dataType: as downloaded images **must** have the same data type in all
@@ -483,6 +512,16 @@ def img2asset(image, assetPath, to='Folder', scale=30, region=None,
     :return: the tasks
     :rtype: ee.batch.Task
     """
+    is_user = (assetPath.split('/')[0] == 'users')
+
+    # description = kwargs.get('description', image.id().getInfo())
+
+    scale = scale if scale else int(minscale(image).getInfo())
+
+    if not is_user:
+        user = ee.batch.data.getAssetRoots()[0]['id']
+        assetPath = "{}/{}".format(user, assetPath)
+
     if create:
         path2create = '/'.join(assetPath.split('/')[:-1])
         create_assets([path2create], to, True)
@@ -490,9 +529,67 @@ def img2asset(image, assetPath, to='Folder', scale=30, region=None,
     region = getRegion(region)
 
     task = ee.batch.Export.image.toAsset(image, assetId=assetPath,
-                                         region=region, scale=scale, **kwargs)
+                                         region=region, scale=scale,
+                                         # description=description,
+                                         **kwargs)
     task.start()
     return task
+
+@execli_deco()
+def img2local(image, path=None, name=None, scale=None, region=None,
+              dimensions=None, toFolder=True, checkExist=True):
+    try:
+        import zipfile
+    except:
+        raise ValueError(
+            'zipfile module not found, install it using `pip install zipfile`')
+
+    name = name if name else image.id().getInfo()
+
+    scale = scale if scale else int(minscale(image).getInfo())
+
+    if region:
+        region = getRegion(region)
+    else:
+        region = getRegion(image)
+
+    params = {'region': region,
+              'scale': scale}
+
+    params = params.update({'dimensions': dimensions}) if dimensions else params
+
+    url = image.getDownloadURL(params)
+
+    ext = 'zip'
+
+    downloadFile(url, name, ext)
+
+    filename = '{}.{}'.format(name, ext)
+
+    original_filepath = os.path.join(os.getcwd(), filename)
+
+    if path:
+        filepath = os.path.join(path, filename)
+        os.rename(original_filepath, filepath)
+    else:
+        path = os.getcwd()
+        filepath = os.path.join(path, filename)
+
+    print(filepath)
+
+    '''
+    zip_ref = zipfile.ZipFile(filepath, 'r')
+
+    if toFolder:
+        finalpath = os.path.join(path, name)
+    else:
+        finalpath = path
+
+    print(finalpath)
+
+    zip_ref.extractall(finalpath)
+    zip_ref.close()
+    '''
 
 def addConstantBands(value=None, *names, **pairs):
     """ Adds bands with a constant value
@@ -934,6 +1031,8 @@ def downloadFile(url, name, ext):
             return None
         response = requests.get(url, stream=True)
         code = response.status_code
+        size = response.headers.get('content-length',0)
+        if size: print('size:', size)
 
     with open(name + "." + ext, "wb") as handle:
         for data in response.iter_content():
