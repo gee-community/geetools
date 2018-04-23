@@ -85,3 +85,6 @@ files/
 
 test.py
 geetools/tests/test.py
+
+# Jupyter checkpoints
+/notebooks/.ipynb_checkpoints/*
