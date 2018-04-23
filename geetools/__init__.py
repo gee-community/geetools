@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-__version__ = "0.0.12"
+__version__ = "0.0.13"
 
 __title__ = "geetools"
 __summary__ = "A set of useful tools to use with Google Earth Engine Python" \
