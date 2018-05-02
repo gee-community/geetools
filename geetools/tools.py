@@ -9,6 +9,7 @@ import functools
 import requests
 import os
 import sys
+from collections import OrderedDict
 
 import ee
 
@@ -286,7 +287,11 @@ def create_assets(asset_ids, asset_type, mk_parents):
 
     """
     for asset_id in asset_ids:
-        if ee.data.getInfo(asset_id):
+        already = ee.data.getInfo(asset_id)
+        if already:
+            ty = already['type']
+            if ty != asset_type:
+                raise ValueError("{} is a {}. Can't create asset".format(asset_id, ty))
             print('Asset %s already exists' % asset_id)
             continue
         if mk_parents:
@@ -488,16 +493,18 @@ def col2asset(col, assetPath, scale=30, region=None, create=True, **kwargs):
     return tasklist
 
 @execli_deco()
-def img2asset(image, assetPath, to='Folder', scale=None, region=None,
-              create=True, **kwargs):
+def image2asset(image, assetPath, name=None, to='Folder', scale=None,
+                region=None, create=True, **kwargs):
     """ Upload an Image to an Asset. Similar to Export.image.toAsset but this
     function can create folders and ImageCollections on the fly. You can pass
     the same params as the original function
 
     :param image: the image to upload
     :type image: ee.Image
-    :param assetPath: path to upload the image
+    :param assetPath: path to upload the image (only PATH, without filename)
     :type assetPath: str
+    :param name: name for the image
+    :type name: str
     :param to: where to save the image. Options: 'Folder' or 'ImageCollection'
     :param region: area to upload. Defualt to the footprint of the first
         image in the collection
@@ -523,21 +530,22 @@ def img2asset(image, assetPath, to='Folder', scale=None, region=None,
         assetPath = "{}/{}".format(user, assetPath)
 
     if create:
-        path2create = '/'.join(assetPath.split('/')[:-1])
+        path2create = assetPath #  '/'.join(assetPath.split('/')[:-1])
         create_assets([path2create], to, True)
 
     region = getRegion(region)
-
-    task = ee.batch.Export.image.toAsset(image, assetId=assetPath,
+    name = name if name else image.id().getInfo()
+    assetId = '/'.join([assetPath, name])
+    task = ee.batch.Export.image.toAsset(image, assetId=assetId,
                                          region=region, scale=scale,
-                                         # description=description,
+                                         description=assetId,
                                          **kwargs)
     task.start()
     return task
 
 @execli_deco()
-def img2local(image, path=None, name=None, scale=None, region=None,
-              dimensions=None, toFolder=True, checkExist=True):
+def image2local(image, path=None, name=None, scale=None, region=None,
+                dimensions=None, toFolder=True, checkExist=True):
     try:
         import zipfile
     except:
@@ -1127,3 +1135,28 @@ def trim_decimals(places=2):
         return floor.add(newdecimals).toFloat()
 
     return wrap
+
+def sort_dict(dictionary):
+    """ Sort a dictionary. Can be a `dict` or a `ee.Dictionary`
+
+    :param dictionary: the dictionary to sort
+    :type dictionary: dict or ee.Dictionary
+    """
+    if isinstance(dictionary, dict):
+        sorted = OrderedDict()
+        keys = dictionary.keys()
+        keys.sort()
+        for key in keys:
+            sorted[key] = dictionary[key]
+        return sorted
+    elif isinstance(dictionary, ee.Dictionary):
+        keys = dictionary.keys()
+        ordered = keys.sort()
+        newdict = ee.Dictionary()
+        def iteration(key, first):
+            new = ee.Dictionary(first)
+            val = dictionary.get(key)
+            return new.set(key, val)
+        return ee.Dictionary(ordered.iterate(iteration, newdict))
+    else:
+        return dictionary
