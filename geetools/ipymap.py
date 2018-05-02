@@ -5,7 +5,7 @@
 https://github.com/gee-community/ee-jupyter-contrib/blob/master/examples/getting-started/display-interactive-map.ipynb'''
 
 import ipyleaflet
-from ipywidgets import HTML, Tab, Text, Accordion
+from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox
 from IPython.display import display
 import ee
 from collections import OrderedDict
@@ -28,16 +28,25 @@ class Map(ipyleaflet.Map):
         self.is_shown = False
         self.EELayers = {}
 
-        # Create Tabs
+        # CREATE TABS
         self.tabs = Tab()
         tab_names = ['Inspector', 'Assets', 'Tasks']
-        self.inspectorWid = Accordion()
-        self.assetsWid = Accordion()
-        self.tasksWid = HTML()
+
+        ## widgets
+        self.inspectorWid = Accordion()  # Inspector Widget
+        self.assetsWid = Accordion()  # Assets Widget
+        self.tasksWid = HTML()  # Tasks Widget
+
         childrenName = ['Inspector', 'Assets', 'Tasks']
         childrenWid =  [self.inspectorWid, self.assetsWid, self.tasksWid]
+
+        # Dictonary to hold tab's widgets
+        # (tab's name:widget)
         self.childrenDict = OrderedDict(zip(childrenName, childrenWid))
+
+        # Set tabs children
         self.tabs.children = self.childrenDict.values()
+        # Set tabs names
         for i, name in enumerate(tab_names):
             self.tabs.set_title(i, name)
 
@@ -58,6 +67,24 @@ class Map(ipyleaflet.Map):
         return sum(
             [1 for val in self.EELayers.values() if val['type'] == 'Geometry'])
 
+    def create_assets_tab(self):
+        # ASSETS TAB
+        # Get assets root
+        rootid = ee.data.getAssetRoots()[0]['id']
+        assets_list = ee.data.getList({'id': rootid})
+        widlist = []
+        namelist = []
+        for asset in assets_list:
+            wid = HTML('')
+            widlist.append(wid)
+            name = asset['id'].split('/')[-1]
+            ty = asset['type']
+            namelist.append('{} ({})'.format(name, ty))
+
+        self.assetsWid.children = widlist
+        for i, name in enumerate(namelist):
+            self.assetsWid.set_title(i, name)
+
     def show(self, inspector=True):
         """ Show the Map on the Notebook """
         if not self.is_shown:
@@ -66,25 +93,15 @@ class Map(ipyleaflet.Map):
             self.add_control(lc)
             self.is_shown = True
 
-        if inspector:
-            # Get assets root
-            rootid = ee.data.getAssetRoots()[0]['id']
-            assets_list = ee.data.getList({'id': rootid})
-            widlist = []
-            namelist = []
-            for asset in assets_list:
-                wid = HTML('')
-                widlist.append(wid)
-                name = asset['id'].split('/')[-1]
-                ty = asset['type']
-                namelist.append('{} ({})'.format(name, ty))
-
-            self.assetsWid.children = widlist
-            for i, name in enumerate(namelist):
-                self.assetsWid.set_title(i, name)
-
+            if inspector:
+                # Create Assets Tab
+                self.create_assets_tab()
+                # Display
+                display(self, self.tabs)
+            else:
+                display(self)
+        elif inspector:
             display(self, self.tabs)
-            # self.inspector()
         else:
             display(self)
 
