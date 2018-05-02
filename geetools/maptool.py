@@ -99,19 +99,19 @@ class Map(folium.Map):
         """
 
         def addImage(image):
-            params = get_image_tile(image, visParams, name, show, opacity)
+            params = get_image_tile(image, visParams, show, opacity)
             layer = folium.TileLayer(attr=params['attribution'],
-                                     name=params['name'],
+                                     name=name,
                                      overlay=params['overlay'],
                                      tiles=params['url'])
             layer.add_to(self)
             return self
 
         def addGeoJson(geometry):
-            params = get_geojson_tile(self, geometry, name, inspect)
+            params = get_geojson_tile(geometry, inspect)
             geojson = json.dumps(params['geojson'])
             layer = features.GeoJson(geojson,
-                                     name=params['name'])
+                                     name=name)
             pop = folium.Popup(params['pop'])
 
             layer.add_child(pop)
