@@ -99,19 +99,19 @@ class Map(folium.Map):
         """
 
         def addImage(image):
-            params = get_image_tile(image, visParams, name, show, opacity)
+            params = get_image_tile(image, visParams, show, opacity)
             layer = folium.TileLayer(attr=params['attribution'],
-                                     name=params['name'],
+                                     name=name,
                                      overlay=params['overlay'],
                                      tiles=params['url'])
             layer.add_to(self)
             return self
 
         def addGeoJson(geometry):
-            params = get_geojson_tile(self, geometry, name, inspect)
+            params = get_geojson_tile(geometry, inspect)
             geojson = json.dumps(params['geojson'])
             layer = features.GeoJson(geojson,
-                                     name=params['name'])
+                                     name=name)
             pop = folium.Popup(params['pop'])
 
             layer.add_child(pop)
@@ -149,7 +149,7 @@ class Map(folium.Map):
         The zoom level, from 1 to 24. If unspecified, computed based on the object's bounding box.
         :return:
         """
-        bounds = get_bounds(eeObject)
+        bounds = get_bounds(eeObject)[0]
         self.fit_bounds([bounds[0], bounds[2]], max_zoom=zoom)
 
         return self
@@ -220,39 +220,45 @@ def get_default_vis(image, stretch=0.8):
     max = limits[btype]
     return {'bands':bandnames, 'min':min, 'max':max}
 
+def is_point(item):
+    """ Determine if the given list has the structure of a point. This is:
+    it is a list or tuple with two int or float items """
+    if isinstance(item, list) or isinstance(item, tuple):
+        if len(item) == 2:
+            lon = item[0]
+            if isinstance(lon, int) or isinstance(lon, float):
+                return True
+            else:
+                return False
+        else:
+            return False
+    else:
+        return False
+
 def inverse_coordinates(coords):
-    proxy = copy(coords)
-    if isinstance(proxy, list):
-        nest = -1
-        ty = type(proxy)
-        while ty == list:
-            proxy = proxy[0]
-            ty = type(proxy)
-            nest += 1
-    else:
-        raise ValueError('coords must be at least a list of points')
+    """ Inverse a set of coordinates (any nesting depth)
 
-    # Unnest
-    if nest > 1:
-        for n in range(nest-1):
-            coords = coords[0]
-
-    if nest > 0:
-        newcoords = []
-        for coord in coords:
-            newcoord = [coord[1], coord[0]]
-            newcoords.append(newcoord)
-
-        # Nest again? NO
-
-        return newcoords
-    else:
+    :param coords: a nested list of points
+    :type coords: list
+    """
+    newlist = []
+    if is_point(coords):
         return [coords[1], coords[0]]
+    elif not isinstance(coords, list) and not isinstance(coords, tuple):
+        raise ValueError('coordinates to inverse must be minimum a point')
+    for i, it in enumerate(coords):
+        p = is_point(it)
+        if not p and (isinstance(it, list) or isinstance(it, tuple)):
+            newlist.append(inverse_coordinates(it))
+        else:
+            newp = [it[1],it[0]]
+            newlist.append(newp)
+    return newlist
 
-def get_image_tile(image, visParams, name, show=True, opacity=None,
+def get_image_tile(image, visParams, show=True, opacity=None,
                    overlay=True):
 
-    name = name if name else image.id().getInfo()
+    # name = name if name else image.id().getInfo()
 
     params = visParams if visParams else {}
 
@@ -289,12 +295,12 @@ def get_image_tile(image, visParams, name, show=True, opacity=None,
     return {'url': tiles,
             'attribution': attribution,
             'overlay': overlay,
-            'name':name,
+            # 'name':name,
             'show': show,
             'opacity': opacity,
             }
 
-def get_geojson_tile(map, geometry, name,
+def get_geojson_tile(geometry,
                      inspect={'data':None, 'reducer':None, 'scale':None}):
     info = geometry.getInfo()
     type = info['type']
@@ -304,7 +310,7 @@ def get_geojson_tile(map, geometry, name,
                    'Point', 'Polygon', 'Rectangle',
                    'GeometryCollection']
 
-    newname = name if name else "{} {}".format(type, map.added_geometries)
+    # newname = name if name else "{} {}".format(type, map.added_geometries)
 
     if type in gjson_types:
         data = inspect['data']
@@ -314,8 +320,8 @@ def get_geojson_tile(map, geometry, name,
         geojson = geometry.getInfo()
 
         return {'geojson':geojson,
-                'pop': popval,
-                'name': newname}
+                'pop': popval}
+                # 'name': newname}
     else:
         print('unrecognized object type to add to map')
 
@@ -325,6 +331,7 @@ def get_zoom(bounds, method=1):
 
     from: https://stackoverflow.com/questions/6048975/google-maps-v3-how-to-calculate-the-zoom-level-for-a-given-bounds
     '''
+    bounds = bounds[0]
     sw = bounds[0]
     ne = bounds[2]
 
