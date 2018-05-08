@@ -411,3 +411,35 @@ def get_data(geometry, obj, reducer='first', scale=None):
             for key, val in values.iteritems():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
             return val_str
+
+def create_html(dictionary, nest=0, ini='', indent=2):
+    """ Create a HTML output from a dict object
+
+    :param nest: nesting level to start (defaults to 0)
+    :type nest: int
+    :param ini: initial text
+    :type ini: str
+    :param indent: indentation spaces
+    :type indent: int
+    :return: the text to use in a HTML object
+    :rtype: str
+    """
+
+    for key, val in dictionary.items():
+        if isinstance(val, dict):
+            line = '{}<b>{}</b>:</br>'.format('&nbsp;'*nest, key)
+            ini += line
+            newnest = nest+indent
+            ini = create_html(val, newnest, ini)
+        elif isinstance(val, list):
+            # tranform list to a dictionary
+            dictval = {k: v for k, v in enumerate(val)}
+            line = '{}<b>{}</b>:</br>'.format('&nbsp;'*nest, key)
+            ini += line
+            newnest = nest+indent
+            ini = create_html(dictval, newnest, ini)
+        else:
+            line = '{}<b>{}</b>: {}</br>'.format('&nbsp;'*nest, key, val)
+            ini += line
+
+    return ini
