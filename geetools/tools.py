@@ -1160,3 +1160,11 @@ def sort_dict(dictionary):
         return ee.Dictionary(ordered.iterate(iteration, newdict))
     else:
         return dictionary
+
+def printEE(eeobject):
+    """ Print an EE Object. Same as `print(object.getInfo())`"""
+    try:
+        info = eeobject.getInfo()
+    except:
+        info = eeobject
+    print(info)
