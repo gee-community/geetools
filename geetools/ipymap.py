@@ -8,13 +8,13 @@ import ipyleaflet
 from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox
 from IPython.display import display
 import ee
+if not ee.data._initialized: ee.Initialize()
 from collections import OrderedDict
 from . import tools
 from .maptool import get_default_vis, inverse_coordinates, get_data,\
-                     get_image_tile, get_geojson_tile, get_bounds, get_zoom
+                     get_image_tile, get_geojson_tile, get_bounds, get_zoom,\
+                     create_html
 import json
-
-if not ee.data._initialized: ee.Initialize()
 
 
 class Map(ipyleaflet.Map):
@@ -96,6 +96,8 @@ class Map(ipyleaflet.Map):
             if inspector:
                 # Create Assets Tab
                 self.create_assets_tab()
+                # Create Object Inspector
+                self.addTab('Objects', self.handle_object_inspector, Accordion())
                 # Display
                 display(self, self.tabs)
             else:
@@ -105,15 +107,46 @@ class Map(ipyleaflet.Map):
         else:
             display(self)
 
-    def addLayer(self, eeObject, visParams=None, name=None, show=True,
-                 opacity=None,
-                 inspect={'data':None, 'reducer':None, 'scale':None}):
-        """ Adds a given EE object to the map as a layer.
+    def addImage(self, image, visParams=None, name=None, show=True,
+                 opacity=None):
+        """ Add an ee.Image to the Map
 
-        :param eeObject: Earth Engine object to add to map
-        :type eeObject: ee.Image || ee.Geometry || ee.Feature
-        :param visParams: visualization parameters. For Images can have the
+        :param image: Image to add to Map
+        :type image: ee.Image
+        :param visParams: visualization parameters. Can have the
             following arguments: bands, min, max.
+        :type visParams: dict
+        :param name: name for the layer
+        :type name: str
+        :return: the added layer
+        :rtype: TileLayer
+        """
+        thename = name if name else 'Image {}'.format(self.added_images)
+
+        # Check if layer exists
+        if thename in self.EELayers.keys():
+            print("Image with name '{}' exists already, please choose another name".format(thename))
+            return
+
+        params = get_image_tile(image, visParams, show, opacity)
+
+        layer = ipyleaflet.TileLayer(url=params['url'],
+                                     attribution=params['attribution'],
+                                     name=thename)
+        self.add_layer(layer)
+        self.EELayers[thename] = {'type':'Image',
+                               'object':image,
+                               'visParams':visParams,
+                               'layer':layer}
+        return layer
+
+    def addGeometry(self, geometry, visParams=None, name=None, show=True,
+                    opacity=None, inspect={'data':None, 'reducer':None, 'scale':None}):
+        """ Add a Geometry to the Map
+
+        :param geometry: the Geometry to add to Map
+        :type geometry: ee.Geometry
+        :param visParams:
         :type visParams: dict
         :param name: name for the layer
         :type name: str
@@ -122,62 +155,93 @@ class Map(ipyleaflet.Map):
             :data: the EEObject where to get the data from
             :reducer: the reducer to use
             :scale: the scale to reduce
+        :type inspect: dict
         :return: the added layer
-        :rtype:
+        :rtype: TileLayer
         """
+        thename = name if name else 'Geometry {}'.format(self.added_geometries)
 
-        def addImage(image, name):
-            # Check if layer exists
-            if name in self.EELayers.keys():
-                print("Layer with name {} exists already, please choose"+
-                      "another name".format(name))
-                return
+        # Check if layer exists
+        if thename in self.EELayers.keys():
+            print("Layer with name '{}' exists already, please choose another name".format(thename))
+            return
 
-            params = get_image_tile(image, visParams, show, opacity)
+        params = get_geojson_tile(geometry, inspect)
+        layer = ipyleaflet.GeoJSON(data=params['geojson'],
+                                   name=thename,
+                                   popup=HTML(params['pop']))
+        self.add_layer(layer)
+        self.EELayers[thename] = {'type':'Geometry',
+                               'object': geometry,
+                               'visParams':None,
+                               'layer': layer}
+        return layer
 
-            layer = ipyleaflet.TileLayer(url=params['url'],
-                                         attribution=params['attribution'],
-                                         name=name)
-            self.add_layer(layer)
-            self.EELayers[name] = {'type':'Image',
-                                   'object':image,
-                                   'visParams':visParams,
-                                   'layer':layer}
-            return layer
+    def addImageCollection(self, collection, visParams=None, nametags=['id'],
+                           show=False, opacity=None):
+        """ Add every Image of an ImageCollection to the Map
 
-        def addGeoJson(geometry, name):
-            # Check if layer exists
-            if name in self.EELayers.keys():
-                print("Layer with name {} exists already, please choose"+
-                      "another name".format(name))
-                return
+        :param collection: the ImageCollection
+        :type collection: ee.ImageCollection
+        :param visParams: visualization parameter for each image. See `addImage`
+        :type visParams: dict
+        :param nametags: tags that will be the name for each image. It must be
+            a list in which each element is a string. Each string can be any
+            Image property, or one of the following:
+            - system_date: the name will be the date of each Image
+            - id: the name will be the ID of each Image (Default)
+        :type nametags: list
+        :param show: If True, adds and shows the Image, otherwise only add it
+        :type show: bool
+        """
+        size = collection.size().getInfo()
+        collist = collection.toList(size)
+        separation = ' '
+        for inx in range(size):
+            img = ee.Image(collist.get(inx))
+            name = ''
+            properties = img.propertyNames().getInfo()
+            for nametag in nametags:
+                if nametag == 'id':
+                    newname = img.id().getInfo()
+                elif nametag == 'system_date':
+                    newname = ee.Date(img.date()).format('YYYY-MM-dd').getInfo()
+                elif nametag in properties:
+                    newname = "{}:{}{}".format(nametag, img.get(nametag).getInfo(), separation)
+                else:
+                    newname = img.id().getInfo()
 
-            params = get_geojson_tile(geometry, inspect)
-            layer = ipyleaflet.GeoJSON(data=params['geojson'],
-                                       name=name,
-                                       popup=HTML(params['pop']))
-            self.add_layer(layer)
-            self.EELayers[name] = {'type':'Geometry',
-                                  'object': geometry,
-                                  'visParams':None,
-                                  'layer': layer}
-            return layer
+                name += newname
+            self.addImage(img, visParams, str(name), show, opacity)
 
+
+    def addLayer(self, eeObject, visParams=None, name=None, show=True,
+                 opacity=None, **kwargs):
+        """ Adds a given EE object to the map as a layer.
+
+        :param eeObject: Earth Engine object to add to map
+        :type eeObject: ee.Image || ee.Geometry || ee.Feature
+
+        For ee.Image and ee.ImageCollection see `addImage`
+        for ee.Geometry and ee.Feature see `addGeometry`
+        """
         # CASE: ee.Image
         if isinstance(eeObject, ee.Image):
-            thename = name if name else 'Image {}'.format(self.added_images)
-            addImage(eeObject, thename)
-        elif isinstance(eeObject, ee.Geometry):
-            thename = name if name else 'Geometry {}'.format(self.added_geometries)
-            addGeoJson(eeObject, thename)
-        elif isinstance(eeObject, ee.Feature):
-            geom = eeObject.geometry()
-            addGeoJson(geom)
+            return self.addImage(eeObject, visParams=visParams, name=name,
+                                 show=show, opacity=opacity)
+        # CASE: ee.Geometry
+        elif isinstance(eeObject, ee.Geometry) or isinstance(eeObject, ee.Feature):
+            geom = eeObject if isinstance(eeObject, ee.Geometry) else eeObject.geometry()
+            kw = {'visParams':visParams, 'name':name, 'show':show, 'opacity':opacity}
+            if kwargs.get('inspect'): kw.setdefault('inspect', kwargs.get('inspect'))
+            return self.addGeometry(geom, **kw)
+        # CASE: ee.ImageCollection
         elif isinstance(eeObject, ee.ImageCollection):
             proxy = eeObject.sort('system:time_start')
             mosaic = ee.Image(proxy.mosaic())
             thename = name if name else 'Mosaic {}'.format(self.added_images)
-            addImage(mosaic, thename)
+            return self.addImage(mosaic, visParams=visParams, name=thename,
+                                 show=show, opacity=opacity)
         else:
             print("`addLayer` doesn't support adding the specified object to"
                   "the map")
@@ -341,15 +405,54 @@ class Map(ipyleaflet.Map):
                     # append widget to list of widgets
                     wids4acc.append(wid)
                     namelist.append(name)
-                # GEOMETRIES
-                elif obj['type'] == 'Geometry':
-                    geom = obj['object']
-                    data = str(geom.getInfo())
-                    wid = HTML(data)
-                    wids4acc.append(wid)
-                    namelist.append(name)
 
             # Set children and children's name of inspector widget
             self.inspectorWid.children = wids4acc
             for i, n in enumerate(namelist):
                 self.inspectorWid.set_title(i, n)
+
+    def handle_object_inspector(self, **change):
+        """ Handle function for the Object Inspector Widget """
+
+        event = change['type'] # event type
+        thewidget = change['widget']
+        if event == 'click':  # If the user clicked
+            # Clear children // Loading
+            thewidget.children = [HTML('wait a second please..')]
+            thewidget.set_title(0, 'Loading...')
+
+            widgets = []
+            i = 0
+
+            for name, obj in self.EELayers.items(): # for every added layer
+                the_object = obj['object']
+                properties = the_object.getInfo()
+                wid = create_accordion(properties)
+                widgets.append(wid)
+                thewidget.set_title(i, name)
+                i += 1
+
+            thewidget.children = widgets
+
+
+def create_accordion(dictionary):
+    """ Create an Accordion output from a dict object """
+    widlist = []
+    ini = 0
+    widget = Accordion()
+    for key, val in dictionary.items():
+        if isinstance(val, dict):
+            newwidget = create_accordion(val)
+            widlist.append(newwidget)
+        elif isinstance(val, list):
+            # tranform list to a dictionary
+            dictval = {k: v for k, v in enumerate(val)}
+            newwidget = create_accordion(dictval)
+            widlist.append(newwidget)
+        else:
+            value = HTML(str(val))
+            widlist.append(value)
+        widget.set_title(ini, key)
+        ini += 1
+    widget.children = widlist
+    return widget
