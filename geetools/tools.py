@@ -20,6 +20,29 @@ _execli_trace = False
 _execli_times = 10
 _execli_wait = 0
 
+def convert_data_type(newtype):
+    """ Convert an image to the specified data type
+
+    :param newtype: the data type. One of 'float', 'int', 'byte', 'double',
+        'Uint8','int8','Uint16', 'int16', 'Uint32','int32'
+    :type newtype: str
+    :return: a function to map over a collection
+    :rtype: function
+    """
+    def wrap(image):
+        TYPES = {'float': image.toFloat,
+                 'int': image.toInt,
+                 'byte': image.toByte,
+                 'double': image.toDouble,
+                 'Uint8': image.toUint8,
+                 'int8': image.toInt8,
+                 'Uint16': image.toUint16,
+                 'int16': image.toInt16,
+                 'Uint32': image.toUint32,
+                 'int32': image.toInt32}
+        return TYPES[newtype]()
+    return wrap
+
 # DECORATOR
 # def execli_deco(times=None, wait=None, trace=None):
 def execli_deco():
@@ -207,7 +230,7 @@ def minscale(image):
 
     return ee.Number(bands.slice(1).iterate(wrap, ini))
 
-@execli_deco()
+# @execli_deco()
 def getRegion(geom, bounds=False):
     """ Gets the region of a given geometry to use in exporting tasks. The
     argument can be a Geometry, Feature or Image
@@ -234,13 +257,6 @@ def getRegion(geom, bounds=False):
     else:
         region = geom
     return region
-
-
-TYPES = {'float': ee.Image.toFloat,
-         'int': ee.Image.toInt,
-         'Uint8': ee.Image.toUint8,
-         'int8': ee.Image.toInt8,
-         'double': ee.Image.toDouble}
 
 def mask2zero(img):
     """ Converts masked pixels into zeros
@@ -288,6 +304,7 @@ def create_assets(asset_ids, asset_type, mk_parents):
     """
     for asset_id in asset_ids:
         already = ee.data.getInfo(asset_id)
+        # print('already', already)
         if already:
             ty = already['type']
             if ty != asset_type:
@@ -301,6 +318,7 @@ def create_assets(asset_ids, asset_type, mk_parents):
             for part in parts[2:-1]:
                 root += part
                 if ee.data.getInfo(root) is None:
+                    # print(root)
                     ee.data.createAsset({'type': 'Folder'}, root)
                 root += '/'
         return ee.data.createAsset({'type': asset_type}, asset_id)
@@ -470,7 +488,7 @@ def col2asset(col, assetPath, scale=30, region=None, create=True, **kwargs):
     if region is None:
         first_img = ee.Image(alist.get(0))
         region = getRegion(first_img)
-        print(region)
+        # print(region)
         # region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
     else:
         region = getRegion(region)
@@ -494,7 +512,7 @@ def col2asset(col, assetPath, scale=30, region=None, create=True, **kwargs):
 
 @execli_deco()
 def image2asset(image, assetPath, name=None, to='Folder', scale=None,
-                region=None, create=True, **kwargs):
+                region=None, create=True, dataType='float', **kwargs):
     """ Upload an Image to an Asset. Similar to Export.image.toAsset but this
     function can create folders and ImageCollections on the fly. You can pass
     the same params as the original function
@@ -503,7 +521,7 @@ def image2asset(image, assetPath, name=None, to='Folder', scale=None,
     :type image: ee.Image
     :param assetPath: path to upload the image (only PATH, without filename)
     :type assetPath: str
-    :param name: name for the image
+    :param name: filename for the image (AssetID will be assetPath + name)
     :type name: str
     :param to: where to save the image. Options: 'Folder' or 'ImageCollection'
     :param region: area to upload. Defualt to the footprint of the first
@@ -519,26 +537,34 @@ def image2asset(image, assetPath, name=None, to='Folder', scale=None,
     :return: the tasks
     :rtype: ee.batch.Task
     """
+    # Convert data type
+    image = convert_data_type(dataType)(image)
+
+    # Check if the user is specified in the asset path
     is_user = (assetPath.split('/')[0] == 'users')
-
-    # description = kwargs.get('description', image.id().getInfo())
-
-    scale = scale if scale else int(minscale(image).getInfo())
-
     if not is_user:
         user = ee.batch.data.getAssetRoots()[0]['id']
         assetPath = "{}/{}".format(user, assetPath)
 
+    # description = kwargs.get('description', image.id().getInfo())
+    # Set scale
+    scale = scale if scale else int(minscale(image).getInfo())
+
     if create:
+        # Recrusive create path
         path2create = assetPath #  '/'.join(assetPath.split('/')[:-1])
         create_assets([path2create], to, True)
 
+    # Region
     region = getRegion(region)
+    # Name
     name = name if name else image.id().getInfo()
+    # Asset ID (Path + name)
     assetId = '/'.join([assetPath, name])
+    # Init task
     task = ee.batch.Export.image.toAsset(image, assetId=assetId,
                                          region=region, scale=scale,
-                                         description=assetId,
+                                         description=name,
                                          **kwargs)
     task.start()
     return task
@@ -583,7 +609,7 @@ def image2local(image, path=None, name=None, scale=None, region=None,
         path = os.getcwd()
         filepath = os.path.join(path, filename)
 
-    print(filepath)
+    # print(filepath)
 
     '''
     zip_ref = zipfile.ZipFile(filepath, 'r')
@@ -680,7 +706,7 @@ def replace(img, to_replace, to_add):
     img_final = img_resto.addBands(band)
     return img_final
 
-@execli_deco()
+# @execli_deco()
 def get_value(img, point, scale=10, side="server"):
     """ Return the value of all bands of the image in the specified point
 
@@ -710,7 +736,7 @@ def get_value(img, point, scale=10, side="server"):
     else:
         raise ValueError("side parameter must be 'server' or 'client'")
 
-@execli_deco()
+# @execli_deco()
 def get_values(col, point, scale=10, side='server'):
     """ Return all values of all bands of an image collection in the specified
     point
