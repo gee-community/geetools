@@ -497,3 +497,83 @@ def hollstein_S2(options=['cloud', 'snow', 'shadow', 'water', 'cirrus'],
             return img.updateMask(results.select(name))
 
     return compute_dt
+
+def dark_pixels(green, swir2, threshold=0.25):
+    """ Detect dark pixels from green and swir2 band
+
+    :param green: name of the green band
+    :type green: str
+    :param swir2: name of the swir2 band
+    :type swir2: str
+    :param threshold: threshold value from which are considered dark pixels
+    :type threshold: float
+    :return: a function
+    """
+    def wrap(img):
+        return img.normalizedDifference([green, swir2]).gt(threshold)
+    return wrap
+
+def shadow_mask(mask_band, azimuth_property='solar_azimuth',
+                zenith_property='solar_zenith'):
+    """
+    Finds cloud shadows in images
+    Originally by Gennadii Donchyts, adapted by Ian Housman
+
+    :param mask_band: name of the band that hold the cloud mask
+    :type mask_band: str
+    :return: a funtion to compute the cloud shadow mask
+    :rtype: function
+    """
+    import math
+    def wrap(img):
+        def potentialShadow(cloudHeight):
+            """
+            Finds potential shadow areas from array of cloud heights
+
+            returns an image stack (i.e. list of images)
+            """
+            cloudHeight = ee.Number(cloudHeight)
+
+            # shadow vector length
+            shadowVector = zenith.tan().multiply(cloudHeight)
+
+            # x and y components of shadow vector length
+            x = azimuth.cos().multiply(shadowVector).divide(nominalScale).round()
+            y = azimuth.sin().multiply(shadowVector).divide(nominalScale).round()
+
+            # affine translation of clouds
+            cloudShift = cloudMask.changeProj(cloudMask.projection(),
+                                              cloudMask.projection().translate(x, y)) # could incorporate shadow stretch?
+
+            return cloudShift
+
+        # select a cloud mask
+        cloudMask = img.select(mask_band)
+
+        # solar geometry (radians)
+        azimuth = ee.Number(img.get(azimuth_property)).multiply(math.pi)\
+                    .divide(180.0).add(ee.Number(0.5).multiply(math.pi))
+        zenith  = ee.Number(0.5).multiply(math.pi)\
+                    .subtract(ee.Number(img.get(zenith_property))\
+                    .multiply(math.pi).divide(180.0))
+
+        # find potential shadow areas based on cloud and solar geometry
+        nominalScale = cloudMask.projection().nominalScale()
+        cloudHeights = ee.List.sequence(500, 4000, 500)
+        potentialShadowStack = cloudHeights.map(potentialShadow)
+        potentialShadow = ee.ImageCollection.fromImages(potentialShadowStack).max()
+
+        # shadows are not clouds
+        potentialShadow = potentialShadow.And(cloudMask.Not())
+
+        # (modified) dark pixel detection
+        # darkPixels = toa.normalizedDifference(['green', 'swir2']).gt(0.25)
+
+        # shadows are dark
+        # shadows = potentialShadow.And(darkPixels).rename(['shadows'])
+
+        # might be scope for one last check here. Dark surfaces (e.g. water, basalt, etc.) cause shadow commission errors.
+        # perhaps using a NDWI (e.g. green and nir)
+
+        return potentialShadow
+    return wrap
