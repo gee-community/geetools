@@ -569,14 +569,28 @@ def image2asset(image, assetPath, name=None, to='Folder', scale=None,
     task.start()
     return task
 
-@execli_deco()
+# @execli_deco()
 def image2local(image, path=None, name=None, scale=None, region=None,
                 dimensions=None, toFolder=True, checkExist=True):
+    # make some imports
+    import glob
+
     try:
         import zipfile
     except:
         raise ValueError(
             'zipfile module not found, install it using `pip install zipfile`')
+
+    try:
+        from osgeo import gdal
+    except ImportError:
+        try:
+            import gdal
+        except:
+            raise
+
+    # Reproject image
+    # image = image.reproject(ee.Projection('EPSG:4326'))
 
     name = name if name else image.id().getInfo()
 
@@ -609,21 +623,26 @@ def image2local(image, path=None, name=None, scale=None, region=None,
         path = os.getcwd()
         filepath = os.path.join(path, filename)
 
-    # print(filepath)
+    try:
+        zip_ref = zipfile.ZipFile(filepath, 'r')
 
-    '''
-    zip_ref = zipfile.ZipFile(filepath, 'r')
+        if toFolder:
+            finalpath = os.path.join(path, name)
+        else:
+            finalpath = path
 
-    if toFolder:
-        finalpath = os.path.join(path, name)
-    else:
-        finalpath = path
+        zip_ref.extractall(finalpath)
+        zip_ref.close()
+    except:
+        raise
 
-    print(finalpath)
-
-    zip_ref.extractall(finalpath)
-    zip_ref.close()
-    '''
+    # Merge TIFF
+    # alltif = glob.glob(os.path.join(finalpath, '.tif'))
+    # outvrt = '/vsimem/stacked.vrt' #/vsimem is special in-memory virtual "directory"
+    # outtif = os.path.join(finalpath, name+'.tif')
+    #
+    # outds = gdal.BuildVRT(outvrt, alltif, separate=True)
+    # gdal.Translate(outtif, outds)
 
 def addConstantBands(value=None, *names, **pairs):
     """ Adds bands with a constant value
