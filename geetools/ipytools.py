@@ -3,7 +3,8 @@
 
 from IPython.display import display
 from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
-                       DOMWidget, Layout, Widget, Label, VBox, Button
+                       DOMWidget, Layout, Widget, Label, VBox, Button,\
+                       ToggleButton, IntSlider
 from traitlets import HasTraits, List, Unicode, observe, Instance, Tuple, All
 import json
 
@@ -244,12 +245,19 @@ class TaskManager(VBox):
         # Header
         self.checkbox = Checkbox(indent=False,
                                  layout=Layout(flex='1 1 20', width='auto'))
-        self.cancel_selected = Button(description='Cancel Selected', tooltip='Cancel all selected tasks')
-        self.cancel_all = Button(description='Cancell All', tooltip='Cancel all tasks')
-        self.refresh = Button(description='Refresh', tooltip='Refresh Tasks List')
+        self.cancel_selected = Button(description='Cancel Selected',
+                                      tooltip='Cancel all selected tasks')
+        self.cancel_all = Button(description='Cancell All',
+                                 tooltip='Cancel all tasks')
+        self.refresh = Button(description='Refresh',
+                              tooltip='Refresh Tasks List')
+        self.autorefresh = ToggleButton(description='auto-refresh',
+                                        tooltip='click to enable/disable autorefresh')
+        self.slider = IntSlider(min=1, max=10, step=1, value=5)
         self.hbox = HBox([self.checkbox, self.refresh,
                           self.cancel_selected, self.cancel_all,
-                          ])
+                          self.autorefresh, self.slider])
+
         # Tabs for COMPLETED, FAILED, etc
         self.tabs = Tab()
         # Tabs index
@@ -300,12 +308,12 @@ class TaskManager(VBox):
                 widlist.append(wid)
             widget.children = tuple(widlist)
 
-        
+        '''
         def loop(widget):
             while True:
-                update_task_list(widget)
-                time.sleep(5)
-        '''
+                self.update_task_list()(self.refresh)
+                time.sleep(self.slider.value)
+
         # First widget
         self.update_task_list(vbox=self.runningVBox)(self.refresh)
         # self.children = (self.hbox, self.taskVBox)
@@ -320,7 +328,10 @@ class TaskManager(VBox):
         # Set on_clicks
         self.cancel_all.on_click(self.cancel_all_click)
         self.cancel_selected.on_click(self.cancel_selected_click)
+        # self.autorefresh
 
+    def autorefresh_loop(self):
+        pass
 
     def tab_handler(self, change):
         if change['name'] == 'selected_index':
@@ -430,6 +441,7 @@ class TaskManager(VBox):
                 ee.data.cancelTask(taskid)
             except:
                 continue
+        self.update_task_list()(self.refresh)
 
     def cancel_all_click(self, button):
         selected_wid = self.selected_tab() # VBox
@@ -440,3 +452,4 @@ class TaskManager(VBox):
                 ee.data.cancelTask(taskid)
             except:
                 continue
+        self.update_task_list()(self.refresh)
