@@ -5,7 +5,8 @@
 https://github.com/gee-community/ee-jupyter-contrib/blob/master/examples/getting-started/display-interactive-map.ipynb'''
 
 import ipyleaflet
-from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox
+from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
+                       Label
 from IPython.display import display
 import ee
 if not ee.data._initialized: ee.Initialize()
@@ -14,8 +15,10 @@ from . import tools
 from .maptool import get_default_vis, inverse_coordinates, get_data,\
                      get_image_tile, get_geojson_tile, get_bounds, get_zoom,\
                      create_html
-import json
+from . import ipytools
 
+import json
+import time
 
 class Map(ipyleaflet.Map):
     def __init__(self, **kwargs):
@@ -23,39 +26,29 @@ class Map(ipyleaflet.Map):
         kwargs.setdefault('center', [0, 0])
         kwargs.setdefault('zoom', 2)
         super(Map, self).__init__(**kwargs)
-        # self.added_geometries = {}
-        # self.added_images = {}
         self.is_shown = False
         self.EELayers = {}
 
-        # CREATE TABS
-        self.tabs = Tab()
-        tab_names = ['Inspector', 'Assets', 'Tasks']
-
-        ## widgets
-        self.inspectorWid = Accordion()  # Inspector Widget
-        self.assetsWid = Accordion()  # Assets Widget
-        self.tasksWid = HTML()  # Tasks Widget
-
-        childrenName = ['Inspector', 'Assets', 'Tasks']
-        childrenWid =  [self.inspectorWid, self.assetsWid, self.tasksWid]
+        # TABS
+        # Tab widget
+        self.tab_widget = Tab()
+        # Handler for Tab
+        self.tab_widget.observe(self.handle_change_tab)
 
         # Dictonary to hold tab's widgets
         # (tab's name:widget)
-        self.childrenDict = OrderedDict(zip(childrenName, childrenWid))
+        tab_names = [] # ['Inspector', 'Objects']
+        tab_children = [] # [self.inspector_wid, self.object_inspector_wid]
+        self.tab_children_dict = OrderedDict(zip(tab_names, tab_children))
 
-        # Set tabs children
-        self.tabs.children = self.childrenDict.values()
-        # Set tabs names
-        for i, name in enumerate(tab_names):
-            self.tabs.set_title(i, name)
+        # Dictionary of map's handlers
+        self.handlers = {} # {'Inspector': self.handle_inspector, 'Objects': self.handle_object_inspector}
 
-        # Handlers
-        self.tabs.observe(self.handle_change_tab)
-        self.handlers = {'Inspector': self.handle_inspector}
-
-        # First handler: Inspector
-        self.on_interaction(self.handlers['Inspector'])
+        # As I cannot create a Geometry with a GeoJSON string I do a workaround
+        self.draw_types = {'Polygon': ee.Geometry.Polygon,
+                           'Point': ee.Geometry.Point,
+                           'LineString': ee.Geometry.LineString,
+                           }
 
     @property
     def added_images(self):
@@ -67,48 +60,76 @@ class Map(ipyleaflet.Map):
         return sum(
             [1 for val in self.EELayers.values() if val['type'] == 'Geometry'])
 
-    def create_assets_tab(self):
-        # ASSETS TAB
-        # Get assets root
-        rootid = ee.data.getAssetRoots()[0]['id']
-        assets_list = ee.data.getList({'id': rootid})
-        widlist = []
-        namelist = []
-        for asset in assets_list:
-            wid = HTML('')
-            widlist.append(wid)
-            name = asset['id'].split('/')[-1]
-            ty = asset['type']
-            namelist.append('{} ({})'.format(name, ty))
+    def task_widget(self):
+        with self.tasksWid:
+            while True:
+                list = ee.data.getTaskList()
 
-        self.assetsWid.children = widlist
-        for i, name in enumerate(namelist):
-            self.assetsWid.set_title(i, name)
-
-    def show(self, inspector=True):
+    def show(self, tabs=['Inspector', 'Objects'],
+             layer_control=True, draw_control=False):
         """ Show the Map on the Notebook """
         if not self.is_shown:
-            # Layers Control
-            lc = ipyleaflet.LayersControl()
-            self.add_control(lc)
-            self.is_shown = True
+            if layer_control:
+                # Layers Control
+                lc = ipyleaflet.LayersControl()
+                self.add_control(lc)
+            if draw_control:
+                # Draw Control
+                dc = ipyleaflet.DrawControl(edit=False,
+                                            marker={'shapeOptions': {}})
+                dc.on_draw(self.handle_draw)
+                self.add_control(dc)
 
-            if inspector:
-                # Create Assets Tab
-                self.create_assets_tab()
-                # Create Object Inspector
-                self.addTab('Objects', self.handle_object_inspector, Accordion())
-                # Display
-                display(self, self.tabs)
+            if len(tabs) > 0:
+                # Inspector Widget (Accordion)
+                inspector_wid = Accordion()
+                inspector_wid.selected_index = None # this will unselect all
+                # Object Inspector Widget (Accordion)
+                object_inspector_wid = Accordion()
+                object_inspector_wid.selected_index = None # this will unselect all
+
+                widgets = {'Inspector': inspector_wid,
+                           'Objects': object_inspector_wid,
+                           }
+                handlers = {'Inspector': self.handle_inspector,
+                            'Objects': self.handle_object_inspector,
+                            }
+                for tab in tabs:
+                    if tab in widgets.keys():
+                        widget = widgets[tab]
+                        handler = handlers[tab]
+                        self.addTab(tab, handler, widget)
+                    else:
+                        raise ValueError('Tab {} is not recognized. Choose one of {}'.format(tab, widgets.keys()))
+                # First handler: Inspector
+                self.on_interaction(self.handlers[tabs[0]])
+
+                display(self, self.tab_widget)
             else:
                 display(self)
-        elif inspector:
-            display(self, self.tabs)
         else:
-            display(self)
+            if len(tabs) > 0:
+                display(self, self.tab_widget)
+            else:
+                display(self)
+
+        self.is_shown = True
+
+    def show_tab(self, name):
+        """ Show only a Tab Widget by calling its name. This is useful mainly
+        in Jupyter Lab where you can see outputs in different tab_widget
+
+        :param name: the name of the tab to show
+        :type name: str
+        """
+        try:
+            widget = self.tab_children_dict[name]
+            display(widget)
+        except:
+            print('Tab not found')
 
     def addImage(self, image, visParams=None, name=None, show=True,
-                 opacity=None):
+                 opacity=None, replace=True):
         """ Add an ee.Image to the Map
 
         :param image: Image to add to Map
@@ -118,15 +139,18 @@ class Map(ipyleaflet.Map):
         :type visParams: dict
         :param name: name for the layer
         :type name: str
-        :return: the added layer
-        :rtype: TileLayer
+        :return: the name of the added layer
+        :rtype: str
         """
         thename = name if name else 'Image {}'.format(self.added_images)
 
         # Check if layer exists
         if thename in self.EELayers.keys():
-            print("Image with name '{}' exists already, please choose another name".format(thename))
-            return
+            if not replace:
+                print("Image with name '{}' exists already, please choose another name".format(thename))
+                return
+            else:
+                self.removeLayer(thename)
 
         params = get_image_tile(image, visParams, show, opacity)
 
@@ -135,13 +159,14 @@ class Map(ipyleaflet.Map):
                                      name=thename)
         self.add_layer(layer)
         self.EELayers[thename] = {'type':'Image',
-                               'object':image,
-                               'visParams':visParams,
-                               'layer':layer}
-        return layer
+                                  'object':image,
+                                  'visParams':visParams,
+                                  'layer':layer}
+        return thename
 
     def addGeometry(self, geometry, visParams=None, name=None, show=True,
-                    opacity=None, inspect={'data':None, 'reducer':None, 'scale':None}):
+                    opacity=None, replace=True,
+                    inspect={'data':None, 'reducer':None, 'scale':None}):
         """ Add a Geometry to the Map
 
         :param geometry: the Geometry to add to Map
@@ -156,26 +181,29 @@ class Map(ipyleaflet.Map):
             :reducer: the reducer to use
             :scale: the scale to reduce
         :type inspect: dict
-        :return: the added layer
-        :rtype: TileLayer
+        :return: the name of the added layer
+        :rtype: str
         """
         thename = name if name else 'Geometry {}'.format(self.added_geometries)
 
         # Check if layer exists
         if thename in self.EELayers.keys():
-            print("Layer with name '{}' exists already, please choose another name".format(thename))
-            return
+            if not replace:
+                print("Layer with name '{}' exists already, please choose another name".format(thename))
+                return
+            else:
+                self.removeLayer(thename)
 
-        params = get_geojson_tile(geometry, inspect)
+        params = get_geojson_tile(geometry,thename, inspect)
         layer = ipyleaflet.GeoJSON(data=params['geojson'],
                                    name=thename,
                                    popup=HTML(params['pop']))
         self.add_layer(layer)
         self.EELayers[thename] = {'type':'Geometry',
-                               'object': geometry,
-                               'visParams':None,
-                               'layer': layer}
-        return layer
+                                  'object': geometry,
+                                  'visParams':None,
+                                  'layer': layer}
+        return thename
 
     def addImageCollection(self, collection, visParams=None, nametags=['id'],
                            show=False, opacity=None):
@@ -216,11 +244,14 @@ class Map(ipyleaflet.Map):
 
 
     def addLayer(self, eeObject, visParams=None, name=None, show=True,
-                 opacity=None, **kwargs):
+                 opacity=None, replace=True, **kwargs):
         """ Adds a given EE object to the map as a layer.
 
         :param eeObject: Earth Engine object to add to map
         :type eeObject: ee.Image || ee.Geometry || ee.Feature
+        :param replace: if True, if there is a layer with the same name, this
+            replace that layer.
+        :type replace: bool
 
         For ee.Image and ee.ImageCollection see `addImage`
         for ee.Geometry and ee.Feature see `addGeometry`
@@ -228,23 +259,26 @@ class Map(ipyleaflet.Map):
         # CASE: ee.Image
         if isinstance(eeObject, ee.Image):
             return self.addImage(eeObject, visParams=visParams, name=name,
-                                 show=show, opacity=opacity)
+                                 show=show, opacity=opacity, replace=replace)
         # CASE: ee.Geometry
         elif isinstance(eeObject, ee.Geometry) or isinstance(eeObject, ee.Feature):
             geom = eeObject if isinstance(eeObject, ee.Geometry) else eeObject.geometry()
             kw = {'visParams':visParams, 'name':name, 'show':show, 'opacity':opacity}
             if kwargs.get('inspect'): kw.setdefault('inspect', kwargs.get('inspect'))
-            return self.addGeometry(geom, **kw)
+            return self.addGeometry(geom, replace=replace, **kw)
         # CASE: ee.ImageCollection
         elif isinstance(eeObject, ee.ImageCollection):
             proxy = eeObject.sort('system:time_start')
             mosaic = ee.Image(proxy.mosaic())
             thename = name if name else 'Mosaic {}'.format(self.added_images)
             return self.addImage(mosaic, visParams=visParams, name=thename,
-                                 show=show, opacity=opacity)
+                                 show=show, opacity=opacity, replace=replace)
+        elif isinstance(eeObject, ee.FeatureCollection):
+            geom = eeObject.geometry()
+            kw = {'visParams':visParams, 'name':name, 'show':show, 'opacity':opacity}
+            return self.addGeometry(geom, replace=replace, **kw)
         else:
-            print("`addLayer` doesn't support adding the specified object to"
-                  "the map")
+            print("`addLayer` doesn't support adding {} objects to the map".format(type(eeObject)))
 
     def removeLayer(self, name):
         """ Remove a layer by its name """
@@ -252,6 +286,21 @@ class Map(ipyleaflet.Map):
             layer = self.EELayers[name]['layer']
             self.remove_layer(layer)
             self.EELayers.pop(name)
+        else:
+            print('Layer {} is not present in the map'.format(name))
+            return
+
+    def getLayer(self, name):
+        """ Get a layer by its name
+
+        :param name: the name of the layer
+        :type name: str
+        :return: the EE object from the specified layer
+        :rtype: ee.ComputedObject
+        """
+        if name in self.EELayers.keys():
+            layer = self.EELayers[name]
+            return layer
         else:
             print('Layer {} is not present in the map'.format(name))
             return
@@ -308,6 +357,14 @@ class Map(ipyleaflet.Map):
         else:
             return bounds
 
+    def _update_tab_children(self):
+        """ Update Tab children from tab_children_dict """
+        # Set tab_widget children
+        self.tab_widget.children = self.tab_children_dict.values()
+        # Set tab_widget names
+        for i, name in enumerate(self.tab_children_dict.keys()):
+            self.tab_widget.set_title(i, name)
+
     def addTab(self, name, handler, widget=None):
         """ Add a Tab to the Panel. The handler is for the Map
 
@@ -327,30 +384,32 @@ class Map(ipyleaflet.Map):
         # Widget
         wid = widget if widget else HTML('')
         # Get tab's children as a list
-        tab_children = list(self.tabs.children)
+        # tab_children = list(self.tab_widget.children)
+        tab_children = self.tab_children_dict.values()
         # Get a list of tab's titles
-        titles = [self.tabs.get_title(i) for i, child in enumerate(tab_children)]
+        # titles = [self.tab_widget.get_title(i) for i, child in enumerate(tab_children)]
+        titles = self.tab_children_dict.keys()
         # Check if tab already exists
         if name not in titles:
             ntabs = len(tab_children)
+
+            # UPDATE DICTS
             # Add widget as a new children
-            self.childrenDict[name] = wid
-            tab_children.append(wid)
-            # Overwrite tab's children
-            self.tabs.children = tab_children
-            # Set name of the new tab
-            self.tabs.set_title(ntabs, name)
+            self.tab_children_dict[name] = wid
             # Set the handler for the new tab
             def proxy_handler(f):
                 def wrap(**kwargs):
                     # Add widget to handler arguments
-                    kwargs['widget'] = self.childrenDict[name]
+                    kwargs['widget'] = self.tab_children_dict[name]
                     coords = kwargs['coordinates']
                     kwargs['coordinates'] = inverse_coordinates(coords)
                     kwargs['map'] = self
                     return f(**kwargs)
                 return wrap
             self.handlers[name] = proxy_handler(handler)
+
+            # Update tab children
+            self._update_tab_children()
         else:
             print('Tab {} already exists, please choose another name'.format(name))
 
@@ -360,8 +419,8 @@ class Map(ipyleaflet.Map):
         if change['name'] == 'selected_index':
             old = change['old']
             new = change['new']
-            old_name = self.tabs.get_title(old)
-            new_name = self.tabs.get_title(new)
+            old_name = self.tab_widget.get_title(old)
+            new_name = self.tab_widget.get_title(new)
             # Remove all handlers
             for handl in self.handlers.values():
                 self.on_interaction(handl, True)
@@ -372,48 +431,58 @@ class Map(ipyleaflet.Map):
     def handle_inspector(self, **change):
         """ Handle function for the Inspector Widget """
         # Get click coordinates
-        coords = inverse_coordinates(change['coordinates'])
+        coords = change['coordinates']
 
         event = change['type'] # event type
         if event == 'click':  # If the user clicked
-            # Clear children // Loading
-            self.inspectorWid.children = [HTML('wait a second please..')]
-            self.inspectorWid.set_title(0, 'Loading...')
-
             # create a point where the user clicked
             point = ee.Geometry.Point(coords)
+
+            # Get widget
+            thewidget = change['widget']
 
             # First Accordion row text (name)
             first = 'Point {} at {} zoom'.format(coords, self.zoom)
             namelist = [first]
             wids4acc = [HTML('')] # first row has no content
 
+            length = len(self.EELayers.keys())
+            i = 1
+
             for name, obj in self.EELayers.items(): # for every added layer
-                # name = obj['name']
+                # Clear children // Loading
+                thewidget.children = [HTML('wait a second please..')]
+                thewidget.set_title(0, 'Loading {} of {}...'.format(i, length))
+                i += 1
+
                 # IMAGES
                 if obj['type'] == 'Image':
                     # Get the image's values
-                    image = obj['object']
-                    values = tools.get_value(image, point, 10, 'client')
-                    values = tools.sort_dict(values)
-                    # Create the content
-                    img_html = ''
-                    for band, value in values.items():
-                        img_html += '<b>{}</b>: {}</br>'.format(band,
-                                                                value)
-                    wid = HTML(img_html)
-                    # append widget to list of widgets
-                    wids4acc.append(wid)
-                    namelist.append(name)
+                    try:
+                        image = obj['object']
+                        values = tools.get_value(image, point, 10, 'client')
+                        values = tools.sort_dict(values)
+                        # Create the content
+                        img_html = ''
+                        for band, value in values.items():
+                            img_html += '<b>{}</b>: {}</br>'.format(band,
+                                                                    value)
+                        wid = HTML(img_html)
+                        # append widget to list of widgets
+                        wids4acc.append(wid)
+                        namelist.append(name)
+                    except Exception as e:
+                        wid = HTML(str(e).replace('<','{').replace('>','}'))
+                        wids4acc.append(wid)
+                        namelist.append('ERROR at layer {}'.format(name))
 
             # Set children and children's name of inspector widget
-            self.inspectorWid.children = wids4acc
+            thewidget.children = wids4acc
             for i, n in enumerate(namelist):
-                self.inspectorWid.set_title(i, n)
+                thewidget.set_title(i, n)
 
     def handle_object_inspector(self, **change):
         """ Handle function for the Object Inspector Widget """
-
         event = change['type'] # event type
         thewidget = change['widget']
         if event == 'click':  # If the user clicked
@@ -426,33 +495,26 @@ class Map(ipyleaflet.Map):
 
             for name, obj in self.EELayers.items(): # for every added layer
                 the_object = obj['object']
-                properties = the_object.getInfo()
-                wid = create_accordion(properties)
+                try:
+                    properties = the_object.getInfo()
+                    wid = ipytools.create_accordion(properties) # Accordion
+                    wid.selected_index = None # this will unselect all
+                except Exception as e:
+                    wid = HTML(str(e))
                 widgets.append(wid)
                 thewidget.set_title(i, name)
                 i += 1
 
             thewidget.children = widgets
 
-
-def create_accordion(dictionary):
-    """ Create an Accordion output from a dict object """
-    widlist = []
-    ini = 0
-    widget = Accordion()
-    for key, val in dictionary.items():
-        if isinstance(val, dict):
-            newwidget = create_accordion(val)
-            widlist.append(newwidget)
-        elif isinstance(val, list):
-            # tranform list to a dictionary
-            dictval = {k: v for k, v in enumerate(val)}
-            newwidget = create_accordion(dictval)
-            widlist.append(newwidget)
-        else:
-            value = HTML(str(val))
-            widlist.append(value)
-        widget.set_title(ini, key)
-        ini += 1
-    widget.children = widlist
-    return widget
+    def handle_draw(self, dc_widget, action, geo_json):
+        """ Handles drawings """
+        ty = geo_json['geometry']['type']
+        coords = geo_json['geometry']['coordinates']
+        geom = self.draw_types[ty](coords)
+        if action == 'created':
+            self.addGeometry(geom)
+        elif action == 'deleted':
+            for key, val in self.EELayers.items():
+                if geom == val:
+                    self.removeLayer(key)
