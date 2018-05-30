@@ -6,8 +6,9 @@ https://github.com/gee-community/ee-jupyter-contrib/blob/master/examples/getting
 
 import ipyleaflet
 from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
-                       Label
+                       Label, VBox, SelectMultiple, link
 from IPython.display import display
+from traitlets import List, Dict
 import ee
 if not ee.data._initialized: ee.Initialize()
 from collections import OrderedDict
@@ -21,6 +22,7 @@ import json
 import time
 
 class Map(ipyleaflet.Map):
+    tab_children_dict = Dict()
     def __init__(self, **kwargs):
         # Change defaults
         kwargs.setdefault('center', [0, 0])
@@ -37,9 +39,10 @@ class Map(ipyleaflet.Map):
 
         # Dictonary to hold tab's widgets
         # (tab's name:widget)
-        tab_names = [] # ['Inspector', 'Objects']
-        tab_children = [] # [self.inspector_wid, self.object_inspector_wid]
-        self.tab_children_dict = OrderedDict(zip(tab_names, tab_children))
+        self.tab_names = [] # ['Inspector', 'Objects']
+        self.tab_children = [] # [self.inspector_wid, self.object_inspector_wid]
+        self.tab_children_dict = OrderedDict(zip(self.tab_names,
+                                                 self.tab_children))
 
         # Dictionary of map's handlers
         self.handlers = {} # {'Inspector': self.handle_inspector, 'Objects': self.handle_object_inspector}
@@ -65,7 +68,7 @@ class Map(ipyleaflet.Map):
             while True:
                 list = ee.data.getTaskList()
 
-    def show(self, tabs=['Inspector', 'Objects'],
+    def show(self, tabs=['Inspector', 'Objects', 'Tasks'],
              layer_control=True, draw_control=False):
         """ Show the Map on the Notebook """
         if not self.is_shown:
@@ -82,17 +85,24 @@ class Map(ipyleaflet.Map):
 
             if len(tabs) > 0:
                 # Inspector Widget (Accordion)
-                inspector_wid = Accordion()
-                inspector_wid.selected_index = None # this will unselect all
+                # inspector_wid = Accordion()
+                inspector_wid = CustomInspector()
+                # inspector_wid.update_selector(self)
+                # inspector_wid.selected_index = None # this will unselect all
+                inspector_wid.main.selected_index = None # this will unselect all
                 # Object Inspector Widget (Accordion)
                 object_inspector_wid = Accordion()
                 object_inspector_wid.selected_index = None # this will unselect all
+                # Task Manager Widget
+                task_manager = ipytools.TaskManager()
 
                 widgets = {'Inspector': inspector_wid,
                            'Objects': object_inspector_wid,
+                           'Tasks': task_manager,
                            }
                 handlers = {'Inspector': self.handle_inspector,
                             'Objects': self.handle_object_inspector,
+                            'Tasks': None,
                             }
                 for tab in tabs:
                     if tab in widgets.keys():
@@ -103,6 +113,9 @@ class Map(ipyleaflet.Map):
                         raise ValueError('Tab {} is not recognized. Choose one of {}'.format(tab, widgets.keys()))
                 # First handler: Inspector
                 self.on_interaction(self.handlers[tabs[0]])
+
+                # Link tab_children_dict with custom inspector
+                # link((inspector_wid.selector, 'options'), (self.tab_children_dict, ))
 
                 display(self, self.tab_widget)
             else:
@@ -365,7 +378,7 @@ class Map(ipyleaflet.Map):
         for i, name in enumerate(self.tab_children_dict.keys()):
             self.tab_widget.set_title(i, name)
 
-    def addTab(self, name, handler, widget=None):
+    def addTab(self, name, handler=None, widget=None):
         """ Add a Tab to the Panel. The handler is for the Map
 
         :param name: name for the new tab
@@ -397,16 +410,19 @@ class Map(ipyleaflet.Map):
             # Add widget as a new children
             self.tab_children_dict[name] = wid
             # Set the handler for the new tab
-            def proxy_handler(f):
-                def wrap(**kwargs):
-                    # Add widget to handler arguments
-                    kwargs['widget'] = self.tab_children_dict[name]
-                    coords = kwargs['coordinates']
-                    kwargs['coordinates'] = inverse_coordinates(coords)
-                    kwargs['map'] = self
-                    return f(**kwargs)
-                return wrap
-            self.handlers[name] = proxy_handler(handler)
+            if handler:
+                def proxy_handler(f):
+                    def wrap(**kwargs):
+                        # Add widget to handler arguments
+                        kwargs['widget'] = self.tab_children_dict[name]
+                        coords = kwargs['coordinates']
+                        kwargs['coordinates'] = inverse_coordinates(coords)
+                        kwargs['map'] = self
+                        return f(**kwargs)
+                    return wrap
+                self.handlers[name] = proxy_handler(handler)
+            else:
+                self.handlers[name] = handler
 
             # Update tab children
             self._update_tab_children()
@@ -424,9 +440,11 @@ class Map(ipyleaflet.Map):
             # Remove all handlers
             for handl in self.handlers.values():
                 self.on_interaction(handl, True)
-            # Set new handler
+            # Set new handler if not None
             if new_name in self.handlers.keys():
-                self.on_interaction(self.handlers[new_name])
+                handler = self.handlers[new_name]
+                if handler:
+                    self.on_interaction(handler)
 
     def handle_inspector(self, **change):
         """ Handle function for the Inspector Widget """
@@ -439,7 +457,8 @@ class Map(ipyleaflet.Map):
             point = ee.Geometry.Point(coords)
 
             # Get widget
-            thewidget = change['widget']
+            # thewidget = change['widget']
+            thewidget = change['widget'].main
 
             # First Accordion row text (name)
             first = 'Point {} at {} zoom'.format(coords, self.zoom)
@@ -518,3 +537,11 @@ class Map(ipyleaflet.Map):
             for key, val in self.EELayers.items():
                 if geom == val:
                     self.removeLayer(key)
+
+class CustomInspector(HBox):
+    def __init__(self, **kwargs):
+        desc = 'Select one or more layers'
+        super(CustomInspector, self).__init__(description=desc, **kwargs)
+        self.selector = SelectMultiple()
+        self.main = Accordion()
+        self.children = [self.selector, self.main]
