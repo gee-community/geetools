@@ -85,18 +85,17 @@ class Map(ipyleaflet.Map):
 
             if len(tabs) > 0:
                 # Inspector Widget (Accordion)
-                # inspector_wid = Accordion()
-                inspector_wid = CustomInspector()
+                self.inspector_wid = CustomInspector()
                 # inspector_wid.update_selector(self)
                 # inspector_wid.selected_index = None # this will unselect all
-                inspector_wid.main.selected_index = None # this will unselect all
+                self.inspector_wid.main.selected_index = None # this will unselect all
                 # Object Inspector Widget (Accordion)
                 object_inspector_wid = Accordion()
                 object_inspector_wid.selected_index = None # this will unselect all
                 # Task Manager Widget
                 task_manager = ipytools.TaskManager()
 
-                widgets = {'Inspector': inspector_wid,
+                widgets = {'Inspector': self.inspector_wid,
                            'Objects': object_inspector_wid,
                            'Tasks': task_manager,
                            }
@@ -271,27 +270,36 @@ class Map(ipyleaflet.Map):
         """
         # CASE: ee.Image
         if isinstance(eeObject, ee.Image):
-            return self.addImage(eeObject, visParams=visParams, name=name,
-                                 show=show, opacity=opacity, replace=replace)
+            added_layer = self.addImage(eeObject, visParams=visParams, name=name,
+                                        show=show, opacity=opacity, replace=replace)
         # CASE: ee.Geometry
         elif isinstance(eeObject, ee.Geometry) or isinstance(eeObject, ee.Feature):
             geom = eeObject if isinstance(eeObject, ee.Geometry) else eeObject.geometry()
             kw = {'visParams':visParams, 'name':name, 'show':show, 'opacity':opacity}
             if kwargs.get('inspect'): kw.setdefault('inspect', kwargs.get('inspect'))
-            return self.addGeometry(geom, replace=replace, **kw)
+            added_layer = self.addGeometry(geom, replace=replace, **kw)
         # CASE: ee.ImageCollection
         elif isinstance(eeObject, ee.ImageCollection):
             proxy = eeObject.sort('system:time_start')
             mosaic = ee.Image(proxy.mosaic())
             thename = name if name else 'Mosaic {}'.format(self.added_images)
-            return self.addImage(mosaic, visParams=visParams, name=thename,
-                                 show=show, opacity=opacity, replace=replace)
+            added_layer = self.addImage(mosaic, visParams=visParams, name=thename,
+                                        show=show, opacity=opacity, replace=replace)
         elif isinstance(eeObject, ee.FeatureCollection):
             geom = eeObject.geometry()
             kw = {'visParams':visParams, 'name':name, 'show':show, 'opacity':opacity}
-            return self.addGeometry(geom, replace=replace, **kw)
+            added_layer =  self.addGeometry(geom, replace=replace, **kw)
         else:
+            added_layer = None
             print("`addLayer` doesn't support adding {} objects to the map".format(type(eeObject)))
+
+        # Clear options
+        self.inspector_wid.selector.options = {}
+
+        # Add layer to the Inspector Widget
+        self.inspector_wid.selector.options = self.EELayers
+
+        return added_layer
 
     def removeLayer(self, name):
         """ Remove a layer by its name """
@@ -465,10 +473,14 @@ class Map(ipyleaflet.Map):
             namelist = [first]
             wids4acc = [HTML('')] # first row has no content
 
-            length = len(self.EELayers.keys())
+            # Get only Selected Layers in the Inspector Selector
+            selected_layers = dict(zip(self.inspector_wid.selector.label,
+                                       self.inspector_wid.selector.value))
+
+            length = len(selected_layers.keys())
             i = 1
 
-            for name, obj in self.EELayers.items(): # for every added layer
+            for name, obj in selected_layers.items(): # for every added layer
                 # Clear children // Loading
                 thewidget.children = [HTML('wait a second please..')]
                 thewidget.set_title(0, 'Loading {} of {}...'.format(i, length))
