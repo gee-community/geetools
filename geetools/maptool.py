@@ -108,7 +108,7 @@ class Map(folium.Map):
             return self
 
         def addGeoJson(geometry):
-            params = get_geojson_tile(geometry, inspect)
+            params = get_geojson_tile(geometry, name, inspect)
             geojson = json.dumps(params['geojson'])
             layer = features.GeoJson(geojson,
                                      name=name)
@@ -300,7 +300,7 @@ def get_image_tile(image, visParams, show=True, opacity=None,
             'opacity': opacity,
             }
 
-def get_geojson_tile(geometry,
+def get_geojson_tile(geometry, name=None,
                      inspect={'data':None, 'reducer':None, 'scale':None}):
     info = geometry.getInfo()
     type = info['type']
@@ -316,7 +316,7 @@ def get_geojson_tile(geometry,
         data = inspect['data']
         red = inspect.get('reducer','first')
         sca = inspect.get('scale', None)
-        popval = get_data(geometry, data, red, sca) if data else type
+        popval = get_data(geometry, data, red, sca, name) if data else type
         geojson = geometry.getInfo()
 
         return {'geojson':geojson,
@@ -380,7 +380,7 @@ def get_zoom(bounds, method=1):
     return finalzoom
 
 # TODO: Multiple dispatch! https://www.artima.com/weblogs/viewpost.jsp?thread=101605
-def get_data(geometry, obj, reducer='first', scale=None):
+def get_data(geometry, obj, reducer='first', scale=None, name=None):
     accepted = (ee.Image, ee.ImageCollection, ee.Feature, ee.FeatureCollection)
 
     reducers = {'first': ee.Reducer.first(),
@@ -400,7 +400,7 @@ def get_data(geometry, obj, reducer='first', scale=None):
         scale = 1 if scale > 500 else scale
         if t == 'Point':
             values = tools.get_value(obj, geometry, scale, 'client')
-            val_str = ''
+            val_str = '<h3>Data from {}'.format(name)
             for key, val in values.iteritems():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
             return val_str
@@ -411,3 +411,35 @@ def get_data(geometry, obj, reducer='first', scale=None):
             for key, val in values.iteritems():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
             return val_str
+
+def create_html(dictionary, nest=0, ini='', indent=2):
+    """ Create a HTML output from a dict object
+
+    :param nest: nesting level to start (defaults to 0)
+    :type nest: int
+    :param ini: initial text
+    :type ini: str
+    :param indent: indentation spaces
+    :type indent: int
+    :return: the text to use in a HTML object
+    :rtype: str
+    """
+
+    for key, val in dictionary.items():
+        if isinstance(val, dict):
+            line = '{}<b>{}</b>:</br>'.format('&nbsp;'*nest, key)
+            ini += line
+            newnest = nest+indent
+            ini = create_html(val, newnest, ini)
+        elif isinstance(val, list):
+            # tranform list to a dictionary
+            dictval = {k: v for k, v in enumerate(val)}
+            line = '{}<b>{}</b>:</br>'.format('&nbsp;'*nest, key)
+            ini += line
+            newnest = nest+indent
+            ini = create_html(dictval, newnest, ini)
+        else:
+            line = '{}<b>{}</b>: {}</br>'.format('&nbsp;'*nest, key, val)
+            ini += line
+
+    return ini
