@@ -183,7 +183,7 @@ class AssetManager(CheckAccordion):
 
         root_list = ee.data.getList({'id': self.path})
 
-        # empty lists to fill with ids, types and widgets
+        # empty lists to fill with ids, types, widgets and paths
         ids = []
         types = []
         widgets = []
@@ -224,9 +224,10 @@ class AssetManager(CheckAccordion):
         # TODO: set handler for title's checkbox: select all checkboxes
 
         # set titles
-        for i, title in enumerate(ids):
+        for i, (title, ty) in enumerate(zip(ids, types)):
             if i == 0: continue
-            self.set_title(i, title)
+            final_title = '{title} ({type})'.format(title=title, type=ty)
+            self.set_title(i, final_title)
 
         def handle_new_accordion(change):
             path = change['path']
