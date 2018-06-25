@@ -5,6 +5,7 @@ from IPython.display import display
 from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
                        DOMWidget, Layout, Widget, Label, VBox, Button,\
                        ToggleButton, IntSlider
+from ipywidgets import Image as ImageWid
 from traitlets import HasTraits, List, Unicode, observe, Instance, Tuple, All
 import json
 
@@ -181,6 +182,9 @@ class AssetManager(CheckAccordion):
         else:
             self.path = path
 
+        # Thumb height
+        self.thumb_height = kwargs.get('thumb_height', 300)
+
         root_list = ee.data.getList({'id': self.path})
 
         # empty lists to fill with ids, types, widgets and paths
@@ -205,14 +209,7 @@ class AssetManager(CheckAccordion):
             paths.append(id)
             ids.append(id.replace(self.path, ''))
             types.append(ty)
-
-            # TODO: change this for a callback that only creates a new AssetManaget when user clicks on asset
-            if ty == 'Folder' or ty == 'ImageCollection':
-                wid = HTML('')
-            else:
-                # create widget
-                # TODO: Button to get info or load to map
-                wid = HTML(ty)
+            wid = HTML('Loading..')
             widgets.append(wid)
 
         super(AssetManager, self).__init__(widgets=widgets, **kwargs)
@@ -232,13 +229,30 @@ class AssetManager(CheckAccordion):
         def handle_new_accordion(change):
             path = change['path']
             index = change['index']
-            wid = AssetManager(path)
+            ty = change['type']
+            if ty == 'Folder' or ty == 'ImageCollection':
+                wid = AssetManager(path)
+            else:
+                image = ee.Image(path)
+                info = image.getInfo()
+
+                width = int(info['bands'][0]['dimensions'][0])
+                height = int(info['bands'][0]['dimensions'][1])
+
+                new_width = int(self.thumb_height)/height*width
+
+                thumb = image.getThumbURL({'dimensions':[new_width, self.thumb_height]})
+                # wid = ImageWid(value=thumb)
+                wid_i = HTML('<img src={}>'.format(thumb))
+                wid_info = create_accordion(info)
+                wid = HBox(children=[wid_i, wid_info])
             self.set_widget(index, wid)
 
         # set handlers
-        for i, path in enumerate(paths):
+        for i, (path, ty) in enumerate(zip(paths, types)):
             self.set_accordion_handler(i, handle_new_accordion,
-                                       extra_params={'path':path, 'index':i})
+                                       extra_params={'path':path, 'index':i,
+                                                     'type': ty})
 
 class TaskManager(VBox):
     def __init__(self, **kwargs):
