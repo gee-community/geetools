@@ -252,7 +252,7 @@ class Map(ipyleaflet.Map):
                     newname = img.id().getInfo()
 
                 name += newname
-            self.addImage(img, visParams, str(name), show, opacity)
+            self.addLayer(img, visParams, str(name), show, opacity)
 
 
     def addLayer(self, eeObject, visParams=None, name=None, show=True,
@@ -307,6 +307,13 @@ class Map(ipyleaflet.Map):
             layer = self.EELayers[name]['layer']
             self.remove_layer(layer)
             self.EELayers.pop(name)
+
+            # Clear options
+            self.inspector_wid.selector.options = {}
+
+            # Add layer to the Inspector Widget
+            self.inspector_wid.selector.options = self.EELayers
+
         else:
             print('Layer {} is not present in the map'.format(name))
             return
