@@ -181,17 +181,26 @@ class CheckAccordion(VBox):
 
 class AssetManager(VBox):
     """ Asset Manager Widget """
-    def __init__(self, **kwargs):
+    def __init__(self, map=None, **kwargs):
         super(AssetManager, self).__init__(**kwargs)
         # Thumb height
         self.thumb_height = kwargs.get('thumb_height', 300)
         self.root_path = ee.data.getAssetRoots()[0]['id']
 
+        # Map
+        self.map = map
+
         # Header
         self.reload = Button(description='Reload')
         self.add2map = Button(description='Add to Map')
         self.delete = Button(description='Delete Selected')
-        self.header = HBox([self.reload, self.add2map, self.delete])
+        header_children = [self.reload, self.delete]
+
+        # Add2map only if a Map has been passed
+        if self.map:
+            header_children.append(self.add2map)
+
+        self.header = HBox(header_children)
 
         # Reload handler
         def reload_handler(button):
@@ -199,8 +208,25 @@ class AssetManager(VBox):
             # Set VBox children
             self.children = [self.header, new_accordion]
 
+        # add2map handler
+        def add2map_handler(themap):
+            def wrap(button):
+                selected_rows = self.get_selected()
+                for asset, ty in selected_rows.items():
+                    if ty == 'Image':
+                        name = asset.split('/')[-1]
+                        im = ee.Image(asset)
+                        themap.addLayer(im, {}, name)
+                    elif ty == 'ImageCollection':
+                        col = ee.ImageCollection(asset)
+                        themap.addImageCollection(col)
+            return wrap
+
         # Set reload handler
         self.reload.on_click(reload_handler)
+
+        # Set reload handler
+        self.add2map.on_click(add2map_handler(self.map))
 
         # First Accordion
         self.root_acc = self.core(self.root_path)
@@ -209,35 +235,43 @@ class AssetManager(VBox):
         self.children = [self.header, self.root_acc]
 
     def get_selected(self):
-        ''' get the selected assets '''
-        begin = self.children[1]  # CheckAccordion of root
+        ''' get the selected assets
 
-        def wrap(checkacc, selected=[]):
+        :return: a dictionary with the type as key and asset root as value
+        :rtype: dict
+        '''
+        def wrap(checkacc, assets={}, root=self.root_path):
             children = checkacc.children # list of CheckRow
             for child in children:
                 checkbox = child.children[0] # checkbox of the CheckRow
                 widget = child.children[1] # widget of the CheckRow (Accordion)
                 state = checkbox.value
-                if state:
-                    title = child.children[1].get_title(0)
-                    selected.append(title)
-                    # if the asset has been opened
-                    if isinstance(widget.children[0], CheckAccordion):
-                        newselection = wrap(widget.children[0], selected)
-                        selected = newselection+selected
-            return selected
+
+                if isinstance(widget.children[0], CheckAccordion):
+                    title = widget.get_title(0).split(' ')[0]
+                    new_root = '{}/{}'.format(root, title)
+                    newselection = wrap(widget.children[0], assets, new_root)
+                    assets = newselection
+                else:
+                    if state:
+                        title = child.children[1].get_title(0)
+                        # remove type that is between ()
+                        ass = title.split(' ')[0]
+                        ty = title.split(' ')[1][1:-1]
+                        # append root
+                        ass = '{}/{}'.format(root, ass)
+                        # append title to selected list
+                        # assets.append(title)
+                        assets[ass] = ty
+
+            return assets
 
         # get selection on root
+        begin = self.children[1]  # CheckAccordion of root
         return wrap(begin)
 
     def core(self, path):
         # Get Assets data
-        '''
-        if not path:
-            path = ee.data.getAssetRoots()[0]['id']
-        else:
-            path = path
-        '''
 
         root_list = ee.data.getList({'id': path})
 
@@ -254,7 +288,7 @@ class AssetManager(VBox):
             ty = content['type']
             # append data to lists
             paths.append(id)
-            ids.append(id.replace(path, ''))
+            ids.append(id.replace(path+'/', ''))
             types.append(ty)
             wid = HTML('Loading..')
             widgets.append(wid)
