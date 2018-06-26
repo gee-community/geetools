@@ -60,7 +60,8 @@ class CheckRow(HBox):
         self.children = (self.checkbox, new)
 
     def observe_checkbox(self, handler, extra_params={}, **kwargs):
-        """ set handler for the checkbox widget
+        """ set handler for the checkbox widget. Use the property 'widget' of
+        change to get the corresponding widget
 
         :param handler: callback function
         :type handler: function
@@ -69,6 +70,9 @@ class CheckRow(HBox):
         :param kwargs: parameters from traitlets.observe
         :type kwargs: dict
         """
+        # by default only observe value
+        name = kwargs.get('names', 'value')
+
         def proxy_handler(handler):
             def wrap(change):
                 change['widget'] = self.widget
@@ -76,7 +80,7 @@ class CheckRow(HBox):
                     change[key] = val
                 return handler(change)
             return wrap
-        self.checkbox.observe(proxy_handler(handler), **kwargs)
+        self.checkbox.observe(proxy_handler(handler), names=name, **kwargs)
 
     def observe_widget(self, handler, extra_params={}, **kwargs):
         """ set handler for the widget alongside de checkbox
@@ -120,11 +124,13 @@ class CheckAccordion(VBox):
         self.children = newchildren
 
     def set_title(self, index, title):
+        ''' set the title of the widget at indicated index'''
         checkrow = self.children[index]
         acc = checkrow.widget
         acc.set_title(0, title)
 
     def get_title(self, index):
+        ''' get the title of the widget at indicated index'''
         checkrow = self.children[index]
         acc = checkrow.widget
         return acc.get_title(0)
@@ -173,32 +179,73 @@ class CheckAccordion(VBox):
         checkrow.observe_checkbox(handler, **kwargs)
 
 
-class AssetManager(CheckAccordion):
+class AssetManager(VBox):
     """ Asset Manager Widget """
-    def __init__(self, path=None, **kwargs):
-        # Get Assets data
-        if not path:
-            self.path = ee.data.getAssetRoots()[0]['id']
-        else:
-            self.path = path
-
+    def __init__(self, **kwargs):
+        super(AssetManager, self).__init__(**kwargs)
         # Thumb height
         self.thumb_height = kwargs.get('thumb_height', 300)
+        self.root_path = ee.data.getAssetRoots()[0]['id']
 
-        root_list = ee.data.getList({'id': self.path})
+        # Header
+        self.reload = Button(description='Reload')
+        self.add2map = Button(description='Add to Map')
+        self.delete = Button(description='Delete Selected')
+        self.header = HBox([self.reload, self.add2map, self.delete])
+
+        # Reload handler
+        def reload_handler(button):
+            new_accordion = self.core(self.root_path)
+            # Set VBox children
+            self.children = [self.header, new_accordion]
+
+        # Set reload handler
+        self.reload.on_click(reload_handler)
+
+        # First Accordion
+        self.root_acc = self.core(self.root_path)
+
+        # Set VBox children
+        self.children = [self.header, self.root_acc]
+
+    def get_selected(self):
+        ''' get the selected assets '''
+        begin = self.children[1]  # CheckAccordion of root
+
+        def wrap(checkacc, selected=[]):
+            children = checkacc.children # list of CheckRow
+            for child in children:
+                checkbox = child.children[0] # checkbox of the CheckRow
+                widget = child.children[1] # widget of the CheckRow (Accordion)
+                state = checkbox.value
+                if state:
+                    title = child.children[1].get_title(0)
+                    selected.append(title)
+                    # if the asset has been opened
+                    if isinstance(widget.children[0], CheckAccordion):
+                        newselection = wrap(widget.children[0], selected)
+                        selected = newselection+selected
+            return selected
+
+        # get selection on root
+        return wrap(begin)
+
+    def core(self, path):
+        # Get Assets data
+        '''
+        if not path:
+            path = ee.data.getAssetRoots()[0]['id']
+        else:
+            path = path
+        '''
+
+        root_list = ee.data.getList({'id': path})
 
         # empty lists to fill with ids, types, widgets and paths
         ids = []
         types = []
         widgets = []
         paths = []
-
-        # first widget (headers)
-        first_wid = Label('root folder')
-        widgets.append(first_wid)
-        types.append('root')
-        ids.append(self.path)
-        paths.append(self.path)
 
         # iterate over the list of the root
         for content in root_list:
@@ -207,31 +254,28 @@ class AssetManager(CheckAccordion):
             ty = content['type']
             # append data to lists
             paths.append(id)
-            ids.append(id.replace(self.path, ''))
+            ids.append(id.replace(path, ''))
             types.append(ty)
             wid = HTML('Loading..')
             widgets.append(wid)
 
-        super(AssetManager, self).__init__(widgets=widgets, **kwargs)
-        self.widgets = widgets
-
-        # set title of header
-        self.set_title(0, self.path)
+        # super(AssetManager, self).__init__(widgets=widgets, **kwargs)
+        # self.widgets = widgets
+        asset_acc = CheckAccordion(widgets=widgets)
 
         # TODO: set handler for title's checkbox: select all checkboxes
 
         # set titles
         for i, (title, ty) in enumerate(zip(ids, types)):
-            if i == 0: continue
             final_title = '{title} ({type})'.format(title=title, type=ty)
-            self.set_title(i, final_title)
+            asset_acc.set_title(i, final_title)
 
         def handle_new_accordion(change):
             path = change['path']
             index = change['index']
             ty = change['type']
             if ty == 'Folder' or ty == 'ImageCollection':
-                wid = AssetManager(path)
+                wid = self.core(path)
             else:
                 image = ee.Image(path)
                 info = image.getInfo()
@@ -246,13 +290,32 @@ class AssetManager(CheckAccordion):
                 wid_i = HTML('<img src={}>'.format(thumb))
                 wid_info = create_accordion(info)
                 wid = HBox(children=[wid_i, wid_info])
-            self.set_widget(index, wid)
+            asset_acc.set_widget(index, wid)
+
+        def handle_checkbox(change):
+            path = change['path']
+            widget = change['widget'] # Accordion
+            wid_children = widget.children[0]  # can be a HTML or CheckAccordion
+            new = change['new']
+
+            if isinstance(wid_children, CheckAccordion): # set all checkboxes to True
+                for child in wid_children.children:
+                    check = child.children[0]
+                    check.value = new
 
         # set handlers
         for i, (path, ty) in enumerate(zip(paths, types)):
-            self.set_accordion_handler(i, handle_new_accordion,
-                                       extra_params={'path':path, 'index':i,
-                                                     'type': ty})
+            asset_acc.set_accordion_handler(
+                i, handle_new_accordion,
+                extra_params={'path':path, 'index':i, 'type': ty}
+            )
+            asset_acc.set_checkbox_handler(
+                i, handle_checkbox,
+                extra_params={'path':path, 'index':i, 'type': ty}
+            )
+
+        return asset_acc
+
 
 class TaskManager(VBox):
     def __init__(self, **kwargs):
@@ -353,6 +416,7 @@ class TaskManager(VBox):
             self.update_task_list()(self.refresh)
 
     def selected_tab(self):
+        ''' get the selected tab '''
         index = self.tabs.selected_index
         tab_name = self.tab_index[index]
         return self.tab_widgets_rel[tab_name]
