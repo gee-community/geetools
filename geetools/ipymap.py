@@ -8,7 +8,7 @@ import ipyleaflet
 from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
                        Label, VBox, SelectMultiple, link
 from IPython.display import display
-from traitlets import List, Dict
+from traitlets import List, Dict, observe
 import ee
 if not ee.data._initialized: ee.Initialize()
 from collections import OrderedDict
@@ -68,7 +68,7 @@ class Map(ipyleaflet.Map):
             while True:
                 list = ee.data.getTaskList()
 
-    def show(self, tabs=['Inspector', 'Objects', 'Tasks'],
+    def show(self, tabs=['Inspector', 'Objects', 'Assets', 'Tasks'],
              layer_control=True, draw_control=False):
         """ Show the Map on the Notebook """
         if not self.is_shown:
@@ -86,21 +86,26 @@ class Map(ipyleaflet.Map):
             if len(tabs) > 0:
                 # Inspector Widget (Accordion)
                 self.inspector_wid = CustomInspector()
-                # inspector_wid.update_selector(self)
-                # inspector_wid.selected_index = None # this will unselect all
                 self.inspector_wid.main.selected_index = None # this will unselect all
+
                 # Object Inspector Widget (Accordion)
                 object_inspector_wid = Accordion()
                 object_inspector_wid.selected_index = None # this will unselect all
+
                 # Task Manager Widget
                 task_manager = ipytools.TaskManager()
 
+                # Asset Manager Widget
+                asset_manager = ipytools.AssetManager(self)
+
                 widgets = {'Inspector': self.inspector_wid,
                            'Objects': object_inspector_wid,
+                           'Assets': asset_manager,
                            'Tasks': task_manager,
                            }
                 handlers = {'Inspector': self.handle_inspector,
                             'Objects': self.handle_object_inspector,
+                            'Assets': None,
                             'Tasks': None,
                             }
                 for tab in tabs:
@@ -472,8 +477,7 @@ class Map(ipyleaflet.Map):
             point = ee.Geometry.Point(coords)
 
             # Get widget
-            # thewidget = change['widget']
-            thewidget = change['widget'].main
+            thewidget = change['widget'].main  # Accordion
 
             # First Accordion row text (name)
             first = 'Point {} at {} zoom'.format(coords, self.zoom)
@@ -557,6 +561,7 @@ class Map(ipyleaflet.Map):
                 if geom == val:
                     self.removeLayer(key)
 
+
 class CustomInspector(HBox):
     def __init__(self, **kwargs):
         desc = 'Select one or more layers'
@@ -564,3 +569,22 @@ class CustomInspector(HBox):
         self.selector = SelectMultiple()
         self.main = Accordion()
         self.children = [self.selector, self.main]
+
+
+class ImagePropertiesWidget(HBox):
+    def __init__(self, map=None, **kwargs):
+        super(ImagePropertiesWidget, self).__init__(**kwargs)
+        self.map = map
+        self.selector = SelectMultiple()
+
+    @observe('map')
+    def _ob_map(self, change):
+        new = change['new']
+        layers = new.EELayers
+        names = layers.keys()
+
+        # Clear options
+        self.selector.options = {}
+
+        # Add layer to the Inspector Widget
+        self.selector.options = names
