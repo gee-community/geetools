@@ -5,10 +5,11 @@
 https://github.com/gee-community/ee-jupyter-contrib/blob/master/examples/getting-started/display-interactive-map.ipynb'''
 
 import ipyleaflet
-from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
-                       Label, VBox, SelectMultiple, link
+from ipywidgets import HTML, Tab, Accordion, HBox, SelectMultiple, Select,\
+                       Button, VBox, RadioButtons, Dropdown, Layout, \
+                       FloatRangeSlider
 from IPython.display import display
-from traitlets import List, Dict, observe
+from traitlets import Dict, observe
 import ee
 if not ee.data._initialized: ee.Initialize()
 from collections import OrderedDict
@@ -18,8 +19,6 @@ from .maptool import get_default_vis, inverse_coordinates, get_data,\
                      create_html
 from . import ipytools
 
-import json
-import time
 
 class Map(ipyleaflet.Map):
     tab_children_dict = Dict()
@@ -68,7 +67,7 @@ class Map(ipyleaflet.Map):
             while True:
                 list = ee.data.getTaskList()
 
-    def show(self, tabs=['Inspector', 'Objects', 'Assets', 'Tasks'],
+    def show(self, tabs=['Inspector', 'Objects', 'Assets', 'Layers', 'Tasks'],
              layer_control=True, draw_control=False):
         """ Show the Map on the Notebook """
         if not self.is_shown:
@@ -98,16 +97,23 @@ class Map(ipyleaflet.Map):
                 # Asset Manager Widget
                 asset_manager = ipytools.AssetManager(self)
 
+                # Layers
+                self.layers_widget = LayersWidget(map=self)
+
                 widgets = {'Inspector': self.inspector_wid,
                            'Objects': object_inspector_wid,
+                           'Layers': self.layers_widget,
                            'Assets': asset_manager,
                            'Tasks': task_manager,
                            }
                 handlers = {'Inspector': self.handle_inspector,
                             'Objects': self.handle_object_inspector,
+                            'Layers': None,
                             'Assets': None,
                             'Tasks': None,
                             }
+
+                # Add tabs and handlers
                 for tab in tabs:
                     if tab in widgets.keys():
                         widget = widgets[tab]
@@ -115,11 +121,9 @@ class Map(ipyleaflet.Map):
                         self.addTab(tab, handler, widget)
                     else:
                         raise ValueError('Tab {} is not recognized. Choose one of {}'.format(tab, widgets.keys()))
+
                 # First handler: Inspector
                 self.on_interaction(self.handlers[tabs[0]])
-
-                # Link tab_children_dict with custom inspector
-                # link((inspector_wid.selector, 'options'), (self.tab_children_dict, ))
 
                 display(self, self.tab_widget)
             else:
@@ -304,6 +308,10 @@ class Map(ipyleaflet.Map):
         # Add layer to the Inspector Widget
         self.inspector_wid.selector.options = self.EELayers
 
+        # update Layers Widget
+        self.layers_widget.selector.options = {}
+        self.layers_widget.selector.options = self.EELayers
+
         return added_layer
 
     def removeLayer(self, name):
@@ -318,6 +326,10 @@ class Map(ipyleaflet.Map):
 
             # Add layer to the Inspector Widget
             self.inspector_wid.selector.options = self.EELayers
+
+            # update Layers Widget
+            self.layers_widget.selector.options = {}
+            self.layers_widget.selector.options = self.EELayers
 
         else:
             print('Layer {} is not present in the map'.format(name))
@@ -571,20 +583,199 @@ class CustomInspector(HBox):
         self.children = [self.selector, self.main]
 
 
-class ImagePropertiesWidget(HBox):
+class LayersWidget(ipytools.RealBox):
     def __init__(self, map=None, **kwargs):
-        super(ImagePropertiesWidget, self).__init__(**kwargs)
+        super(LayersWidget, self).__init__(**kwargs)
         self.map = map
-        self.selector = SelectMultiple()
+        self.selector = Select()
 
-    @observe('map')
-    def _ob_map(self, change):
+        # Buttons
+        self.center = Button(description='Center')
+        self.center.on_click(self.on_click_center)
+
+        self.remove = Button(description='Remove')
+        self.remove.on_click(self.on_click_remove)
+
+        self.vis = Button(description='Visualization')
+        self.vis.on_click(self.on_click_vis)
+
+        # Buttons Group 1
+        self.group1 = VBox([self.center, self.remove, self.vis])
+
+        # self.children = [self.selector, self.group1]
+        self.items = [[self.selector, self.group1]]
+
+        self.selector.observe(self.handle_selection, names='value')
+
+    def handle_selection(self, change):
         new = change['new']
-        layers = new.EELayers
-        names = layers.keys()
 
-        # Clear options
-        self.selector.options = {}
+        # remove visualization box
+        self.items = [[self.selector, self.group1]]
 
-        # Add layer to the Inspector Widget
-        self.selector.options = names
+        if new:
+            self.layer = new['layer']
+            self.obj = new['object']
+            self.ty = new['type']
+            self.vis = new['visParams']
+
+    def on_click_center(self, button):
+        self.map.centerObject(self.obj)
+
+    def on_click_remove(self, button):
+        self.map.removeLayer(self.layer.name)
+
+    def on_click_vis(self, button):
+        # options
+        selector = self.selector
+        group1 = self.group1
+
+        # map
+        map = self.map
+        layer_name = self.layer.name
+        image = self.obj
+
+        # Image Bands
+        # imbands = self.obj.bandNames().getInfo()
+        try:
+            info = self.obj.getInfo()
+        except Exception as e:
+            self.items = [[self.selector, self.group1],
+                          [HTML(str(e))]]
+            return
+
+        ### image data ###
+        bands = info['bands']
+        imbands = [band['id'] for band in bands]
+        # bands_type = [band['data_type']['precision'] for band in bands]
+        bands_min = []
+        bands_max = []
+        for band in bands:
+            dt = band['data_type']
+            try:
+                tmin = dt['min']
+                tmax = dt['max']
+            except:
+                tmin = 0
+                tmax = 1
+            bands_min.append(tmin)
+            bands_max.append(tmax)
+
+        # dict of {band: min} and {band:max}
+        min_dict = dict(zip(imbands, bands_min))
+        max_dict = dict(zip(imbands, bands_max))
+        ######
+
+        # dropdown handler
+        def handle_dropdown(band_slider):
+            def wrap(change):
+                new = change['new']
+                band_slider.min = min_dict[new]
+                band_slider.max = max_dict[new]
+            return wrap
+
+        def slider_1band():
+            ''' Create the widget for one band '''
+            drop = Dropdown(description='band', options=imbands)
+            slider = FloatRangeSlider(min=min_dict[drop.value],
+                                      max=max_dict[drop.value])
+            # set handler
+            drop.observe(handle_dropdown(slider), names=['value'])
+
+            # widget for band selector + slider
+            band_slider = HBox([drop, slider])
+            return VBox([band_slider], layout=Layout(width='500px'))
+
+        def slider_3bands():
+            ''' Create the widget for one band '''
+            drop = Dropdown(description='red', options=imbands)
+            drop2 = Dropdown(description='green', options=imbands)
+            drop3 = Dropdown(description='blue', options=imbands)
+            slider = FloatRangeSlider(min=min_dict[drop.value],
+                                      max=max_dict[drop.value])
+            slider2 = FloatRangeSlider(min=min_dict[drop2.value],
+                                      max=max_dict[drop2.value])
+            slider3 = FloatRangeSlider(min=min_dict[drop3.value],
+                                      max=max_dict[drop3.value])
+            # set handlers
+            drop.observe(handle_dropdown(slider), names=['value'])
+            drop2.observe(handle_dropdown(slider2), names=['value'])
+            drop3.observe(handle_dropdown(slider3), names=['value'])
+
+            # widget for band selector + slider
+            band_slider = HBox([drop, slider])
+            band_slider2 = HBox([drop2, slider2])
+            band_slider3 = HBox([drop3, slider3])
+
+            return VBox([band_slider, band_slider2, band_slider3],
+                        layout=Layout(width='500px'))
+
+        # Create widget for 1 or 3 bands
+        bands = RadioButtons(options=['1 band', '3 bands'],
+                             layout=Layout(width='100px'))
+
+        # Create widget for band, min and max selection
+        selection = slider_1band()
+
+        # Apply button
+        apply = Button(description='Apply', layout=Layout(width='100px'))
+
+        # new row
+        new_row = [bands, selection, apply]
+
+        # update row of widgets
+        def update_row_items(new_row):
+            self.items = [[selector, group1],
+                           new_row]
+
+        # handler for radio button (1 band / 3 bands)
+        def handle_radio_button(change):
+            new = change['new']
+            if new == '1 band':
+                # create widget
+                selection = slider_1band()
+                # update row of widgets
+                update_row_items([bands, selection, apply])
+            else:
+                selection = slider_3bands()
+                update_row_items([bands, selection, apply])
+
+        def handle_apply(button):
+            radio = self.items[1][0].value # radio button
+            vbox = self.items[1][1]
+            if radio == '1 band':  # 1 band
+                hbox_band = vbox.children[0].children
+
+                band = hbox_band[0].value
+                min = hbox_band[1].value[0]
+                max = hbox_band[1].value[1]
+
+                map.removeLayer(layer_name)
+                map.addLayer(image, {'bands':[band], 'min':min, 'max':max},
+                             layer_name)
+            else:  # 3 bands
+                hbox_bandR = vbox.children[0].children
+                hbox_bandG = vbox.children[1].children
+                hbox_bandB = vbox.children[2].children
+
+                bandR = hbox_bandR[0].value
+                bandG = hbox_bandG[0].value
+                bandB = hbox_bandB[0].value
+
+                minR = hbox_bandR[1].value[0]
+                minG = hbox_bandG[1].value[0]
+                minB = hbox_bandB[1].value[0]
+
+                maxR = hbox_bandR[1].value[1]
+                maxG = hbox_bandG[1].value[1]
+                maxB = hbox_bandB[1].value[1]
+
+                map.removeLayer(layer_name)
+                map.addLayer(image, {'bands':[bandR, bandG, bandB],
+                                     'min':[float(minR), float(minG), float(minB)],
+                                     'max':[float(maxR), float(maxG), float(maxB)]},
+                             layer_name)
+
+        bands.observe(handle_radio_button, names='value')
+        update_row_items(new_row)
+        apply.on_click(handle_apply)
