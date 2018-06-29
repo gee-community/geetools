@@ -258,8 +258,6 @@ def inverse_coordinates(coords):
 def get_image_tile(image, visParams, show=True, opacity=None,
                    overlay=True):
 
-    # name = name if name else image.id().getInfo()
-
     params = visParams if visParams else {}
 
     if params:
@@ -281,11 +279,49 @@ def get_image_tile(image, visParams, show=True, opacity=None,
     # Take away bands from parameters
     newVisParams = {}
     for key, val in params.iteritems():
-        if key == 'bands': continue
+        # if key == 'bands': continue
         newVisParams[key] = val
 
+    # Transform list to getMapId format
+    # ['b1', 'b2', 'b3'] == 'b1, b2, b3'
+    if isinstance(newVisParams['bands'], list):
+        thebands = newVisParams['bands']
+        n = len(thebands)
+        if n == 1:
+            newbands = '{}'.format(thebands[0])
+        elif n == 3:
+            newbands = '{}, {}, {}'.format(thebands[0], thebands[1], thebands[2])
+        else:
+            newbands = '{}'.format(thebands[0])
+        newVisParams['bands'] = newbands
+
+    # min
+    if isinstance(newVisParams['min'], list):
+        thelist = newVisParams['min']
+        n = len(thelist)
+        if n == 1:
+            newlist = '{}'.format(thelist[0])
+        elif n == 3:
+            newlist = '{}, {}, {}'.format(thelist[0], thelist[1], thelist[2])
+        else:
+            newlist = '{}'.format(thelist[0])
+        newVisParams['min'] = newlist
+
+    # max
+    if isinstance(newVisParams['max'], list):
+        thelist = newVisParams['max']
+        n = len(thelist)
+        if n == 1:
+            newlist = '{}'.format(thelist[0])
+        elif n == 3:
+            newlist = '{}, {}, {}'.format(thelist[0], thelist[1], thelist[2])
+        else:
+            newlist = '{}'.format(thelist[0])
+        newVisParams['max'] = newlist
+
     # Get the MapID and Token after applying parameters
-    image_info = image.select(params['bands']).getMapId(newVisParams)
+    # image_info = image.select(params['bands']).getMapId(newVisParams)
+    image_info = image.getMapId(newVisParams)
     mapid = image_info['mapid']
     token = image_info['token']
     tiles = "https://earthengine.googleapis.com/map/%s/{z}/{x}/{y}?token=%s"%(mapid,token)
