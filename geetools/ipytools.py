@@ -8,6 +8,8 @@ from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
 from ipywidgets import Image as ImageWid
 from traitlets import HasTraits, List, Unicode, observe, Instance, Tuple, All,\
                       Int
+
+import tools
 import json
 
 # imports for async widgets
@@ -192,10 +194,10 @@ class AssetManager(VBox):
         self.map = map
 
         # Header
-        self.reload = Button(description='Reload')
+        self.reload_button = Button(description='Reload')
         self.add2map = Button(description='Add to Map')
         self.delete = Button(description='Delete Selected')
-        header_children = [self.reload, self.delete]
+        header_children = [self.reload_button, self.delete]
 
         # Add2map only if a Map has been passed
         if self.map:
@@ -215,7 +217,6 @@ class AssetManager(VBox):
                 selected_rows = self.get_selected()
                 for asset, ty in selected_rows.items():
                     if ty == 'Image':
-                        # name = asset.split('/')[-1]
                         im = ee.Image(asset)
                         themap.addLayer(im, {}, asset)
                     elif ty == 'ImageCollection':
@@ -224,10 +225,14 @@ class AssetManager(VBox):
             return wrap
 
         # Set reload handler
-        self.reload.on_click(reload_handler)
+        # self.reload_button.on_click(reload_handler)
+        self.reload_button.on_click(self.reload)
 
         # Set reload handler
         self.add2map.on_click(add2map_handler(self.map))
+
+        # Set delete selected handler
+        self.delete.on_click(self.delete_selected)
 
         # First Accordion
         self.root_acc = self.core(self.root_path)
@@ -235,7 +240,31 @@ class AssetManager(VBox):
         # Set VBox children
         self.children = [self.header, self.root_acc]
 
-    def reload(self, button):
+    def delete_selected(self, button=None):
+        ''' function to delete selected assets '''
+        selected = self.get_selected()
+        def handle_yes(button):
+            if selected:
+                for asset, ty in selected.items():
+                    tools.recrusive_delete_asset(asset)
+                    # print(asset)
+                self.reload()
+
+        def handle_no(button):
+            self.reload()
+        def handle_cancel(button):
+            self.reload()
+
+        assets_str = ['{} ({})'.format(ass, ty) for ass, ty in selected.items()]
+        assets_str = '</br>'.join(assets_str)
+        confirm = ConfirmationWidget('<h2>Delete {} assets</h2>'.format(len(selected.keys())),
+                                     'The following assets are going to be deleted: </br> {} </br> Are you sure?'.format(assets_str),
+                                     handle_yes=handle_yes,
+                                     handle_no=handle_no,
+                                     handle_cancel=handle_cancel)
+        self.children = [self.header, confirm]
+
+    def reload(self, button=None):
         new_accordion = self.core(self.root_path)
         # Set VBox children
         self.children = [self.header, new_accordion]
@@ -580,10 +609,10 @@ class ConfirmationWidget(VBox):
         super(ConfirmationWidget, self).__init__(**kwargs)
         # Title Widget
         self.title = title
-        self.title_widget = Label(self.title)
+        self.title_widget = HTML(self.title)
         # Legend Widget
         self.legend = legend
-        self.legend_widget = Label(self.legend)
+        self.legend_widget = HTML(self.legend)
         # Buttons
         self.yes = Button(description='Yes')
         handler_yes = handle_yes if handle_yes else lambda x: x
