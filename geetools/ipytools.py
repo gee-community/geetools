@@ -3,10 +3,11 @@
 
 from IPython.display import display
 from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
-                       DOMWidget, Layout, Widget, Label, VBox, Button,\
+                       DOMWidget, Layout, Widget, Label, VBox, Button, Box,\
                        ToggleButton, IntSlider
 from ipywidgets import Image as ImageWid
-from traitlets import HasTraits, List, Unicode, observe, Instance, Tuple, All
+from traitlets import HasTraits, List, Unicode, observe, Instance, Tuple, All,\
+                      Int
 import json
 
 # imports for async widgets
@@ -214,9 +215,9 @@ class AssetManager(VBox):
                 selected_rows = self.get_selected()
                 for asset, ty in selected_rows.items():
                     if ty == 'Image':
-                        name = asset.split('/')[-1]
+                        # name = asset.split('/')[-1]
                         im = ee.Image(asset)
-                        themap.addLayer(im, {}, name)
+                        themap.addLayer(im, {}, asset)
                     elif ty == 'ImageCollection':
                         col = ee.ImageCollection(asset)
                         themap.addImageCollection(col)
@@ -233,6 +234,11 @@ class AssetManager(VBox):
 
         # Set VBox children
         self.children = [self.header, self.root_acc]
+
+    def reload(self, button):
+        new_accordion = self.core(self.root_path)
+        # Set VBox children
+        self.children = [self.header, new_accordion]
 
     def get_selected(self):
         ''' get the selected assets
@@ -566,3 +572,80 @@ class TaskManager(VBox):
             except:
                 continue
         self.update_task_list()(self.refresh)
+
+
+class ConfirmationWidget(VBox):
+    def __init__(self, title='Confirmation', legend='Are you sure?',
+                 handle_yes=None, handle_no=None, handle_cancel=None, **kwargs):
+        super(ConfirmationWidget, self).__init__(**kwargs)
+        # Title Widget
+        self.title = title
+        self.title_widget = Label(self.title)
+        # Legend Widget
+        self.legend = legend
+        self.legend_widget = Label(self.legend)
+        # Buttons
+        self.yes = Button(description='Yes')
+        handler_yes = handle_yes if handle_yes else lambda x: x
+        self.yes.on_click(handler_yes)
+
+        self.no = Button(description='No')
+        handler_no = handle_no if handle_no else lambda x: x
+        self.no.on_click(handler_no)
+
+        self.cancel = Button(description='Cancel')
+        handler_cancel = handle_cancel if handle_cancel else lambda x: x
+        self.cancel.on_click(handler_cancel)
+
+        self.buttons = HBox([self.yes, self.no, self.cancel])
+
+        self.children = [self.title_widget, self.legend_widget, self.buttons]
+
+
+class RealBox(Box):
+    """ Real Box Layout
+
+    items:
+    [[widget1, widget2],
+     [widget3, widget4]]
+
+    """
+    items = List()
+    width = Int()
+    border_inside = Unicode()
+    border_outside = Unicode()
+
+    def __init__(self, **kwargs):
+        super(RealBox, self).__init__(**kwargs)
+
+        self.layout = Layout(display='flex', flex_flow='column',
+                             border=self.border_outside)
+
+    def max_row_elements(self):
+        maxn = 0
+        for el in self.items:
+            n = len(el)
+            if n>maxn:
+                maxn = n
+        return maxn
+
+    @observe('items')
+    def _ob_items(self, change):
+        layout_columns = Layout(display='flex', flex_flow='row')
+        new = change['new']
+        children = []
+        # recompute size
+        maxn = self.max_row_elements()
+        width = 100/maxn
+        for el in new:
+            for wid in el:
+                if not wid.layout.width:
+                    if self.width:
+                        wid.layout = Layout(width='{}px'.format(self.width),
+                                            border=self.border_inside)
+                    else:
+                        wid.layout = Layout(width='{}%'.format(width),
+                                            border=self.border_inside)
+            hbox = Box(el, layout=layout_columns)
+            children.append(hbox)
+        self.children = children
