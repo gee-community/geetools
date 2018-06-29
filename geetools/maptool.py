@@ -259,69 +259,60 @@ def get_image_tile(image, visParams, show=True, opacity=None,
                    overlay=True):
 
     params = visParams if visParams else {}
+    got_bands = params.has_key('bands')
+    got_min = params.has_key('min')
+    got_max = params.has_key('max')
 
-    if params:
-        got_default = params.has_key('bands') \
-                      and params.has_key('min') \
-                      and params.has_key('max')
-    else:
-        got_default = False
-
-    # Default parameters
-    if not got_default:
+    # If not all params are passed
+    if not (got_bands and got_min and got_max):
+        # get default
         default = get_default_vis(image)
-        params.update(default)
-    else:
-        default = {}
-        default.update(params)
-        params = default
-
-    # Take away bands from parameters
-    newVisParams = {}
-    for key, val in params.iteritems():
-        # if key == 'bands': continue
-        newVisParams[key] = val
+        if not got_bands:
+            params['bands'] = default['bands']
+        if not got_min:
+            params['min'] = default['min']
+        if not got_max:
+            params['max'] = default['max']
 
     # Transform list to getMapId format
     # ['b1', 'b2', 'b3'] == 'b1, b2, b3'
-    if isinstance(newVisParams['bands'], list):
-        thebands = newVisParams['bands']
+    if isinstance(params['bands'], list):
+        thebands = params['bands']
         n = len(thebands)
         if n == 1:
             newbands = '{}'.format(thebands[0])
         elif n == 3:
-            newbands = '{}, {}, {}'.format(thebands[0], thebands[1], thebands[2])
+            newbands = '{},{},{}'.format(thebands[0], thebands[1], thebands[2])
         else:
             newbands = '{}'.format(thebands[0])
-        newVisParams['bands'] = newbands
+        params['bands'] = newbands
 
     # min
-    if isinstance(newVisParams['min'], list):
-        thelist = newVisParams['min']
+    if isinstance(params['min'], list):
+        thelist = params['min']
         n = len(thelist)
         if n == 1:
             newlist = '{}'.format(thelist[0])
         elif n == 3:
-            newlist = '{}, {}, {}'.format(thelist[0], thelist[1], thelist[2])
+            newlist = '{},{},{}'.format(thelist[0], thelist[1], thelist[2])
         else:
             newlist = '{}'.format(thelist[0])
-        newVisParams['min'] = newlist
+        params['min'] = newlist
 
     # max
-    if isinstance(newVisParams['max'], list):
-        thelist = newVisParams['max']
+    if isinstance(params['max'], list):
+        thelist = params['max']
         n = len(thelist)
         if n == 1:
             newlist = '{}'.format(thelist[0])
         elif n == 3:
-            newlist = '{}, {}, {}'.format(thelist[0], thelist[1], thelist[2])
+            newlist = '{},{},{}'.format(thelist[0], thelist[1], thelist[2])
         else:
             newlist = '{}'.format(thelist[0])
-        newVisParams['max'] = newlist
+        params['max'] = newlist
 
     # Get the MapID and Token after applying parameters
-    # image_info = image.select(params['bands']).getMapId(newVisParams)
-    image_info = image.getMapId(newVisParams)
+    image_info = image.getMapId(params)
     mapid = image_info['mapid']
     token = image_info['token']
     tiles = "https://earthengine.googleapis.com/map/%s/{z}/{x}/{y}?token=%s"%(mapid,token)
@@ -331,9 +322,9 @@ def get_image_tile(image, visParams, show=True, opacity=None,
     return {'url': tiles,
             'attribution': attribution,
             'overlay': overlay,
-            # 'name':name,
             'show': show,
             'opacity': opacity,
+            'visParams': params,
             }
 
 def get_geojson_tile(geometry, name=None,
