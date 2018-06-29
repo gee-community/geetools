@@ -1213,3 +1213,25 @@ def printEE(eeobject):
     except:
         info = eeobject
     print(info)
+
+def recrusive_delete_asset(assetId):
+    print(assetId)
+    try:
+        content = ee.data.getList({'id':assetId})
+        print(content)
+    except:
+        return
+
+    if len(content) == 0:
+        ee.data.deleteAsset(assetId)
+    else:
+        for asset in content:
+            path = asset['id']
+            ty = asset['type']
+            print(ty, path)
+            if ty == 'Image':
+                # ee.data.deleteAsset(path)
+                pass
+            else:
+                # recrusive_delete_asset(path)
+                pass
