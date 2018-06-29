@@ -171,18 +171,23 @@ class Map(ipyleaflet.Map):
                 print("Image with name '{}' exists already, please choose another name".format(thename))
                 return
             else:
-                self.removeLayer(thename)
+                # Get URL, attribution & vis params
+                params = get_image_tile(image, visParams, show, opacity)
 
-        params = get_image_tile(image, visParams, show, opacity)
+                # Remove Layer
+                self.removeLayer(thename)
+        else:
+            # Get URL, attribution & vis params
+            params = get_image_tile(image, visParams, show, opacity)
 
         layer = ipyleaflet.TileLayer(url=params['url'],
                                      attribution=params['attribution'],
                                      name=thename)
         self.add_layer(layer)
-        self.EELayers[thename] = {'type':'Image',
-                                  'object':image,
-                                  'visParams':visParams,
-                                  'layer':layer}
+        self.EELayers[thename] = {'type': 'Image',
+                                  'object': image,
+                                  'visParams': params['visParams'],
+                                  'layer': layer}
         return thename
 
     def addGeometry(self, geometry, visParams=None, name=None, show=True,
@@ -636,7 +641,6 @@ class LayersWidget(ipytools.RealBox):
         image = self.obj
 
         # Image Bands
-        # imbands = self.obj.bandNames().getInfo()
         try:
             info = self.obj.getInfo()
         except Exception as e:
@@ -656,8 +660,14 @@ class LayersWidget(ipytools.RealBox):
                 tmin = dt['min']
                 tmax = dt['max']
             except:
-                tmin = 0
-                tmax = 1
+                bandname = band['id']
+                try:
+                    minmax = image.select(bandname).reduceRegion(ee.Reducer.minMax())
+                    tmin = minmax.get('{}_min'.format(bandname)).getInfo() # 0
+                    tmax = minmax.get('{}_max'.format(bandname)).getInfo() # 1
+                except:
+                    tmin = 0
+                    tmax = 1
             bands_min.append(tmin)
             bands_max.append(tmax)
 
@@ -665,6 +675,27 @@ class LayersWidget(ipytools.RealBox):
         min_dict = dict(zip(imbands, bands_min))
         max_dict = dict(zip(imbands, bands_max))
         ######
+
+        # Layer data
+        layer_data = self.map.EELayers[layer_name]
+        visParams = layer_data['visParams']
+
+        # vis bands
+        visBands = visParams['bands'].split(',')
+
+        # vis min
+        visMin = visParams['min']
+        if isinstance(visMin, str):
+            visMin = [float(vis) for vis in visMin.split(',')]
+        else:
+            visMin = [visMin]
+
+        # vis max
+        visMax = visParams['max']
+        if isinstance(visMax, str):
+            visMax = [float(vis) for vis in visMax.split(',')]
+        else:
+            visMax = [visMax]
 
         # dropdown handler
         def handle_dropdown(band_slider):
@@ -676,9 +707,16 @@ class LayersWidget(ipytools.RealBox):
 
         def slider_1band():
             ''' Create the widget for one band '''
-            drop = Dropdown(description='band', options=imbands)
+            # get params to set in slider and dropdown
+            vismin = visMin[0]
+            vismax = visMax[0]
+            band = visBands[0]
+
+            drop = Dropdown(description='band', options=imbands, value=band)
             slider = FloatRangeSlider(min=min_dict[drop.value],
-                                      max=max_dict[drop.value])
+                                      max=max_dict[drop.value],
+                                      value=[vismin, vismax],
+                                      step=0.01)
             # set handler
             drop.observe(handle_dropdown(slider), names=['value'])
 
@@ -688,15 +726,43 @@ class LayersWidget(ipytools.RealBox):
 
         def slider_3bands():
             ''' Create the widget for one band '''
-            drop = Dropdown(description='red', options=imbands)
-            drop2 = Dropdown(description='green', options=imbands)
-            drop3 = Dropdown(description='blue', options=imbands)
+            # get params to set in slider and dropdown
+            if len(visMin) == 1:
+                visminR = visminG = visminB = visMin[0]
+            else:
+                visminR = visMin[0]
+                visminG = visMin[1]
+                visminB = visMin[2]
+
+            if len(visMax) == 1:
+                vismaxR = vismaxG = vismaxB = visMax[0]
+            else:
+                vismaxR = visMax[0]
+                vismaxG = visMax[1]
+                vismaxB = visMax[2]
+
+            if len(visBands) == 1:
+                visbandR = visbandG = visbandB = visBands[0]
+            else:
+                visbandR = visBands[0]
+                visbandG = visBands[1]
+                visbandB = visBands[2]
+
+            drop = Dropdown(description='red', options=imbands, value=visbandR)
+            drop2 = Dropdown(description='green', options=imbands, value=visbandG)
+            drop3 = Dropdown(description='blue', options=imbands, value=visbandB)
             slider = FloatRangeSlider(min=min_dict[drop.value],
-                                      max=max_dict[drop.value])
+                                      max=max_dict[drop.value],
+                                      value=[visminR, vismaxR],
+                                      step=0.01)
             slider2 = FloatRangeSlider(min=min_dict[drop2.value],
-                                      max=max_dict[drop2.value])
+                                       max=max_dict[drop2.value],
+                                       value=[visminG, vismaxG],
+                                       step=0.01)
             slider3 = FloatRangeSlider(min=min_dict[drop3.value],
-                                      max=max_dict[drop3.value])
+                                       max=max_dict[drop3.value],
+                                       value=[visminB, vismaxB],
+                                       step=0.01)
             # set handlers
             drop.observe(handle_dropdown(slider), names=['value'])
             drop2.observe(handle_dropdown(slider2), names=['value'])
@@ -708,11 +774,11 @@ class LayersWidget(ipytools.RealBox):
             band_slider3 = HBox([drop3, slider3])
 
             return VBox([band_slider, band_slider2, band_slider3],
-                        layout=Layout(width='500px'))
+                        layout=Layout(width='700px'))
 
         # Create widget for 1 or 3 bands
         bands = RadioButtons(options=['1 band', '3 bands'],
-                             layout=Layout(width='100px'))
+                             layout=Layout(width='80px'))
 
         # Create widget for band, min and max selection
         selection = slider_1band()
@@ -750,7 +816,6 @@ class LayersWidget(ipytools.RealBox):
                 min = hbox_band[1].value[0]
                 max = hbox_band[1].value[1]
 
-                map.removeLayer(layer_name)
                 map.addLayer(image, {'bands':[band], 'min':min, 'max':max},
                              layer_name)
             else:  # 3 bands
@@ -770,7 +835,6 @@ class LayersWidget(ipytools.RealBox):
                 maxG = hbox_bandG[1].value[1]
                 maxB = hbox_bandB[1].value[1]
 
-                map.removeLayer(layer_name)
                 map.addLayer(image, {'bands':[bandR, bandG, bandB],
                                      'min':[float(minR), float(minG), float(minB)],
                                      'max':[float(maxR), float(maxG), float(maxB)]},
