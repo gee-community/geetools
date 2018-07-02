@@ -4,10 +4,10 @@
 from IPython.display import display
 from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
                        DOMWidget, Layout, Widget, Label, VBox, Button, Box,\
-                       ToggleButton, IntSlider
+                       ToggleButton, IntSlider, FloatText
 from ipywidgets import Image as ImageWid
 from traitlets import HasTraits, List, Unicode, observe, Instance, Tuple, All,\
-                      Int
+                      Int, Float
 
 import tools
 import json
@@ -43,6 +43,58 @@ def create_accordion(dictionary):
     widget.children = widlist
     return widget
 
+def create_object_output(object):
+    ''' Create a output Widget for Images, Geometries and Features '''
+    info = object.getInfo()
+    ty = info['type']
+
+    if ty == 'Image':
+        image_id = info['id']
+        prop = info['properties']
+        bands = info['bands']
+        bands_names = [band['id'] for band in bands]
+        bands_types = [band['data_type']['precision'] for band in bands]
+        bands_crs = [band['crs'] for band in bands]
+        new_band_names = ['<li>{} - {} - {}</li>'.format(name, ty, epsg) for name, ty, epsg in zip(bands_names, bands_types, bands_crs)]
+        new_properties = ['<li><b>{}</b>: {}</li>'.format(key, val) for key, val in prop.items()]
+
+        header = HTML('<b>Image id:</b> {id} </br>'.format(id=image_id))
+        bands_wid = HTML('<ul>'+''.join(new_band_names)+'</ul>')
+        prop_wid = HTML('<ul>'+''.join(new_properties)+'</ul>')
+
+        acc = Accordion([bands_wid, prop_wid])
+        acc.set_title(0, 'Bands')
+        acc.set_title(1, 'Properties')
+        acc.selected_index = None # this will unselect all
+
+        return VBox([header, acc])
+    else:
+        return create_accordion(info)
+
+def recrusive_delete_asset_to_widget(assetId, widget):
+    ''' adapted version to print streaming results in a widget '''
+    try:
+        content = ee.data.getList({'id':assetId})
+    except Exception as e:
+        widget.value = str(e)
+        return
+
+    if content == 0:
+        # delete empty colletion and/or folder
+        ee.data.deleteAsset(assetId)
+    else:
+        for asset in content:
+            path = asset['id']
+            ty = asset['type']
+            if ty == 'Image':
+                ee.data.deleteAsset(path)
+                widget.value += 'deleting {} ({})</br>'.format(path, ty)
+            else:
+                # clear output
+                widget.value = ''
+                recrusive_delete_asset_to_widget(path, widget)
+        # delete empty colletion and/or folder
+        ee.data.deleteAsset(assetId)
 
 class CheckRow(HBox):
     checkbox = Instance(Checkbox)
@@ -243,12 +295,17 @@ class AssetManager(VBox):
     def delete_selected(self, button=None):
         ''' function to delete selected assets '''
         selected = self.get_selected()
+
+        # Output widget
+        output = HTML('')
+
         def handle_yes(button):
+            self.children = [self.header, output]
             if selected:
                 for asset, ty in selected.items():
-                    tools.recrusive_delete_asset(asset)
-                    # print(asset)
-                self.reload()
+                    recrusive_delete_asset_to_widget(asset, output)
+            # when deleting end, reload
+            self.reload()
 
         def handle_no(button):
             self.reload()
@@ -262,7 +319,8 @@ class AssetManager(VBox):
                                      handle_yes=handle_yes,
                                      handle_no=handle_no,
                                      handle_cancel=handle_cancel)
-        self.children = [self.header, confirm]
+
+        self.children = [self.header, confirm, output]
 
     def reload(self, button=None):
         new_accordion = self.core(self.root_path)
@@ -678,3 +736,25 @@ class RealBox(Box):
             hbox = Box(el, layout=layout_columns)
             children.append(hbox)
         self.children = children
+
+class FloatBandWidget(HBox):
+    min = Float(0)
+    max = Float(1)
+
+    def __init__(self, **kwargs):
+        super(FloatBandWidget, self).__init__(**kwargs)
+        self.minWid = FloatText(value=self.min, description='min')
+        self.maxWid = FloatText(value=self.max, description='max')
+
+        self.children = [self.minWid, self.maxWid]
+
+        self.observe(self._ob_min, names=['min'])
+        self.observe(self._ob_max, names=['max'])
+
+    def _ob_min(self, change):
+        new = change['new']
+        self.minWid.value = new
+
+    def _ob_max(self, change):
+        new = change['new']
+        self.maxWid.value = new

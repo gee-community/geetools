@@ -1215,23 +1215,21 @@ def printEE(eeobject):
     print(info)
 
 def recrusive_delete_asset(assetId):
-    print(assetId)
     try:
         content = ee.data.getList({'id':assetId})
-        print(content)
     except:
         return
 
-    if len(content) == 0:
+    if content == 0:
+        # delete empty colletion and/or folder
         ee.data.deleteAsset(assetId)
     else:
         for asset in content:
             path = asset['id']
             ty = asset['type']
-            print(ty, path)
             if ty == 'Image':
-                # ee.data.deleteAsset(path)
-                pass
+                ee.data.deleteAsset(path)
             else:
-                # recrusive_delete_asset(path)
-                pass
+                recrusive_delete_asset(path)
+        # delete empty colletion and/or folder
+        ee.data.deleteAsset(assetId)
