@@ -10,8 +10,12 @@ import requests
 import os
 import sys
 from collections import OrderedDict
+import json
+# from multiprocessing import Pool, TimeoutError, Process, Pipe, Queue, Manager
+import multiprocessing
 
 import ee
+from ee import serializer, deserializer
 
 import ee.data
 if not ee.data._initialized: ee.Initialize()
@@ -231,31 +235,28 @@ def minscale(image):
     return ee.Number(bands.slice(1).iterate(wrap, ini))
 
 # @execli_deco()
-def getRegion(geom, bounds=False):
+def getRegion(eeobject, bounds=False):
     """ Gets the region of a given geometry to use in exporting tasks. The
     argument can be a Geometry, Feature or Image
 
-    :param geom: geometry to get region of
-    :type geom: ee.Feature, ee.Geometry, ee.Image
+    :param eeobject: geometry to get region of
+    :type eeobject: ee.Feature, ee.Geometry, ee.Image
     :return: region coordinates ready to use in a client-side EE function
     :rtype: json
     """
-    if isinstance(geom, ee.Geometry):
-        geom = geom.bounds() if bounds else geom
-        region = geom.getInfo()["coordinates"]
-    elif isinstance(geom, ee.Feature) or \
-         isinstance(geom, ee.Image) or \
-         isinstance(geom, ee.FeatureCollection) or\
-         isinstance(geom, ee.ImageCollection):
-
-        geom = geom.geometry().bounds() if bounds else geom.geometry()
-        region = geom.getInfo()["coordinates"]
-    elif isinstance(geom, list):
-        condition = all([type(item) == list for item in geom])
+    if isinstance(eeobject, ee.Geometry):
+        eeobject = eeobject.bounds() if bounds else eeobject
+        region = eeobject.getInfo()["coordinates"]
+    elif isinstance(eeobject, (ee.Feature, ee.Image,
+                               ee.FeatureCollection, ee.ImageCollection)):
+        eeobject = eeobject.geometry().bounds() if bounds else eeobject.geometry()
+        region = eeobject.getInfo()["coordinates"]
+    elif isinstance(eeobject, list):
+        condition = all([type(item) == list for item in eeobject])
         if condition:
-            region = geom
+            region = eeobject
     else:
-        region = geom
+        region = eeobject
     return region
 
 def mask2zero(img):
@@ -572,6 +573,20 @@ def image2asset(image, assetPath, name=None, to='Folder', scale=None,
 # @execli_deco()
 def image2local(image, path=None, name=None, scale=None, region=None,
                 dimensions=None, toFolder=True, checkExist=True):
+    ''' Download an Image to your hard drive
+
+    :param image: the image to download
+    :type image: ee.Image
+    :param path: the path to download the image. If None, it will be downloaded
+        to the same folder as the script is
+    :type path: str
+    :param scale: scale of the image to download. If None, tries to get it.
+    :type scale: int
+    :param region: region to from where to download the image. If None, will be
+        the image region
+    :type region: ee.Geometry
+    :param
+    '''
     # make some imports
     import glob
 
@@ -1206,18 +1221,118 @@ def sort_dict(dictionary):
     else:
         return dictionary
 
-def printEE(eeobject):
-    """ Print an EE Object. Same as `print(object.getInfo())`"""
-    try:
+def getInfo(eeobject, async=False):
+    ''' Proxy to getInfo with async possibility. If async is True, it returns a
+    list like object (multiprocessing ListProxy) '''
+    if not async:
+        return eeobject.getInfo()
+    else:
+        def worker(obj, share):
+            '''worker function'''
+            info = obj.getInfo()
+            share.value = info
+
+        manager = multiprocessing.Manager()
+        share = manager.Value()
+        p = multiprocessing.Process(target=worker, args=(eeobject, share))
+        p.start()
+
+        return share
+
+def eprint(eeobject, indent=2, notebook=False, async=False):
+    """ Print an EE Object. Same as `print(object.getInfo())`
+
+    :param eeobject: object to print
+    :type eeobject: ee.ComputedObject
+    :param notebook: if True, prints the object as an Accordion Widget for
+        the Jupyter Notebook
+    :type notebook: bool
+    :param indent: indentation of the print output
+    :type indent: int
+    :param async: call getInfo() asynchronously
+    :type async: bool
+    """
+
+    import pprint
+    pp = pprint.PrettyPrinter(indent=indent)
+
+    def get_async(eeobject, result):
+        obj = deserializer.decode(eeobject)
+        try:
+            result['result'] = obj.getInfo()
+        except:
+            raise
+
+    def get_async2(eeobject, result):
         info = eeobject.getInfo()
-    except:
+        result.append(info)
+
+    try:
+        if async:
+            manager = multiprocessing.Manager()
+            info = manager.list()
+            proxy = serializer.encode(eeobject)
+            process = multiprocessing.Process(target=get_async2, args=(eeobject, info))
+            process.start()
+            # process.join()
+        else:
+            info = eeobject.getInfo()
+
+    except Exception as e:
+        print(str(e))
         info = eeobject
-    print(info)
+
+    if not notebook:
+        if async:
+            def finalwait():
+                isinfo = len(info) > 0
+                while not isinfo:
+                    isinfo = len(info) > 0
+                pp.pprint(info[0])
+            p = multiprocessing.Process(target=finalwait, args=())
+            p.start()
+        else:
+            pp.pprint(info)
+    else:
+        from .ipytools import create_accordion
+        from IPython.display import display
+        output = create_accordion(info)
+        display(output)
+
+
+def esave(eeobject, filename, path=None):
+    ''' Saves any EE object to a file with extension .gee
+
+        The file has to be opened with `eopen`
+    '''
+    obj = serializer.encode(eeobject)
+
+    path = path if path else os.getcwd()
+
+    with open(os.path.join(path, filename+'.gee'), 'w') as js:
+        json.dump(obj, js)
+
+def eopen(file, path=None):
+    ''' Opens a files saved with `esave` method
+
+    :return: the EE object '''
+
+    path = path if path else os.getcwd()
+
+    try:
+        with open(os.path.join(path, file), 'r') as gee:
+            thefile = json.load(gee)
+    except IOError:
+        with open(os.path.join(path, file+'.gee'), 'r') as gee:
+            thefile = json.load(gee)
+
+    return deserializer.decode(thefile)
 
 def recrusive_delete_asset(assetId):
     try:
         content = ee.data.getList({'id':assetId})
-    except:
+    except Exception as e:
+        print(str(e))
         return
 
     if content == 0:
@@ -1228,8 +1343,12 @@ def recrusive_delete_asset(assetId):
             path = asset['id']
             ty = asset['type']
             if ty == 'Image':
+                # print('deleting {}'.format(path))
                 ee.data.deleteAsset(path)
             else:
                 recrusive_delete_asset(path)
-        # delete empty colletion and/or folder
+        # delete empty collection and/or folder
         ee.data.deleteAsset(assetId)
+
+def kml2geometry(filename):
+    pass
