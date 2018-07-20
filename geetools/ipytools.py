@@ -13,7 +13,8 @@ import tools
 import json
 
 # imports for async widgets
-import threading
+from multiprocessing import Process, Pool
+import pathos.pools as pp
 import time
 
 # import EE
@@ -45,11 +46,12 @@ def create_accordion(dictionary):
 
 def create_object_output(object):
     ''' Create a output Widget for Images, Geometries and Features '''
-    info = object.getInfo()
-    ty = info['type']
+
+    ty = object.__class__.__name__
 
     if ty == 'Image':
-        image_id = info['id']
+        info = object.getInfo()
+        image_id = info['id'] if 'id' in info else 'No Image ID'
         prop = info['properties']
         bands = info['bands']
         bands_names = [band['id'] for band in bands]
@@ -68,11 +70,27 @@ def create_object_output(object):
         acc.selected_index = None # this will unselect all
 
         return VBox([header, acc])
+    elif ty == 'FeatureCollection':
+        try:
+            info = object.getInfo()
+        except:
+            print('FeatureCollection limited to 4000 features')
+            info = object.limit(4000)
+
+        return create_accordion(info)
     else:
+        info = object.getInfo()
         return create_accordion(info)
 
-def recrusive_delete_asset_to_widget(assetId, widget):
+def create_async_output(object, widget):
+    child = create_object_output(object)
+    widget.children = [child]
+
+# def recrusive_delete_asset_to_widget(assetId, widget):
+def recrusive_delete_asset_to_widget(args):
     ''' adapted version to print streaming results in a widget '''
+    assetId = args[0]
+    widget = args[1]
     try:
         content = ee.data.getList({'id':assetId})
     except Exception as e:
@@ -95,6 +113,7 @@ def recrusive_delete_asset_to_widget(assetId, widget):
                 recrusive_delete_asset_to_widget(path, widget)
         # delete empty colletion and/or folder
         ee.data.deleteAsset(assetId)
+
 
 class CheckRow(HBox):
     checkbox = Instance(Checkbox)
@@ -236,6 +255,8 @@ class CheckAccordion(VBox):
 
 class AssetManager(VBox):
     """ Asset Manager Widget """
+    POOL_SIZE = 5
+
     def __init__(self, map=None, **kwargs):
         super(AssetManager, self).__init__(**kwargs)
         # Thumb height
@@ -301,9 +322,28 @@ class AssetManager(VBox):
 
         def handle_yes(button):
             self.children = [self.header, output]
+            pool = Pool(self.POOL_SIZE)
+            # pool = pp.ProcessPool(self.POOL_SIZE)
             if selected:
+                ''' OLD
                 for asset, ty in selected.items():
                     recrusive_delete_asset_to_widget(asset, output)
+                
+                args = []
+                for asset, ty in selected.items():
+                    args.append((asset, output))
+
+                # pool.map(recrusive_delete_asset_to_widget, args)
+                # pool.map(test2, args)
+                # pool.close()
+                # pool.join()
+                '''
+                assets = [ass for ass in selected.keys()]
+                pool.map(tools.recrusive_delete_asset, assets)
+                # TODO: cant map recrusive_delete_asset_to_widget because the passed widget is not pickable
+                pool.close()
+                pool.join()
+
             # when deleting end, reload
             self.reload()
 
