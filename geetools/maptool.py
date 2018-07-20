@@ -166,13 +166,14 @@ def get_bounds(eeObject):
 
         bounds = tools.getRegion(eeObject, True)
 
-        # Catch unbounded images
+    # Catch unbounded images
     unbounded = [[[-180.0, -90.0], [180.0, -90.0],
                   [180.0, 90.0], [-180.0, 90.0],
                   [-180.0, -90.0]]]
 
     if bounds == unbounded:
         print("can't center object because it is unbounded")
+        return None
 
     bounds = inverse_coordinates(bounds)
     return bounds
@@ -327,8 +328,27 @@ def get_image_tile(image, visParams, show=True, opacity=None,
             'visParams': params,
             }
 
+def feature_properties_output(feat):
+    ''' generates a string for features properties '''
+    info = feat.getInfo()
+    properties = info['properties']
+    theid = info['id']
+    stdout = '<h3>ID {}</h3></br>'.format(theid)
+    for prop, value in properties.items():
+        stdout += '<b>{}</b>: {}</br>'.format(prop, value)
+
+    return stdout
+
 def get_geojson_tile(geometry, name=None,
                      inspect={'data':None, 'reducer':None, 'scale':None}):
+    ''' Get a GeoJson giving a ee.Geometry or ee.Feature '''
+
+    if isinstance(geometry, ee.Feature):
+        feat = geometry
+        geometry = feat.geometry()
+    else:
+        feat = None
+
     info = geometry.getInfo()
     type = info['type']
 
@@ -341,9 +361,13 @@ def get_geojson_tile(geometry, name=None,
 
     if type in gjson_types:
         data = inspect['data']
+        if feat:
+            default_popup = feature_properties_output(feat)
+        else:
+            default_popup = type
         red = inspect.get('reducer','first')
         sca = inspect.get('scale', None)
-        popval = get_data(geometry, data, red, sca, name) if data else type
+        popval = get_data(geometry, data, red, sca, name) if data else default_popup
         geojson = geometry.getInfo()
 
         return {'geojson':geojson,
@@ -408,6 +432,7 @@ def get_zoom(bounds, method=1):
 
 # TODO: Multiple dispatch! https://www.artima.com/weblogs/viewpost.jsp?thread=101605
 def get_data(geometry, obj, reducer='first', scale=None, name=None):
+    ''' Get data from an ee.ComputedObject using a giving ee.Geometry '''
     accepted = (ee.Image, ee.ImageCollection, ee.Feature, ee.FeatureCollection)
 
     reducers = {'first': ee.Reducer.first(),
@@ -470,3 +495,24 @@ def create_html(dictionary, nest=0, ini='', indent=2):
             ini += line
 
     return ini
+
+def paint(geometry, fill_color='gray', outline_color='black', outline=2):
+    ''' Paint a Geometry, Feature or FeatureCollection '''
+
+    def overlap(image_back, image_front):
+        mask_back = image_back.mask()
+        mask_front = image_front.mask()
+        entire_mask = mask_back.add(mask_front)
+        mask = mask_back.Not()
+        masked = image_front.updateMask(mask).unmask()
+
+        return masked.add(image_back.unmask()).updateMask(entire_mask)
+
+    if isinstance(geometry, ee.Feature) or isinstance(geometry, ee.FeatureCollection):
+        geometry = geometry.geometry()
+
+    fill = ee.Image().paint(geometry, 1).visualize(palette=[fill_color])
+    out = ee.Image().paint(geometry, 1, outline).visualize(palette=[outline_color])
+    rgbVector = overlap(out, fill)
+    return rgbVector
+
