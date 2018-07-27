@@ -12,21 +12,80 @@ if not ee.data._initialized: ee.Initialize()
 
 # options for BitReaders for known collections
 
+# 16 bits
 BITS_MODIS09GA = {
-    '0-1':{0:'clear', 1:'cloud', 2:'mix'},
-    '2-2':{1:'shadow'},
+    '0-1': {0:'clear', 1:'cloud', 2:'mix'},
+    '2':   {1:'shadow'},
     '8-9': {1:'small_cirrus', 2:'average_cirrus', 3:'high_cirrus'},
-    '13-13':{1:'adjacent'},
-    '15-15':{1:'snow'}
+    '13':  {1:'adjacent'},
+    '15':  {1:'snow'}
 }
 
+# 16 bits
 BITS_MODIS13Q1 = {
-    '0-1':{0:'good_qa'},
-    '2-5':{0:'highest_qa'},
-    '8-8': {1:'adjacent'},
-    '10-10':{1:'clouds'},
-    '14-14':{1:'snow'},
-    '15-15':{1:'shadow'}
+    '0-1': {0:'good_qa'},
+    '2-5': {0:'highest_qa'},
+    '8':   {1:'adjacent'},
+    '10':  {1:'clouds'},
+    '14':  {1:'snow'},
+    '15':  {1:'shadow'}
+}
+
+# USGS SURFACE REFLECTANCE
+# 8 bits
+BITS_LANDSAT_CLOUD_QA = {
+    '0': {1:'ddv'},
+    '1': {1:'cloud'},
+    '2': {1:'shadow'},
+    '3': {1:'adjacent'},
+    '4': {1:'snow'},
+    '5': {1:'water'}
+}
+
+# USGS SURFACE REFLECTANCE
+# 16 bits
+BITS_LANDSAT_PIXEL_QA = {
+    '1': {1:'clear'},
+    '2': {1:'water'},
+    '3': {1:'shadow'},
+    '4': {1:'snow'},
+    '5': {1:'cloud'},
+    '6-7':{3:'high_confidence_cloud'}
+}
+
+# USGS SURFACE REFLECTANCE L8
+BITS_LANDSAT_PIXEL_QA_L8 = {
+    '1': {1:'clear'},
+    '2': {1:'water'},
+    '3': {1:'shadow'},
+    '4': {1:'snow'},
+    '5': {1:'cloud'},
+    '6-7':{3:'high_confidence_cloud'},
+    '8-9':{3:'cirrus'},
+    '10': {1:'occlusion'}
+}
+
+# USGS TOA
+BITS_LANDSAT_BQA = {
+    '4': {1:'cloud'},
+    '5-6': {3:'high_confidence_cloud'},
+    '7-8': {3:'shadow'},
+    '9-10': {3:'snow'}
+}
+
+# USGS TOA L8
+BITS_LANDSAT_BQA_L8 = {
+    '4': {1:'cloud'},
+    '5-6': {3:'high_confidence_cloud'},
+    '7-8': {3:'shadow'},
+    '9-10': {3:'snow'},
+    '11-12': {3:'cirrus'}
+}
+
+# SENTINEL 2
+BITS_SENTINEL2 = {
+    '10':{1:'clouds'},
+    '11':{1:'cirrus'}
 }
 
 def encode_bits_ee(bit_reader, qa_band):
@@ -163,13 +222,75 @@ def general_mask(options, reader, qa_band, update_mask=True,
     return wrap
 
 def modis09ga(options=['cloud', 'mix', 'shadow', 'snow'], update_mask=True,
-              add_mask_band=True, add_every_mask=False,):
+              add_mask_band=True, add_every_mask=False):
     ''' Function for masking MOD09GA and MYD09GA collections
 
     :return: a function to use in a map function over a collection
     '''
     reader = tools.BitReader(BITS_MODIS09GA, 16)
     return general_mask(options, reader, 'state_1km',
+                        update_mask=update_mask,
+                        add_mask_band=add_mask_band,
+                        add_every_mask=add_every_mask)
+
+def modis13q1(options=['cloud', 'adjacent', 'shadow', 'snow'],
+              update_mask=True, add_mask_band=True, add_every_mask=False):
+    ''' Function for masking MOD13Q1 and MYD13Q1 collections
+
+    :return: a function to use in a map function over a collection
+    '''
+    reader = tools.BitReader(BITS_MODIS13Q1, 16)
+    return general_mask(options, reader, 'DetailedQA',
+                        update_mask=update_mask,
+                        add_mask_band=add_mask_band,
+                        add_every_mask=add_every_mask)
+
+def landsat457SR_cloudQA(options=['cloud', 'adjacent', 'shadow', 'snow'],
+                 update_mask=True, add_mask_band=True, add_every_mask=False):
+
+    reader = tools.BitReader(BITS_LANDSAT_CLOUD_QA, 8)
+    return general_mask(options, reader, 'sr_cloud_qa',
+                        update_mask=update_mask,
+                        add_mask_band=add_mask_band,
+                        add_every_mask=add_every_mask)
+
+def landsat457SR_pixelQA(options=['cloud', 'shadow', 'snow'],
+                 update_mask=True, add_mask_band=True, add_every_mask=False):
+    reader = tools.BitReader(BITS_LANDSAT_PIXEL_QA, 16)
+    return general_mask(options, reader, 'pixel_qa',
+                        update_mask=update_mask,
+                        add_mask_band=add_mask_band,
+                        add_every_mask=add_every_mask)
+
+
+def landsat8SR_pixelQA(options=['cloud', 'shadow', 'snow', 'cirrus'],
+                update_mask=True, add_mask_band=True, add_every_mask=False):
+    reader = tools.BitReader(BITS_LANDSAT_PIXEL_QA_L8, 16)
+    return general_mask(options, reader, 'pixel_qa',
+                        update_mask=update_mask,
+                        add_mask_band=add_mask_band,
+                        add_every_mask=add_every_mask)
+
+def landsat457TOA_BQA(options=['cloud', 'shadow', 'snow'],
+                update_mask=True, add_mask_band=True, add_every_mask=False):
+    reader = tools.BitReader(BITS_LANDSAT_BQA, 16)
+    return general_mask(options, reader, 'BQA',
+                        update_mask=update_mask,
+                        add_mask_band=add_mask_band,
+                        add_every_mask=add_every_mask)
+
+def landsat8TOA_BQA(options=['cloud', 'shadow', 'snow', 'cirrus'],
+                update_mask=True, add_mask_band=True, add_every_mask=False):
+    reader = tools.BitReader(BITS_LANDSAT_BQA_L8, 16)
+    return general_mask(options, reader, 'BQA',
+                        update_mask=update_mask,
+                        add_mask_band=add_mask_band,
+                        add_every_mask=add_every_mask)
+
+def sentinel2(options=['cloud', 'cirrus'], update_mask=True,
+              add_mask_band=True, add_every_mask=False):
+    reader = tools.BitReader(BITS_SENTINEL2, 16)
+    return general_mask(options, reader, 'QA60',
                         update_mask=update_mask,
                         add_mask_band=add_mask_band,
                         add_every_mask=add_every_mask)
