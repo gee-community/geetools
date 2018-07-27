@@ -5,9 +5,174 @@ from __future__ import print_function
 from . import tools
 from . import decision_tree
 import ee
+from . import __version__
 
 import ee.data
 if not ee.data._initialized: ee.Initialize()
+
+# options for BitReaders for known collections
+
+BITS_MODIS09GA = {
+    '0-1':{0:'clear', 1:'cloud', 2:'mix'},
+    '2-2':{1:'shadow'},
+    '8-9': {1:'small_cirrus', 2:'average_cirrus', 3:'high_cirrus'},
+    '13-13':{1:'adjacent'},
+    '15-15':{1:'snow'}
+}
+
+BITS_MODIS13Q1 = {
+    '0-1':{0:'good_qa'},
+    '2-5':{0:'highest_qa'},
+    '8-8': {1:'adjacent'},
+    '10-10':{1:'clouds'},
+    '14-14':{1:'snow'},
+    '15-15':{1:'shadow'}
+}
+
+def encode_bits_ee(bit_reader, qa_band):
+    '''
+    :param bit_reader: the bit reader
+    :type bit_reader: tools.BitReader
+    :param qa_band: name of the band that holds the bit information
+    :type qa_band: str
+    :return: a function to map over a collection. The function add all
+        categories masks as new bands
+    '''
+    options = ee.Dictionary(bit_reader.info)
+    categories = ee.List(bit_reader.all_categories)
+
+    def wrap(image):
+        def eachcat(cat, ini):
+            ini = ee.Image(ini)
+            qa = ini.select(qa_band)
+            # get data for category
+            data = ee.Dictionary(options.get(cat))
+            lshift = ee.Number(data.get('lshift'))
+            length = ee.Number(data.get('bit_length'))
+            decoded = ee.Number(data.get('shifted'))
+            # move = places to move bits right and left back
+            move = lshift.add(length)
+            # move bits right and left
+            rest = qa.rightShift(move).leftShift(move)
+            # subtract the rest
+            norest = qa.subtract(rest)
+            # right shift to compare with decoded data
+            to_compare = norest.rightShift(lshift) ## Image
+            # compare if is equal, return 0 if not equal, 1 if equal
+            mask = to_compare.eq(decoded)
+            # rename to the name of the category
+            qa_mask = mask.select([0], [cat])
+
+            return ini.addBands(qa_mask)
+        return ee.Image(categories.iterate(eachcat, image))
+    return wrap
+
+def general_mask(options, reader, qa_band, update_mask=True,
+                 add_mask_band=True, add_every_mask=False,
+                 all_masks_name='mask'):
+    ''' General function to get a bit mask band given a set of options
+    a bit reader and the name of the qa_band
+
+    :param options: options to decode
+    :param reader: the bit reader
+    :param qa_band: the name of the qa band
+    :param updateMask: whether to update the mask for all options or not
+    :param addBands: whether to add the mask band for all options or not
+    :return: a function to map over a collection
+    '''
+    encoder = encode_bits_ee(reader, qa_band)
+    opt = ee.List(options)
+    clases = ("'{}', "*len(options))[:-2].format(*options)
+
+    # Property when adding every band
+    msg_eb = "Band called 'mask' is for {} and was computed by geetools" \
+          " version {} (https://github.com/gee-community/gee_tools)"
+    prop_eb = ee.String(msg_eb.format(clases, __version__))
+    prop_name_eb = ee.String('{}_band'.format(all_masks_name))
+
+    def add_every_bandF(image, encoded):
+        return image.addBands(encoded).set(prop_name_eb, prop_eb)
+
+    def get_all_mask(encoded):
+        # TODO: put this function in tools
+        initial = encoded.select([ee.String(opt.get(0))])
+        rest = ee.List(opt.slice(1))
+        def func(cat, ini):
+            ini = ee.Image(ini)
+            new = encoded.select([cat])
+            return ee.Image(ini.Or(new))
+
+        all_masks = ee.Image(rest.iterate(func, initial)) \
+            .select([0], [all_masks_name])
+        mask = all_masks.Not()
+        # return image.updateMask(mask)
+        return mask
+
+    # 0 0 1
+    if not add_every_mask and not update_mask and add_mask_band:
+        def wrap(image):
+            encoded = encoder(image).select(opt)
+            mask = get_all_mask(encoded)
+            return image.addBands(mask)
+
+    # 0 1 0
+    elif not add_every_mask and update_mask and not add_mask_band:
+        def wrap(image):
+            encoded = encoder(image).select(opt)
+            mask = get_all_mask(encoded)
+            return image.updateMask(mask)
+
+    # 0 1 1
+    elif not add_every_mask and update_mask and add_mask_band:
+        def wrap(image):
+            encoded = encoder(image).select(opt)
+            mask = get_all_mask(encoded)
+            return image.updateMask(mask).addBands(mask)
+
+    # 1 0 0
+    elif add_every_mask and not update_mask and not add_mask_band:
+        def wrap(image):
+            encoded = encoder(image).select(opt)
+            return add_every_bandF(image, encoded)
+
+    # 1 0 1
+    elif add_every_mask and not update_mask and add_mask_band:
+        def wrap(image):
+            encoded = encoder(image).select(opt)
+            mask = get_all_mask(encoded)
+            return add_every_bandF(image, encoded).addBands(mask)
+
+    # 1 1 0
+    elif add_every_mask and update_mask and not add_mask_band:
+        def wrap(image):
+            encoded = encoder(image).select(opt)
+            mask = get_all_mask(encoded)
+            updated = image.updateMask(mask)
+            with_bands = add_every_bandF(updated, encoded)
+            return with_bands
+
+    # 1 1 1
+    elif add_every_mask and update_mask and add_mask_band:
+        def wrap(image):
+            encoded = encoder(image).select(opt)
+            mask = get_all_mask(encoded)
+            updated = image.updateMask(mask)
+            with_bands = add_every_bandF(updated, encoded)
+            return with_bands.addBands(mask)
+
+    return wrap
+
+def modis09ga(options=['cloud', 'mix', 'shadow', 'snow'], update_mask=True,
+              add_mask_band=True, add_every_mask=False,):
+    ''' Function for masking MOD09GA and MYD09GA collections
+
+    :return: a function to use in a map function over a collection
+    '''
+    reader = tools.BitReader(BITS_MODIS09GA, 16)
+    return general_mask(options, reader, 'state_1km',
+                        update_mask=update_mask,
+                        add_mask_band=add_mask_band,
+                        add_every_mask=add_every_mask)
 
 def compute(image, mask_band, bits, options=None, name_all='all_masks'):
     """ Compute bits using a specified band, a bit's relation and a list of
@@ -247,8 +412,11 @@ def landsatTOA_(masks=['cloud', 'shadow', 'snow']):
     return wrap
 #############################
 
-def modis(options=['cloud', 'mix', 'shadow', 'cloud2', 'snow'], name='modis_mask',
-          addBands=False, updateMask=True):
+def modis16_250(options=['']):
+    pass
+
+def modis(options=['cloud', 'mix', 'shadow', 'cloud2', 'snow'],
+          name='modis_mask', addBands=False, updateMask=True):
     bits = {
         'cloud': 0,
         'mix': 1,
