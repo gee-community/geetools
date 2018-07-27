@@ -1030,24 +1030,29 @@ def sumBands(name="sum", bands=None):
 
     :param name: name for the band that contains the added values of bands
     :type name: str
-    :param bands: names of the bands to be added
+    :param bands: names of the bands to be added. If None (default) it sums
+        all bands
     :type bands: tuple
     :return: The function to use in ee.ImageCollection.map()
     :rtype: function
     """
     def wrap(image):
+        band_names = image.bandNames()
         if bands is None:
-            bn = image.bandNames()
+            bn = band_names
         else:
             bn = ee.List(list(bands))
 
         nim = ee.Image(0).select([0], [name])
 
-        # TODO: check if passed band names are in band names
-        def sumBandas(n, ini):
-            return ee.Image(ini).add(image.select([n]))
+        # TODO: check if passed band names are in band names # DONE
+        def sum_bands(n, ini):
+            condition = ee.List(band_names).contains(n)
+            return ee.Algorithms.If(condition,
+                                    ee.Image(ini).add(image.select([n])),
+                                    ee.Image(ini))
 
-        newimg = ee.Image(bn.iterate(sumBandas, nim))
+        newimg = ee.Image(bn.iterate(sum_bands, nim))
 
         return image.addBands(newimg)
     return wrap
@@ -1092,12 +1097,12 @@ def rename_bands(names):
 
     .. code:: python
 
-        imagen = ee.Image("LANDSAT/LC8_L1T_TOA_FMASK/LC82310902013344LGN00")
+        image = ee.Image("LANDSAT/LC8_L1T_TOA_FMASK/LC82310902013344LGN00")
         p = ee.Geometry.Point(-71.72029495239258, -42.78997046797438)
 
-        i = rename_bands({"B1":"BLUE", "B2":"GREEN"})(imagen)
+        i = rename_bands({"B1":"BLUE", "B2":"GREEN"})(image)
 
-        print get_value(imagen, p)
+        print get_value(image, p)
         print get_value(i, p)
 
     >> {u'B1': 0.10094200074672699, u'B2': 0.07873955368995667, u'B3': 0.057160500437021255}
