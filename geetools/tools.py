@@ -92,14 +92,21 @@ class BitReader(object):
     @staticmethod
     def decode_key(key):
         ''' decodes an option's key into a list '''
+        bits = key.split('-')
+
         try:
-            bits = key.split('-')
-            bits_list = range(int(bits[0]), int(bits[1])+1)
-            return bits_list
-        except Exception as e:
-            mje = 'keys must be with the following format "bit-bit", '\
+            ini = int(bits[0])
+            if len(bits) == 1:
+                end = ini
+            else:
+                end = int(bits[1])
+        except:
+            mje = 'keys must be with the following format "bit-bit", ' \
                   'example "0-1" (found {})'
             raise ValueError(mje.format(key))
+
+        bits_list = range(ini, end+1)
+        return bits_list
 
     def __init__(self, options, bit_length=None):
         self.options = options
@@ -116,6 +123,7 @@ class BitReader(object):
             return all_values
 
         ## Check if categories repeat and create property all_categories
+        # TODO: reformat categories if find spaces or uppercases
         all_cat = []
         for key, val in self.options.items():
             for i, cat in val.items():
