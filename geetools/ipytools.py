@@ -14,7 +14,6 @@ import json
 
 # imports for async widgets
 from multiprocessing import Process, Pool
-import pathos.pools as pp
 import time
 
 # import EE
