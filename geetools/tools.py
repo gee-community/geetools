@@ -8,10 +8,8 @@ import traceback
 import functools
 import requests
 import os
-import sys
 from collections import OrderedDict
 import json
-# from multiprocessing import Pool, TimeoutError, Process, Pipe, Queue, Manager
 import multiprocessing
 
 import ee
@@ -37,8 +35,8 @@ class BitReader(object):
     values must be a dictionary with the bit value as the key and the category
     (str) as value. Categories must be unique.
 
-    - Decode: given a category/categories return a list of possible values
-    - Encode: given a value return a list of categories
+    - Encode: given a category/categories return a list of possible values
+    - Decode: given a value return a list of categories
 
     Example:
         MOD09 (http://modis-sr.ltdri.org/guide/MOD09_UserGuide_v1_3.pdf)
@@ -53,7 +51,7 @@ class BitReader(object):
 
         reader = BitReader(options, 16)
 
-        print(reader.encode(204))
+        print(reader.decode(204))
         ```
         >>['shadow', 'clear']
         ```
@@ -153,11 +151,11 @@ class BitReader(object):
                              }
         self.info = info
 
-    def decode_and(self, *args):
+    def encode_and(self, *args):
         ''' decodes a comination of the given categories. returns a list of
         possible values '''
         first = args[0]
-        values_first = self.decode_one(first)
+        values_first = self.encode_one(first)
 
         def get_match(list1, list2):
             return [val for val in list2 if val in list1]
@@ -165,35 +163,35 @@ class BitReader(object):
         result = values_first
 
         for cat in args[1:]:
-            values = self.decode_one(cat)
+            values = self.encode_one(cat)
             result = get_match(result, values)
         return result
 
-    def decode_or(self, *args):
+    def encode_or(self, *args):
         ''' decodes a comination of the given categories. returns a list of
         possible values '''
         first = args[0]
-        values_first = self.decode_one(first)
+        values_first = self.encode_one(first)
 
         for cat in args[1:]:
-            values = self.decode_one(cat)
+            values = self.encode_one(cat)
             for value in values:
                 if value not in values_first:
                     values_first.append(value)
 
         return values_first
 
-    def decode_not(self, *args):
+    def encode_not(self, *args):
         ''' Given a set of categories return a list of values that DO NOT
         match with any '''
         result = []
-        match = self.decode_or(*args)
+        match = self.encode_or(*args)
         for bit in range(self.max):
             if bit not in match:
                 result.append(bit)
         return result
 
-    def decode_one(self, cat):
+    def encode_one(self, cat):
         ''' Given a category, return a list of values that match it '''
         info = self.info[cat]
         lshift = info['lshift']
@@ -210,7 +208,7 @@ class BitReader(object):
                 result.append(bit)
         return result
 
-    def encode(self, value):
+    def decode(self, value):
         ''' given a value return a list with all categories '''
         result = []
         for cat in self.all_categories:
@@ -229,7 +227,7 @@ class BitReader(object):
     def match(self, value, category):
         ''' given a value and a category return True if the value includes
         that category, else False '''
-        encoded = self.encode(value)
+        encoded = self.decode(value)
         return category in encoded
 
 def convert_data_type(newtype):
@@ -296,25 +294,6 @@ def execli_deco():
     :type trace: bool
     """
     def wrap(f):
-        '''
-        if trace is None:
-            global trace
-            trace = _execli_trace
-        if times is None:
-            global times
-            times = _execli_times
-        if wait is None:
-            global wait
-            wait = _execli_wait
-
-        try:
-            times = int(times)
-            wait = int(wait)
-        except:
-            print(type(times))
-            print(type(wait))
-            raise ValueError("'times' and 'wait' parameters must be numbers")
-        '''
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
 
@@ -335,7 +314,7 @@ def execli_deco():
                         time.sleep(wait)
                     elif i == r[-1]:
                         raise RuntimeError("An error occured tring to excecute"\
-                                           " the function '{0}'".format(f.__name__))
+                                           " the function '{}'".format(f.__name__))
                 else:
                     return result
 
@@ -498,8 +477,14 @@ def mask2number(number):
 
 def create_assets(asset_ids, asset_type, mk_parents):
     """Creates the specified assets if they do not exist.
-    This is a fork of the original function in 'ee.data' module, it will be
-    here until I can pull requests to the original repo
+    This is a fork of the original function in 'ee.data' module with the
+    difference that
+
+    - If the asset already exists but the type is different that the one we
+      want, raise an error
+    - Starts the creation of folders since 'user/username/'
+
+    Will be here until I can pull requests to the original repo
 
     :param asset_ids: list of paths
     :type asset_ids: list
@@ -513,7 +498,6 @@ def create_assets(asset_ids, asset_type, mk_parents):
     """
     for asset_id in asset_ids:
         already = ee.data.getInfo(asset_id)
-        # print('already', already)
         if already:
             ty = already['type']
             if ty != asset_type:
@@ -527,7 +511,6 @@ def create_assets(asset_ids, asset_type, mk_parents):
             for part in parts[2:-1]:
                 root += part
                 if ee.data.getInfo(root) is None:
-                    # print(root)
                     ee.data.createAsset({'type': 'Folder'}, root)
                 root += '/'
         return ee.data.createAsset({'type': asset_type}, asset_id)
