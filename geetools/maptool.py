@@ -256,64 +256,120 @@ def inverse_coordinates(coords):
             newlist.append(newp)
     return newlist
 
+def visparams_str2list(params):
+    ''' Transform a string formated as needed by ee.data.getMapId to a list
+
+    :param params: params to convert
+    :type params: str
+    :return: a list with the params
+    :rtype: list
+    '''
+    proxy_bands = []
+    bands = params.split(',')
+    for band in bands:
+        proxy_bands.append(band.strip())
+    return proxy_bands
+
+def visparams_list2str(params):
+    ''' Transform a list to a string formated as needed by
+        ee.data.getMapId
+
+    :param params: params to convert
+    :type params: list
+    :return: a string formated as needed by ee.data.getMapId
+    :rtype: str
+    '''
+    n = len(params)
+    if n == 1:
+        newbands = '{}'.format(params[0])
+    elif n == 3:
+        newbands = '{},{},{}'.format(params[0], params[1], params[2])
+    else:
+        newbands = '{}'.format(params[0])
+    return newbands
+
 def get_image_tile(image, visParams, show=True, opacity=None,
                    overlay=True):
 
+    proxy = {}
     params = visParams if visParams else {}
-    got_bands = params.has_key('bands')
-    got_min = params.has_key('min')
-    got_max = params.has_key('max')
 
-    # If not all params are passed
-    if not (got_bands and got_min and got_max):
-        # get default
-        default = get_default_vis(image)
-        if not got_bands:
-            params['bands'] = default['bands']
-        if not got_min:
-            params['min'] = default['min']
-        if not got_max:
-            params['max'] = default['max']
+    # BANDS #############
+    def default_bands(image):
+        bandnames = image.bandNames().getInfo()
+        if len(bandnames) < 3:
+            bands = bandnames[0]
+        else:
+            bands = [bandnames[0], bandnames[1], bandnames[2]]
+        return bands
+    bands = params.get('bands') if 'bands' in params else default_bands(image)
+
+    # if the passed bands is a string formatted like required by GEE, get the
+    # list out of it
+    if isinstance(bands, str):
+        bands_list = visparams_str2list(bands)
+        bands_str = visparams_list2str(bands_list)
 
     # Transform list to getMapId format
     # ['b1', 'b2', 'b3'] == 'b1, b2, b3'
-    if isinstance(params['bands'], list):
-        thebands = params['bands']
-        n = len(thebands)
-        if n == 1:
-            newbands = '{}'.format(thebands[0])
-        elif n == 3:
-            newbands = '{},{},{}'.format(thebands[0], thebands[1], thebands[2])
-        else:
-            newbands = '{}'.format(thebands[0])
-        params['bands'] = newbands
+    if isinstance(bands, list):
+        bands_list = bands
+        bands_str = visparams_list2str(bands)
 
-    # min
-    if isinstance(params['min'], list):
-        thelist = params['min']
-        n = len(thelist)
-        if n == 1:
-            newlist = '{}'.format(thelist[0])
-        elif n == 3:
-            newlist = '{},{},{}'.format(thelist[0], thelist[1], thelist[2])
-        else:
-            newlist = '{}'.format(thelist[0])
-        params['min'] = newlist
+    # Set proxy parameteres
+    proxy['bands'] = bands_str
 
-    # max
-    if isinstance(params['max'], list):
-        thelist = params['max']
-        n = len(thelist)
-        if n == 1:
-            newlist = '{}'.format(thelist[0])
-        elif n == 3:
-            newlist = '{},{},{}'.format(thelist[0], thelist[1], thelist[2])
+    # MIN #################
+    themin = params.get('min') if 'min' in params else '0'
+
+    # if the passed min is a list, convert to the format required by GEE
+    if isinstance(themin, list):
+        themin = visparams_list2str(themin)
+
+    proxy['min'] = themin
+
+    # MAX #################
+    def default_max(image, bands):
+        proxy_maxs = []
+        maxs = {'float':1,
+                'double': 1,
+                'int8': ((2**8)-1)/2, 'uint8': (2**8)-1,
+                'int16': ((2**16)-1)/2, 'uint16': (2**16)-1,
+                'int32': ((2**32)-1)/2, 'uint32': (2**32)-1,
+                'int64': ((2**64)-1)/2}
+        for band in bands:
+            ty = image.select([band]).getInfo()['bands'][0]['data_type']
+            try:
+                themax = maxs[ty]
+            except:
+                themax = 1
+            proxy_maxs.append(themax)
+        return proxy_maxs
+
+    themax = params.get('max') if 'max' in params else default_max(image,
+                                                                   bands_list)
+
+    # if the passed max is a list or the max is computed by the default function
+    # convert to the format required by GEE
+    if isinstance(themax, list):
+        themax = visparams_list2str(themax)
+
+    proxy['max'] = themax
+
+    # PALETTE ################
+    if 'palette' in params:
+        if len(bands_list) == 1:
+            palette = params.get('palette')
+            if isinstance(palette, str):
+                palette = visparams_str2list(palette)
+            toformat = '{},'*len(palette)
+            palette = toformat[:-1].format(*palette)
+            proxy['palette'] = palette
         else:
-            newlist = '{}'.format(thelist[0])
-        params['max'] = newlist
+            print("Can't use palette parameter with more than one band")
 
     # Get the MapID and Token after applying parameters
-    image_info = image.getMapId(params)
+    image_info = image.getMapId(proxy)
     mapid = image_info['mapid']
     token = image_info['token']
     tiles = "https://earthengine.googleapis.com/map/%s/{z}/{x}/{y}?token=%s"%(mapid,token)
@@ -325,7 +381,7 @@ def get_image_tile(image, visParams, show=True, opacity=None,
             'overlay': overlay,
             'show': show,
             'opacity': opacity,
-            'visParams': params,
+            'visParams': proxy,
             }
 
 def feature_properties_output(feat):
