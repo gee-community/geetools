@@ -26,7 +26,7 @@ BITS_MODIS13Q1 = {
     '0-1': {0:'good_qa'},
     '2-5': {0:'highest_qa'},
     '8':   {1:'adjacent'},
-    '10':  {1:'clouds'},
+    '10':  {1:'cloud'},
     '14':  {1:'snow'},
     '15':  {1:'shadow'}
 }
@@ -88,7 +88,7 @@ BITS_SENTINEL2 = {
     '11':{1:'cirrus'}
 }
 
-def encode_bits_ee(bit_reader, qa_band):
+def decode_bits_ee(bit_reader, qa_band):
     '''
     :param bit_reader: the bit reader
     :type bit_reader: tools.BitReader
@@ -139,7 +139,7 @@ def general_mask(options, reader, qa_band, update_mask=True,
     :param addBands: whether to add the mask band for all options or not
     :return: a function to map over a collection
     '''
-    encoder = encode_bits_ee(reader, qa_band)
+    encoder = decode_bits_ee(reader, qa_band)
     opt = ee.List(options)
     clases = ("'{}', "*len(options))[:-2].format(*options)
 
