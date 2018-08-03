@@ -293,7 +293,7 @@ class AssetManager(VBox):
                         themap.addLayer(im, {}, asset)
                     elif ty == 'ImageCollection':
                         col = ee.ImageCollection(asset)
-                        themap.addImageCollection(col)
+                        themap.addLayer(col)
             return wrap
 
         # Set reload handler
