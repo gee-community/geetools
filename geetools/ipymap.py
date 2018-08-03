@@ -21,6 +21,8 @@ import maptool
 from . import ipytools
 import threading
 from copy import copy
+import traceback
+import sys
 
 
 class Map(ipyleaflet.Map):
@@ -31,6 +33,7 @@ class Map(ipyleaflet.Map):
         # Change defaults
         kwargs.setdefault('center', [0, 0])
         kwargs.setdefault('zoom', 2)
+        kwargs.setdefault('scroll_wheel_zoom', True)
         super(Map, self).__init__(**kwargs)
         self.is_shown = False
 
@@ -241,32 +244,35 @@ class Map(ipyleaflet.Map):
         :return: the name of the added layer
         :rtype: str
         """
-        thename = name if name else 'Image {}'.format(self.added_images)
-
         # Check if layer exists
-        if thename in self.EELayers.keys():
+        if name in self.EELayers.keys():
             if not replace:
-                print("Image with name '{}' exists already, please choose another name".format(thename))
+                msg = "Image with name '{}' exists already, please choose " \
+                      "another name"
+                print(msg.format(name))
                 return
             else:
                 # Get URL, attribution & vis params
                 params = get_image_tile(image, visParams, show, opacity)
 
                 # Remove Layer
-                self.removeLayer(thename)
+                self.removeLayer(name)
         else:
             # Get URL, attribution & vis params
             params = get_image_tile(image, visParams, show, opacity)
 
         layer = ipyleaflet.TileLayer(url=params['url'],
                                      attribution=params['attribution'],
-                                     name=thename)
+                                     name=name)
 
-        self._add_EELayer(thename, {'type': 'Image',
-                                    'object': image,
-                                    'visParams': params['visParams'],
-                                    'layer': layer})
-        return thename
+        EELayer = {'type': 'Image',
+                   'object': image,
+                   'visParams': params['visParams'],
+                   'layer': layer}
+
+        # self._add_EELayer(name, EELayer)
+        # return name
+        return EELayer
 
     def addMarker(self, marker, visParams=None, name=None, show=True,
                   opacity=None, replace=True,
@@ -384,11 +390,18 @@ class Map(ipyleaflet.Map):
             print('The object is not a Feature or FeatureCollection')
             return
 
-        fill_color = visParams.get('fill_color', 'gray')
-        outline_color = visParams.get('outline_color', 'black')
+        fill_color = visParams.get('fill_color', None)
+
+        if 'outline_color' in visParams:
+            out_color = visParams['outline_color']
+        elif 'border_color' in visParams:
+            out_color = visParams['border_color']
+        else:
+            out_color = 'black'
+
         outline = visParams.get('outline', 2)
 
-        proxy_layer = maptool.paint(feature, fill_color, outline_color, outline)
+        proxy_layer = maptool.paint(feature, out_color, fill_color, outline)
 
         thename = name if name else '{} {}'.format(ty, self.added_geometries)
 
@@ -419,6 +432,20 @@ class Map(ipyleaflet.Map):
                                     'visParams': visParams,
                                     'layer': layer})
         return thename
+
+    def addMosaic(self, collection, visParams=None, name=None, show=False,
+                  opacity=None, replace=True):
+        ''' Add an ImageCollection to EELayer and its mosaic to the Map.
+        When using the inspector over this layer, it will print all values from
+        the collection '''
+        proxy = ee.ImageCollection(collection).sort('system:time_start')
+        mosaic = ee.Image(proxy.mosaic())
+
+        EELayer = self.addImage(mosaic, visParams, name, show, opacity, replace)
+        # modify EELayer
+        EELayer['type'] = 'ImageCollection'
+        EELayer['object'] = ee.ImageCollection(collection)
+        return EELayer
 
     def addImageCollection(self, collection, visParams=None, nametags=['id'],
                            show=False, opacity=None):
@@ -457,7 +484,6 @@ class Map(ipyleaflet.Map):
                 name += newname
             self.addLayer(img, visParams, str(name), show, opacity)
 
-
     def addLayer(self, eeObject, visParams=None, name=None, show=True,
                  opacity=None, replace=True, **kwargs):
         """ Adds a given EE object to the map as a layer.
@@ -475,8 +501,14 @@ class Map(ipyleaflet.Map):
 
         # CASE: ee.Image
         if isinstance(eeObject, ee.Image):
-            added_layer = self.addImage(eeObject, visParams=visParams, name=name,
-                                        show=show, opacity=opacity, replace=replace)
+            image_name = name if name else 'Image {}'.format(self.added_images)
+            EELayer = self.addImage(eeObject, visParams=visParams,
+                                    name=image_name, show=show,
+                                    opacity=opacity, replace=replace)
+
+            self._add_EELayer(image_name, EELayer)
+            added_layer = EELayer
+
         # CASE: ee.Geometry
         elif isinstance(eeObject, ee.Geometry):
             geom = eeObject if isinstance(eeObject, ee.Geometry) else eeObject.geometry()
@@ -492,16 +524,24 @@ class Map(ipyleaflet.Map):
 
         # CASE: ee.ImageCollection
         elif isinstance(eeObject, ee.ImageCollection):
+            '''
             proxy = eeObject.sort('system:time_start')
             mosaic = ee.Image(proxy.mosaic())
-            thename = name if name else 'Mosaic {}'.format(self.added_images)
             added_layer = self.addImage(mosaic, visParams=visParams, name=thename,
                                         show=show, opacity=opacity, replace=replace)
+            '''
+            thename = name if name else 'ImageCollection {}'.format(self.added_images)
+            EELayer = self.addMosaic(eeObject, visParams, thename, show,
+                                     opacity, replace)
+            self._add_EELayer(thename, EELayer)
+
+            added_layer = EELayer
+
         else:
             added_layer = None
             print("`addLayer` doesn't support adding {} objects to the map".format(type(eeObject)))
 
-        return added_layer
+        # return added_layer
 
     def removeLayer(self, name):
         """ Remove a layer by its name """
@@ -701,7 +741,7 @@ class Map(ipyleaflet.Map):
                 thewidget.set_title(0, 'Loading {} of {}...'.format(i, length))
                 i += 1
 
-                # IMAGES
+                # Image
                 if obj['type'] == 'Image':
                     # Get the image's values
                     try:
@@ -718,7 +758,54 @@ class Map(ipyleaflet.Map):
                         wids4acc.append(wid)
                         namelist.append(name)
                     except Exception as e:
-                        wid = HTML(str(e).replace('<','{').replace('>','}'))
+                        # wid = HTML(str(e).replace('<','{').replace('>','}'))
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        trace = traceback.format_exception(exc_type, exc_value,
+                                                           exc_traceback)
+                        wid = ErrorAccordion(e, trace)
+                        wids4acc.append(wid)
+                        namelist.append('ERROR at layer {}'.format(name))
+
+                # ImageCollection
+                if obj['type'] == 'ImageCollection':
+                    # Get the values from all images
+                    try:
+                        collection = obj['object']
+                        values = tools.get_values(collection, point, 10,
+                                                  'client')
+
+                        # header
+                        allbands = [val.keys() for bands, val in values.items()]
+                        bands = []
+                        for bandlist in allbands:
+                            for band in bandlist:
+                                if band not in bands:
+                                    bands.append(band)
+
+                        header = ['image']+bands
+
+                        # rows
+                        rows = []
+                        for imgid, val in values.items():
+                            row = ['']*len(header)
+                            row[0] = str(imgid)
+                            for bandname, bandvalue in val.items():
+                                pos = header.index(bandname) if bandname in header else None
+                                if pos:
+                                    row[pos] = str(bandvalue)
+                            rows.append(row)
+
+                        # Create the content
+                        html = maptool.create_html_table(header, rows)
+                        wid = HTML(html)
+                        # append widget to list of widgets
+                        wids4acc.append(wid)
+                        namelist.append(name)
+                    except Exception as e:
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        trace = traceback.format_exception(exc_type, exc_value,
+                                                           exc_traceback)
+                        wid = ErrorAccordion(e, trace)
                         wids4acc.append(wid)
                         namelist.append('ERROR at layer {}'.format(name))
 
@@ -734,7 +821,11 @@ class Map(ipyleaflet.Map):
                             wids4acc.append(wid)
                             namelist.append(name)
                     except Exception as e:
-                        wid = HTML(str(e).replace('<','{').replace('>','}'))
+                        # wid = HTML(str(e).replace('<','{').replace('>','}'))
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        trace = traceback.format_exception(exc_type, exc_value,
+                                                           exc_traceback)
+                        wid = ErrorAccordion(e, trace)
                         wids4acc.append(wid)
                         namelist.append('ERROR at layer {}'.format(name))
 
@@ -761,7 +852,10 @@ class Map(ipyleaflet.Map):
                 thewidget.set_title(i, n)
 
     def handle_object_inspector(self, **change):
-        """ Handle function for the Object Inspector Widget """
+        """ Handle function for the Object Inspector Widget
+
+        DEPRECATED
+        """
         event = change['type'] # event type
         thewidget = change['widget']
         if event == 'click':  # If the user clicked
@@ -808,6 +902,26 @@ class CustomInspector(HBox):
         self.children = [self.selector, self.main]
 
 
+class ErrorAccordion(Accordion):
+    def __init__(self, error, traceback, **kwargs):
+        super(ErrorAccordion, self).__init__(**kwargs)
+        self.error = '{}'.format(error).replace('<','{').replace('>','}')
+
+        newtraceback = ''
+        for trace in traceback[1:]:
+            newtraceback += '{}'.format(trace).replace('<','{').replace('>','}')
+            newtraceback += '</br>'
+
+        self.traceback = newtraceback
+
+        self.errorWid = HTML(self.error)
+
+        self.traceWid = HTML(self.traceback)
+
+        self.children = (self.errorWid, self.traceWid)
+        self.set_title(0, 'ERROR')
+        self.set_title(1, 'TRACEBACK')
+
 class LayersWidget(ipytools.RealBox):
     def __init__(self, map=None, **kwargs):
         super(LayersWidget, self).__init__(**kwargs)
@@ -825,7 +939,7 @@ class LayersWidget(ipytools.RealBox):
         self.remove.on_click(self.on_click_remove)
 
         self.show_prop = Button(description='Show Object')
-        self.show_prop.on_click(self.show_prop_handler)
+        self.show_prop.on_click(self.on_click_show_object)
 
         self.vis = Button(description='Visualization')
         self.vis.on_click(self.on_click_vis)
@@ -869,7 +983,7 @@ class LayersWidget(ipytools.RealBox):
             self.ty = new['type']
             self.vis = new['visParams']
 
-    def show_prop_handler(self, button=None):
+    def on_click_show_object(self, button=None):
         if self.EELayer:
             loading = HTML('Loading <b>{}</b>...'.format(self.layer.name))
             widget = VBox([loading])
