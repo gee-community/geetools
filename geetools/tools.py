@@ -1567,9 +1567,11 @@ def get_projection(filename):
 
     return spatialRef.GetAttrValue("AUTHORITY", 1)
 
-def shp2ft(filename):
+def shp2collection(filename):
     ''' Convert an ESRI file (.shp and .dbf must be present) to a
     ee.FeatureCollection
+
+    At the moment only works for shapes with less than 3000 records
 
     :param filename: the name of the filename. If the shape is not in the
         same path than the script, specify a path instead.
