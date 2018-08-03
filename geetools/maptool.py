@@ -12,6 +12,7 @@ from copy import copy
 from . import tools
 import json
 import math
+from uuid import uuid4
 
 if not ee.data._initialized: ee.Initialize()
 
@@ -298,7 +299,7 @@ def get_image_tile(image, visParams, show=True, opacity=None,
     def default_bands(image):
         bandnames = image.bandNames().getInfo()
         if len(bandnames) < 3:
-            bands = bandnames[0]
+            bands = [bandnames[0]]
         else:
             bands = [bandnames[0], bandnames[1], bandnames[2]]
         return bands
@@ -392,7 +393,6 @@ def feature_properties_output(feat):
     stdout = '<h3>ID {}</h3></br>'.format(theid)
     for prop, value in properties.items():
         stdout += '<b>{}</b>: {}</br>'.format(prop, value)
-
     return stdout
 
 def get_geojson_tile(geometry, name=None,
@@ -552,7 +552,47 @@ def create_html(dictionary, nest=0, ini='', indent=2):
 
     return ini
 
-def paint(geometry, fill_color='gray', outline_color='black', outline=2):
+def create_html_table(header, rows):
+    ''' Create a HTML table
+
+    :param header: a list of headers
+    :type header: list
+    :param rows: a list with the values
+    :type rows: list
+    :return: a HTML string
+    :rtype: str
+    '''
+    uid = 'a'+uuid4().hex
+    style = '<style>\n.{}\n{{border: 1px solid black;\n border-collapse: collapse;}}\n</style>\n'
+    style = style.format(uid)
+    general = '<table class="{}">\n{{}}</table>'.format(uid)
+    row = '  <tr class="{}">\n{{}}</tr>\n'.format(uid)
+    col = '    <td style="text-align: center" class="{}">{{}}</td>\n'.format(uid)
+    headcol = '    <th class="{}">{{}}</th>\n'.format(uid)
+
+    # header
+    def create_row(alist, template):
+        cols = ''
+        for el in alist:
+            cols += template.format(el)
+        newrow = row.format(cols)
+        return newrow
+
+    header_row = create_row(header, headcol)
+
+    rest = ''
+    # rows
+    for r in rows:
+        newrow = create_row(r, col)
+        rest += newrow
+
+    body = '{}\n{}'.format(header_row, rest)
+    html = '{}\n{}'.format(style, general.format(body))
+
+    return html
+
+
+def paint(geometry, outline_color='black', fill_color=None, outline=2):
     ''' Paint a Geometry, Feature or FeatureCollection '''
 
     def overlap(image_back, image_front):
@@ -567,8 +607,18 @@ def paint(geometry, fill_color='gray', outline_color='black', outline=2):
     if isinstance(geometry, ee.Feature) or isinstance(geometry, ee.FeatureCollection):
         geometry = geometry.geometry()
 
-    fill = ee.Image().paint(geometry, 1).visualize(palette=[fill_color])
-    out = ee.Image().paint(geometry, 1, outline).visualize(palette=[outline_color])
-    rgbVector = overlap(out, fill)
+    if fill_color:
+        fill = ee.Image().paint(geometry, 1).visualize(palette=[fill_color])
+
+    if outline_color:
+        out = ee.Image().paint(geometry, 1, outline).visualize(palette=[outline_color])
+
+    if fill_color and outline_color:
+        rgbVector = overlap(out, fill)
+    elif fill_color:
+        rgbVector = fill
+    else:
+        rgbVector = out
+
     return rgbVector
 
