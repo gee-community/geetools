@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function
 from .tools import eprint
 
-__version__ = "0.0.20dev"
+__version__ = "0.0.21dev"
 
 __title__ = "geetools"
 __summary__ = "A set of useful tools to use with Google Earth Engine Python" \
