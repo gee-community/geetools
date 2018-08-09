@@ -746,7 +746,8 @@ class Map(ipyleaflet.Map):
                     # Get the image's values
                     try:
                         image = obj['object']
-                        values = tools.get_value(image, point, 10, 'client')
+                        values = tools.get_value(image, point, scale=1,
+                                                 side='client')
                         values = tools.sort_dict(values)
                         # Create the content
                         img_html = ''
@@ -771,8 +772,9 @@ class Map(ipyleaflet.Map):
                     # Get the values from all images
                     try:
                         collection = obj['object']
-                        values = tools.get_values(collection, point, 10,
-                                                  'client')
+                        values = tools.get_values(collection, point, 1,
+                                                  properties=['system:time_start'],
+                                                  side='client')
 
                         # header
                         allbands = [val.keys() for bands, val in values.items()]
