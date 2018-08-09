@@ -5,31 +5,52 @@
 https://github.com/gee-community/ee-jupyter-contrib/blob/master/examples/getting-started/display-interactive-map.ipynb'''
 
 import ipyleaflet
-from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
-                       Label, VBox, SelectMultiple, link
+from ipywidgets import HTML, Tab, Accordion, HBox, SelectMultiple, Select,\
+                       Button, VBox, RadioButtons, Dropdown, Layout, \
+                       FloatRangeSlider, Label
 from IPython.display import display
-from traitlets import List, Dict
+from traitlets import Dict, observe, HasTraits, Unicode, Int, Float, Instance
 import ee
 if not ee.data._initialized: ee.Initialize()
 from collections import OrderedDict
 from . import tools
 from .maptool import get_default_vis, inverse_coordinates, get_data,\
                      get_image_tile, get_geojson_tile, get_bounds, get_zoom,\
-                     create_html
+                     create_html, feature_properties_output
+import maptool
 from . import ipytools
+import threading
+from copy import copy
+import traceback
+import sys
 
-import json
-import time
 
 class Map(ipyleaflet.Map):
     tab_children_dict = Dict()
-    def __init__(self, **kwargs):
+    EELayers = Dict()
+    def __init__(self, tabs=('Inspector', 'Layers', 'Assets', 'Tasks'),
+                 **kwargs):
         # Change defaults
         kwargs.setdefault('center', [0, 0])
         kwargs.setdefault('zoom', 2)
+        kwargs.setdefault('scroll_wheel_zoom', True)
         super(Map, self).__init__(**kwargs)
         self.is_shown = False
-        self.EELayers = {}
+
+        # Correct base layer name
+        baselayer = self.layers[0]
+        baselayer.name = 'OpenStreetMap'
+        self.layers = (baselayer,)
+
+        # Dictionary of map's handlers
+        self.handlers = {}
+
+        # Dictonary to hold tab's widgets
+        # (tab's name:widget)
+        self.tab_names = []
+        self.tab_children = []
+        self.tab_children_dict = OrderedDict(zip(self.tab_names,
+                                                 self.tab_children))
 
         # TABS
         # Tab widget
@@ -37,21 +58,121 @@ class Map(ipyleaflet.Map):
         # Handler for Tab
         self.tab_widget.observe(self.handle_change_tab)
 
-        # Dictonary to hold tab's widgets
-        # (tab's name:widget)
-        self.tab_names = [] # ['Inspector', 'Objects']
-        self.tab_children = [] # [self.inspector_wid, self.object_inspector_wid]
-        self.tab_children_dict = OrderedDict(zip(self.tab_names,
-                                                 self.tab_children))
+        self.tabs = tabs
+        if len(tabs) > 0:
+            # TODO: create widgets only if are in tuple
+            # Inspector Widget (Accordion)
+            self.inspector_wid = CustomInspector()
+            self.inspector_wid.main.selected_index = None # this will unselect all
 
-        # Dictionary of map's handlers
-        self.handlers = {} # {'Inspector': self.handle_inspector, 'Objects': self.handle_object_inspector}
+            # Task Manager Widget
+            task_manager = ipytools.TaskManager()
+
+            # Asset Manager Widget
+            asset_manager = ipytools.AssetManager(self)
+
+            # Layers
+            self.layers_widget = LayersWidget(map=self)
+
+            widgets = {'Inspector': self.inspector_wid,
+                       'Layers': self.layers_widget,
+                       'Assets': asset_manager,
+                       'Tasks': task_manager,
+                       }
+            handlers = {'Inspector': self.handle_inspector,
+                        'Layers': None,
+                        'Assets': None,
+                        'Tasks': None,
+                        }
+
+            # Add tabs and handlers
+            for tab in tabs:
+                if tab in widgets.keys():
+                    widget = widgets[tab]
+                    handler = handlers[tab]
+                    self.addTab(tab, handler, widget)
+                else:
+                    raise ValueError('Tab {} is not recognized. Choose one of {}'.format(tab, widgets.keys()))
+
+            # First handler: Inspector
+            self.on_interaction(self.handlers[tabs[0]])
 
         # As I cannot create a Geometry with a GeoJSON string I do a workaround
         self.draw_types = {'Polygon': ee.Geometry.Polygon,
                            'Point': ee.Geometry.Point,
                            'LineString': ee.Geometry.LineString,
                            }
+        # create EELayers
+        self.EELayers = OrderedDict()
+
+    def _add_EELayer(self, name, data):
+        ''' add a pair of name, data to EELayers '''
+        copyEELayers = copy(self.EELayers)
+        copyEELayers[name] = data
+        self.EELayers = copyEELayers
+
+    def _remove_EELayer(self, name):
+        ''' remove layer from EELayers '''
+        copyEELayers = copy(self.EELayers)
+        if name in copyEELayers:
+            copyEELayers.pop(name)
+        self.EELayers = copyEELayers
+
+    def move(self, layer_name, direction='up'):
+        ''' Move one step up a layer '''
+        names = self.EELayers.keys()
+        values = self.EELayers.values()
+
+        if direction == 'up':
+            dir = 1
+        elif direction == 'down':
+            dir = -1
+        else:
+            dir = 0
+
+        if layer_name in names:  # if layer exists
+            # index and value of layer to move
+            i = names.index(layer_name)
+            condition = (i < len(names)-1) if dir == 1 else (i > 0)
+            if condition:  # if layer is not in the edge
+                ival = values[i]
+                # new index for layer
+                newi = i+dir
+                # get index and value that already exist in the new index
+                iname_before = names[newi]
+                ival_before = values[newi]
+                # Change order
+                # set layer and value in the new index
+                names[newi] = layer_name
+                values[newi] = ival
+                # set replaced layer and its value in the index of moving layer
+                names[i] = iname_before
+                values[i] = ival_before
+
+                newlayers = OrderedDict(zip(names, values))
+                self.EELayers = newlayers
+
+    @observe('EELayers')
+    def _ob_EELayers(self, change):
+        new = change['new']
+        proxy_layers = [self.layers[0]]
+
+        for val in new.values():
+            layer = val['layer']
+            proxy_layers.append(layer)
+
+        self.layers = tuple(proxy_layers)
+
+        # UPDATE INSPECTOR
+        # Clear options
+        self.inspector_wid.selector.options = {}
+        # Add layer to the Inspector Widget
+        self.inspector_wid.selector.options = new # self.EELayers
+
+        # UPDATE LAYERS WIDGET
+        # update Layers Widget
+        self.layers_widget.selector.options = {}
+        self.layers_widget.selector.options = new # self.EELayers
 
     @property
     def added_images(self):
@@ -68,8 +189,7 @@ class Map(ipyleaflet.Map):
             while True:
                 list = ee.data.getTaskList()
 
-    def show(self, tabs=['Inspector', 'Objects', 'Tasks'],
-             layer_control=True, draw_control=False):
+    def show(self, tabs=True, layer_control=True, draw_control=False):
         """ Show the Map on the Notebook """
         if not self.is_shown:
             if layer_control:
@@ -78,49 +198,19 @@ class Map(ipyleaflet.Map):
                 self.add_control(lc)
             if draw_control:
                 # Draw Control
-                dc = ipyleaflet.DrawControl(edit=False,
-                                            marker={'shapeOptions': {}})
+                dc = ipyleaflet.DrawControl(# edit=False,
+                                            # marker={'shapeOptions': {}}
+                                            )
                 dc.on_draw(self.handle_draw)
                 self.add_control(dc)
 
-            if len(tabs) > 0:
-                # Inspector Widget (Accordion)
-                self.inspector_wid = CustomInspector()
-                # inspector_wid.update_selector(self)
-                # inspector_wid.selected_index = None # this will unselect all
-                self.inspector_wid.main.selected_index = None # this will unselect all
-                # Object Inspector Widget (Accordion)
-                object_inspector_wid = Accordion()
-                object_inspector_wid.selected_index = None # this will unselect all
-                # Task Manager Widget
-                task_manager = ipytools.TaskManager()
-
-                widgets = {'Inspector': self.inspector_wid,
-                           'Objects': object_inspector_wid,
-                           'Tasks': task_manager,
-                           }
-                handlers = {'Inspector': self.handle_inspector,
-                            'Objects': self.handle_object_inspector,
-                            'Tasks': None,
-                            }
-                for tab in tabs:
-                    if tab in widgets.keys():
-                        widget = widgets[tab]
-                        handler = handlers[tab]
-                        self.addTab(tab, handler, widget)
-                    else:
-                        raise ValueError('Tab {} is not recognized. Choose one of {}'.format(tab, widgets.keys()))
-                # First handler: Inspector
-                self.on_interaction(self.handlers[tabs[0]])
-
-                # Link tab_children_dict with custom inspector
-                # link((inspector_wid.selector, 'options'), (self.tab_children_dict, ))
-
+            if tabs:
                 display(self, self.tab_widget)
             else:
                 display(self)
         else:
-            if len(tabs) > 0:
+            # if len(tabs) > 0:
+            if tabs:
                 display(self, self.tab_widget)
             else:
                 display(self)
@@ -154,26 +244,94 @@ class Map(ipyleaflet.Map):
         :return: the name of the added layer
         :rtype: str
         """
-        thename = name if name else 'Image {}'.format(self.added_images)
+        # Check if layer exists
+        if name in self.EELayers.keys():
+            if not replace:
+                msg = "Image with name '{}' exists already, please choose " \
+                      "another name"
+                print(msg.format(name))
+                return
+            else:
+                # Get URL, attribution & vis params
+                params = get_image_tile(image, visParams, show, opacity)
+
+                # Remove Layer
+                self.removeLayer(name)
+        else:
+            # Get URL, attribution & vis params
+            params = get_image_tile(image, visParams, show, opacity)
+
+        layer = ipyleaflet.TileLayer(url=params['url'],
+                                     attribution=params['attribution'],
+                                     name=name)
+
+        EELayer = {'type': 'Image',
+                   'object': image,
+                   'visParams': params['visParams'],
+                   'layer': layer}
+
+        # self._add_EELayer(name, EELayer)
+        # return name
+        return EELayer
+
+    def addMarker(self, marker, visParams=None, name=None, show=True,
+                  opacity=None, replace=True,
+                  inspect={'data':None, 'reducer':None, 'scale':None}):
+        ''' General method to add Geometries, Features or FeatureCollections
+        as Markers '''
+
+        if isinstance(marker, ee.Geometry):
+            self.addGeometry(marker, visParams, name, show, opacity, replace,
+                             inspect)
+
+        elif isinstance(marker, ee.Feature):
+            self.addFeature(marker, visParams, name, show, opacity, replace,
+                             inspect)
+
+        elif isinstance(marker, ee.FeatureCollection):
+            geometry = marker.geometry()
+            self.addGeometry(marker, visParams, name, show, opacity, replace,
+                             inspect)
+
+    def addFeature(self, feature, visParams=None, name=None, show=True,
+                    opacity=None, replace=True,
+                    inspect={'data':None, 'reducer':None, 'scale':None}):
+        """ Add a Feature to the Map
+
+        :param feature: the Feature to add to Map
+        :type feature: ee.Feature
+        :param visParams:
+        :type visParams: dict
+        :param name: name for the layer
+        :type name: str
+        :param inspect: when adding a geometry or a feature you can pop up data
+            from a desired layer. Params are:
+            :data: the EEObject where to get the data from
+            :reducer: the reducer to use
+            :scale: the scale to reduce
+        :type inspect: dict
+        :return: the name of the added layer
+        :rtype: str
+        """
+        thename = name if name else 'Feature {}'.format(self.added_geometries)
 
         # Check if layer exists
         if thename in self.EELayers.keys():
             if not replace:
-                print("Image with name '{}' exists already, please choose another name".format(thename))
+                print("Layer with name '{}' exists already, please choose another name".format(thename))
                 return
             else:
                 self.removeLayer(thename)
 
-        params = get_image_tile(image, visParams, show, opacity)
+        params = get_geojson_tile(feature, thename, inspect)
+        layer = ipyleaflet.GeoJSON(data=params['geojson'],
+                                   name=thename,
+                                   popup=HTML(params['pop']))
 
-        layer = ipyleaflet.TileLayer(url=params['url'],
-                                     attribution=params['attribution'],
-                                     name=thename)
-        self.add_layer(layer)
-        self.EELayers[thename] = {'type':'Image',
-                                  'object':image,
-                                  'visParams':visParams,
-                                  'layer':layer}
+        self._add_EELayer(thename, {'type': 'Feature',
+                                    'object': feature,
+                                    'visParams': None,
+                                    'layer': layer})
         return thename
 
     def addGeometry(self, geometry, visParams=None, name=None, show=True,
@@ -206,16 +364,88 @@ class Map(ipyleaflet.Map):
             else:
                 self.removeLayer(thename)
 
-        params = get_geojson_tile(geometry,thename, inspect)
+        params = get_geojson_tile(geometry, thename, inspect)
         layer = ipyleaflet.GeoJSON(data=params['geojson'],
                                    name=thename,
                                    popup=HTML(params['pop']))
-        self.add_layer(layer)
-        self.EELayers[thename] = {'type':'Geometry',
-                                  'object': geometry,
-                                  'visParams':None,
-                                  'layer': layer}
+
+        self._add_EELayer(thename, {'type': 'Geometry',
+                                      'object': geometry,
+                                      'visParams':None,
+                                      'layer': layer})
         return thename
+
+    def addFeatureLayer(self, feature, visParams=None, name=None, show=True,
+                        opacity=None, replace=True):
+        ''' Paint a Feature on the map, but the layer underneath is the
+        actual added Feature '''
+
+        visParams = visParams if visParams else {}
+
+        if isinstance(feature, ee.Feature):
+            ty = 'Feature'
+        elif isinstance(feature, ee.FeatureCollection):
+            ty = 'FeatureCollection'
+        else:
+            print('The object is not a Feature or FeatureCollection')
+            return
+
+        fill_color = visParams.get('fill_color', None)
+
+        if 'outline_color' in visParams:
+            out_color = visParams['outline_color']
+        elif 'border_color' in visParams:
+            out_color = visParams['border_color']
+        else:
+            out_color = 'black'
+
+        outline = visParams.get('outline', 2)
+
+        proxy_layer = maptool.paint(feature, out_color, fill_color, outline)
+
+        thename = name if name else '{} {}'.format(ty, self.added_geometries)
+
+        img_params = {'bands':['vis-red', 'vis-green', 'vis-blue'],
+                      'min': 0, 'max':255}
+
+        # Check if layer exists
+        if thename in self.EELayers.keys():
+            if not replace:
+                print("{} with name '{}' exists already, please choose another name".format(ty, thename))
+                return
+            else:
+                # Get URL, attribution & vis params
+                params = get_image_tile(proxy_layer, img_params, show, opacity)
+
+                # Remove Layer
+                self.removeLayer(thename)
+        else:
+            # Get URL, attribution & vis params
+            params = get_image_tile(proxy_layer, img_params, show, opacity)
+
+        layer = ipyleaflet.TileLayer(url=params['url'],
+                                     attribution=params['attribution'],
+                                     name=thename)
+
+        self._add_EELayer(thename, {'type': ty,
+                                    'object': feature,
+                                    'visParams': visParams,
+                                    'layer': layer})
+        return thename
+
+    def addMosaic(self, collection, visParams=None, name=None, show=False,
+                  opacity=None, replace=True):
+        ''' Add an ImageCollection to EELayer and its mosaic to the Map.
+        When using the inspector over this layer, it will print all values from
+        the collection '''
+        proxy = ee.ImageCollection(collection).sort('system:time_start')
+        mosaic = ee.Image(proxy.mosaic())
+
+        EELayer = self.addImage(mosaic, visParams, name, show, opacity, replace)
+        # modify EELayer
+        EELayer['type'] = 'ImageCollection'
+        EELayer['object'] = ee.ImageCollection(collection)
+        return EELayer
 
     def addImageCollection(self, collection, visParams=None, nametags=['id'],
                            show=False, opacity=None):
@@ -254,7 +484,6 @@ class Map(ipyleaflet.Map):
                 name += newname
             self.addLayer(img, visParams, str(name), show, opacity)
 
-
     def addLayer(self, eeObject, visParams=None, name=None, show=True,
                  opacity=None, replace=True, **kwargs):
         """ Adds a given EE object to the map as a layer.
@@ -268,52 +497,56 @@ class Map(ipyleaflet.Map):
         For ee.Image and ee.ImageCollection see `addImage`
         for ee.Geometry and ee.Feature see `addGeometry`
         """
+        visParams = visParams if visParams else {}
+
         # CASE: ee.Image
         if isinstance(eeObject, ee.Image):
-            added_layer = self.addImage(eeObject, visParams=visParams, name=name,
-                                        show=show, opacity=opacity, replace=replace)
+            image_name = name if name else 'Image {}'.format(self.added_images)
+            EELayer = self.addImage(eeObject, visParams=visParams,
+                                    name=image_name, show=show,
+                                    opacity=opacity, replace=replace)
+
+            self._add_EELayer(image_name, EELayer)
+            added_layer = EELayer
+
         # CASE: ee.Geometry
-        elif isinstance(eeObject, ee.Geometry) or isinstance(eeObject, ee.Feature):
+        elif isinstance(eeObject, ee.Geometry):
             geom = eeObject if isinstance(eeObject, ee.Geometry) else eeObject.geometry()
             kw = {'visParams':visParams, 'name':name, 'show':show, 'opacity':opacity}
             if kwargs.get('inspect'): kw.setdefault('inspect', kwargs.get('inspect'))
             added_layer = self.addGeometry(geom, replace=replace, **kw)
+
+        # CASE: ee.Feature & ee.FeatureCollection
+        elif isinstance(eeObject, ee.Feature) or isinstance(eeObject, ee.FeatureCollection):
+            feat = eeObject
+            kw = {'visParams':visParams, 'name':name, 'show':show, 'opacity':opacity}
+            added_layer = self.addFeatureLayer(feat, replace=replace, **kw)
+
         # CASE: ee.ImageCollection
         elif isinstance(eeObject, ee.ImageCollection):
+            '''
             proxy = eeObject.sort('system:time_start')
             mosaic = ee.Image(proxy.mosaic())
-            thename = name if name else 'Mosaic {}'.format(self.added_images)
             added_layer = self.addImage(mosaic, visParams=visParams, name=thename,
                                         show=show, opacity=opacity, replace=replace)
-        elif isinstance(eeObject, ee.FeatureCollection):
-            geom = eeObject.geometry()
-            kw = {'visParams':visParams, 'name':name, 'show':show, 'opacity':opacity}
-            added_layer =  self.addGeometry(geom, replace=replace, **kw)
+            '''
+            thename = name if name else 'ImageCollection {}'.format(self.added_images)
+            EELayer = self.addMosaic(eeObject, visParams, thename, show,
+                                     opacity, replace)
+            self._add_EELayer(thename, EELayer)
+
+            added_layer = EELayer
+
         else:
             added_layer = None
             print("`addLayer` doesn't support adding {} objects to the map".format(type(eeObject)))
 
-        # Clear options
-        self.inspector_wid.selector.options = {}
-
-        # Add layer to the Inspector Widget
-        self.inspector_wid.selector.options = self.EELayers
-
-        return added_layer
+        # return added_layer
 
     def removeLayer(self, name):
         """ Remove a layer by its name """
         if name in self.EELayers.keys():
-            layer = self.EELayers[name]['layer']
-            self.remove_layer(layer)
-            self.EELayers.pop(name)
-
-            # Clear options
-            self.inspector_wid.selector.options = {}
-
-            # Add layer to the Inspector Widget
-            self.inspector_wid.selector.options = self.EELayers
-
+            self._remove_EELayer(name)
         else:
             print('Layer {} is not present in the map'.format(name))
             return
@@ -323,15 +556,31 @@ class Map(ipyleaflet.Map):
 
         :param name: the name of the layer
         :type name: str
-        :return: the EE object from the specified layer
-        :rtype: ee.ComputedObject
+        :return: The complete EELayer which is a dict of
+
+            :type: the type of the layer
+            :object: the EE Object associated with the layer
+            :visParams: the visualization parameters of the layer
+            :layer: the TileLayer added to the Map (ipyleaflet.Map)
+
+        :rtype: dict
         """
-        if name in self.EELayers.keys():
+        if name in self.EELayers:
             layer = self.EELayers[name]
             return layer
         else:
             print('Layer {} is not present in the map'.format(name))
             return
+
+    def getObject(self, name):
+        ''' Get the EE Object from a layer's name '''
+        obj = self.getLayer(name)['object']
+        return obj
+
+    def getVisParams(self, name):
+        ''' Get the Visualization Parameters from a layer's name '''
+        vis = self.getLayer(name)['visParams']
+        return vis
 
     def centerObject(self, eeObject, zoom=None, method=1):
         """ Center an eeObject
@@ -343,19 +592,19 @@ class Map(ipyleaflet.Map):
         :type: int
         """
         bounds = get_bounds(eeObject)
-        if isinstance(eeObject, ee.Geometry):
-            centroid = eeObject.centroid().getInfo()['coordinates']
-        elif isinstance(eeObject, ee.Feature) or isinstance(eeObject, ee.Image):
-            centroid = eeObject.geometry().centroid().getInfo()['coordinates']
-        elif isinstance(eeObject, list):
-            pol = ee.Geometry.Polygon(inverse_coordinates(list))
-            centroid = pol.centroid().getInfo()['coordinates']
+        if bounds:
+            try:
+                inverse = inverse_coordinates(bounds)
+                centroid = ee.Geometry.Polygon(inverse)\
+                             .centroid().getInfo()['coordinates']
+            except:
+                centroid = [0, 0]
 
-        self.center = inverse_coordinates(centroid)
-        if zoom:
-            self.zoom = zoom
-        else:
-            self.zoom = get_zoom(bounds, method)
+            self.center = inverse_coordinates(centroid)
+            if zoom:
+                self.zoom = zoom
+            else:
+                self.zoom = get_zoom(bounds, method)
 
     def getCenter(self):
         """ Returns the coordinates at the center of the map.
@@ -472,8 +721,7 @@ class Map(ipyleaflet.Map):
             point = ee.Geometry.Point(coords)
 
             # Get widget
-            # thewidget = change['widget']
-            thewidget = change['widget'].main
+            thewidget = change['widget'].main  # Accordion
 
             # First Accordion row text (name)
             first = 'Point {} at {} zoom'.format(coords, self.zoom)
@@ -493,7 +741,7 @@ class Map(ipyleaflet.Map):
                 thewidget.set_title(0, 'Loading {} of {}...'.format(i, length))
                 i += 1
 
-                # IMAGES
+                # Image
                 if obj['type'] == 'Image':
                     # Get the image's values
                     try:
@@ -510,6 +758,90 @@ class Map(ipyleaflet.Map):
                         wids4acc.append(wid)
                         namelist.append(name)
                     except Exception as e:
+                        # wid = HTML(str(e).replace('<','{').replace('>','}'))
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        trace = traceback.format_exception(exc_type, exc_value,
+                                                           exc_traceback)
+                        wid = ErrorAccordion(e, trace)
+                        wids4acc.append(wid)
+                        namelist.append('ERROR at layer {}'.format(name))
+
+                # ImageCollection
+                if obj['type'] == 'ImageCollection':
+                    # Get the values from all images
+                    try:
+                        collection = obj['object']
+                        values = tools.get_values(collection, point, 10,
+                                                  'client')
+
+                        # header
+                        allbands = [val.keys() for bands, val in values.items()]
+                        bands = []
+                        for bandlist in allbands:
+                            for band in bandlist:
+                                if band not in bands:
+                                    bands.append(band)
+
+                        header = ['image']+bands
+
+                        # rows
+                        rows = []
+                        for imgid, val in values.items():
+                            row = ['']*len(header)
+                            row[0] = str(imgid)
+                            for bandname, bandvalue in val.items():
+                                pos = header.index(bandname) if bandname in header else None
+                                if pos:
+                                    row[pos] = str(bandvalue)
+                            rows.append(row)
+
+                        # Create the content
+                        html = maptool.create_html_table(header, rows)
+                        wid = HTML(html)
+                        # append widget to list of widgets
+                        wids4acc.append(wid)
+                        namelist.append(name)
+                    except Exception as e:
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        trace = traceback.format_exception(exc_type, exc_value,
+                                                           exc_traceback)
+                        wid = ErrorAccordion(e, trace)
+                        wids4acc.append(wid)
+                        namelist.append('ERROR at layer {}'.format(name))
+
+                # Features
+                if obj['type'] == 'Feature':
+                    try:
+                        feat = obj['object']
+                        feat_geom = feat.geometry()
+                        if feat_geom.contains(point).getInfo():
+                            info = feature_properties_output(feat)
+                            wid = HTML(info)
+                            # append widget to list of widgets
+                            wids4acc.append(wid)
+                            namelist.append(name)
+                    except Exception as e:
+                        # wid = HTML(str(e).replace('<','{').replace('>','}'))
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        trace = traceback.format_exception(exc_type, exc_value,
+                                                           exc_traceback)
+                        wid = ErrorAccordion(e, trace)
+                        wids4acc.append(wid)
+                        namelist.append('ERROR at layer {}'.format(name))
+
+                # FeatureCollections
+                if obj['type'] == 'FeatureCollection':
+                    try:
+                        fc = obj['object']
+                        filtered = fc.filterBounds(point)
+                        if filtered.size().getInfo() > 0:
+                            feat = ee.Feature(filtered.first())
+                            info = feature_properties_output(feat)
+                            wid = HTML(info)
+                            # append widget to list of widgets
+                            wids4acc.append(wid)
+                            namelist.append(name)
+                    except Exception as e:
                         wid = HTML(str(e).replace('<','{').replace('>','}'))
                         wids4acc.append(wid)
                         namelist.append('ERROR at layer {}'.format(name))
@@ -520,7 +852,10 @@ class Map(ipyleaflet.Map):
                 thewidget.set_title(i, n)
 
     def handle_object_inspector(self, **change):
-        """ Handle function for the Object Inspector Widget """
+        """ Handle function for the Object Inspector Widget
+
+        DEPRECATED
+        """
         event = change['type'] # event type
         thewidget = change['widget']
         if event == 'click':  # If the user clicked
@@ -557,6 +892,7 @@ class Map(ipyleaflet.Map):
                 if geom == val:
                     self.removeLayer(key)
 
+
 class CustomInspector(HBox):
     def __init__(self, **kwargs):
         desc = 'Select one or more layers'
@@ -564,3 +900,354 @@ class CustomInspector(HBox):
         self.selector = SelectMultiple()
         self.main = Accordion()
         self.children = [self.selector, self.main]
+
+
+class ErrorAccordion(Accordion):
+    def __init__(self, error, traceback, **kwargs):
+        super(ErrorAccordion, self).__init__(**kwargs)
+        self.error = '{}'.format(error).replace('<','{').replace('>','}')
+
+        newtraceback = ''
+        for trace in traceback[1:]:
+            newtraceback += '{}'.format(trace).replace('<','{').replace('>','}')
+            newtraceback += '</br>'
+
+        self.traceback = newtraceback
+
+        self.errorWid = HTML(self.error)
+
+        self.traceWid = HTML(self.traceback)
+
+        self.children = (self.errorWid, self.traceWid)
+        self.set_title(0, 'ERROR')
+        self.set_title(1, 'TRACEBACK')
+
+class LayersWidget(ipytools.RealBox):
+    def __init__(self, map=None, **kwargs):
+        super(LayersWidget, self).__init__(**kwargs)
+        self.map = map
+        self.selector = Select()
+
+        # define init EELayer
+        self.EELayer = None
+
+        # Buttons
+        self.center = Button(description='Center')
+        self.center.on_click(self.on_click_center)
+
+        self.remove = Button(description='Remove')
+        self.remove.on_click(self.on_click_remove)
+
+        self.show_prop = Button(description='Show Object')
+        self.show_prop.on_click(self.on_click_show_object)
+
+        self.vis = Button(description='Visualization')
+        self.vis.on_click(self.on_click_vis)
+
+        self.move_up = Button(description='Move up')
+        self.move_up.on_click(self.on_up)
+
+        self.move_down = Button(description='Move down')
+        self.move_down.on_click(self.on_down)
+
+        # Buttons Group 1
+        self.group1 = VBox([self.center, self.remove,
+                            self.vis, self.show_prop])
+
+        # Buttons Group 2
+        self.group2 = VBox([self.move_up, self.move_down])
+
+        # self.children = [self.selector, self.group1]
+        self.items = [[self.selector, self.group1, self.group2]]
+
+        self.selector.observe(self.handle_selection, names='value')
+
+    def on_up(self, button=None):
+        if self.EELayer:
+            self.map.move(self.layer.name, 'up')
+
+    def on_down(self, button=None):
+        if self.EELayer:
+            self.map.move(self.layer.name, 'down')
+
+    def handle_selection(self, change):
+        new = change['new']
+        self.EELayer = new
+
+        # set original display
+        self.items = [[self.selector, self.group1, self.group2]]
+
+        if new:
+            self.layer = new['layer']
+            self.obj = new['object']
+            self.ty = new['type']
+            self.vis = new['visParams']
+
+    def on_click_show_object(self, button=None):
+        if self.EELayer:
+            loading = HTML('Loading <b>{}</b>...'.format(self.layer.name))
+            widget = VBox([loading])
+            # widget = ipytools.create_object_output(self.obj)
+            thread = threading.Thread(target=ipytools.create_async_output,
+                                      args=(self.obj, widget))
+            self.items = [[self.selector, self.group1],
+                          [widget]]
+            thread.start()
+
+    def on_click_center(self, button=None):
+        if self.EELayer:
+            self.map.centerObject(self.obj)
+
+    def on_click_remove(self, button=None):
+        if self.EELayer:
+            self.map.removeLayer(self.layer.name)
+
+    def on_click_vis(self, button=None):
+        if self.EELayer:
+            # options
+            selector = self.selector
+            group1 = self.group1
+
+            # map
+            map = self.map
+            layer_name = self.layer.name
+            image = self.obj
+
+            # Image Bands
+            try:
+                info = self.obj.getInfo()
+            except Exception as e:
+                self.items = [[self.selector, self.group1],
+                              [HTML(str(e))]]
+                return
+
+            # IMAGES
+            if self.ty == 'Image':
+                ### image data ###
+                bands = info['bands']
+                imbands = [band['id'] for band in bands]
+                bands_type = [band['data_type']['precision'] for band in bands]
+                bands_min = []
+                bands_max = []
+                # as float bands don't hava an specific range, reduce region to get the
+                # real range
+                if 'float' in bands_type:
+                    try:
+                        minmax = image.reduceRegion(ee.Reducer.minMax())
+                        for band in bands:
+                            bandname = band['id']
+                            try:
+                                tmin = minmax.get('{}_min'.format(bandname)).getInfo() # 0
+                                tmax = minmax.get('{}_max'.format(bandname)).getInfo() # 1
+                            except:
+                                tmin = 0
+                                tmax = 1
+                            bands_min.append(tmin)
+                            bands_max.append(tmax)
+                    except:
+                        for band in bands:
+                            dt = band['data_type']
+                            try:
+                                tmin = dt['min']
+                                tmax = dt['max']
+                            except:
+                                tmin = 0
+                                tmax = 1
+                            bands_min.append(tmin)
+                            bands_max.append(tmax)
+                else:
+                    for band in bands:
+                        dt = band['data_type']
+                        try:
+                            tmin = dt['min']
+                            tmax = dt['max']
+                        except:
+                            tmin = 0
+                            tmax = 1
+                        bands_min.append(tmin)
+                        bands_max.append(tmax)
+
+
+                # dict of {band: min} and {band:max}
+                min_dict = dict(zip(imbands, bands_min))
+                max_dict = dict(zip(imbands, bands_max))
+                ######
+
+                # Layer data
+                layer_data = self.map.EELayers[layer_name]
+                visParams = layer_data['visParams']
+
+                # vis bands
+                visBands = visParams['bands'].split(',')
+
+                # vis min
+                visMin = visParams['min']
+                if isinstance(visMin, str):
+                    visMin = [float(vis) for vis in visMin.split(',')]
+                else:
+                    visMin = [visMin]
+
+                # vis max
+                visMax = visParams['max']
+                if isinstance(visMax, str):
+                    visMax = [float(vis) for vis in visMax.split(',')]
+                else:
+                    visMax = [visMax]
+
+                # dropdown handler
+                def handle_dropdown(band_slider):
+                    def wrap(change):
+                        new = change['new']
+                        band_slider.min = min_dict[new]
+                        band_slider.max = max_dict[new]
+                    return wrap
+
+                def slider_1band(float=False, name='band'):
+                    ''' Create the widget for one band '''
+                    # get params to set in slider and dropdown
+                    vismin = visMin[0]
+                    vismax = visMax[0]
+                    band = visBands[0]
+
+                    drop = Dropdown(description=name, options=imbands, value=band)
+
+                    if float:
+                        slider = ipytools.FloatBandWidget(min=min_dict[drop.value],
+                                                          max=max_dict[drop.value])
+                    else:
+                        slider = FloatRangeSlider(min=min_dict[drop.value],
+                                                  max=max_dict[drop.value],
+                                                  value=[vismin, vismax],
+                                                  step=0.01)
+                    # set handler
+                    drop.observe(handle_dropdown(slider), names=['value'])
+
+                    # widget for band selector + slider
+                    band_slider = HBox([drop, slider])
+                    # return VBox([band_slider], layout=Layout(width='500px'))
+                    return band_slider
+
+                def slider_3bands(float=False):
+                    ''' Create the widget for one band '''
+                    # get params to set in slider and dropdown
+                    if len(visMin) == 1:
+                        visminR = visminG = visminB = visMin[0]
+                    else:
+                        visminR = visMin[0]
+                        visminG = visMin[1]
+                        visminB = visMin[2]
+
+                    if len(visMax) == 1:
+                        vismaxR = vismaxG = vismaxB = visMax[0]
+                    else:
+                        vismaxR = visMax[0]
+                        vismaxG = visMax[1]
+                        vismaxB = visMax[2]
+
+                    if len(visBands) == 1:
+                        visbandR = visbandG = visbandB = visBands[0]
+                    else:
+                        visbandR = visBands[0]
+                        visbandG = visBands[1]
+                        visbandB = visBands[2]
+
+                    drop = Dropdown(description='red', options=imbands, value=visbandR)
+                    drop2 = Dropdown(description='green', options=imbands, value=visbandG)
+                    drop3 = Dropdown(description='blue', options=imbands, value=visbandB)
+                    slider = FloatRangeSlider(min=min_dict[drop.value],
+                                              max=max_dict[drop.value],
+                                              value=[visminR, vismaxR],
+                                              step=0.01)
+                    slider2 = FloatRangeSlider(min=min_dict[drop2.value],
+                                               max=max_dict[drop2.value],
+                                               value=[visminG, vismaxG],
+                                               step=0.01)
+                    slider3 = FloatRangeSlider(min=min_dict[drop3.value],
+                                               max=max_dict[drop3.value],
+                                               value=[visminB, vismaxB],
+                                               step=0.01)
+                    # set handlers
+                    drop.observe(handle_dropdown(slider), names=['value'])
+                    drop2.observe(handle_dropdown(slider2), names=['value'])
+                    drop3.observe(handle_dropdown(slider3), names=['value'])
+
+                    # widget for band selector + slider
+                    band_slider = HBox([drop, slider])
+                    band_slider2 = HBox([drop2, slider2])
+                    band_slider3 = HBox([drop3, slider3])
+
+                    return VBox([band_slider, band_slider2, band_slider3],
+                                layout=Layout(width='700px'))
+
+                # Create widget for 1 or 3 bands
+                bands = RadioButtons(options=['1 band', '3 bands'],
+                                     layout=Layout(width='80px'))
+
+                # Create widget for band, min and max selection
+                selection = slider_1band()
+
+                # Apply button
+                apply = Button(description='Apply', layout=Layout(width='100px'))
+
+                # new row
+                new_row = [bands, selection, apply]
+
+                # update row of widgets
+                def update_row_items(new_row):
+                    self.items = [[selector, group1],
+                                   new_row]
+
+                # handler for radio button (1 band / 3 bands)
+                def handle_radio_button(change):
+                    new = change['new']
+                    if new == '1 band':
+                        # create widget
+                        selection = slider_1band() # TODO
+                        # update row of widgets
+                        update_row_items([bands, selection, apply])
+                    else:
+                        red = slider_1band(name='red') # TODO
+                        green = slider_1band(name='green')
+                        blue = slider_1band(name='blue')
+                        selection = VBox([red, green, blue])
+                        # selection = slider_3bands()
+                        update_row_items([bands, selection, apply])
+
+                def handle_apply(button):
+                    radio = self.items[1][0].value # radio button
+                    vbox = self.items[1][1]
+                    print('vbox', vbox)
+                    if radio == '1 band':  # 1 band
+                        hbox_band = vbox.children[0].children
+
+                        band = hbox_band[0].value
+                        min = hbox_band[1].value[0]
+                        max = hbox_band[1].value[1]
+
+                        map.addLayer(image, {'bands':[band], 'min':min, 'max':max},
+                                     layer_name)
+                    else:  # 3 bands
+                        hbox_bandR = vbox.children[0].children
+                        hbox_bandG = vbox.children[1].children
+                        hbox_bandB = vbox.children[2].children
+
+                        bandR = hbox_bandR[0].value
+                        bandG = hbox_bandG[0].value
+                        bandB = hbox_bandB[0].value
+
+                        minR = hbox_bandR[1].value[0]
+                        minG = hbox_bandG[1].value[0]
+                        minB = hbox_bandB[1].value[0]
+
+                        maxR = hbox_bandR[1].value[1]
+                        maxG = hbox_bandG[1].value[1]
+                        maxB = hbox_bandB[1].value[1]
+
+                        map.addLayer(image, {'bands':[bandR, bandG, bandB],
+                                             'min':[float(minR), float(minG), float(minB)],
+                                             'max':[float(maxR), float(maxG), float(maxB)]},
+                                     layer_name)
+
+                bands.observe(handle_radio_button, names='value')
+                update_row_items(new_row)
+                apply.on_click(handle_apply)
