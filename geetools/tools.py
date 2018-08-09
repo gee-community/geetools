@@ -19,6 +19,8 @@ from ee import serializer, deserializer
 import ee.data
 if not ee.data._initialized: ee.Initialize()
 
+from datetime import datetime, timedelta
+
 _execli_trace = False
 _execli_times = 10
 _execli_wait = 0
@@ -231,6 +233,153 @@ class BitReader(object):
         encoded = self.decode(value)
         return category in encoded
 
+
+class Date(ee.ee_date.Date):
+
+    epoch = datetime(1970, 1, 1, 0, 0, 0)
+
+    def __init__(self, date):
+        if isinstance(date, ee.Date):
+            date = date.millis()
+        super(Date, self).__init__(date)
+
+    def to_datetime(self):
+        ''' convert a `ee.Date` into a `datetime` object'''
+        formatted = self.format('yyyy,MM,dd,HH,mm,ss').getInfo()
+        args = formatted.split(',')
+        intargs = [int(arg) for arg in args]
+        return datetime(*intargs)
+
+    @staticmethod
+    def millis2datetime(millis):
+        ''' Converts milliseconds from 1970-01-01T00:00:00 to a
+        datetime object '''
+        seconds = millis/1000
+        dt = timedelta(seconds=seconds)
+        return Date.epoch + dt
+
+
+class Execli(object):
+    ''' Class to hold the methods to retry calls to Earth Engine '''
+    TRACE = False
+    TIMES = 5
+    WAIT = 0
+    ACTIVE = True
+
+    def execli(self, function):
+        ''' This function tries to excecute a client side Earth Engine function
+            and retry as many times as needed. It is meant to use in cases when you
+            cannot access to the original function. See example.
+
+        :param function: the function to call TIMES
+        :return: the return of function
+        '''
+        try:
+            times = int(self.TIMES)
+            wait = int(self.WAIT)
+        except:
+            print(type(self.TIMES))
+            print(type(self.WAIT))
+            raise ValueError("'times' and 'wait' parameters must be numbers")
+
+        def wrap(f):
+            def wrapper(*args, **kwargs):
+                r = range(times)
+                for i in r:
+                    try:
+                        result = f(*args, **kwargs)
+                    except Exception as e:
+                        print("try n°", i, "ERROR:", e)
+                        if self.TRACE:
+                            traceback.print_exc()
+                        if i < r[-1] and wait > 0:
+                            print("waiting {} seconds...".format(str(wait)))
+                            time.sleep(wait)
+                        elif i == r[-1]:
+                            msg = "An error occured tring to excecute " \
+                                  "the function '{}'"
+                            raise RuntimeError(msg.format(f.__name__))
+                    else:
+                        return result
+
+            return wrapper
+        return wrap(function)
+
+    @staticmethod
+    def execli_deco():
+        """ This is a decorating function to excecute a client side Earth Engine
+        function and retry as many times as needed.
+        Parameters can be set by modifing module's variables `_execli_trace`,
+        `_execli_times` and `_execli_wait`
+
+        :Example:
+        .. code:: python
+
+            from geetools.tools import execli_deco
+            import ee
+
+
+            # TRY TO GET THE INFO OF AN IMAGE WITH DEFAULT PARAMETERS
+
+            @execli_deco()
+            def info():
+                # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
+                img = ee.Image("wrongparam")
+
+                return img.getInfo()
+
+            # TRY WITH CUSTOM PARAM (2 times 5 seconds and traceback)
+
+            @execli_deco(2, 5, True)
+            def info():
+                # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
+                img = ee.Image("wrongparam")
+
+                return img.getInfo()
+
+        :param times: number of times it will try to excecute the function
+        :type times: int
+        :param wait: waiting time to excetue the function again
+        :type wait: int
+        :param trace: print the traceback
+        :type trace: bool
+        """
+        def wrap(f):
+            @functools.wraps(f)
+            def wrapper(*args, **kwargs):
+
+                trace = Execli.TRACE
+                times = Execli.TIMES
+                wait = Execli.WAIT
+
+                r = range(times)
+                for i in r:
+                    try:
+                        result = f(*args, **kwargs)
+                    except Exception as e:
+                        print("try n°", i, "ERROR:", e)
+                        if trace:
+                            traceback.print_exc()
+                        if i < r[-1] and wait > 0:
+                            print("waiting {} seconds...".format(str(wait)))
+                            time.sleep(wait)
+                        elif i == r[-1]:
+                            msg = "An error occured tring to excecute" \
+                                  " the function '{}'"
+                            raise RuntimeError(msg.format(f.__name__))
+                    else:
+                        return result
+
+            return wrapper
+        if Execli.ACTIVE:
+            return wrap
+        else:
+            def wrap(f):
+                def wrapper(*args, **kwargs):
+                    return f(*args, **kwargs)
+                return wrapper
+            return wrap
+
 def convert_data_type(newtype):
     """ Convert an image to the specified data type
 
@@ -324,7 +473,7 @@ def execli_deco():
 
 def execli(function, times=None, wait=None, trace=None):
     """ This function tries to excecute a client side Earth Engine function
-    and retry as many times as needed. It is ment to use in cases when you
+    and retry as many times as needed. It is meant to use in cases when you
     cannot access to the original function. See example.
 
     :Example:
@@ -516,7 +665,7 @@ def create_assets(asset_ids, asset_type, mk_parents):
                 root += '/'
         return ee.data.createAsset({'type': asset_type}, asset_id)
 
-@execli_deco()
+@Execli.execli_deco()
 def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
     """ Export an image clipped by features (Polygons). You can use the same
     arguments as the original function ee.batch.export.image.toDrive
@@ -592,7 +741,7 @@ def exportByFeat(img, fc, prop, folder, scale=1000, dataType="float", **kwargs):
 
     return tasklist
 
-@execli_deco()
+@Execli.execli_deco()
 def col2drive(col, folder, scale=30, dataType="float", region=None, **kwargs):
     """ Upload all images from one collection to Google Drive. You can use the
     same arguments as the original function ee.batch.export.image.toDrive
@@ -647,7 +796,7 @@ def col2drive(col, folder, scale=30, dataType="float", region=None, **kwargs):
 
     return tasklist
 
-@execli_deco()
+@Execli.execli_deco()
 def col2asset(col, assetPath, scale=30, region=None, create=True, **kwargs):
     """ Upload all images from one collection to a Earth Engine Asset. You can
     use the same arguments as the original function ee.batch.export.image.toDrive
@@ -703,7 +852,7 @@ def col2asset(col, assetPath, scale=30, region=None, create=True, **kwargs):
 
     return tasklist
 
-@execli_deco()
+@Execli.execli_deco()
 def image2asset(image, assetPath, name=None, to='Folder', scale=None,
                 region=None, create=True, dataType='float', **kwargs):
     """ Upload an Image to an Asset. Similar to Export.image.toAsset but this
@@ -762,7 +911,7 @@ def image2asset(image, assetPath, name=None, to='Folder', scale=None,
     task.start()
     return task
 
-# @execli_deco()
+@Execli.execli_deco()
 def image2local(image, path=None, name=None, scale=None, region=None,
                 dimensions=None, toFolder=True, checkExist=True):
     ''' Download an Image to your hard drive
@@ -933,7 +1082,7 @@ def replace(img, to_replace, to_add):
     return img_final
 
 # @execli_deco()
-def get_value(img, point, scale=10, side="server"):
+def get_value(img, point, scale=None, side="server"):
     """ Return the value of all bands of the image in the specified point
 
     :param img: Image to get the info from
@@ -948,7 +1097,12 @@ def get_value(img, point, scale=10, side="server"):
     :return: Values of all bands in the ponit
     :rtype: ee.Dictionary or dict
     """
-    scale = int(scale)
+    if scale:
+        scale = int(scale)
+    else:
+        # scale = minscale(img)
+        scale = 1
+
     type = point.getInfo()["type"]
     if type != "Point":
         raise ValueError("Point must be ee.Geometry.Point")
@@ -963,31 +1117,64 @@ def get_value(img, point, scale=10, side="server"):
         raise ValueError("side parameter must be 'server' or 'client'")
 
 # @execli_deco()
-def get_values(col, point, scale=10, side='server'):
+def get_values(col, geometry, reducer=ee.Reducer.mean(), scale=None,
+               id='system:index', properties=None, side='server'):
     """ Return all values of all bands of an image collection in the specified
-    point
+    geometry
 
     :param col: ImageCollection to get the info from
     :type col: ee.ImageCollection
-    :param point: Point from where to get the info
-    :type point: ee.Geometry.Point
+    :param geometry: Point from where to get the info
+    :type geometry: ee.Geometry
     :param scale: The scale to use in the reducer. It defaults to 10 due to the
     minimum scale available in EE (Sentinel 10m)
     :type scale: int
+    :param id: image property that will be the key in the result dict
+    :type id: str
+    :param properties: image properties that will be added to the resulting
+        dict
+    :type properties: list
     :param side: 'server' or 'client' side
     :type side: str
     :return: Values of all bands in the ponit
     :rtype: dict
     """
-    type = point.getInfo()["type"]
-    if type != "Point":
-        raise ValueError("Point must be ee.Geometry.Point")
+    # ty = geometry.getInfo()["type"]
+    # if ty != "Point":
+    #     raise ValueError("Point must be ee.Geometry.Point")
 
-    scale = int(scale)
+    if not scale:
+        # scale = minscale(ee.Image(col.first()))
+        scale = 1
+    else:
+        scale = int(scale)
+
+    propid = ee.Image(col.first()).get(id).getInfo()
+    def transform(eeobject):
+        if isinstance(propid, (int, float)):
+            return ee.Number(eeobject).format()
+        elif isinstance(propid, (str, unicode)):
+            return ee.String(eeobject)
+        else:
+            msg = 'property must be a number or string, found {}'
+            raise ValueError(msg.format(type(propid)))
+
+    if not properties:
+        properties = []
+    properties = ee.List(properties)
+
     def listval(img, it):
-        id = ee.String(img.id())
-        values = img.reduceRegion(ee.Reducer.first(), point, scale)
-        return ee.Dictionary(it).set(id, ee.Dictionary(values))
+        theid = ee.String(transform(img.get(id)))
+        values = img.reduceRegion(reducer, geometry, scale)
+        values = ee.Dictionary(values)
+
+        def add_properties(prop, ini):
+            ini = ee.Dictionary(ini)
+            value = img.get(prop)
+            return ini.set(prop, value)
+
+        with_prop = ee.Dictionary(properties.iterate(add_properties, values))
+        return ee.Dictionary(it).set(theid, with_prop)
 
     result = col.iterate(listval, ee.Dictionary({}))
     result = ee.Dictionary(result)
