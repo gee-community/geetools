@@ -12,6 +12,8 @@ from copy import copy
 from . import tools
 import json
 import math
+from uuid import uuid4
+import pygal
 
 if not ee.data._initialized: ee.Initialize()
 
@@ -166,13 +168,14 @@ def get_bounds(eeObject):
 
         bounds = tools.getRegion(eeObject, True)
 
-        # Catch unbounded images
+    # Catch unbounded images
     unbounded = [[[-180.0, -90.0], [180.0, -90.0],
                   [180.0, 90.0], [-180.0, 90.0],
                   [-180.0, -90.0]]]
 
     if bounds == unbounded:
         print("can't center object because it is unbounded")
+        return None
 
     bounds = inverse_coordinates(bounds)
     return bounds
@@ -255,37 +258,120 @@ def inverse_coordinates(coords):
             newlist.append(newp)
     return newlist
 
+def visparams_str2list(params):
+    ''' Transform a string formated as needed by ee.data.getMapId to a list
+
+    :param params: params to convert
+    :type params: str
+    :return: a list with the params
+    :rtype: list
+    '''
+    proxy_bands = []
+    bands = params.split(',')
+    for band in bands:
+        proxy_bands.append(band.strip())
+    return proxy_bands
+
+def visparams_list2str(params):
+    ''' Transform a list to a string formated as needed by
+        ee.data.getMapId
+
+    :param params: params to convert
+    :type params: list
+    :return: a string formated as needed by ee.data.getMapId
+    :rtype: str
+    '''
+    n = len(params)
+    if n == 1:
+        newbands = '{}'.format(params[0])
+    elif n == 3:
+        newbands = '{},{},{}'.format(params[0], params[1], params[2])
+    else:
+        newbands = '{}'.format(params[0])
+    return newbands
+
 def get_image_tile(image, visParams, show=True, opacity=None,
                    overlay=True):
 
-    # name = name if name else image.id().getInfo()
-
+    proxy = {}
     params = visParams if visParams else {}
 
-    if params:
-        got_default = params.has_key('bands') \
-                      and params.has_key('min') \
-                      and params.has_key('max')
-    else:
-        got_default = False
+    # BANDS #############
+    def default_bands(image):
+        bandnames = image.bandNames().getInfo()
+        if len(bandnames) < 3:
+            bands = [bandnames[0]]
+        else:
+            bands = [bandnames[0], bandnames[1], bandnames[2]]
+        return bands
+    bands = params.get('bands') if 'bands' in params else default_bands(image)
 
-    # Default parameters
-    if not got_default:
-        default = get_default_vis(image)
-        params.update(default)
-    else:
-        default = {}
-        default.update(params)
-        params = default
+    # if the passed bands is a string formatted like required by GEE, get the
+    # list out of it
+    if isinstance(bands, str):
+        bands_list = visparams_str2list(bands)
+        bands_str = visparams_list2str(bands_list)
 
-    # Take away bands from parameters
-    newVisParams = {}
-    for key, val in params.iteritems():
-        if key == 'bands': continue
-        newVisParams[key] = val
+    # Transform list to getMapId format
+    # ['b1', 'b2', 'b3'] == 'b1, b2, b3'
+    if isinstance(bands, list):
+        bands_list = bands
+        bands_str = visparams_list2str(bands)
+
+    # Set proxy parameteres
+    proxy['bands'] = bands_str
+
+    # MIN #################
+    themin = params.get('min') if 'min' in params else '0'
+
+    # if the passed min is a list, convert to the format required by GEE
+    if isinstance(themin, list):
+        themin = visparams_list2str(themin)
+
+    proxy['min'] = themin
+
+    # MAX #################
+    def default_max(image, bands):
+        proxy_maxs = []
+        maxs = {'float':1,
+                'double': 1,
+                'int8': ((2**8)-1)/2, 'uint8': (2**8)-1,
+                'int16': ((2**16)-1)/2, 'uint16': (2**16)-1,
+                'int32': ((2**32)-1)/2, 'uint32': (2**32)-1,
+                'int64': ((2**64)-1)/2}
+        for band in bands:
+            ty = image.select([band]).getInfo()['bands'][0]['data_type']
+            try:
+                themax = maxs[ty]
+            except:
+                themax = 1
+            proxy_maxs.append(themax)
+        return proxy_maxs
+
+    themax = params.get('max') if 'max' in params else default_max(image,
+                                                                   bands_list)
+
+    # if the passed max is a list or the max is computed by the default function
+    # convert to the format required by GEE
+    if isinstance(themax, list):
+        themax = visparams_list2str(themax)
+
+    proxy['max'] = themax
+
+    # PALETTE ################
+    if 'palette' in params:
+        if len(bands_list) == 1:
+            palette = params.get('palette')
+            if isinstance(palette, str):
+                palette = visparams_str2list(palette)
+            toformat = '{},'*len(palette)
+            palette = toformat[:-1].format(*palette)
+            proxy['palette'] = palette
+        else:
+            print("Can't use palette parameter with more than one band")
 
     # Get the MapID and Token after applying parameters
-    image_info = image.select(params['bands']).getMapId(newVisParams)
+    image_info = image.getMapId(proxy)
     mapid = image_info['mapid']
     token = image_info['token']
     tiles = "https://earthengine.googleapis.com/map/%s/{z}/{x}/{y}?token=%s"%(mapid,token)
@@ -295,13 +381,47 @@ def get_image_tile(image, visParams, show=True, opacity=None,
     return {'url': tiles,
             'attribution': attribution,
             'overlay': overlay,
-            # 'name':name,
             'show': show,
             'opacity': opacity,
+            'visParams': proxy,
             }
+
+def feature_properties_output(feat):
+    ''' generates a string for features properties '''
+    info = feat.getInfo()
+    properties = info['properties']
+    theid = info['id']
+    stdout = '<h3>ID {}</h3></br>'.format(theid)
+    for prop, value in properties.items():
+        try:
+            value = str(value)
+        except:
+            try:
+                value = value.encode('utf-8', errors='ignore')
+            except:
+                value = value.encode('latin1', errors='ignore')
+
+        try:
+            prop = str(prop)
+        except:
+            try:
+                prop = prop.encode('utf-8', errors='ignore')
+            except:
+                prop = prop.encode('latin1', errors='ignore')
+
+        stdout += '<b>{}</b>: {}</br>'.format(prop, value)
+    return stdout
 
 def get_geojson_tile(geometry, name=None,
                      inspect={'data':None, 'reducer':None, 'scale':None}):
+    ''' Get a GeoJson giving a ee.Geometry or ee.Feature '''
+
+    if isinstance(geometry, ee.Feature):
+        feat = geometry
+        geometry = feat.geometry()
+    else:
+        feat = None
+
     info = geometry.getInfo()
     type = info['type']
 
@@ -314,9 +434,13 @@ def get_geojson_tile(geometry, name=None,
 
     if type in gjson_types:
         data = inspect['data']
+        if feat:
+            default_popup = feature_properties_output(feat)
+        else:
+            default_popup = type
         red = inspect.get('reducer','first')
         sca = inspect.get('scale', None)
-        popval = get_data(geometry, data, red, sca, name) if data else type
+        popval = get_data(geometry, data, red, sca, name) if data else default_popup
         geojson = geometry.getInfo()
 
         return {'geojson':geojson,
@@ -381,6 +505,7 @@ def get_zoom(bounds, method=1):
 
 # TODO: Multiple dispatch! https://www.artima.com/weblogs/viewpost.jsp?thread=101605
 def get_data(geometry, obj, reducer='first', scale=None, name=None):
+    ''' Get data from an ee.ComputedObject using a giving ee.Geometry '''
     accepted = (ee.Image, ee.ImageCollection, ee.Feature, ee.FeatureCollection)
 
     reducers = {'first': ee.Reducer.first(),
@@ -443,3 +568,73 @@ def create_html(dictionary, nest=0, ini='', indent=2):
             ini += line
 
     return ini
+
+def create_html_table(header, rows):
+    ''' Create a HTML table
+
+    :param header: a list of headers
+    :type header: list
+    :param rows: a list with lists of values
+    :type rows: list of lists
+    :return: a HTML string
+    :rtype: str
+    '''
+    uid = 'a'+uuid4().hex
+    style = '<style>\n.{}\n{{border: 1px solid black;\n border-collapse: collapse;}}\n</style>\n'
+    style = style.format(uid)
+    general = '<table class="{}">\n{{}}</table>'.format(uid)
+    row = '  <tr class="{}">\n{{}}</tr>\n'.format(uid)
+    col = '    <td style="text-align: center" class="{}">{{}}</td>\n'.format(uid)
+    headcol = '    <th class="{}">{{}}</th>\n'.format(uid)
+
+    # header
+    def create_row(alist, template):
+        cols = ''
+        for el in alist:
+            cols += template.format(el)
+        newrow = row.format(cols)
+        return newrow
+
+    header_row = create_row(header, headcol)
+
+    rest = ''
+    # rows
+    for r in rows:
+        newrow = create_row(r, col)
+        rest += newrow
+
+    body = '{}\n{}'.format(header_row, rest)
+    html = '{}\n{}'.format(style, general.format(body))
+
+    return html
+
+
+def paint(geometry, outline_color='black', fill_color=None, outline=2):
+    ''' Paint a Geometry, Feature or FeatureCollection '''
+
+    def overlap(image_back, image_front):
+        mask_back = image_back.mask()
+        mask_front = image_front.mask()
+        entire_mask = mask_back.add(mask_front)
+        mask = mask_back.Not()
+        masked = image_front.updateMask(mask).unmask()
+
+        return masked.add(image_back.unmask()).updateMask(entire_mask)
+
+    if isinstance(geometry, ee.Feature) or isinstance(geometry, ee.FeatureCollection):
+        geometry = geometry.geometry()
+
+    if fill_color:
+        fill = ee.Image().paint(geometry, 1).visualize(palette=[fill_color])
+
+    if outline_color:
+        out = ee.Image().paint(geometry, 1, outline).visualize(palette=[outline_color])
+
+    if fill_color and outline_color:
+        rgbVector = overlap(out, fill)
+    elif fill_color:
+        rgbVector = fill
+    else:
+        rgbVector = out
+
+    return rgbVector
