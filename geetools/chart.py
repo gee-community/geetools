@@ -11,7 +11,7 @@ gitHub: https://github.com/gee-community/gee_tools
 import pygal
 import base64
 import ee
-from geetools import tools
+from . import tools
 import pandas as pd
 
 class Line(pygal.Line):
