@@ -72,17 +72,6 @@ class Image(object):
         self.source = source
 
     @staticmethod
-    def create_widget(pygal_chart):
-        ''' Create a HTML Widget (ipywidget) '''
-        from ipywidgets import HTML
-
-        b64 = base64.b64encode(pygal_chart.render())
-        src = 'data:image/svg+xml;charset=utf-8;base64,'+b64
-
-        return HTML('<embed src={}></embed>'.format(src))
-
-
-    @staticmethod
     def data2pandas(data):
         ''' Convert data coming from tools.get_values to a pandas DataFrame'''
         # Indices
@@ -191,6 +180,8 @@ class Image(object):
         # Generate data
         # Geometry
         if isinstance(regions, ee.Geometry):
-            reduction = ee.Image(imageCollection.reduce(reducer))
-            data = reduction.reduceRegion(ee.Reducer.first(),
-                                          regions, scale, maxPixels=1e13)
+            print('Using `seriesByRegion` with `ee.Geometry` will give you'
+                  ' the same output as `series`, use that method instead')
+            return Image.series(imageCollection, regions, reducer, scale=scale,
+                                xProperty=xProperty, bands=[band])
+
