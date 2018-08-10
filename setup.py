@@ -26,7 +26,7 @@ setup(
     packages=find_packages(exclude=('docs', 'js')),
     include_package_data=True,
     install_requires=['requests', 'Pillow', 'ipyleaflet', 'folium', 'pyshp',
-                      ],
+                      'pygal', 'pandas', 'ipywidgets'],
     extras_require={
     'dev': [],
     'docs': [],
