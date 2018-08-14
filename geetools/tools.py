@@ -912,7 +912,7 @@ def image2asset(image, assetPath, name=None, to='Folder', scale=None,
     return task
 
 @Execli.execli_deco()
-def image2local(image, path=None, name=None, scale=None, region=None,
+def image2local(image, name=None, path=None, scale=None, region=None,
                 dimensions=None, toFolder=True, checkExist=True):
     ''' Download an Image to your hard drive
 
@@ -921,6 +921,8 @@ def image2local(image, path=None, name=None, scale=None, region=None,
     :param path: the path to download the image. If None, it will be downloaded
         to the same folder as the script is
     :type path: str
+    :param name: name of the file
+    :type name: str
     :param scale: scale of the image to download. If None, tries to get it.
     :type scale: int
     :param region: region to from where to download the image. If None, will be
@@ -1167,11 +1169,17 @@ def get_values(col, geometry, reducer=ee.Reducer.mean(), scale=None,
         theid = ee.String(transform(img.get(id)))
         values = img.reduceRegion(reducer, geometry, scale)
         values = ee.Dictionary(values)
+        img_props = img.propertyNames()
 
         def add_properties(prop, ini):
             ini = ee.Dictionary(ini)
-            value = img.get(prop)
-            return ini.set(prop, value)
+            condition = img_props.contains(prop)
+            def true():
+                value = img.get(prop)
+                return ini.set(prop, value)
+            # value = img.get(prop)
+            # return ini.set(prop, value)
+            return ee.Algorithms.If(condition, true(), ini)
 
         with_prop = ee.Dictionary(properties.iterate(add_properties, values))
         return ee.Dictionary(it).set(theid, with_prop)
