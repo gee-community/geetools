@@ -1,5 +1,5 @@
 # coding=utf-8
-''' General tools for the Jupyter Notebook and Lab '''
+""" General tools for the Jupyter Notebook and Lab """
 
 from IPython.display import display
 from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
@@ -19,6 +19,7 @@ import time
 # import EE
 import ee
 if not ee.data._initialized: ee.Initialize()
+
 
 def create_accordion(dictionary):
     """ Create an Accordion output from a dict object """
@@ -42,6 +43,7 @@ def create_accordion(dictionary):
         ini += 1
     widget.children = widlist
     return widget
+
 
 def create_object_output(object):
     ''' Create a output Widget for Images, Geometries and Features '''
@@ -81,9 +83,11 @@ def create_object_output(object):
         info = object.getInfo()
         return create_accordion(info)
 
+
 def create_async_output(object, widget):
     child = create_object_output(object)
     widget.children = [child]
+
 
 # def recrusive_delete_asset_to_widget(assetId, widget):
 def recrusive_delete_asset_to_widget(args):
@@ -173,6 +177,7 @@ class CheckRow(HBox):
                 return handler(change)
             return wrap
         self.widget.observe(proxy_handler(handler), **kwargs)
+
 
 class CheckAccordion(VBox):
     widgets = Tuple()
@@ -775,6 +780,7 @@ class RealBox(Box):
             hbox = Box(el, layout=layout_columns)
             children.append(hbox)
         self.children = children
+
 
 class FloatBandWidget(HBox):
     min = Float(0)
