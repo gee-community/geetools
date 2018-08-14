@@ -12,6 +12,7 @@ from collections import OrderedDict
 import json
 import multiprocessing
 import shapefile
+from . import ee_list
 
 import ee
 from ee import serializer, deserializer
@@ -154,9 +155,42 @@ class BitReader(object):
                              }
         self.info = info
 
+    def encode(self, cat):
+        """ Given a category, return the encoded value (only) """
+        info = self.info[cat]
+        lshift = info['lshift']
+        decoded = info['shifted']
+
+        shifted = decoded<<lshift
+        return shifted
+
+    def encode_band(self, category, mask, name=None):
+        """ Make an image in which all pixels have the value for the given
+        category
+
+        :param category: the category to encode
+        :type category: str
+        :param mask: the mask that indicates which pixels encode
+        :type mask: ee.Image
+        :param name: name of the resulting band. If None it'll be the same as
+            'mask'
+        :type name: str
+
+        :return: A one band image
+        :rtype: ee.Image
+        """
+        encoded = self.encode(category)
+
+        if not name:
+            name = mask.bandNames().get(0).getInfo()
+
+        image = empty_image(encoded, [name])
+        return image.updateMask(mask)
+
+
     def encode_and(self, *args):
-        ''' decodes a comination of the given categories. returns a list of
-        possible values '''
+        """ decodes a comination of the given categories. returns a list of
+        possible values """
         first = args[0]
         values_first = self.encode_one(first)
 
@@ -171,8 +205,8 @@ class BitReader(object):
         return result
 
     def encode_or(self, *args):
-        ''' decodes a comination of the given categories. returns a list of
-        possible values '''
+        """ decodes a comination of the given categories. returns a list of
+        possible values """
         first = args[0]
         values_first = self.encode_one(first)
 
@@ -185,8 +219,8 @@ class BitReader(object):
         return values_first
 
     def encode_not(self, *args):
-        ''' Given a set of categories return a list of values that DO NOT
-        match with any '''
+        """ Given a set of categories return a list of values that DO NOT
+        match with any """
         result = []
         match = self.encode_or(*args)
         for bit in range(self.max):
@@ -195,7 +229,7 @@ class BitReader(object):
         return result
 
     def encode_one(self, cat):
-        ''' Given a category, return a list of values that match it '''
+        """ Given a category, return a list of values that match it """
         info = self.info[cat]
         lshift = info['lshift']
         length = info['bit_length']
@@ -212,7 +246,7 @@ class BitReader(object):
         return result
 
     def decode(self, value):
-        ''' given a value return a list with all categories '''
+        """ given a value return a list with all categories """
         result = []
         for cat in self.all_categories:
             data = self.info[cat]
@@ -228,8 +262,8 @@ class BitReader(object):
         return result
 
     def match(self, value, category):
-        ''' given a value and a category return True if the value includes
-        that category, else False '''
+        """ given a value and a category return True if the value includes
+        that category, else False """
         encoded = self.decode(value)
         return category in encoded
 
@@ -1244,33 +1278,6 @@ def sumBands(name="sum", bands=None):
         return image.addBands(newimg)
     return wrap
 
-def replace_many(listEE, replace):
-    """ Replace many elements of a Earth Engine List object
-
-    :param listEE: list
-    :type listEE: ee.List
-    :param toreplace: values to replace
-    :type toreplace: dict
-    :return: list with replaced values
-    :rtype: ee.List
-
-    :EXAMPLE:
-
-    .. code:: python
-
-        list = ee.List(["one", "two", "three", 4])
-        newlist = replace_many(list, {"one": 1, 4:"four"})
-
-        print newlist.getInfo()
-
-    >> [1, "two", "three", "four"]
-
-    """
-    for key, val in replace.iteritems():
-        if val:
-            listEE = listEE.replace(key, val)
-    return listEE
-
 def rename_bands(names):
     """ Renames bands of images. Can be used in one image or in a collection
 
@@ -1297,7 +1304,7 @@ def rename_bands(names):
     """
     def wrap(img):
         bandnames = img.bandNames()
-        newnames = replace_many(bandnames, names)
+        newnames = ee_list.replace_many(bandnames, names)
         return img.select(bandnames, newnames)
     return wrap
 
@@ -1322,32 +1329,6 @@ def pass_date(img_with, img_without):
     """ Pass date property from one image to another """
     return pass_prop(img_with, img_without, "system:time_start")
 
-def list_intersection(listEE1, listEE2):
-    """ Find matching values. If listEE1 has duplicated values that are present
-    on listEE2, all values from listEE1 will apear in the result
-
-    :param listEE1: one Earth Engine List
-    :param listEE2: the other Earth Engine List
-    :return: list with the intersection (matching values)
-    :rtype: ee.List
-    """
-    newlist = ee.List([])
-    def wrap(element, first):
-        first = ee.List(first)
-
-        return ee.Algorithms.If(listEE2.contains(element), first.add(element), first)
-
-    return ee.List(listEE1.iterate(wrap, newlist))
-
-def list_diff(listEE1, listEE2):
-    """ Difference between two earth engine lists
-
-    :param listEE1: one list
-    :param listEE2: the other list
-    :return: list with the values of the difference
-    :rtype: ee.List
-    """
-    return listEE1.removeAll(listEE2).add(listEE2.removeAll(listEE1)).flatten()
 
 def parametrize(range_from, range_to, bands=None):
     """ Parametrize from a original known range to a fixed new range
@@ -1537,14 +1518,6 @@ def empty_image(value=0, bandnames=None, bands=None):
 
     return finali.select(bandnames)
 
-def list_remove_duplicates(listEE):
-    """ Remove duplicated values from a EE list object """
-    newlist = ee.List([])
-    def wrap(element, init):
-        init = ee.List(init)
-        contained = init.contains(element)
-        return ee.Algorithms.If(contained, init, init.add(element))
-    return ee.List(listEE.iterate(wrap, newlist))
 
 def get_from_dict(a_list, a_dict):
     """ Get a list of Dict's values from a list object. Keys must be unique

@@ -14,11 +14,13 @@ import ee
 from . import tools
 import pandas as pd
 
+
 class Line(pygal.Line):
     def __init__(self, **kwargs):
         super(Line, self).__init__(**kwargs)
         self.data = None
-        self.y_labels = dict()
+        self.y_data = dict()
+        self.x_label_rotation = 30
 
     @staticmethod
     def from_pandas(dataframe, x=None, y=None, datetime=False, **kwargs):
@@ -49,11 +51,11 @@ class Line(pygal.Line):
                 # TODO: add values config
                 # pygal.org/en/latest/documentation/configuration/value.html
                 line_chart.add(column, ydata)
-                line_chart.y_labels[column] = ydata
+                line_chart.y_data[column] = ydata
         else:
             ydata = dataframe[y].values.tolist()
             line_chart.add(y, ydata)
-            line_chart.y_labels[y] = ydata
+            line_chart.y_data[y] = ydata
 
         line_chart.data = dataframe
         return line_chart
