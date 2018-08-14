@@ -34,6 +34,7 @@ class Map(ipyleaflet.Map):
         kwargs.setdefault('center', [0, 0])
         kwargs.setdefault('zoom', 2)
         kwargs.setdefault('scroll_wheel_zoom', True)
+        kwargs.setdefault('max_zoom', 22)
         super(Map, self).__init__(**kwargs)
         self.is_shown = False
 
@@ -648,12 +649,12 @@ class Map(ipyleaflet.Map):
         :param name: name for the new tab
         :type name: str
         :param handler: handle function for the new tab. Arguments of the
-            function are:
+        function are:
 
-            :type: the type of the event (click, mouseover, etc..)
-            :coordinates: coordinates where the event occured [lon, lat]
-            :widget: the widget inside the Tab
-            :map: the Map instance
+          - type: the type of the event (click, mouseover, etc..)
+          - coordinates: coordinates where the event occurred [lon, lat]
+          - widget: the widget inside the Tab
+          - map: the Map instance
 
         :param widget: widget inside the Tab. Defaults to HTML('')
         :type widget: ipywidgets.Widget
@@ -772,7 +773,7 @@ class Map(ipyleaflet.Map):
                     # Get the values from all images
                     try:
                         collection = obj['object']
-                        values = tools.get_values(collection, point, 1,
+                        values = tools.get_values(collection, point, scale=1,
                                                   properties=['system:time_start'],
                                                   side='client')
 
