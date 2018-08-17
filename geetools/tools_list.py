@@ -1,5 +1,5 @@
 # coding=utf-8
-""" Module holding tools for ee.List """
+""" Tools for Earth Engine ee.List objects """
 
 import ee
 
