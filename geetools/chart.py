@@ -14,6 +14,8 @@ import ee
 from . import tools
 import pandas as pd
 
+# TODO: make not plotted bands values appear on tooltip
+# TODO: give capability to plot a secondary axis with other data
 
 class Line(pygal.Line):
     def __init__(self, **kwargs):
