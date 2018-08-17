@@ -12,7 +12,7 @@ from collections import OrderedDict
 import json
 import multiprocessing
 import shapefile
-from . import ee_list
+from . import tools_list, tools_image
 
 import ee
 from ee import serializer, deserializer
@@ -182,7 +182,7 @@ class BitReader(object):
         encoded = self.encode(category)
 
         if not name:
-            name = mask.bandNames().get(0).getInfo()
+            name = mask.bandNames().get(0)
 
         image = empty_image(encoded, [name])
         return image.updateMask(mask)
@@ -1304,7 +1304,7 @@ def rename_bands(names):
     """
     def wrap(img):
         bandnames = img.bandNames()
-        newnames = ee_list.replace_many(bandnames, names)
+        newnames = tools_list.replace_many(bandnames, names)
         return img.select(bandnames, newnames)
     return wrap
 
@@ -1503,15 +1503,13 @@ def empty_image(value=0, bandnames=None, bands=None):
             return img.addBands(newi)
         finali = ee.Image(bandnames.iterate(bn, ini))
 
-        # return finali.select(bandnames)
     elif bands:
         bandnames = ee.List(bands.keys())
         finali = ee.Image(0)
-        for name, value in bands.iteritems():
+        for name, value in bands.items():
             i = ee.Image(value).select([0], [name])
             finali = finali.addBands(i)
 
-        # return finali.select(bandnames)
     else:
         bandnames = ['constant']
         finali = ee.Image.constant(value)
