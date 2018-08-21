@@ -17,7 +17,7 @@ from . import tools
 from .maptool import get_default_vis, inverse_coordinates, get_data,\
                      get_image_tile, get_geojson_tile, get_bounds, get_zoom,\
                      create_html, feature_properties_output
-import maptool
+from . import maptool
 from . import ipytools
 import threading
 from copy import copy
