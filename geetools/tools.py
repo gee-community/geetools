@@ -811,13 +811,8 @@ def col2drive(col, folder, scale=30, dataType="float", region=None, **kwargs):
         img = ee.Image(img)
         name = img.id().getInfo().split("/")[-1]
 
-        if dataType in TYPES:
-            typefunc = TYPES[dataType]
-            img = typefunc(img)
-        elif dataType in dir(ee.Image):
-            img = dataType(img)
-        else:
-            raise ValueError("specified data type is not found")
+        # convert data type
+        convert_data_type(dataType)
 
         task = ee.batch.Export.image.toDrive(image=img,
                                              description=name,
