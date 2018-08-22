@@ -789,10 +789,8 @@ def col2drive(col, folder, scale=30, dataType="float", region=None, **kwargs):
     :type scale: int
     :param maxImgs: maximum number of images inside the collection
     :type maxImgs: int
-    :param dataType: as downloaded images **must** have the same data type
-    in all
-        bands, you have to set it here. Can be one of: "float", "double",
-        "int",
+    :param dataType: as downloaded images **must** have the same data type in all
+        bands, you have to set it here. Can be one of: "float", "double", "int",
         "Uint8", "Int8" or a casting function like *ee.Image.toFloat*
     :type dataType: str
     :return: list of tasks
@@ -812,13 +810,8 @@ def col2drive(col, folder, scale=30, dataType="float", region=None, **kwargs):
         img = ee.Image(img)
         name = img.id().getInfo().split("/")[-1]
 
-        if dataType in TYPES:
-            typefunc = TYPES[dataType]
-            img = typefunc(img)
-        elif dataType in dir(ee.Image):
-            img = dataType(img)
-        else:
-            raise ValueError("specified data type is not found")
+        # convert data type
+        convert_data_type(dataType)
 
         task = ee.batch.Export.image.toDrive(image=img,
                                              description=name,
