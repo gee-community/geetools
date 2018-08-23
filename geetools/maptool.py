@@ -59,7 +59,7 @@ class Map(folium.Map):
 
             values = tools.get_value(data, geometry, scale, 'client')
             val_str = ''
-            for key, val in values.iteritems():
+            for key, val in values.items():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
                 marker = folium.Marker(location=coords,
                                        popup=folium.Popup(val_str))
@@ -208,14 +208,14 @@ def get_default_vis(image, stretch=0.8):
         btype = 'double'
     elif precision == 'int':
         max = types['max']
-        maxs_inverse = dict((val, key) for key, val in maxs.iteritems())
+        maxs_inverse = dict((val, key) for key, val in maxs.items())
         btype = maxs_inverse[int(max)]
     else:
         raise ValueError('Unknown data type {}'.format(precision))
 
     limits = {'float': 0.8}
 
-    for key, val in maxs.iteritems():
+    for key, val in maxs.items():
         limits[key] = val*stretch
 
     min = 0
@@ -509,14 +509,14 @@ def get_data(geometry, obj, reducer='first', scale=None, name=None):
         if t == 'Point':
             values = tools.get_value(obj, geometry, scale, 'client')
             val_str = '<h3>Data from {}'.format(name)
-            for key, val in values.iteritems():
+            for key, val in values.items():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
             return val_str
         elif t == 'Polygon':
             red = reducer if reducer in reducers.keys() else 'first'
             values = obj.reduceRegion(reducers[red], geometry, scale, maxPixels=1e13).getInfo()
             val_str = '<h3>{}:</h3>\n'.format(red)
-            for key, val in values.iteritems():
+            for key, val in values.items():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
             return val_str
 

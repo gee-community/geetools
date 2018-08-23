@@ -36,7 +36,7 @@ def compute(index, band_params, extra_params=None, addBand=True):
 
     def calc(img):
         band_params_mapped = {
-            key: img.select([val]) for key, val in band_params.iteritems()}
+            key: img.select([val]) for key, val in band_params.items()}
         band_params_mapped.update(extra_params)
         nd = img.expression(formula, band_params_mapped).select([0], [index])
         result = ee.Algorithms.If(addBandEE, img.addBands(nd), nd)

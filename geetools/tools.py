@@ -1072,7 +1072,7 @@ def addConstantBands(value=None, *names, **pairs):
         list1 = []
 
     if pairs:
-        list2 = [ee.Image.constant(val).select([0], [key]) for key, val in pairs.iteritems()]
+        list2 = [ee.Image.constant(val).select([0], [key]) for key, val in pairs.items()]
     else:
         list2 = []
 
