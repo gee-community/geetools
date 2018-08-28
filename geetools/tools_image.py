@@ -8,7 +8,7 @@ if not ee.data._initialized: ee.Initialize()
 
 
 def constant(value=0, names=None, from_dict=None):
-    ''' Create a constant image with the given band names and value, and/or
+    """ Create a constant image with the given band names and value, and/or
     from a dictionary of {name: value}
 
     :param names: list of names
@@ -18,7 +18,7 @@ def constant(value=0, names=None, from_dict=None):
     :param from_dict: {name: value}
     :type from_dict: dict
     :rtype: ee.Image
-    '''
+    """
     image = ee.Image.constant(0)
     bandnames = ee.List([])
     if names:
