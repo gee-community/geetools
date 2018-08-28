@@ -4,85 +4,73 @@
 import ee
 
 
-def replace_many(listEE, replace):
-    """ Replace many elements of a Earth Engine List object
+class List(object):
+    """ List class to hold ee.List methods """
 
-        **EXAMPLE**
+    @staticmethod
+    def replace_many(ee_list, replace):
+        """ Replace many elements of a Earth Engine List object
 
-    .. code:: python
+            **EXAMPLE**
 
-        list = ee.List(["one", "two", "three", 4])
-        newlist = replace_many(list, {"one": 1, 4:"four"})
+        .. code:: python
 
-        print newlist.getInfo()
+            list = ee.List(["one", "two", "three", 4])
+            newlist = replace_many(list, {"one": 1, 4:"four"})
 
-    >> [1, "two", "three", "four"]
+            print newlist.getInfo()
 
-    :param listEE: list
-    :type listEE: ee.List
-    :param toreplace: values to replace
-    :type toreplace: dict
-    :return: list with replaced values
-    :rtype: ee.List
-    """
-    for key, val in replace.items():
-        if val:
-            listEE = listEE.replace(key, val)
-    return listEE
+        >> [1, "two", "three", "four"]
 
+        :param ee_list: list
+        :type ee_list: ee.List
+        :param replace: values to replace
+        :type replace: dict
+        :return: list with replaced values
+        :rtype: ee.List
+        """
+        for key, val in replace.items():
+            if val:
+                ee_list = ee_list.replace(key, val)
+        return ee_list
 
-def intersection(listEE1, listEE2):
-    """ Find matching values. If listEE1 has duplicated values that are present
-    on listEE2, all values from listEE1 will apear in the result
+    @staticmethod
+    def intersection(ee_list1, ee_list2):
+        """ Find matching values. If ee_list1 has duplicated values that are
+        present on ee_list2, all values from ee_list1 will apear in the result
 
-    :param listEE1: one Earth Engine List
-    :param listEE2: the other Earth Engine List
-    :return: list with the intersection (matching values)
-    :rtype: ee.List
-    """
-    newlist = ee.List([])
-    def wrap(element, first):
-        first = ee.List(first)
+        :param ee_list1: one Earth Engine List
+        :param ee_list2: the other Earth Engine List
+        :return: list with the intersection (matching values)
+        :rtype: ee.List
+        """
+        newlist = ee.List([])
+        def wrap(element, first):
+            first = ee.List(first)
 
-        return ee.Algorithms.If(listEE2.contains(element),
-                                first.add(element), first)
+            return ee.Algorithms.If(ee_list2.contains(element),
+                                    first.add(element), first)
 
-    return ee.List(listEE1.iterate(wrap, newlist))
+        return ee.List(ee_list1.iterate(wrap, newlist))
 
+    @staticmethod
+    def difference(ee_list1, ee_list2):
+        """ Difference between two earth engine lists
 
-def difference(listEE1, listEE2):
-    """ Difference between two earth engine lists
+        :param ee_list1: one list
+        :param ee_list2: the other list
+        :return: list with the values of the difference
+        :rtype: ee.List
+        """
+        return ee_list1.removeAll(ee_list2).add(ee_list2.removeAll(ee_list1))\
+                       .flatten()
 
-    :param listEE1: one list
-    :param listEE2: the other list
-    :return: list with the values of the difference
-    :rtype: ee.List
-    """
-    return listEE1.removeAll(listEE2).add(listEE2.removeAll(listEE1)).flatten()
-
-
-def remove_duplicates(listEE):
-    """ Remove duplicated values from a EE list object """
-    newlist = ee.List([])
-    def wrap(element, init):
-        init = ee.List(init)
-        contained = init.contains(element)
-        return ee.Algorithms.If(contained, init, init.add(element))
-    return ee.List(listEE.iterate(wrap, newlist))
-
-
-class List(ee.List):
-    def __init__(self, **kwargs):
-        super(List, self).__init__(**kwargs)
-
-    def replace_many(self, replace):
-        replace_many(self, replace)
-
-    def intersection(self, list2):
-        intersection(self, list2)
-
-    def difference(self, list2):
-        difference(self, list2)
-
-    def remove_duplicates(self):
-        remove_duplicates(self)
+    @staticmethod
+    def remove_duplicates(ee_list):
+        """ Remove duplicated values from a EE list object """
+        newlist = ee.List([])
+        def wrap(element, init):
+            init = ee.List(init)
+            contained = init.contains(element)
+            return ee.Algorithms.If(contained, init, init.add(element))
+        return ee.List(ee_list.iterate(wrap, newlist))

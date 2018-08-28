@@ -3,38 +3,41 @@
 import ee
 
 
-def fill_with_last(collection):
-    """ Fill masked values of each image pixel with the last available value
+class Collection(object):
 
-    :param collection: the collection that holds the images that will be filled
-    :type collection: ee.ImageCollection
-    :rtype: ee.ImageCollection
-    """
-    collection = collection.sort('system:time_start', True)
-    collist = collection.toList(collection.size())
-    first = ee.Image(collist.get(0)).unmask()
-    rest = collist.slice(1)
+    @staticmethod
+    def fill_with_last(collection):
+        """ Fill masked values of each image pixel with the last available value
 
-    def wrap(img, ini):
-        ini = ee.List(ini)
-        img = ee.Image(img)
-        last = ee.Image(ini.get(-1))
-        mask = img.mask().Not()
-        last_masked = last.updateMask(mask)
-        last2add = last_masked.unmask()
-        img2add = img.unmask()
-        added = img2add.add(last2add) \
-            .set('system:index', ee.String(img.id()))
+        :param collection: the collection that holds the images that will be filled
+        :type collection: ee.ImageCollection
+        :rtype: ee.ImageCollection
+        """
+        collection = collection.sort('system:time_start', True)
+        collist = collection.toList(collection.size())
+        first = ee.Image(collist.get(0)).unmask()
+        rest = collist.slice(1)
 
-        props = img.propertyNames()
-        condition = props.contains('system:time_start')
+        def wrap(img, ini):
+            ini = ee.List(ini)
+            img = ee.Image(img)
+            last = ee.Image(ini.get(-1))
+            mask = img.mask().Not()
+            last_masked = last.updateMask(mask)
+            last2add = last_masked.unmask()
+            img2add = img.unmask()
+            added = img2add.add(last2add) \
+                .set('system:index', ee.String(img.id()))
 
-        final = ee.Image(ee.Algorithms.If(condition,
-                                          added.set('system:time_start',
-                                                    img.date().millis()),
-                                          added))
+            props = img.propertyNames()
+            condition = props.contains('system:time_start')
 
-        return ini.add(final.copyProperties(img))
+            final = ee.Image(ee.Algorithms.If(condition,
+                                              added.set('system:time_start',
+                                                        img.date().millis()),
+                                              added))
 
-    newcol = ee.List(rest.iterate(wrap, ee.List([first])))
-    return ee.ImageCollection.fromImages(newcol)
+            return ini.add(final.copyProperties(img))
+
+        newcol = ee.List(rest.iterate(wrap, ee.List([first])))
+        return ee.ImageCollection.fromImages(newcol)
