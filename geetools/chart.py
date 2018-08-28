@@ -17,6 +17,7 @@ import pandas as pd
 # TODO: make not plotted bands values appear on tooltip
 # TODO: give capability to plot a secondary axis with other data
 
+
 class Line(pygal.Line):
     def __init__(self, **kwargs):
         super(Line, self).__init__(**kwargs)
@@ -49,7 +50,7 @@ class Line(pygal.Line):
                 if column == x:
                     continue
                 ydata = dataframe[column].values.tolist()
-                ydata = [{'value':data} for data in ydata]
+                ydata = [{'value': data} for data in ydata]
                 # TODO: add values config
                 # pygal.org/en/latest/documentation/configuration/value.html
                 line_chart.add(column, ydata)
@@ -73,7 +74,9 @@ class Line(pygal.Line):
         elif height and not width:
             html = '<embed src={} height={}></embed>'.format(src, height)
         elif width and height:
-            html = '<embed src={} height={} width={}></embed>'.format(src, height, width)
+            html = '<embed src={} height={} width={}></embed>'.format(src,
+                                                                      height,
+                                                                      width)
         else:
             html = '<embed src={}>'.format(src)
 
@@ -87,7 +90,7 @@ class Image(object):
 
     @staticmethod
     def data2pandas(data):
-        ''' Convert data coming from tools.get_values to a pandas DataFrame'''
+        """ Convert data coming from tools.get_values to a pandas DataFrame"""
         # Indices
         # header
         allbands = [val.keys() for bands, val in data.items()]
@@ -212,10 +215,12 @@ class Image(object):
         if isinstance(regions, ee.Geometry):
             print('Using `seriesByRegion` with `ee.Geometry` will give you'
                   ' the same output as `series`, use that method instead')
-            chart_title = '{} values in merged geometry across images'.format(band)
+            chart_title = '{} values in merged geometry across images'.format(
+                                                                          band)
 
-            chart_line = Image.series(imageCollection, regions, reducer, scale=scale,
-                                      xProperty=xProperty, bands=[band], labels=['geometry'])
+            chart_line = Image.series(imageCollection, regions, reducer,
+                                      scale=scale, xProperty=xProperty,
+                                      bands=[band], labels=['geometry'])
             chart_line.title = chart_title
             return chart_line
 
@@ -225,8 +230,9 @@ class Image(object):
                 band, reducer_name, seriesProperty)
             label = regions.get(seriesProperty).getInfo()
             label = label if label else 'unknown feature'
-            chart_line = Image.series(imageCollection, regions, reducer, scale=scale,
-                                      xProperty=xProperty, bands=[band], labels=[label])
+            chart_line = Image.series(imageCollection, regions, reducer,
+                                      scale=scale, xProperty=xProperty,
+                                      bands=[band], labels=[label])
             chart_line.title = chart_title
             return chart_line
 
