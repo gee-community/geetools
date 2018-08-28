@@ -278,7 +278,7 @@ class Date(ee.ee_date.Date):
         super(Date, self).__init__(date)
 
     def to_datetime(self):
-        ''' convert a `ee.Date` into a `datetime` object'''
+        """ convert a `ee.Date` into a `datetime` object"""
         formatted = self.format('yyyy,MM,dd,HH,mm,ss').getInfo()
         args = formatted.split(',')
         intargs = [int(arg) for arg in args]
@@ -286,28 +286,28 @@ class Date(ee.ee_date.Date):
 
     @staticmethod
     def millis2datetime(millis):
-        ''' Converts milliseconds from 1970-01-01T00:00:00 to a
-        datetime object '''
+        """ Converts milliseconds from 1970-01-01T00:00:00 to a
+        datetime object """
         seconds = millis/1000
         dt = timedelta(seconds=seconds)
         return Date.epoch + dt
 
 
 class Execli(object):
-    ''' Class to hold the methods to retry calls to Earth Engine '''
+    """ Class to hold the methods to retry calls to Earth Engine """
     TRACE = False
     TIMES = 5
     WAIT = 0
     ACTIVE = True
 
     def execli(self, function):
-        ''' This function tries to excecute a client side Earth Engine function
+        """ This function tries to excecute a client side Earth Engine function
             and retry as many times as needed. It is meant to use in cases when you
             cannot access to the original function. See example.
 
         :param function: the function to call TIMES
         :return: the return of function
-        '''
+        """
         try:
             times = int(self.TIMES)
             wait = int(self.WAIT)
@@ -943,7 +943,7 @@ def image2asset(image, assetPath, name=None, to='Folder', scale=None,
 @Execli.execli_deco()
 def image2local(image, name=None, path=None, scale=None, region=None,
                 dimensions=None, toFolder=True, checkExist=True):
-    ''' Download an Image to your hard drive
+    """ Download an Image to your hard drive
 
     :param image: the image to download
     :type image: ee.Image
@@ -958,7 +958,7 @@ def image2local(image, name=None, path=None, scale=None, region=None,
         the image region
     :type region: ee.Geometry
     :param
-    '''
+    """
     # make some imports
     import glob
 
@@ -1477,7 +1477,7 @@ def downloadFile(url, name, ext):
     return handle
 
 def empty_image(value=0, bandnames=None, bands=None):
-    ''' Create an empty image with the given bandnames and value, or from
+    """ Create an empty image with the given bandnames and value, or from
      a dictionary of {name: value}. If you use `bandnames` parameter, `bands`
      parameter will be omitted
 
@@ -1488,7 +1488,7 @@ def empty_image(value=0, bandnames=None, bands=None):
     :param bands: if this is specified, other params will be ignored and the
         image will be created with values from `bands` dict: {name: value}
     :type bands: dict
-    '''
+    """
     if bandnames:
         bandnames = bandnames if isinstance(bandnames, ee.List) else ee.List(bandnames)
         ini = ee.Image(0)
@@ -1580,8 +1580,8 @@ def sort_dict(dictionary):
         return dictionary
 
 def getInfo(eeobject, async=False):
-    ''' Proxy to getInfo with async possibility. If async is True, it returns a
-    list like object (multiprocessing ListProxy) '''
+    """ Proxy to getInfo with async possibility. If async is True, it returns a
+    list like object (multiprocessing ListProxy) """
     if not async:
         return eeobject.getInfo()
     else:
@@ -1659,10 +1659,10 @@ def eprint(eeobject, indent=2, notebook=False, async=False):
 
 
 def esave(eeobject, filename, path=None):
-    ''' Saves any EE object to a file with extension .gee
+    """ Saves any EE object to a file with extension .gee
 
         The file has to be opened with `eopen`
-    '''
+    """
     obj = serializer.encode(eeobject)
 
     path = path if path else os.getcwd()
@@ -1671,9 +1671,9 @@ def esave(eeobject, filename, path=None):
         json.dump(obj, js)
 
 def eopen(file, path=None):
-    ''' Opens a files saved with `esave` method
+    """ Opens a files saved with `esave` method
 
-    :return: the EE object '''
+    :return: the EE object """
 
     path = path if path else os.getcwd()
 
@@ -1709,11 +1709,11 @@ def recrusive_delete_asset(assetId):
         ee.data.deleteAsset(assetId)
 
 def get_projection(filename):
-    ''' Get EPSG from a shapefile using ogr
+    """ Get EPSG from a shapefile using ogr
 
     :param filename: an ESRI shapefile (.shp)
     :type filename: str
-    '''
+    """
     try:
         from osgeo import ogr
     except:
@@ -1729,7 +1729,7 @@ def get_projection(filename):
     return spatialRef.GetAttrValue("AUTHORITY", 1)
 
 def shp2collection(filename):
-    ''' Convert an ESRI file (.shp and .dbf must be present) to a
+    """ Convert an ESRI file (.shp and .dbf must be present) to a
     ee.FeatureCollection
 
     At the moment only works for shapes with less than 3000 records
@@ -1739,7 +1739,7 @@ def shp2collection(filename):
     :type filename: str
     :return: the FeatureCollection
     :rtype: ee.FeatureCollection
-    '''
+    """
     wgs84 = ee.Projection('EPSG:4326')
     # read the filename
     reader = shapefile.Reader(filename)
