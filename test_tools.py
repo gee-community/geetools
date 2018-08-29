@@ -1,5 +1,5 @@
 # coding=utf-8
-from geetools.tests import test_tools
+from geetools.tests import tools
 import unittest
 
-unittest.main(test_tools)
+unittest.main(tools)
