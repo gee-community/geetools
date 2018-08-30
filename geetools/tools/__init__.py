@@ -2,3 +2,5 @@
 
 from . import imagecollection, date, dictionary, image, list, number, \
               segmentation, geometry, featurecollection
+
+from .image import Mapping
