@@ -1,5 +1,5 @@
 # coding=utf-8
-""" Module holding tools for ee.ImageCollections and ee.FeatueCollections """
+""" Module holding tools for ee.ImageCollections """
 import ee
 import ee.data
 
@@ -114,50 +114,3 @@ def get_values(collection, geometry, reducer=ee.Reducer.mean(), scale=None,
         return result.getInfo()
     else:
         raise ValueError("side parameter must be 'server' or 'client'")
-
-
-class FeatureCollection(ee.collection.Collection):
-
-    @staticmethod
-    def fromShapefile(filename):
-        """ Convert an ESRI file (.shp and .dbf must be present) to a
-        ee.FeatureCollection
-
-        At the moment only works for shapes with less than 3000 records
-
-        :param filename: the name of the filename. If the shape is not in the
-            same path than the script, specify a path instead.
-        :type filename: str
-        :return: the FeatureCollection
-        :rtype: ee.FeatureCollection
-        """
-        import shapefile
-        from .tools import get_projection
-
-        wgs84 = ee.Projection('EPSG:4326')
-        # read the filename
-        reader = shapefile.Reader(filename)
-        fields = reader.fields[1:]
-        field_names = [field[0] for field in fields]
-        field_types = [field[1] for field in fields]
-        types = dict(zip(field_names, field_types))
-        features = []
-        for sr in reader.shapeRecords():
-            # atr = dict(zip(field_names, sr.record))
-            atr = {}
-            for fld, rec in zip(field_names, sr.record):
-                fld_type = types[fld]
-                if fld_type == 'D':
-                    value = ee.Date(rec.isoformat()).millis().getInfo()
-                elif fld_type in ['C', 'N', 'F']:
-                    value = rec
-                else:
-                    continue
-                atr[fld] = value
-            geom = sr.shape.__geo_interface__
-            geometry = ee.Geometry(geom, 'EPSG:' + get_projection(filename)) \
-                .transform(wgs84, 1)
-            feat = ee.Feature(geometry, atr)
-            features.append(feat)
-
-        return ee.FeatureCollection(features)

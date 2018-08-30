@@ -1,17 +1,10 @@
 # coding=utf-8
-
 from __future__ import absolute_import, division, print_function
-from .tools import eprint
 
-from .tools_image import Mapping
-from .tools_collection import FeatureCollection
-from .tools_segmentation import SNIC
+from . import tools, bitreader, cloud_mask, expressions, decision_tree,\
+              filters, indices
 
-from . import tools
-from . import tools_image, tools_list, tools_number, tools_dictionary,\
-              tools_collection, tools_segmentation
-
-__version__ = "0.0.21dev"
+__version__ = "0.1.0dev"
 
 __title__ = "geetools"
 __summary__ = "A set of useful tools to use with Google Earth Engine Python" \

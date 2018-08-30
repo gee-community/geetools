@@ -11,7 +11,7 @@ gitHub: https://github.com/gee-community/gee_tools
 import pygal
 import base64
 import ee
-from . import tools
+from geetools import tools
 import pandas as pd
 
 # TODO: make not plotted bands values appear on tooltip

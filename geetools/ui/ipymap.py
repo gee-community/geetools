@@ -7,18 +7,16 @@ https://github.com/gee-community/ee-jupyter-contrib/blob/master/examples/getting
 import ipyleaflet
 from ipywidgets import HTML, Tab, Accordion, HBox, SelectMultiple, Select,\
                        Button, VBox, RadioButtons, Dropdown, Layout, \
-                       FloatRangeSlider, Label
+                       FloatRangeSlider
 from IPython.display import display
-from traitlets import Dict, observe, HasTraits, Unicode, Int, Float, Instance
+from traitlets import Dict, observe
 import ee
 if not ee.data._initialized: ee.Initialize()
 from collections import OrderedDict
-from . import tools
-from .maptool import get_default_vis, inverse_coordinates, get_data,\
-                     get_image_tile, get_geojson_tile, get_bounds, get_zoom,\
-                     create_html, feature_properties_output
-from . import maptool
-from . import ipytools
+from geetools import tools
+from .maptool import inverse_coordinates, get_image_tile, get_geojson_tile, get_bounds, get_zoom, \
+    feature_properties_output
+from geetools.ui import maptool, ipytools
 import threading
 from copy import copy
 import traceback

@@ -9,7 +9,7 @@ import folium
 from folium import features
 import ee
 from copy import copy
-from . import tools
+from geetools import tools
 import json
 import math
 from uuid import uuid4

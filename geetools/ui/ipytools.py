@@ -9,7 +9,7 @@ from ipywidgets import Image as ImageWid
 from traitlets import HasTraits, List, Unicode, observe, Instance, Tuple, All,\
                       Int, Float
 
-from . import tools
+from geetools import tools
 import json
 
 # imports for async widgets

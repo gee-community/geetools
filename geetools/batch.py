@@ -2,8 +2,11 @@
 """ Module holding batch processing for Earth Engine """
 import ee
 import ee.data
-from . import tools_image
+from . import tools
 import os
+import functools
+import traceback
+import time
 
 if not ee.data._initialized:
     ee.Initialize()
@@ -152,7 +155,6 @@ class Image(object):
         # TODO: checkExist
         # make some imports
         import glob
-        from . import tools
 
         try:
             import zipfile
@@ -173,7 +175,7 @@ class Image(object):
 
         name = name if name else image.id().getInfo()
 
-        scale = scale if scale else int(tools_image.minscale(image).getInfo())
+        scale = scale if scale else int(tools.image.minscale(image).getInfo())
 
         if region:
             region = tools.getRegion(region)
@@ -250,7 +252,6 @@ class Image(object):
         :return: the tasks
         :rtype: ee.batch.Task
         """
-        from . import tools
         # Convert data type
         image = convert_data_type(dataType)(image)
 
@@ -262,7 +263,7 @@ class Image(object):
 
         # description = kwargs.get('description', image.id().getInfo())
         # Set scale
-        scale = scale if scale else int(tools_image.minscale(image).getInfo())
+        scale = scale if scale else int(tools.image.minscale(image).getInfo())
 
         if create:
             # Recrusive create path
@@ -310,8 +311,6 @@ class Image(object):
         :return: a list of all tasks (for further processing/checking)
         :rtype: list
         """
-        from . import tools
-
         featlist = fc.getInfo()["features"]
         name = image.getInfo()["id"].split("/")[-1]
 
@@ -386,7 +385,6 @@ class Collection(object):
         :return: list of tasks
         :rtype: list
         """
-        from . import tools
         size = col.size().getInfo()
         alist = col.toList(size)
         tasklist = []
@@ -439,7 +437,6 @@ class Collection(object):
         :return: list of tasks
         :rtype: list
         """
-        from . import tools
         size = col.size().getInfo()
         alist = col.toList(size)
         tasklist = []
@@ -471,3 +468,126 @@ class Collection(object):
             tasklist.append(task)
 
         return tasklist
+
+
+class Execli(object):
+    """ Class to hold the methods to retry calls to Earth Engine """
+
+    TRACE = False
+    TIMES = 5
+    WAIT = 0
+    ACTIVE = True
+
+    def execli(self, function):
+        """ This function tries to excecute a client side Earth Engine function
+            and retry as many times as needed. It is meant to use in cases when you
+            cannot access to the original function. See example.
+
+        :param function: the function to call TIMES
+        :return: the return of function
+        """
+        try:
+            times = int(self.TIMES)
+            wait = int(self.WAIT)
+        except:
+            print(type(self.TIMES))
+            print(type(self.WAIT))
+            raise ValueError("'times' and 'wait' parameters must be numbers")
+
+        def wrap(f):
+            def wrapper(*args, **kwargs):
+                r = range(times)
+                for i in r:
+                    try:
+                        result = f(*args, **kwargs)
+                    except Exception as e:
+                        print("try n°", i, "ERROR:", e)
+                        if self.TRACE:
+                            traceback.print_exc()
+                        if i < r[-1] and wait > 0:
+                            print("waiting {} seconds...".format(str(wait)))
+                            time.sleep(wait)
+                        elif i == r[-1]:
+                            msg = "An error occured tring to excecute " \
+                                  "the function '{}'"
+                            raise RuntimeError(msg.format(f.__name__))
+                    else:
+                        return result
+
+            return wrapper
+        return wrap(function)
+
+    @staticmethod
+    def execli_deco():
+        """ This is a decorating function to excecute a client side Earth Engine
+        function and retry as many times as needed.
+        Parameters can be set by modifing module's variables `_execli_trace`,
+        `_execli_times` and `_execli_wait`
+
+        :Example:
+        .. code:: python
+
+            from geetools.tools import execli_deco
+            import ee
+
+
+            # TRY TO GET THE INFO OF AN IMAGE WITH DEFAULT PARAMETERS
+
+            @execli_deco()
+            def info():
+                # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
+                img = ee.Image("wrongparam")
+
+                return img.getInfo()
+
+            # TRY WITH CUSTOM PARAM (2 times 5 seconds and traceback)
+
+            @execli_deco(2, 5, True)
+            def info():
+                # THIS IMAGE DOESN'E EXISTE SO IT WILL THROW AN ERROR
+                img = ee.Image("wrongparam")
+
+                return img.getInfo()
+
+        :param times: number of times it will try to excecute the function
+        :type times: int
+        :param wait: waiting time to excetue the function again
+        :type wait: int
+        :param trace: print the traceback
+        :type trace: bool
+        """
+        def wrap(f):
+            @functools.wraps(f)
+            def wrapper(*args, **kwargs):
+
+                trace = Execli.TRACE
+                times = Execli.TIMES
+                wait = Execli.WAIT
+
+                r = range(times)
+                for i in r:
+                    try:
+                        result = f(*args, **kwargs)
+                    except Exception as e:
+                        print("try n°", i, "ERROR:", e)
+                        if trace:
+                            traceback.print_exc()
+                        if i < r[-1] and wait > 0:
+                            print("waiting {} seconds...".format(str(wait)))
+                            time.sleep(wait)
+                        elif i == r[-1]:
+                            msg = "An error occured tring to excecute" \
+                                  " the function '{}'"
+                            raise RuntimeError(msg.format(f.__name__))
+                    else:
+                        return result
+
+            return wrapper
+        if Execli.ACTIVE:
+            return wrap
+        else:
+            def wrap(f):
+                def wrapper(*args, **kwargs):
+                    return f(*args, **kwargs)
+                return wrapper
+            return wrap
