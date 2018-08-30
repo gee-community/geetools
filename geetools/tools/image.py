@@ -5,7 +5,7 @@ Tools for ee.Image
 from __future__ import absolute_import
 import ee
 import ee.data
-from . import tools_list
+from . import list
 
 if not ee.data._initialized:
     ee.Initialize()
@@ -119,7 +119,7 @@ def renameDict(image, names):
     >> {u'BLUE': 0.10094200074672699, u'GREEN': 0.07873955368995667, u'B3': 0.057160500437021255}
     """
     bandnames = image.bandNames()
-    newnames = tools_list.replace_many(bandnames, names)
+    newnames = list.replace_many(bandnames, names)
     return image.select(bandnames, newnames)
 
 
