@@ -5,7 +5,7 @@ Tools for ee.Image
 from __future__ import absolute_import
 import ee
 import ee.data
-from . import list
+from . import ee_list as listools
 
 if not ee.data._initialized:
     ee.Initialize()
@@ -119,7 +119,7 @@ def renameDict(image, names):
     >> {u'BLUE': 0.10094200074672699, u'GREEN': 0.07873955368995667, u'B3': 0.057160500437021255}
     """
     bandnames = image.bandNames()
-    newnames = list.replace_many(bandnames, names)
+    newnames = listools.replace_many(bandnames, names)
     return image.select(bandnames, newnames)
 
 
@@ -138,7 +138,6 @@ def parametrize(image, range_from, range_to, bands=None):
     :return: Function to use in map() or alone
     :rtype: function
     """
-    from . import tools
     original_range = range_from if isinstance(range_from, ee.List) \
         else ee.List(range_from)
 
@@ -168,11 +167,8 @@ def parametrize(image, range_from, range_to, bands=None):
     else:
         bandasEE = image.bandNames()
 
-    bandasEE = List(bandasEE)
-    todas = List(todas)
-
-    inter = bandasEE.intersection(todas)
-    diff = todas.difference(inter)
+    inter = listools.intersection(bandasEE, todas)
+    diff = listools.difference(todas, inter)
     image_ = image.select(inter)
 
     # Percentage corresponding to the actual value
@@ -187,7 +183,7 @@ def parametrize(image, range_from, range_to, bands=None):
     # Add the rest of the bands (no parametrized)
     final = image.select(diff).addBands(final)
 
-    return tools.pass_date(image, final)
+    return passProperty(image, final, 'system:time_start')
 
 
 def sumBands(image, name="sum", bands=None):
