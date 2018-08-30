@@ -8,7 +8,7 @@ if not ee.data._initialized:
     ee.Initialize()
 
 
-def replace_many(eelist, replace):
+def replace_many(eelist, to_replace):
     """ Replace many elements of a Earth Engine List object
 
         **EXAMPLE**
@@ -22,15 +22,15 @@ def replace_many(eelist, replace):
 
     >> [1, "two", "three", "four"]
 
-    :param replace: values to replace
-    :type replace: dict
+    :param to_replace: values to replace
+    :type to_replace: dict
     :return: list with replaced values
     :rtype: ee.List
     """
-    for key, val in replace.items():
+    for key, val in to_replace.items():
         if val:
-            new = eelist.replace(key, val)
-    return new
+            eelist = eelist.replace(key, val)
+    return eelist
 
 
 def intersection(eelist, intersect):
