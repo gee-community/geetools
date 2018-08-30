@@ -1,9 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, division, print_function
 
-from . import tools, bitreader, cloud_mask, expressions, decision_tree,\
-              filters, indices
-
 __version__ = "0.1.0dev"
 
 __title__ = "geetools"
@@ -16,3 +13,8 @@ __email__ = "fitoprincipe82@gmail.com"
 
 __license__ = "MIT"
 __copyright__ = "2017 Rodrigo E. Principe"
+
+from . import tools, bitreader, cloud_mask, expressions, decision_tree,\
+              filters, indices
+
+from .ui.ipymap import Map
