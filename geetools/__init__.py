@@ -18,3 +18,4 @@ from . import tools, bitreader, cloud_mask, expressions, decision_tree,\
               filters, indices
 
 from .ui.ipymap import Map
+from .ui import eprint
