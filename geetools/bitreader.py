@@ -6,7 +6,7 @@ import ee.data
 if not ee.data._initialized:
     ee.Initialize()
 
-from tools.image import empty
+from . import tools
 
 class BitReader(object):
     ''' Bit Reader.
@@ -165,7 +165,7 @@ class BitReader(object):
         if not name:
             name = mask.bandNames().get(0)
 
-        image = empty(encoded, [name])
+        image = tools.image.empty(encoded, [name])
         return image.updateMask(mask)
 
 
