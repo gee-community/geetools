@@ -1,7 +1,7 @@
 # coding=utf-8
 import unittest
 import ee
-from geetools.ui import imagestrip
+from ..ui import imagestrip
 from PIL.Image import Image
 ee.Initialize()
 
@@ -29,9 +29,7 @@ class TestStrip(unittest.TestCase):
         i = strip.from_collection([col], viz_param=viz_params, region=region,
                                   name="test", folder="files", drawRegion=True,
                                   zoom=2, properties=["CLOUD_COVER",
-                                                      "solar_zenith_angle"], description="test")
+                                                      "solar_zenith_angle"],
+                                  description="test")
 
         self.assertIsInstance(i, Image)
-
-if __name__ == '__main__':
-    unittest.test()

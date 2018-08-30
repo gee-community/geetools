@@ -3,6 +3,8 @@
 import unittest
 import ee
 from .. import tools, cloud_mask
+from ..tools.image import get_value
+from ..tools.geometry import getRegion
 ee.Initialize()
 
 area = ee.Geometry.Point([-65.80, -25.01])
@@ -34,11 +36,12 @@ def getimage(collection, date, area):
 
 def show(iid, image, masked, bands, min, max):
     thumb_original = image.select(bands).getThumbUrl(
-        {'min':min, 'max':max, 'region':tools.getRegion(image)})
+        {'min':min, 'max':max, 'region': getRegion(image)})
     thumb_masked = masked.select(bands).getThumbUrl(
-        {'min':min, 'max':max, 'region':tools.getRegion(image)})
+        {'min':min, 'max':max, 'region': getRegion(image)})
 
-    print('{}\noriginal: {}\nmasked {}\n'.format(iid, thumb_original, thumb_masked))
+    print('{}\noriginal: {}\nmasked {}\n'.format(iid, thumb_original,
+                                                 thumb_masked))
 
 
 class TestL4TOA(unittest.TestCase):
@@ -51,11 +54,9 @@ class TestL4TOA(unittest.TestCase):
 
         self.image = getimage(collection, date, area)
 
-        print '{}/{}'.format(self.iid, self.image.id().getInfo())
-
     def test_all(self):
         masked = cloud_mask.landsatTOA()(self.image)
-        vals = tools.get_value(masked, self.p_cloud, 30, 'client')
+        vals = get_value(masked, self.p_cloud, 30, 'client')
 
         show(self.iid, self.image, masked, bands457, 0, 0.5)
 
@@ -63,7 +64,7 @@ class TestL4TOA(unittest.TestCase):
 
     def test_clouds(self):
         masked = cloud_mask.landsatTOA(['cloud'])(self.image)
-        vals = tools.get_value(masked, self.p_cloud, 30, 'client')
+        vals = get_value(masked, self.p_cloud, 30, 'client')
 
         show(self.iid, self.image, masked, bands457, 0, 0.5)
 
@@ -71,7 +72,7 @@ class TestL4TOA(unittest.TestCase):
 
     def test_shadows(self):
         masked = cloud_mask.landsatTOA(['shadow'])(self.image)
-        vals = tools.get_value(masked, self.p_cloud, 30, 'client')
+        vals = get_value(masked, self.p_cloud, 30, 'client')
 
         show(self.iid, self.image, masked, bands457, 0, 0.5)
 
@@ -79,7 +80,7 @@ class TestL4TOA(unittest.TestCase):
 
     def test_snow(self):
         masked = cloud_mask.landsatTOA(['snow'])(self.image)
-        vals = tools.get_value(masked, self.p_cloud, 30, 'client')
+        vals = get_value(masked, self.p_cloud, 30, 'client')
 
         show(self.iid, self.image, masked, bands457, 0, 0.5)
 
@@ -97,7 +98,7 @@ class TestL5TOA(unittest.TestCase):
         image = getimage(collection, date, area)
 
         masked = cloud_mask.landsatTOA()(image)
-        vals = tools.get_value(masked, p_cloud, 30, 'client')
+        vals = get_value(masked, p_cloud, 30, 'client')
 
         show(iid, image, masked, bands457, 0, 0.5)
 
@@ -115,7 +116,7 @@ class TestL7TOA(unittest.TestCase):
         image = getimage(collection, date, area)
 
         masked = cloud_mask.landsatTOA()(image)
-        vals = tools.get_value(masked, p_cloud, 30, 'client')
+        vals = get_value(masked, p_cloud, 30, 'client')
 
         show(iid, image, masked, bands457, 0, 0.5)
 
@@ -133,7 +134,7 @@ class TestL8TOA(unittest.TestCase):
         image = getimage(collection, date, area)
 
         masked = cloud_mask.landsatTOA()(image)
-        vals = tools.get_value(masked, p_cloud, 30, 'client')
+        vals = get_value(masked, p_cloud, 30, 'client')
 
         show(iid, image, masked, bands457, 0, 0.5)
 
@@ -152,7 +153,7 @@ class TestL4SR(unittest.TestCase):
 
         # masked = cloud_mask.cfmask_bits(image)
         masked = cloud_mask.landsatSR()(image)
-        vals = tools.get_value(masked, p_cloud, 30, 'client')
+        vals = get_value(masked, p_cloud, 30, 'client')
 
         show(iid, image, masked, bands457, 0, 5000)
 
@@ -171,7 +172,7 @@ class TestL5SR(unittest.TestCase):
 
         # masked = cloud_mask.cfmask_bits(image)
         masked = cloud_mask.landsatSR()(image)
-        vals = tools.get_value(masked, p_cloud, 30, 'client')
+        vals = get_value(masked, p_cloud, 30, 'client')
         show(iid, image, masked, bands457, 0, 5000)
 
         self.assertEqual(vals["B1"], None)
@@ -189,7 +190,7 @@ class TestL7SR(unittest.TestCase):
 
         # masked = cloud_mask.cfmask_bits(image)
         masked = cloud_mask.landsatSR()(image)
-        vals = tools.get_value(masked, p_cloud, 30, 'client')
+        vals = get_value(masked, p_cloud, 30, 'client')
         show(iid, image, masked, bands457, 0, 5000)
 
         self.assertEqual(vals["B1"], None)
@@ -207,7 +208,7 @@ class TestL8SR(unittest.TestCase):
 
         # masked = cloud_mask.cfmask_bits(image)
         masked = cloud_mask.landsatSR()(image)
-        vals = tools.get_value(masked, p_cloud, 30, 'client')
+        vals = get_value(masked, p_cloud, 30, 'client')
         show(iid, image, masked, bands8, 0, 5000)
 
         self.assertEqual(vals["B1"], None)
@@ -224,7 +225,7 @@ class TestSentinel2(unittest.TestCase):
         image = getimage(collection, date, area)
 
         masked = cloud_mask.sentinel2()(image)
-        vals = tools.get_value(masked, p_cloud, 30, 'client')
+        vals = get_value(masked, p_cloud, 30, 'client')
 
         show(iid, image, masked, bandsS2, 0, 5000)
 
@@ -242,12 +243,8 @@ class TestHollstein(unittest.TestCase):
         image = getimage(collection, date, area)
 
         masked = cloud_mask.hollstein_S2(['cloud','snow','shadow', 'cirrus'])(image)
-        vals = tools.get_value(masked, p_cloud, 30, 'client')
+        vals = get_value(masked, p_cloud, 30, 'client')
 
         show(iid, image, masked, bandsS2, 0, 5000)
 
         self.assertEqual(vals["B1"], None)
-
-
-if __name__ == '__main__':
-    unittest.main()

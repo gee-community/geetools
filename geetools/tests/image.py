@@ -61,13 +61,25 @@ class TestImages(unittest.TestCase):
         self.assertEqual(vals["added_bands"], suma)
 
     def test_rename_bands(self):
+        # Check original
+        original_bands = self.l8SR.bandNames().getInfo()
+        self.assertEqual(original_bands,
+                         ["B1", "B2", "B3", "B4", "B5", "B6", "B7",
+                          "cfmask", "cfmask_conf"])
+
+        # rename
         i = tools.image.renameDict(self.l8SR, {"B1": "BLUE", "B2": "GREEN"})
 
+        # get value from point in a cloud free zone
         vals = tools.image.get_value(i, self.p_l8SR_no_cloud, 30, 'client')
+
+        # get new band names
         bands = i.bandNames().getInfo()
 
-        self.assertEqual(bands, ["BLUE", "GREEN", "B3", "B4", "B5", "B6", "B7",
-                                 "cfmask", "cfmask_conf"])
+        expected = ["BLUE", "GREEN", "B3", "B4", "B5", "B6", "B7",
+                    "cfmask", "cfmask_conf"]
+
+        self.assertEqual(bands, expected)
         self.assertEqual(vals["BLUE"], 517)
 
     def test_parametrize(self):
@@ -88,5 +100,16 @@ class TestImages(unittest.TestCase):
         # assert
         self.assertEqual(minscale, 30)
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_pass_prop(self):
+        empty1 = ee.Image.constant(0)
+        empty2 = ee.Image.constant(0).set("satellite", "None")
+
+        pass1 = tools.image.passProperty(self.l8SR, empty1,
+                                         ["satellite", "WRS_PATH"])
+        pass2 = tools.image.passProperty(self.l8SR, empty2,
+                                         ["satellite", "WRS_PATH"])
+
+        self.assertEqual(pass1.get("satellite").getInfo(), "LANDSAT_8")
+        self.assertEqual(pass2.get("satellite").getInfo(), "LANDSAT_8")
+        self.assertEqual(pass1.get("WRS_PATH").getInfo(), 231)
+        self.assertEqual(pass2.get("WRS_PATH").getInfo(), 231)

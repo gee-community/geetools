@@ -1,10 +1,25 @@
-from geetools.tests import image, imagestrip, indices, expressions,\
-                           cloud_mask, list
-
+import sys
 import unittest
+from geetools.tests import image, ee_list, cloud_mask, indices, expressions,\
+                           geometry, imagestrip
 
-if __name__ == '__main__':
-    unittest.main(image)
-    unittest.main(indices)
-    unittest.main(cloud_mask)
-    unittest.main(list)
+# TODO: allow making more than 1 test at a time
+
+argument = sys.argv[1]
+
+
+def run(module):
+    sys.argv = sys.argv[1:]
+    unittest.main(module)
+
+
+tests = {'image': image,
+         'list': ee_list,
+         'cloud_mask': cloud_mask,
+         'indices': indices,
+         'expressions': expressions,
+         'geometry': geometry,
+         'imagestrip': imagestrip
+         }
+
+run(tests[argument])
