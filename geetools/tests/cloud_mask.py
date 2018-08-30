@@ -1,4 +1,5 @@
 # coding=utf-8
+# coding=utf-8
 import unittest
 import ee
 from .. import tools, cloud_mask
@@ -22,12 +23,14 @@ bands457 = ['B4', 'B7', 'B3']
 bands8 = ['B5', 'B7', 'B4']
 bandsS2 = ['B8', 'B12', 'B4']
 
+
 def getimage(collection, date, area):
     image = ee.Image(collection.filterDate(ee.Date(date).advance(-1, 'day'),
                                            ee.Date(date).advance(1, 'day'))
                      .filterBounds(area)
                      .first())
     return image
+
 
 def show(iid, image, masked, bands, min, max):
     thumb_original = image.select(bands).getThumbUrl(
@@ -209,6 +212,7 @@ class TestL8SR(unittest.TestCase):
 
         self.assertEqual(vals["B1"], None)
 
+
 class TestSentinel2(unittest.TestCase):
     def test(self):
         iid = 'COPERNICUS/S2'
@@ -226,6 +230,7 @@ class TestSentinel2(unittest.TestCase):
 
         self.assertEqual(vals["B1"], None)
 
+
 class TestHollstein(unittest.TestCase):
     def test(self):
         iid = 'COPERNICUS/S2'
@@ -242,3 +247,7 @@ class TestHollstein(unittest.TestCase):
         show(iid, image, masked, bandsS2, 0, 5000)
 
         self.assertEqual(vals["B1"], None)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -51,3 +51,6 @@ class TestMap(unittest.TestCase):
         ndvi = (NIR-RED)/(NIR+RED)
         ndvi_from_i = tools.get_value(ndvi_i, p, 10, 'client')['NDVI']
         self.assertEqual(ndvi, ndvi_from_i)
+
+if __name__ == '__main__':
+    unittest.test()

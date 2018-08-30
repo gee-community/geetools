@@ -37,3 +37,6 @@ class TestTools(unittest.TestCase):
         self.assertEqual(pass2.get("satellite").getInfo(), "LANDSAT_8")
         self.assertEqual(pass1.get("WRS_PATH").getInfo(), 231)
         self.assertEqual(pass2.get("WRS_PATH").getInfo(), 231)
+
+if __name__ == '__main__':
+    unittest.test()

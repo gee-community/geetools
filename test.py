@@ -1,7 +1,10 @@
-from geetools.tests import test_cloud_mask, tools, test_exp, test_strip
+from geetools.tests import image, imagestrip, indices, expressions,\
+                           cloud_mask, list
+
 import unittest
 
-unittest.main(test_cloud_mask)
-unittest.main(tools)
-unittest.main(test_exp)
-unittest.main(test_strip)
+if __name__ == '__main__':
+    unittest.main(image)
+    unittest.main(indices)
+    unittest.main(cloud_mask)
+    unittest.main(list)

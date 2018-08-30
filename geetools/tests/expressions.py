@@ -24,3 +24,6 @@ class TestExp(unittest.TestCase):
 
         self.assertEqual(vals_max["max"], 580)
         self.assertEqual(vals_min["min"], 517)
+
+if __name__ == '__main__':
+    unittest.test()
