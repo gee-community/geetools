@@ -9,7 +9,7 @@ import folium
 from folium import features
 import ee
 from copy import copy
-from geetools import tools
+from .. import tools
 import json
 import math
 from uuid import uuid4
@@ -57,7 +57,7 @@ class Map(folium.Map):
             # Reduce if computed scale is too big
             scale = 1 if scale > 500 else scale
 
-            values = tools.get_value(data, geometry, scale, 'client')
+            values = tools.image.get_value(data, geometry, scale, 'client')
             val_str = ''
             for key, val in values.items():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
@@ -165,7 +165,7 @@ def get_bounds(eeObject):
             if t == 'Point':
                 eeObject = eeObject.buffer(1000)
 
-        bounds = tools.getRegion(eeObject, True)
+        bounds = tools.geometry.getRegion(eeObject, True)
 
     # Catch unbounded images
     unbounded = [[[-180.0, -90.0], [180.0, -90.0],
@@ -507,7 +507,7 @@ def get_data(geometry, obj, reducer='first', scale=None, name=None):
         # Reduce if computed scale is too big
         scale = 1 if scale > 500 else scale
         if t == 'Point':
-            values = tools.get_value(obj, geometry, scale, 'client')
+            values = tools.image.get_value(obj, geometry, scale, 'client')
             val_str = '<h3>Data from {}'.format(name)
             for key, val in values.items():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)

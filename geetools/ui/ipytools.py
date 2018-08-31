@@ -9,7 +9,7 @@ from ipywidgets import Image as ImageWid
 from traitlets import HasTraits, List, Unicode, observe, Instance, Tuple, All,\
                       Int, Float
 
-from geetools import tools
+from .. import batch
 import json
 
 # imports for async widgets
@@ -343,7 +343,7 @@ class AssetManager(VBox):
                 # pool.join()
                 '''
                 assets = [ass for ass in selected.keys()]
-                pool.map(tools.recrusive_delete_asset, assets)
+                pool.map(batch.recrusive_delete_asset, assets)
                 # TODO: cant map recrusive_delete_asset_to_widget because the passed widget is not pickable
                 pool.close()
                 pool.join()

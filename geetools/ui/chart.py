@@ -11,7 +11,7 @@ gitHub: https://github.com/gee-community/gee_tools
 import pygal
 import base64
 import ee
-from geetools import tools
+from .. import tools
 import pandas as pd
 
 # TODO: make not plotted bands values appear on tooltip
@@ -41,7 +41,7 @@ class Line(pygal.Line):
         if not datetime:
             x_values = labels
         else:
-            x_values = [tools.Date.millis2datetime(d) for d in labels]
+            x_values = [tools.date.millis2datetime(d) for d in labels]
 
         line_chart.x_labels = x_values
 
@@ -167,8 +167,9 @@ class Image(object):
             msg = 'xProperty "{}" not found in properties or bands'
             raise ValueError(msg.format(xProperty))
 
-        data = tools.get_values(imageCollection, geom, reducer, scale,
-                                properties=x_property, side='client')
+        data = tools.imagecollection.get_values(
+            imageCollection, geom, reducer, scale, properties=x_property,
+            side='client')
 
         # Replace band names with labels provided
         if labels and len(ydata) == len(labels):

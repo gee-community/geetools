@@ -13,10 +13,10 @@ from traitlets import Dict, observe
 import ee
 if not ee.data._initialized: ee.Initialize()
 from collections import OrderedDict
-from geetools import tools
-from .maptool import inverse_coordinates, get_image_tile, get_geojson_tile, get_bounds, get_zoom, \
-    feature_properties_output
-from geetools.ui import maptool, ipytools
+from .. import tools
+from .maptool import inverse_coordinates, get_image_tile, get_geojson_tile, \
+                     get_bounds, get_zoom, feature_properties_output
+from . import maptool, ipytools
 import threading
 from copy import copy
 import traceback
@@ -745,9 +745,9 @@ class Map(ipyleaflet.Map):
                     # Get the image's values
                     try:
                         image = obj['object']
-                        values = tools.get_value(image, point, scale=1,
-                                                 side='client')
-                        values = tools.sort_dict(values)
+                        values = tools.image.get_value(image, point, scale=1,
+                                                       side='client')
+                        values = tools.dictionary.sort(values)
                         # Create the content
                         img_html = ''
                         for band, value in values.items():
@@ -771,7 +771,7 @@ class Map(ipyleaflet.Map):
                     # Get the values from all images
                     try:
                         collection = obj['object']
-                        values = tools.get_values(collection, point, scale=1,
+                        values = tools.image.get_values(collection, point, scale=1,
                                                   properties=['system:time_start'],
                                                   side='client')
 
