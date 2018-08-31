@@ -3,6 +3,7 @@
 from . import chart, imagestrip, ipymap, ipytools, maptool
 import ee
 import multiprocessing
+from .ipymap import Map
 
 if not ee.data._initialized:
     ee.Initialize()
