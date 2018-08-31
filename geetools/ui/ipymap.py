@@ -1,9 +1,8 @@
 # coding=utf-8
-
-''' This module is designed to use ONLY in the Jupyter Notebook. It is
+""" This module is designed to use ONLY in the Jupyter Notebook. It is
  inspired on Tyler Erickson's contribution on
-https://github.com/gee-community/ee-jupyter-contrib/blob/master/examples/getting-started/display-interactive-map.ipynb'''
-
+https://github.com/gee-community/ee-jupyter-contrib/blob/master/examples/getting-started/display-interactive-map.ipynb
+"""
 import ipyleaflet
 from ipywidgets import HTML, Tab, Accordion, HBox, SelectMultiple, Select,\
                        Button, VBox, RadioButtons, Dropdown, Layout, \
