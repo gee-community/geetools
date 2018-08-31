@@ -298,7 +298,7 @@ def addConstantBands(image, value=None, *names, **pairs):
     elif value is None:
         raise ValueError("Parameter 'value' must be a number")
     else:
-        return image.addConstantBands(value, "constant")
+        return addConstantBands(image, value, "constant")
 
     img_final = reduce(lambda x, y: x.addBands(y), lista_img)
 
