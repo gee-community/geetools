@@ -5,7 +5,7 @@ Tools for ee.Image
 from __future__ import absolute_import
 import ee
 import ee.data
-from . import ee_list as listools
+from . import ee_list
 
 if not ee.data._initialized:
     ee.Initialize()
@@ -119,7 +119,7 @@ def renameDict(image, names):
     >> {u'BLUE': 0.10094200074672699, u'GREEN': 0.07873955368995667, u'B3': 0.057160500437021255}
     """
     bandnames = image.bandNames()
-    newnames = listools.replace_many(bandnames, names)
+    newnames = ee_list.replace_many(bandnames, names)
     return image.select(bandnames, newnames)
 
 
@@ -167,8 +167,8 @@ def parametrize(image, range_from, range_to, bands=None):
     else:
         bandasEE = image.bandNames()
 
-    inter = listools.intersection(bandasEE, todas)
-    diff = listools.difference(todas, inter)
+    inter = ee_list.intersection(bandasEE, todas)
+    diff = ee_list.difference(todas, inter)
     image_ = image.select(inter)
 
     # Percentage corresponding to the actual value
