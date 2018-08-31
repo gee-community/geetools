@@ -81,3 +81,6 @@ venv.bak/
 # gee_tools.iml
 
 files/
+
+# notebook checkpoints
+notebooks/.ipynb_checkpoints
