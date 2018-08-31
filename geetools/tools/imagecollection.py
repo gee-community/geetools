@@ -74,13 +74,19 @@ def get_values(collection, geometry, reducer=ee.Reducer.mean(), scale=None,
 
     propid = ee.Image(collection.first()).get(id).getInfo()
     def transform(eeobject):
+        try: # Py2
+            isstr = isinstance(propid, (str, unicode))
+        except: # Py3
+            isstr = isinstance(propid, (str))
+
         if isinstance(propid, (int, float)):
             return ee.Number(eeobject).format()
-        elif isinstance(propid, (str, unicode)):
+        elif isstr:
             return ee.String(eeobject)
         else:
             msg = 'property must be a number or string, found {}'
             raise ValueError(msg.format(type(propid)))
+
 
     if not properties:
         properties = []
