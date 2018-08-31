@@ -8,7 +8,6 @@ from __future__ import print_function
 import folium
 from folium import features
 import ee
-from copy import copy
 from .. import tools
 import json
 import math

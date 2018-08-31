@@ -1,19 +1,14 @@
 # coding=utf-8
 """ General tools for the Jupyter Notebook and Lab """
 
-from IPython.display import display
-from ipywidgets import HTML, Tab, Text, Accordion, Checkbox, HBox, Output,\
-                       DOMWidget, Layout, Widget, Label, VBox, Button, Box,\
-                       ToggleButton, IntSlider, FloatText
-from ipywidgets import Image as ImageWid
-from traitlets import HasTraits, List, Unicode, observe, Instance, Tuple, All,\
-                      Int, Float
+from ipywidgets import HTML, Tab, Accordion, Checkbox, HBox, Layout, Widget, \
+    VBox, Button, Box, ToggleButton, IntSlider, FloatText
+from traitlets import List, Unicode, observe, Instance, Tuple, Int, Float
 
 from .. import batch
-import json
 
 # imports for async widgets
-from multiprocessing import Process, Pool
+from multiprocessing import Pool
 import time
 
 # import EE
