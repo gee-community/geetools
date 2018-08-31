@@ -285,20 +285,23 @@ class Image(object):
         return task
 
     @staticmethod
-    def toDriveByFeat(image, fc, prop, folder, scale=1000, dataType="float",
-                     **kwargs):
+    def toDriveByFeat(image, collection, property, folder, name=None,
+                      scale=1000, dataType="float", **kwargs):
         """ Export an image clipped by features (Polygons). You can use the
         same arguments as the original function ee.batch.export.image.toDrive
 
         :Parameters:
         :param image: image to clip
         :type image: ee.Image
-        :param fc: feature collection
-        :type fc: ee.FeatureCollection
-        :param prop: name of the property of the features to paste in the image
-        :type prop: str
+        :param collection: feature collection
+        :type collection: ee.FeatureCollection
+        :param property: name of the property of the features to paste in
+        the image
+        :type property: str
         :param folder: same as ee.Export
         :type folder: str
+        :param name: name (suffix) of the resulting image
+        :type name: str
         :param scale: same as ee.Export. Default to 1000
         :type scale: int
         :param dataType: as downloaded images **must** have the same data
@@ -311,8 +314,13 @@ class Image(object):
         :return: a list of all tasks (for further processing/checking)
         :rtype: list
         """
-        featlist = fc.getInfo()["features"]
-        name = image.getInfo()["id"].split("/")[-1]
+        featlist = collection.getInfo()["features"]
+        if not name:
+            iid = image.id().getInfo()
+            if iid:
+                name = iid.split("/")[-1]
+            else:
+                name = 'unknown_image'
 
         # convert data type
         convert_data_type(dataType)
@@ -331,7 +339,7 @@ class Image(object):
             geom = ee.Geometry.Polygon(geomlist)
 
             feat = ee.Feature(geom)
-            dis = f["properties"][prop]
+            dis = f["properties"][property]
 
             if type(dis) is float:
                 disS = str(int(dis))
@@ -343,7 +351,7 @@ class Image(object):
                 print("unknown property's type")
                 break
 
-            finalname = "{0}_{1}_{2}".format(name, prop, disS)
+            finalname = "{0}_{1}_{2}".format(name, property, disS)
 
             task = ee.batch.Export.image.toDrive(
                 image=image,
@@ -360,7 +368,7 @@ class Image(object):
         return tasklist
 
 
-class Collection(object):
+class ImageCollection(object):
 
     @staticmethod
     def toDrive(col, folder, scale=30, dataType="float", region=None,
