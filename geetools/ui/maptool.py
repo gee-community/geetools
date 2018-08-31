@@ -9,7 +9,7 @@ import folium
 from folium import features
 import ee
 from copy import copy
-from . import tools
+from .. import tools
 import json
 import math
 from uuid import uuid4
@@ -57,7 +57,7 @@ class Map(folium.Map):
             # Reduce if computed scale is too big
             scale = 1 if scale > 500 else scale
 
-            values = tools.get_value(data, geometry, scale, 'client')
+            values = tools.image.get_value(data, geometry, scale, 'client')
             val_str = ''
             for key, val in values.items():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
@@ -165,7 +165,7 @@ def get_bounds(eeObject):
             if t == 'Point':
                 eeObject = eeObject.buffer(1000)
 
-        bounds = tools.getRegion(eeObject, True)
+        bounds = tools.geometry.getRegion(eeObject, True)
 
     # Catch unbounded images
     unbounded = [[[-180.0, -90.0], [180.0, -90.0],
@@ -392,22 +392,6 @@ def feature_properties_output(feat):
     theid = info['id']
     stdout = '<h3>ID {}</h3></br>'.format(theid)
     for prop, value in properties.items():
-        try:
-            value = str(value)
-        except:
-            try:
-                value = value.encode('utf-8', errors='ignore')
-            except:
-                value = value.encode('latin1', errors='ignore')
-
-        try:
-            prop = str(prop)
-        except:
-            try:
-                prop = prop.encode('utf-8', errors='ignore')
-            except:
-                prop = prop.encode('latin1', errors='ignore')
-
         stdout += '<b>{}</b>: {}</br>'.format(prop, value)
     return stdout
 
@@ -523,7 +507,7 @@ def get_data(geometry, obj, reducer='first', scale=None, name=None):
         # Reduce if computed scale is too big
         scale = 1 if scale > 500 else scale
         if t == 'Point':
-            values = tools.get_value(obj, geometry, scale, 'client')
+            values = tools.image.get_value(obj, geometry, scale, 'client')
             val_str = '<h3>Data from {}'.format(name)
             for key, val in values.items():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
@@ -573,8 +557,8 @@ def create_html_table(header, rows):
 
     :param header: a list of headers
     :type header: list
-    :param rows: a list with lists of values
-    :type rows: list of lists
+    :param rows: a list with the values
+    :type rows: list
     :return: a HTML string
     :rtype: str
     '''
@@ -637,3 +621,4 @@ def paint(geometry, outline_color='black', fill_color=None, outline=2):
         rgbVector = out
 
     return rgbVector
+

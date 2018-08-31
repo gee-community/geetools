@@ -43,7 +43,7 @@ def binary(conditions, classes, mask_name='dt_mask'):
 
     repeated = new_classes_list.map(mapclasses)
 
-    unique = tools.list_remove_duplicates(repeated)
+    unique = tools.ee_list.remove_duplicates(repeated)
 
     # CREATE INITIAL DICT
     def createinitial(baseclass, ini):
@@ -53,7 +53,6 @@ def binary(conditions, classes, mask_name='dt_mask'):
 
     ini = ee.Dictionary(unique.iterate(createinitial, ee.Dictionary({})))
 
-    # var ini = ee.Dictionary.fromLists(unique, ee.List.repeat(ee.Image(0), unique.size()))
     def unify(key, init):
         init = ee.Dictionary(init)
         baseclass = ee.String(key).split('-').get(0)
@@ -65,7 +64,6 @@ def binary(conditions, classes, mask_name='dt_mask'):
     new_classes_unique = ee.Dictionary(new_classes_list.iterate(unify, ini))
 
     masks = new_classes_unique.values() # list of masks
-    #print(masks)
 
     # Return an Image with one band per option
 

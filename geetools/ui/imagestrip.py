@@ -2,7 +2,7 @@
 ''' Creation of strip of images '''
 
 from __future__ import print_function
-from . import tools
+from geetools import tools
 from PIL import Image as ImPIL
 from PIL import ImageDraw, ImageFont
 import os.path
