@@ -2,16 +2,8 @@ import sys
 import unittest
 from geetools.tests import image, ee_list, cloud_mask, indices, expressions,\
                            geometry, imagestrip
-
+import argparse
 # TODO: allow making more than 1 test at a time
-
-argument = sys.argv[1]
-
-
-def run(module):
-    sys.argv = sys.argv[1:]
-    unittest.main(module)
-
 
 tests = {'image': image,
          'list': ee_list,
@@ -22,4 +14,24 @@ tests = {'image': image,
          'imagestrip': imagestrip
          }
 
-run(tests[argument])
+options = ', '.join(tests.keys())
+
+unittest_args = sys.argv[2:]
+
+def run(module):
+    # sys.argv = sys.argv[1:]
+    unittest.main(module)
+
+
+# run(tests[argument])
+if __name__ == '__main__':
+    # create arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("test",
+                        help="run a single test. options: {}".format(options))
+    parser.add_argument("unittest_args", nargs='*')
+    args = parser.parse_args()
+
+    sys.argv[1:] = args.unittest_args
+    argument = args.test
+    run(tests[argument])
