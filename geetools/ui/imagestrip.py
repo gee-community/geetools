@@ -2,7 +2,7 @@
 ''' Creation of strip of images '''
 
 from __future__ import print_function
-from geetools import tools
+from .. import batch
 from PIL import Image as ImPIL
 from PIL import ImageDraw, ImageFont
 import os.path
@@ -268,8 +268,7 @@ class ImageStrip(object):
         if isinstance(imlist, ee.List):
             imlist = listEE2list(imlist, 'Image')
 
-        region = tools.execli(
-            ee.Geometry.Polygon(region).bounds().getInfo)()["coordinates"]
+        region = ee.Geometry.Polygon(region).bounds().getInfo()["coordinates"]
 
         # TODO: modificar este metodo para que se pueda pasar listas de listas
         general_width = kwargs.get("general_width", 500)
@@ -315,7 +314,7 @@ class ImageStrip(object):
                                               "dimensions": general_width})
 
                     # archivo = funciones.downloadFile3(url, folder+"/"+name, self.ext)
-                    file = tools.downloadFile(url, path, self.ext)
+                    file = batch.downloadFile(url, path, self.ext)
 
                     im = ImPIL.open(file.name)
                     # listaimPIL.append(im)
@@ -412,7 +411,7 @@ class ImageStrip(object):
         # TOMA DATOS DE LA PRIMER IMAGEN POR SI NO SE ESPECIFICA LA REGION O LOS
         # PARAMETROS PARA LA VISUALIZACION
         first = ee.Image(collections[0].first())
-        first_info = tools.execli(first.getInfo)()
+        first_info = first.getInfo()
 
         # OBTENGO LA REGION, DE ESTE MODO SE PUEDE ESPECIFICAR UN AREA MAS CHICA
         if not region:
@@ -425,7 +424,7 @@ class ImageStrip(object):
             pol = ee.Geometry.Polygon(region)
             center = pol.centroid()
             b = center.buffer(zoom*100, maxError).bounds()
-            region = tools.execli(b.getInfo)()["coordinates"]
+            region = b.getInfo()["coordinates"]
 
         if viz_param:
             bands = viz_param.get("bands")
@@ -465,18 +464,18 @@ class ImageStrip(object):
             listaPy = []
             names = []
             descriptions = [] # description para cada imagen
-            size = tools.execli(lista.size().getInfo)()
+            size = lista.size().getInfo()
             # colID = funciones.execli(col.getInfo)()["id"].split("/")[-1]
 
             for i in range(0, size):
                 img = ee.Image(lista.get(i))
                 listaPy.append(img)
-                date = tools.execli(img.date().format().getInfo)()
-                imID = tools.execli(img.id().getInfo)()
+                date = img.date().format().getInfo()
+                imID = img.id().getInfo()
                 propname = ""
                 if properties:
                     for prop in properties:
-                        value = tools.execli(img.get(prop).getInfo)()
+                        value = img.get(prop).getInfo()
                         value = str(value) if value else "no {} property".format(value)
                         propname += "{}: {}_".format(prop, value)
 
