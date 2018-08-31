@@ -85,7 +85,7 @@ BITS_LANDSAT_BQA_L8 = {
 
 # SENTINEL 2
 BITS_SENTINEL2 = {
-    '10':{1:'clouds'},
+    '10':{1:'cloud'},
     '11':{1:'cirrus'}
 }
 
