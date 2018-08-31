@@ -383,8 +383,47 @@ def passProperty(image, to, properties):
     return to
 
 
+def good_pix(image, retain=None, drop=None, name='good_pix'):
+    """ Get a 'good pixels' bands from the image's bands that retain the good
+    pixels and drop the bad pixels. It will first retain the retainable bands
+    and then drop the droppable ones
+
+    :param image: the image
+    :type image: ee.Image
+    :param retain: names of the bands that hold good (want to retain) pixels,
+        for example, a good quality band
+    :type retain: tuple
+    :param drop: names of the bands that hold bad (want to drop) pixels, for
+        example a cloud mask band
+    :type drop: tuple
+    :param name: name for the resulting band
+    :type name: str
+    :rtype: ee.Image
+    """
+    to_retain = ee.List(retain)
+    to_drop = ee.List(drop)
+
+    def make_or(bandname, ini):
+        ini = ee.Image(ini)
+        band = image.select(bandname)
+        return ini.Or(band)
+
+    final_retain = ee.Image(to_retain.iterate(make_or, empty(0)))
+    final_drop = ee.Image(to_drop.iterate(make_or, empty(0)))
+
+    # not bad but not good (retain)
+    not_bad_not_good = final_drop.And(final_retain)
+
+    final = not_bad_not_good.bitwiseXor(final_drop)
+
+    return final.select([0], [name])
+
+
 class Mapping(object):
     """ Mapping functions to map over ImageCollections """
+
+    # TODO: should be possible to make a general method to map any function
+    # that starts with an image
 
     @staticmethod
     def parametrize(range_from, range_to, bands=None):
@@ -472,3 +511,10 @@ class Mapping(object):
         def wrap(img):
             return img.compute_bits(img, start, end, newName)
         return wrap
+
+    @staticmethod
+    def good_pix(retain=None, drop=None, name='good_pix'):
+        def wrap(img):
+            return good_pix(img, retain, drop, name)
+        return wrap
+
