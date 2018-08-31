@@ -78,10 +78,6 @@ venv.bak/
 .mypy_cache/
 
 .idea/
-gee_tools.iml
+# gee_tools.iml
 
 files/
-*.png
-
-test.py
-geetools/tests/test.py
