@@ -66,7 +66,8 @@ class Line(pygal.Line):
     def render_widget(self, width=None, height=None):
         from ipywidgets import HTML
 
-        b64 = base64.b64encode(self.render())
+        b64 = base64.b64encode(self.render()).decode('utf-8')
+
         src = 'data:image/svg+xml;charset=utf-8;base64,'+b64
 
         if width and not height:
