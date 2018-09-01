@@ -178,9 +178,9 @@ class Image(object):
         scale = scale if scale else int(tools.image.minscale(image).getInfo())
 
         if region:
-            region = tools.getRegion(region)
+            region = tools.geometry.getRegion(region)
         else:
-            region = tools.getRegion(image)
+            region = tools.geometry.getRegion(image)
 
         params = {'region': region,
                   'scale': scale}
@@ -271,7 +271,7 @@ class Image(object):
             create_assets([path2create], to, True)
 
         # Region
-        region = tools.getRegion(region)
+        region = tools.geometry.getRegion(region)
         # Name
         name = name if name else image.id().getInfo()
         # Asset ID (Path + name)
@@ -400,7 +400,7 @@ class ImageCollection(object):
         if region is None:
             region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
         else:
-            region = tools.getRegion(region)
+            region = tools.geometry.getRegion(region)
 
         for idx in range(0, size):
             img = alist.get(idx)
@@ -454,11 +454,11 @@ class ImageCollection(object):
 
         if region is None:
             first_img = ee.Image(alist.get(0))
-            region = tools.getRegion(first_img)
+            region = tools.geometry.getRegion(first_img)
             # print(region)
             # region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
         else:
-            region = tools.getRegion(region)
+            region = tools.geometry.getRegion(region)
 
         for idx in range(0, size):
             img = alist.get(idx)
