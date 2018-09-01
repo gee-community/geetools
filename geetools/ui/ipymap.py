@@ -635,7 +635,7 @@ class Map(ipyleaflet.Map):
     def _update_tab_children(self):
         """ Update Tab children from tab_children_dict """
         # Set tab_widget children
-        self.tab_widget.children = self.tab_children_dict.values()
+        self.tab_widget.children = tuple(self.tab_children_dict.values())
         # Set tab_widget names
         for i, name in enumerate(self.tab_children_dict.keys()):
             self.tab_widget.set_title(i, name)
