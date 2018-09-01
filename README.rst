@@ -29,10 +29,10 @@ Basic Usage
 
 .. code:: python
 
-    from geetools import tools
+    from geetools import batch
 
     col = ee.ImageCollection("your_ID")
-    tasklist = tools.col2asset(col)
+    tasklist = batch.ImageCollection.toDrive(col)
 
 Full documentation
 ==================
