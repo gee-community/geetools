@@ -92,3 +92,17 @@ def get_from_dict(eelist, values):
     values = ee.List(eelist.iterate(wrap, empty))
     return values
 
+
+def sequence(ini, end, step=1):
+    """ Create a sequence from ini to end by step. Similar to
+    ee.List.sequence, but if end != last item then adds the end to the end
+    of the resuting list
+    """
+    end = ee.Number(end)
+    if step == 0:
+        step = 1
+    mod = ee.Number(end).mod(step)
+    seq = ee.List.sequence(ini, end, step)
+    condition = mod.neq(0)
+    final = ee.Algorithms.If(condition, seq.add(end), seq)
+    return ee.List(final)
