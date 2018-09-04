@@ -478,6 +478,57 @@ class ImageCollection(object):
         return tasklist
 
 
+class FeatureCollection(object):
+    @staticmethod
+    def toGeoJSON(collection, name, path=None, split_at=4000):
+        import json
+        import os
+
+        size = collection.size()
+        condition = size.gte(4999)
+
+        def greater():
+            size = collection.size()
+            seq = tools.ee_list.sequence(0, size, split_at)
+            limits = ee.List.zip(seq.slice(1), seq)
+
+            def over_limits(n):
+                n = ee.List(n)
+                ini = ee.Number(n.get(0))
+                end = ee.Number(n.get(1))
+                return ee.FeatureCollection(collection.toList(ini, end))
+
+            return limits.map(over_limits)
+
+        collections = ee.List(
+            ee.Algorithms.If(condition,
+                             greater(),
+                             ee.List([collection])))
+
+        collections_size = collections.size().getInfo()
+
+        if not path:
+            path = os.getcwd()
+
+        # name
+        if name[-8:-1] != '.geojson':
+            fname = name+'.geojson'
+
+        col = ee.FeatureCollection(collections.get(0))
+        content = col.getInfo()
+        feats = content['features']
+
+        for i in range(0, collections_size):
+            c = ee.FeatureCollection(collections.get(i))
+            content_c = c.getInfo()
+            feats_c = content_c['features']
+            feats = feats + feats_c
+
+        content['features'] = feats
+
+        with open(os.path.join(path, fname), 'w') as thefile:
+            thefile.write(json.dumps(content))
+
 class Execli(object):
     """ Class to hold the methods to retry calls to Earth Engine """
 
