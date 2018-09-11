@@ -9,7 +9,7 @@ if not ee.data._initialized:
     ee.Initialize()
 
 
-def eprint(eeobject, indent=2, notebook=False, async=False):
+def eprint(eeobject, indent=2, notebook=False, do_async=False):
     """ Print an EE Object. Same as `print(object.getInfo())`
 
     :param eeobject: object to print
@@ -19,8 +19,8 @@ def eprint(eeobject, indent=2, notebook=False, async=False):
     :type notebook: bool
     :param indent: indentation of the print output
     :type indent: int
-    :param async: call getInfo() asynchronously
-    :type async: bool
+    :param do_async: call getInfo() asynchronously
+    :type do_async: bool
     """
 
     import pprint
@@ -38,7 +38,7 @@ def eprint(eeobject, indent=2, notebook=False, async=False):
         result.append(info)
 
     try:
-        if async:
+        if do_async:
             manager = multiprocessing.Manager()
             info = manager.list()
             proxy = ee.serializer.encode(eeobject)
@@ -53,7 +53,7 @@ def eprint(eeobject, indent=2, notebook=False, async=False):
         info = eeobject
 
     if not notebook:
-        if async:
+        if do_async:
             def finalwait():
                 isinfo = len(info) > 0
                 while not isinfo:
