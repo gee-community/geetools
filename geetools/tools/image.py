@@ -518,3 +518,30 @@ class Mapping(object):
             return good_pix(img, retain, drop, name)
         return wrap
 
+
+class Classification(object):
+    """ Class holding (static) methods for classified images. """
+    @staticmethod
+    def vectorize(image, categories, label='label'):
+        """ Reduce to vectors the selected classes fro a classified image
+
+        :param categories: the categories to vectorize
+        :type categories: list
+
+        """
+        def over_cat(cat, ini):
+            cat = ee.Number(cat)
+            ini = ee.Image(ini)
+            return ini.add(image.eq(cat).multiply(cat))
+
+        filtered = ee.Image(
+            ee.List(categories).iterate(over_cat,
+                                        empty(0, [label])))
+
+        out = filtered.neq(0)
+        filtered = filtered.updateMask(out)
+
+        return filtered.reduceToVectors(**{
+            'scale': 30,
+            'maxPixels':1e13,
+            'labelProperty': label})
