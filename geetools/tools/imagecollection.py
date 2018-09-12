@@ -11,8 +11,8 @@ def fill_with_last(collection):
     """ Fill masked values of each image pixel with the last available
     value
 
-    :param self: the self that holds the images that will be filled
-    :type self: ee.ImageCollection
+    :param collection: the collection that holds the images that will be filled
+    :type collection: ee.ImageCollection
     :rtype: ee.ImageCollection
     """
 
