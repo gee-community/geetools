@@ -17,7 +17,7 @@ def sort(dictionary):
     """
     if isinstance(dictionary, dict):
         sorted = OrderedDict()
-        keys = dictionary.keys()
+        keys = list(dictionary.keys())
         keys.sort()
         for key in keys:
             sorted[key] = dictionary[key]
