@@ -2,6 +2,7 @@
 """ Module holding tools for ee.ImageCollections """
 import ee
 import ee.data
+from . import date
 
 if not ee.data._initialized:
     ee.Initialize()
@@ -44,6 +45,63 @@ def fill_with_last(collection):
 
     newcol = ee.List(rest.iterate(wrap, ee.List([first])))
     return ee.ImageCollection.fromImages(newcol)
+
+
+def reduce_equal_interval(collection, region, reducer=None, start_date=None,
+                          end_date=None, interval=30, unit='day',
+                          qa_band=None):
+    """ Reduce an ImageCollection into a new one that has one image per
+        reduced interval, for example, one image per month.
+
+    :param collection:
+    :param region:
+    :param reducer:
+    :param start_date:
+    :param end_date:
+    :param interval:
+    :param unit:
+    :param qa_band:
+    :return:
+    """
+    collection = collection.filterBounds(region)
+    first = ee.Image(collection.sort('system:time_start').first())
+    last = ee.Image(collection.sort('system:time_start', False).first())
+
+    if not start_date:
+        start_date = first.date()
+    if not end_date:
+        end_date = last.date()
+    if not qa_band:
+        qa_band = ee.String(ee.Image(collection.first()).bandNames().get(0))
+
+    def apply_reducer(reducer, col):
+        return ee.Image(col.reduce(reducer))
+
+    def apply_function(func, col):
+        return
+
+    def default_function(col, qa_band):
+        return ee.Image(col.qualityMosaic(qa_band))
+
+    ranges = date.daterange_list(start_date, end_date, interval, unit)
+
+    def over_ranges(drange, ini):
+        ini = ee.List(ini)
+        drange = ee.DateRange(drange)
+        start = drange.start()
+        end = drange.end()
+        filtered = collection.filterDate(start, end)
+        condition = ee.Number(filtered.size()).gt(0)
+        def true():
+            image = apply_function(reducer, filtered)\
+                    .set('system:time_start', end.millis())
+            result = ini.add(image)
+            return result
+        return ee.List(ee.Algorithms.If(condition, true(), ini))
+
+    imlist = ee.List(ranges.iterate(over_ranges, ee.List([])))
+
+    return ee.ImageCollection.fromImages(imlist)
 
 
 def get_values(collection, geometry, reducer=ee.Reducer.mean(), scale=None,
