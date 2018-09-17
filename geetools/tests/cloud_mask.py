@@ -1,5 +1,4 @@
 # coding=utf-8
-# coding=utf-8
 import unittest
 import ee
 from .. import tools, cloud_mask
