@@ -25,7 +25,7 @@ setup(
     keywords='google earth engine raster image processing gis satelite',
     packages=find_packages(exclude=('docs', 'js')),
     include_package_data=True,
-    install_requires=['requests', 'Pillow', 'ipyleaflet', 'folium', 'pyshp',
+    install_requires=['requests', 'pillow', 'ipyleaflet', 'folium', 'pyshp',
                       'pygal', 'pandas', 'ipywidgets', 'traitlets'],
     extras_require={
     'dev': [],
@@ -33,5 +33,7 @@ setup(
     'testing': [],
     },
     classifiers=['Programming Language :: Python :: 2',
-                 'Programming Language :: Python :: 2.7'],
+                 'Programming Language :: Python :: 2.7',
+                 'Programming Language :: Python :: 3'
+                 'Programming Language :: Python :: 3.6'],
     )
