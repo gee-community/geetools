@@ -118,8 +118,8 @@ class Map(ipyleaflet.Map):
 
     def move(self, layer_name, direction='up'):
         ''' Move one step up a layer '''
-        names = self.EELayers.keys()
-        values = self.EELayers.values()
+        names = list(self.EELayers.keys())
+        values = list(self.EELayers.values())
 
         if direction == 'up':
             dir = 1
