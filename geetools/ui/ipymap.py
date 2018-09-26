@@ -35,6 +35,11 @@ class Map(ipyleaflet.Map):
         super(Map, self).__init__(**kwargs)
         self.is_shown = False
 
+        # Width and Height
+        self.width = kwargs.get('width', None)
+        self.height = kwargs.get('height', None)
+        self.set_dimensions(self.width, self.height)
+
         # Correct base layer name
         baselayer = self.layers[0]
         baselayer.name = 'OpenStreetMap'
@@ -115,6 +120,15 @@ class Map(ipyleaflet.Map):
         if name in copyEELayers:
             copyEELayers.pop(name)
         self.EELayers = copyEELayers
+
+    def set_dimensions(self, width=None, height=None):
+        """ Set the dimensions for the map
+
+        :param width:
+        :param height:
+        :return:
+        """
+        self.layout = Layout(width=width, height=height)
 
     def move(self, layer_name, direction='up'):
         ''' Move one step up a layer '''
