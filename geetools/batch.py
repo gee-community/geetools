@@ -481,6 +481,20 @@ class ImageCollection(object):
 class FeatureCollection(object):
     @staticmethod
     def toGeoJSON(collection, name, path=None, split_at=4000):
+        """ Export a FeatureCollection to a GeoJSON file
+
+        :param collection: The collection to export
+        :type collection: ee.FeatureCollection
+        :param name: name of the resulting file
+        :type name: str
+        :param path: The path where to save the file. If None, will be saved
+            in the current folder
+        :type path: str
+        :param split_at: limit to avoid an EE Exception
+        :type split_at: int
+        :return: A GeoJSON (.geojson) file.
+        :rtype: file
+        """
         import json
         import os
 
@@ -528,6 +542,8 @@ class FeatureCollection(object):
 
         with open(os.path.join(path, fname), 'w') as thefile:
             thefile.write(json.dumps(content))
+
+        return thefile
 
 class Execli(object):
     """ Class to hold the methods to retry calls to Earth Engine """
