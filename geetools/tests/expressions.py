@@ -12,7 +12,7 @@ class TestExpressions(unittest.TestCase):
 
     def test_expressions(self):
         from geetools import expressions
-        generator = expressions.ExpGen()
+        generator = expressions.Expression()
         exp_max = generator.max("b('B1')", "b('B2')")
         exp_min = generator.min("b('B1')", "b('B2')")
 
