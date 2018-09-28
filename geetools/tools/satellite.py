@@ -19,11 +19,12 @@ def today():
     return datetime.today().isoformat()[0:10]
 
 _SHORT_RELATION = {
-    'LANDSAT_8_SR': 'LANDSAT/LC08/C01/T1_SR'
+    'LANDSAT_8_SR': 'LANDSAT/LC08/C01/T1_SR',
+    'LANDSAT_7_SR': 'LANDSAT/LE07/C01/T1_SR'
 }
 
 _AVAILABLE_IDS = [
-    'LANDSAT/LC08/C01/T1_SR',
+    'LANDSAT/LC08/C01/T1_SR', 'LANDSAT/LE07/C01/T1_SR'
 ]
 
 
@@ -77,6 +78,10 @@ class Satellite(object):
         return self.information['bands']
 
     @property
+    def band_resolution(self):
+        return self.information['band_resolution']
+
+    @property
     def collection(self):
         return ee.ImageCollection(self.col_id)
 
@@ -102,8 +107,20 @@ class Satellite(object):
         """ End date """
         return self.information['end']
 
+    def get_band_name(self, band):
+        """ Gets the band name. For example
 
-SATELLITE_ID_INFO = {
+        get_band_name('B4') = 'red'
+        """
+        if band in self.bands.values():
+            inverse = {val:key for key, val in self.bands.items()}
+            return inverse[band]
+        else:
+            msg = 'band {} not founds in collection {}'
+            raise ValueError(msg.format(band, self.col_id))
+
+
+LANDSAT_8_SR = {
     'LANDSAT/LC08/C01/T1_SR': {
         'short_id': 'LANDSAT_8_SR',
         'band_names': Satellite('LANDSAT/LC08/C01/T1_SR').band_names,
@@ -117,6 +134,21 @@ SATELLITE_ID_INFO = {
             'thermal1': 'B10',
             'thermal2': 'B11'
         },
+        'band_resolution': {
+            'B1': 30,
+            'B2': 30,
+            'B3': 30,
+            'B4': 30,
+            'B5': 30,
+            'B6': 30,
+            'B7': 30,
+            'B10': 30,
+            'B11': 30,
+            'pixel_qa': 30,
+            'sr_aerosol': 30,
+            'radsat_qa': 30
+        },
+        'extra_bands': {},
         'property_names': Satellite('LANDSAT/LC08/C01/T1_SR').property_names,
         'cloud_cover': {
             'property': 'CLOUD_COVER',
@@ -140,7 +172,72 @@ SATELLITE_ID_INFO = {
                 'bits': None
             }
         ],
-        'start': '2013-4-11',
+        'start': '2013-04-11',
         'end': today()
     }
 }
+LANDSAT_7_SR = {
+    'LANDSAT/LE07/C01/T1_SR': {
+        'short_id': 'LANDSAT_7_SR',
+        'band_names': Satellite('LANDSAT/LE07/C01/T1_SR').band_names,
+        'bands': {
+            'blue': 'B1',
+            'green': 'B2',
+            'red': 'B3',
+            'nir': 'B4',
+            'swir1': 'B5',
+            'swir2': 'B7',
+            'thermal1': 'B6'
+        },
+        'extra_bands': {
+            'atmos_opacity': 'sr_atmos_opacity'
+        },
+        'band_resolution': {
+            'B1': 30,
+            'B2': 30,
+            'B3': 30,
+            'B4': 30,
+            'B5': 30,
+            'B6': 30,
+            'B7': 30,
+            'sr_atmos_opacity': 30,
+            'sr_cloud_qa': 30,
+            'pixel_qa': 30,
+            'radsat_qa': 30
+        },
+        'property_names': Satellite('LANDSAT/LE07/C01/T1_SR').property_names,
+        'cloud_cover': {
+            'property': 'CLOUD_COVER',
+            'range': [0, 100]
+        },
+        'bitmasks': [
+            {
+                'band': 'pixel_qa',
+                'bitreader': bitreader.BitReader(
+                    cloud_mask.BITS_LANDSAT_PIXEL_QA, 16),
+                'bits': cloud_mask.BITS_LANDSAT_PIXEL_QA
+            },
+            {
+                'band': 'sr_cloud_qa',
+                'bitreader': bitreader.BitReader(
+                    cloud_mask.BITS_LANDSAT_CLOUD_QA, 8),
+                'bits': cloud_mask.BITS_LANDSAT_CLOUD_QA
+            },
+            {
+                'band': 'radsat_qa',
+                'bitreader': None,
+                'bits': None
+            }
+        ],
+        'start': '1999-01-01',
+        'end': today()
+    }
+}
+
+SATELLITE_ID_INFO = dict()
+
+def update(*sat):
+    for s in sat:
+        SATELLITE_ID_INFO.update(s)
+
+update(LANDSAT_8_SR, LANDSAT_7_SR)
