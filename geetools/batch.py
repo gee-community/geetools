@@ -323,7 +323,7 @@ class Image(object):
                 name = 'unknown_image'
 
         # convert data type
-        convert_data_type(dataType)
+        image = convert_data_type(dataType)(image)
 
         def unpack(thelist):
             unpacked = []
@@ -408,7 +408,7 @@ class ImageCollection(object):
             name = img.id().getInfo().split("/")[-1]
 
             # convert data type
-            convert_data_type(dataType)
+            img = convert_data_type(dataType)(img)
 
             task = ee.batch.Export.image.toDrive(image=img,
                                                  description=name,
