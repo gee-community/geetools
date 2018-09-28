@@ -422,7 +422,8 @@ class ImageCollection(object):
         return tasklist
 
     @staticmethod
-    def toAsset(col, assetPath, scale=30, region=None, create=True, **kwargs):
+    def toAsset(col, assetPath, scale=30, region=None, create=True,
+                verbose=False, **kwargs):
         """ Upload all images from one collection to a Earth Engine Asset. You can
         use the same arguments as the original function ee.batch.export.image.toDrive
 
@@ -473,6 +474,10 @@ class ImageCollection(object):
                                                  region=region,
                                                  scale=scale, **kwargs)
             task.start()
+
+            if verbose:
+                print('Exporting {} to {}'.format(name, assetId))
+
             tasklist.append(task)
 
         return tasklist
