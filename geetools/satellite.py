@@ -10,8 +10,8 @@ import ee.data
 if not ee.data._initialized:
     ee.Initialize()
 
-from .. import cloud_mask
-from .. import bitreader
+from . import cloud_mask
+from . import bitreader
 
 from datetime import datetime
 

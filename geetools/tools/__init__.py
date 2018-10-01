@@ -1,10 +1,8 @@
 """ subpackage holding modules with tools """
 
 from . import imagecollection, date, dictionary, image, number, \
-              segmentation, geometry, featurecollection, ee_list, \
-              algorithms, satellite, composite
+              segmentation, geometry, featurecollection, ee_list
 from .image import Mapping
-from .satellite import Satellite
 
 
 def dict2namedtuple(thedict, name='NamedDict'):
