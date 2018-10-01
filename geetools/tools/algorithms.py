@@ -9,6 +9,67 @@ if not ee.data._initialized:
     ee.Initialize()
 
 
+def pansharpen_kernel(image, pan, rgb=None, kernel=None):
+    """
+    Compute the per-pixel means of the unsharpened bands
+    source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine
+
+    :param pan: the name of the panchromatic band
+    :type pan: str
+    :param rgb: the red green blue bands
+    :type rgb: tuple or list
+    :param kernel: the kernel to reduce neighbors
+    :type kernel: ee.Kernel
+    :rtype: ee.Image
+    """
+    if not kernel:
+        kernel = ee.Kernel.square(90, 'meters')
+    if not rgb:
+        rgb = ['red', 'green', 'blue']
+
+    if not pan:
+        pan = 'pan'
+
+    bgr = image.select(rgb)
+    pani = image.select(pan)
+    bgr_mean = bgr.reduce('mean').rename('mean')
+    # Compute the aggregate mean of the unsharpened bands and the pan band
+    mean_values = pani.addBands(bgr_mean).reduceNeighborhood(
+        ee.Reducer.mean(),
+        kernel
+    )
+    gain = mean_values.select('mean_mean').divide(
+        mean_values.select('{}_mean'.format(pan)))
+    return bgr.divide(bgr_mean).multiply(pani).multiply(gain)
+
+
+def pansharpen_ihs_fusion(image, pan=None, rgb=None):
+    """
+    HSV-based Pan-Sharpening
+    source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine
+
+    :param image:
+    :type image: ee.Image
+    the name of the panchromatic band
+    :type pan: str
+    :param rgb: the red green blue bands
+    :type rgb: tuple or list
+    :rtype: ee.Image
+    """
+    if not rgb:
+        rgb = ['red', 'green', 'blue']
+
+    if not pan:
+        pan = 'pan'
+
+    rgb = image.select(rgb)
+    pan = image.select(pan)
+    # Convert to HSV, swap in the pan band, and convert back to RGB.
+    huesat = rgb.rgbToHsv().select('hue', 'saturation')
+    upres = ee.Image.cat(huesat, pan).hsvToRgb()
+    return image.addBands(upres)
+
+
 class Landsat(object):
 
     @staticmethod
@@ -26,11 +87,11 @@ class Landsat(object):
 
         Transcipted to GEE Python API by Rodrigo E. Principe
 
-        If the band names of the passed image are 'blue', 'green', etc, those will
-        be used, if not, relations must be indicated in params.
+        If the band names of the passed image are 'blue', 'green', etc,
+        those will be used, if not, relations must be indicated in params.
 
-        :param satellite: a Satellite object. The passed image must have the same
-            bands as the original satellite.
+        :param satellite: a Satellite object. The passed image must have the
+            same bands as the original satellite.
         :type satellite: satmodule.Satellite
         :rtype: ee.Image
         """
