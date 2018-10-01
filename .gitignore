@@ -86,4 +86,4 @@ files/
 notebooks/.ipynb_checkpoints
 
 # any checkpoint
-*/.ipynb_checkpoints
+**/.ipynb_checkpoints
