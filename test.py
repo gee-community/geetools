@@ -1,7 +1,7 @@
 import sys
 import unittest
 from geetools.tests import image, ee_list, cloud_mask, indices, expressions,\
-                           geometry, imagestrip
+                           geometry, imagestrip, date
 import argparse
 # TODO: allow making more than 1 test at a time
 
@@ -11,7 +11,8 @@ tests = {'image': image,
          'indices': indices,
          'expressions': expressions,
          'geometry': geometry,
-         'imagestrip': imagestrip
+         'imagestrip': imagestrip,
+         'date': date
          }
 
 options = ', '.join(tests.keys())
