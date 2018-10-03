@@ -21,3 +21,5 @@ from .ui.ipymap import Map
 from .ui import eprint
 from . import algorithms
 from .satellite import Satellite
+from .satellite import today
+from .tools.imagecollection import wrapper
