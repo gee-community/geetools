@@ -62,3 +62,52 @@ def daterange_list(start_date, end_date, interval=1, unit='month'):
 
     return ee.List(dateranges_list.iterate(callback(interval, unit),
                                            ee.List([first])))
+
+
+def unit_since_epoch(date, unit='day'):
+    """ Return the number of days since the epoch (1970-1-1)
+
+    :param date: the date
+    :type date: ee.Date
+    :param unit: one of 'year', 'month' 'week', 'day', 'hour', 'minute',
+        or 'second'
+    :return: the corresponding units from the epoch
+    :rtype: ee.Number
+    """
+    epoch = ee.Date(EE_EPOCH.isoformat())
+    return date.difference(epoch, unit).toInt()
+
+
+def get_date_band(img, unit='day', bandname='date'):
+    """ Get a date band from an image representing days since epoch
+
+    :param img: the Image
+    :param unit: one of 'year', 'month' 'week', 'day', 'hour', 'minute',
+        or 'second'
+    :param bandname: the name of the resulting band
+    :return: a single band image with the date as the value for each pixel
+        and also as an attribute
+    :rtype: ee.Image
+    """
+    date = img.date()
+    diff = unit_since_epoch(date, unit)
+    datei = ee.Image.constant(diff).rename(bandname)
+    attr_name = '{}_since_epoch'.format(unit)
+
+    datei_attr = datei.set(attr_name, diff).toInt()
+
+    return datei_attr.copyProperties(img, ['system:footprint'])
+
+
+def date_since_epoch(date, unit='day'):
+    """ Get the date for the specified date in unit
+
+    :param date: the date in the specified unit
+    :type date: int
+    :param unit: one of 'year', 'month' 'week', 'day', 'hour', 'minute',
+        or 'second'
+    :return: the corresponding date
+    :rtype: ee.Date
+    """
+    epoch = ee.Date(EE_EPOCH.isoformat())
+    return epoch.advance(date, unit)
