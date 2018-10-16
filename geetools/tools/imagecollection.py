@@ -8,8 +8,22 @@ if not ee.data._initialized:
     ee.Initialize()
 
 
+def add(collection, image):
+    """ Add an Image to the Collection
+
+    **SERVER SIDE**
+
+    """
+    # TODO: handle a list of images
+    collist = collection.toList(collection.size())
+    append = collist.add(image)
+    return ee.ImageCollection.fromImages(append)
+
+
 def get_id(collection):
-    """ Get the ImageCollection id
+    """ Get the ImageCollection id.
+
+    **CLIENT SIDE**
 
     :type collection: ee.ImageCollection
     :return: the collection's id
