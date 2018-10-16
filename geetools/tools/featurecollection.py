@@ -17,6 +17,7 @@ GEOMETRY_TYPES = {
     'Point': ee.geometry.Geometry.Point,
     'Polygon': ee.geometry.Geometry.Polygon,
     'Rectangle': ee.geometry.Geometry.Rectangle,
+    'GeometryCollection': ee.geometry.Geometry,
 }
 
 
@@ -41,19 +42,20 @@ def get_projection(filename):
     return spatialRef.GetAttrValue("AUTHORITY", 1)
 
 
-def fromShapefile(filename):
+def fromShapefile(filename, start=None, end=None):
     """ Convert an ESRI file (.shp and .dbf must be present) to a
     ee.FeatureCollection
 
-    At the moment only works for shapes with less than 3000 records
+    At the moment only works for shapes with less than 1000 records and doesn't
+    handle complex shapes.
 
     :param filename: the name of the filename. If the shape is not in the
         same path than the script, specify a path instead.
     :type filename: str
+    :param start:
     :return: the FeatureCollection
     :rtype: ee.FeatureCollection
     """
-
     wgs84 = ee.Projection('EPSG:4326')
     # read the filename
     reader = shapefile.Reader(filename)
@@ -62,8 +64,24 @@ def fromShapefile(filename):
     field_types = [field[1] for field in fields]
     types = dict(zip(field_names, field_types))
     features = []
-    for sr in reader.shapeRecords():
+
+    projection = get_projection(filename)
+
+    # filter records with start and end
+    start = start if start else 0
+    if not end:
+        records = reader.shapeRecords()
+        end = len(records)
+    else:
+        end = end + 1
+
+    if (end-start)>1000:
+        msg = "Can't process more than 1000 records at a time. Found {}"
+        raise ValueError(msg.format(end-start))
+
+    for i in range(start, end):
         # atr = dict(zip(field_names, sr.record))
+        sr = reader.shapeRecord(i)
         atr = {}
         for fld, rec in zip(field_names, sr.record):
             fld_type = types[fld]
@@ -75,7 +93,7 @@ def fromShapefile(filename):
                 continue
             atr[fld] = value
         geom = sr.shape.__geo_interface__
-        geometry = ee.Geometry(geom, 'EPSG:' + get_projection(filename)) \
+        geometry = ee.Geometry(geom, 'EPSG:' + projection) \
             .transform(wgs84, 1)
         feat = ee.Feature(geometry, atr)
         features.append(feat)
@@ -100,25 +118,32 @@ def fromGeoJSON(filename, crs=None):
         features = []
         # Get crs from GeoJSON
         if not crs:
-            filecrs = geodict.get('crs').get('properties').get('name')
-            splitcrs = filecrs.split(':')
-            cleancrs = [part for part in splitcrs if part]
-            try:
-                if cleancrs[-1] == 'CRS84':
-                    crs = 'EPSG:4326'
-                elif cleancrs[-2] == 'EPSG':
-                    crs = '{}:{}'.format(cleancrs[-2], cleancrs[-1])
-                else:
-                    raise ValueError('{} not recognized'.format(filecrs))
-            except IndexError:
-                raise ValueError('{} not recognized'.format(filecrs))
+            filecrs = geodict.get('crs')
+            if filecrs:
+                name = filecrs.get('properties').get('name')
+                splitcrs = name.split(':')
+                cleancrs = [part for part in splitcrs if part]
+                try:
+                    if cleancrs[-1] == 'CRS84':
+                        crs = 'EPSG:4326'
+                    elif cleancrs[-2] == 'EPSG':
+                        crs = '{}:{}'.format(cleancrs[-2], cleancrs[-1])
+                    else:
+                        raise ValueError('{} not recognized'.format(name))
+                except IndexError:
+                    raise ValueError('{} not recognized'.format(name))
+            else:
+                crs = 'EPSG:4326'
 
         for n, feat in enumerate(geodict.get('features')):
             properties = feat.get('properties')
             geom = feat.get('geometry')
             ty = geom.get('type')
             coords = geom.get('coordinates')
-            ee_geom = GEOMETRY_TYPES.get(ty)(coords, proj=ee.Projection(crs))
+            if ty == 'GeometryCollection':
+                ee_geom = GEOMETRY_TYPES.get(ty)(geom, opt_proj=crs)
+            else:
+                ee_geom = GEOMETRY_TYPES.get(ty)(coords, proj=ee.Projection(crs))
             ee_feat = ee.feature.Feature(ee_geom, properties)
             features.append(ee_feat)
 
