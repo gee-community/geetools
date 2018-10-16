@@ -9,7 +9,10 @@ if not ee.data._initialized:
     ee.Initialize()
 
 
-def eprint(eeobject, indent=2, notebook=False, do_async=False):
+NOTEBOOK = True
+
+
+def eprint(eeobject, indent=2, notebook=NOTEBOOK, do_async=False):
     """ Print an EE Object. Same as `print(object.getInfo())`
 
     :param eeobject: object to print
