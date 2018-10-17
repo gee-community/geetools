@@ -13,20 +13,24 @@ NOTEBOOK = False
 ASYNC = False
 
 
-def eprint(*args, indent=2, notebook=NOTEBOOK, do_async=ASYNC):
+def eprint(*args, **kwargs):
     """ Print EE Objects. Similar to `print(object.getInfo())` but with
     some magic (lol)
 
     :param eeobject: object to print
     :type eeobject: ee.ComputedObject
     :param notebook: if True, prints the object as an Accordion Widget for
-        the Jupyter Notebook
+    the Jupyter Notebook
     :type notebook: bool
     :param indent: indentation of the print output
     :type indent: int
     :param do_async: call getInfo() asynchronously
     :type do_async: bool
     """
+    indent = kwargs.get('indent', 2)
+    notebook = kwargs.get('notebook', NOTEBOOK)
+    do_async = kwargs.get('do_async', ASYNC)
+
     import pprint
     pp = pprint.PrettyPrinter(indent=indent)
 
