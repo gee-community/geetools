@@ -478,6 +478,132 @@ class ImageCollection(object):
         return tasklist
 
 
+class FeatureCollection(object):
+    @staticmethod
+    def toDict(collection, split_at=4000):
+        """ Get the FeatureCollection as a dict object """
+        size = collection.size()
+        condition = size.gte(4999)
+
+        def greater():
+            size = collection.size()
+            seq = tools.ee_list.sequence(0, size, split_at)
+            limits = ee.List.zip(seq.slice(1), seq)
+
+            def over_limits(n):
+                n = ee.List(n)
+                ini = ee.Number(n.get(0))
+                end = ee.Number(n.get(1))
+                return ee.FeatureCollection(collection.toList(ini, end))
+
+            return limits.map(over_limits)
+
+        collections = ee.List(
+            ee.Algorithms.If(condition,
+                             greater(),
+                             ee.List([collection])))
+
+        collections_size = collections.size().getInfo()
+
+        col = ee.FeatureCollection(collections.get(0))
+        content = col.getInfo()
+        feats = content['features']
+
+        for i in range(0, collections_size):
+            c = ee.FeatureCollection(collections.get(i))
+            content_c = c.getInfo()
+            feats_c = content_c['features']
+            feats = feats + feats_c
+
+        content['features'] = feats
+
+        return content
+
+    @staticmethod
+    def toGeoJSON(collection, name, path=None, split_at=4000):
+        """ Export a FeatureCollection to a GeoJSON file
+
+        :param collection: The collection to export
+        :type collection: ee.FeatureCollection
+        :param name: name of the resulting file
+        :type name: str
+        :param path: The path where to save the file. If None, will be saved
+            in the current folder
+        :type path: str
+        :param split_at: limit to avoid an EE Exception
+        :type split_at: int
+        :return: A GeoJSON (.geojson) file.
+        :rtype: file
+        """
+        import json
+        import os
+
+        if not path:
+            path = os.getcwd()
+
+        # name
+        if name[-8:-1] != '.geojson':
+            fname = name+'.geojson'
+
+        content = FeatureCollection.toDict(collection, split_at)
+
+        with open(os.path.join(path, fname), 'w') as thefile:
+            thefile.write(json.dumps(content))
+
+        return thefile
+
+    @staticmethod
+    def toCSV(collection, filename, split_at=4000):
+        """ Alternative to download a FeatureCollection as a CSV """
+        import csv
+        dict = FeatureCollection.toDict(collection, split_at)
+
+        fields = list(dict['columns'].keys())
+        fields.append('geometry')
+
+        features = dict['features']
+
+        ext = filename[-4:]
+        if ext != '.csv':
+            filename += '.csv'
+
+        with open(filename, 'w') as thecsv:
+            writer = csv.DictWriter(thecsv, fields)
+
+            writer.writeheader()
+            # write rows
+            for feature in features:
+                properties = feature['properties']
+                fid = feature['id']
+                geom = feature['geometry']['type']
+
+                # match fields
+                properties['system:index'] = fid
+                properties['geometry'] = geom
+
+                # write row
+                writer.writerow(properties)
+
+            return thecsv
+
+    @staticmethod
+    def toLocal(collection, filename, filetype=None, selectors=None):
+        """ Download a FeatureCollection to a local file
+
+        :param filetype: The filetype of download, either CSV or JSON.
+            Defaults to CSV.
+        :param selectors: The selectors that should be used to determine which
+            attributes will be downloaded.
+        :param filename: The name of the file to be downloaded
+        """
+        if not filetype:
+            filetype = 'CSV'
+
+        url = collection.getDownloadURL(filetype, selectors, filename)
+        thefile = downloadFile(url, filename, filetype)
+        return thefile
+
+
 class Execli(object):
     """ Class to hold the methods to retry calls to Earth Engine """
 
