@@ -140,15 +140,15 @@ class Image(object):
 
         :param image: the image to download
         :type image: ee.Image
-        :param path: the path to download the image. If None, it will be downloaded
-            to the same folder as the script is
+        :param path: the path to download the image. If None, it will be
+            downloaded to the same folder as the script is
         :type path: str
         :param name: name of the file
         :type name: str
         :param scale: scale of the image to download. If None, tries to get it.
         :type scale: int
-        :param region: region to from where to download the image. If None, will be
-            the image region
+        :param region: region to from where to download the image. If None,
+            will be the image region
         :type region: ee.Geometry
         :param
         """
@@ -160,15 +160,8 @@ class Image(object):
             import zipfile
         except:
             raise ValueError(
-                'zipfile module not found, install it using `pip install zipfile`')
-
-        try:
-            from osgeo import gdal
-        except ImportError:
-            try:
-                import gdal
-            except:
-                raise
+                'zipfile module not found, install it using '
+                '`pip install zipfile`')
 
         # Reproject image
         # image = image.reproject(ee.Projection('EPSG:4326'))
@@ -185,7 +178,8 @@ class Image(object):
         params = {'region': region,
                   'scale': scale}
 
-        params = params.update({'dimensions': dimensions}) if dimensions else params
+        if dimensions:
+            params = params.update({'dimensions': dimensions})
 
         url = image.getDownloadURL(params)
 
@@ -217,38 +211,36 @@ class Image(object):
         except:
             raise
 
-        # Merge TIFF
-        # alltif = glob.glob(os.path.join(finalpath, '.tif'))
-        # outvrt = '/vsimem/stacked.vrt' #/vsimem is special in-memory virtual "directory"
-        # outtif = os.path.join(finalpath, name+'.tif')
-        #
-        # outds = gdal.BuildVRT(outvrt, alltif, separate=True)
-        # gdal.Translate(outtif, outds)
-
     @staticmethod
     def toAsset(image, assetPath, name=None, to='Folder', scale=None,
-                    region=None, create=True, dataType='float', **kwargs):
+                region=None, create=True, dataType='float',
+                notebook=False, **kwargs):
         """ This function can create folders and ImageCollections on the fly.
         The rest is the same to Export.image.toAsset. You can pass the same
         params as the original function
 
         :param image: the image to upload
         :type image: ee.Image
-        :param assetPath: path to upload the image (only PATH, without filename)
+        :param assetPath: path to upload the image (only PATH, without
+            filename)
         :type assetPath: str
         :param name: filename for the image (AssetID will be assetPath + name)
         :type name: str
-        :param to: where to save the image. Options: 'Folder' or 'ImageCollection'
+        :param to: where to save the image. Options: 'Folder' or
+            'ImageCollection'
         :param region: area to upload. Defualt to the footprint of the first
             image in the collection
         :type region: ee.Geometry.Rectangle or ee.Feature
         :param scale: scale of the image (side of one pixel)
             (Landsat resolution)
         :type scale: int
-        :param dataType: as downloaded images **must** have the same data type in all
-            bands, you have to set it here. Can be one of: "float", "double", "int",
-            "Uint8", "Int8" or a casting function like *ee.Image.toFloat*
+        :param dataType: as downloaded images **must** have the same data type
+            in all bands, you have to set it here. Can be one of: "float",
+            "double", "int", "Uint8", "Int8" or a casting function like
+            *ee.Image.toFloat*
         :type dataType: str
+        :param notebook: display a jupyter notebook widget to monitor the task
+        :type notebook: bool
         :return: the tasks
         :rtype: ee.batch.Task
         """
@@ -282,6 +274,10 @@ class Image(object):
                                              description=name,
                                              **kwargs)
         task.start()
+
+        if notebook:
+            pass
+
         return task
 
     @staticmethod
@@ -373,8 +369,9 @@ class ImageCollection(object):
     @staticmethod
     def toDrive(col, folder, scale=30, dataType="float", region=None,
                 **kwargs):
-        """ Upload all images from one collection to Google Drive. You can use the
-        same arguments as the original function ee.batch.export.image.toDrive
+        """ Upload all images from one collection to Google Drive. You can use
+        the same arguments as the original function
+        ee.batch.export.image.toDrive
 
         :param col: Collection to upload
         :type col: ee.ImageCollection
@@ -386,9 +383,10 @@ class ImageCollection(object):
         :type scale: int
         :param maxImgs: maximum number of images inside the collection
         :type maxImgs: int
-        :param dataType: as downloaded images **must** have the same data type in all
-            bands, you have to set it here. Can be one of: "float", "double", "int",
-            "Uint8", "Int8" or a casting function like *ee.Image.toFloat*
+        :param dataType: as downloaded images **must** have the same data type
+            in all bands, you have to set it here. Can be one of: "float",
+            "double", "int", "Uint8", "Int8" or a casting function like
+            *ee.Image.toFloat*
         :type dataType: str
         :return: list of tasks
         :rtype: list
@@ -422,9 +420,11 @@ class ImageCollection(object):
         return tasklist
 
     @staticmethod
-    def toAsset(col, assetPath, scale=30, region=None, create=True, **kwargs):
-        """ Upload all images from one collection to a Earth Engine Asset. You can
-        use the same arguments as the original function ee.batch.export.image.toDrive
+    def toAsset(col, assetPath, scale=30, region=None, create=True,
+                verbose=False, **kwargs):
+        """ Upload all images from one collection to a Earth Engine Asset.
+        You can use the same arguments as the original function
+        ee.batch.export.image.toDrive
 
         :param col: Collection to upload
         :type col: ee.ImageCollection
@@ -438,9 +438,10 @@ class ImageCollection(object):
         :type scale: int
         :param maxImgs: maximum number of images inside the collection
         :type maxImgs: int
-        :param dataType: as downloaded images **must** have the same data type in all
-            bands, you have to set it here. Can be one of: "float", "double", "int",
-            "Uint8", "Int8" or a casting function like *ee.Image.toFloat*
+        :param dataType: as downloaded images **must** have the same data type
+            in all bands, you have to set it here. Can be one of: "float",
+            "double", "int", "Uint8", "Int8" or a casting function like
+            *ee.Image.toFloat*
         :type dataType: str
         :return: list of tasks
         :rtype: list
@@ -473,6 +474,10 @@ class ImageCollection(object):
                                                  region=region,
                                                  scale=scale, **kwargs)
             task.start()
+
+            if verbose:
+                print('Exporting {} to {}'.format(name, assetId))
+
             tasklist.append(task)
 
         return tasklist
@@ -614,8 +619,8 @@ class Execli(object):
 
     def execli(self, function):
         """ This function tries to excecute a client side Earth Engine function
-            and retry as many times as needed. It is meant to use in cases when you
-            cannot access to the original function. See example.
+            and retry as many times as needed. It is meant to use in cases when
+            you cannot access to the original function. See example.
 
         :param function: the function to call TIMES
         :return: the return of function
@@ -653,8 +658,8 @@ class Execli(object):
 
     @staticmethod
     def execli_deco():
-        """ This is a decorating function to excecute a client side Earth Engine
-        function and retry as many times as needed.
+        """ This is a decorating function to excecute a client side Earth
+        Engine function and retry as many times as needed.
         Parameters can be set by modifing module's variables `_execli_trace`,
         `_execli_times` and `_execli_wait`
 
