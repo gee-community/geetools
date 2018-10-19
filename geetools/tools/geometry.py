@@ -25,23 +25,28 @@ def getRegion(eeobject, bounds=False):
     :return: region coordinates ready to use in a client-side EE function
     :rtype: json
     """
+    def dispatch(geometry):
+        info = geometry.getInfo()
+        geomtype = info['type']
+        if geomtype == 'GeometryCollection':
+            geometries = info['geometries']
+            region = []
+            for geom in geometries:
+                this_type = geom['type']
+                if this_type in ['Polygon', 'MultiPolygon', 'Rectangle']:
+                    region.append(geom['coordinates'])
+        else:
+            region = info['coordinates']
+
+        return region
+
     if isinstance(eeobject, ee.Geometry):
-        eeobject = eeobject.bounds() if bounds else eeobject
-        info = eeobject.getInfo()
-        region = info.get("coordinates")
+        geometry = eeobject.bounds() if bounds else eeobject
+        region = dispatch(geometry)
     elif isinstance(eeobject, (ee.Feature, ee.Image,
                                ee.FeatureCollection, ee.ImageCollection)):
-        eeobject = eeobject.geometry().bounds() if bounds else eeobject.geometry()
-        info = eeobject.getInfo()
-        region = info.get("coordinates")
-
-        # Check unbounded
-        if (region == UNBOUNDED or region == UNBOUNDED_2)\
-                and isinstance(eeobject, ee.Image):
-            footprint = info.get('system:footprint')
-            if footprint:
-                region = footprint.get('coordinates')
-
+        geometry = eeobject.geometry().bounds() if bounds else eeobject.geometry()
+        region = dispatch(geometry)
     elif isinstance(eeobject, list):
         condition = all([type(item) == list for item in eeobject])
         if condition:
