@@ -2,9 +2,49 @@
 """ Module holding tools for ee.ImageCollections """
 import ee
 import ee.data
+from . import date
 
 if not ee.data._initialized:
     ee.Initialize()
+
+
+def add(collection, image):
+    """ Add an Image to the Collection
+
+    **SERVER SIDE**
+
+    """
+    # TODO: handle a list of images
+    collist = collection.toList(collection.size())
+    append = collist.add(image)
+    return ee.ImageCollection.fromImages(append)
+
+
+def get_id(collection):
+    """ Get the ImageCollection id.
+
+    **CLIENT SIDE**
+
+    :type collection: ee.ImageCollection
+    :return: the collection's id
+    :rtype: str
+    """
+    return collection.limit(0).getInfo()['id']
+
+
+def wrapper(f, *arg, **kwargs):
+    """ Wrap a function and its arguments into a mapping function for
+    ImageCollections. The first parameter of the functions must be an Image,
+    and it must return an Image.
+
+    :param f: the function to be wrapped
+    :type f: function
+    :return: a function to use in ee.ImageCollection.map
+    :rtype: function
+    """
+    def wrap(img):
+        return f(img, *arg, **kwargs)
+    return wrap
 
 
 def fill_with_last(collection):
