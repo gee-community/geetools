@@ -130,7 +130,7 @@ class Map(ipyleaflet.Map):
         """
         self.layout = Layout(width=width, height=height)
 
-    def move(self, layer_name, direction='up'):
+    def move_layer(self, layer_name, direction='up'):
         ''' Move one step up a layer '''
         names = list(self.EELayers.keys())
         values = list(self.EELayers.values())
@@ -143,7 +143,7 @@ class Map(ipyleaflet.Map):
             dir = 0
 
         if layer_name in names:  # if layer exists
-            # index and value of layer to move
+            # index and value of layer to move_layer
             i = names.index(layer_name)
             condition = (i < len(names)-1) if dir == 1 else (i > 0)
             if condition:  # if layer is not in the edge
@@ -978,11 +978,11 @@ class LayersWidget(ipytools.RealBox):
 
     def on_up(self, button=None):
         if self.EELayer:
-            self.map.move(self.layer.name, 'up')
+            self.map.move_layer(self.layer.name, 'up')
 
     def on_down(self, button=None):
         if self.EELayer:
-            self.map.move(self.layer.name, 'down')
+            self.map.move_layer(self.layer.name, 'down')
 
     def handle_selection(self, change):
         new = change['new']
