@@ -101,7 +101,8 @@ def sequence(ini, end, step=1):
     end = ee.Number(end)
     if step == 0:
         step = 1
-    mod = ee.Number(end).mod(step)
+    amplitude = end.subtract(ini)
+    mod = ee.Number(amplitude).mod(step)
     seq = ee.List.sequence(ini, end, step)
     condition = mod.neq(0)
     final = ee.Algorithms.If(condition, seq.add(end), seq)
