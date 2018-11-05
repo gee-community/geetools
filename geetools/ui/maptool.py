@@ -102,6 +102,7 @@ class Map(folium.Map):
             params = get_image_tile(image, visParams, show, opacity)
             layer = folium.TileLayer(attr=params['attribution'],
                                      name=name,
+                                     opacity=params['opacity'],
                                      overlay=params['overlay'],
                                      tiles=params['url'])
             layer.add_to(self)
