@@ -21,6 +21,12 @@ from copy import copy
 import traceback
 import sys
 
+ZOOM_SCALE = {
+    0: 156543, 1: 78271, 2: 39135, 3: 19567, 4: 9783, 5: 4891, 6: 2445,
+    7: 1222, 8: 611, 9: 305, 10: 152, 11: 76, 12: 38, 13: 19, 14: 9, 15: 5,
+    16: 2, 17: 1, 18: 0.5, 19: 0.3, 20: 0.15, 21: 0.07, 22: 0.03,
+}
+
 
 class Map(ipyleaflet.Map):
     tab_children_dict = Dict()
@@ -758,7 +764,8 @@ class Map(ipyleaflet.Map):
                     # Get the image's values
                     try:
                         image = obj['object']
-                        values = tools.image.get_value(image, point, scale=1,
+                        values = tools.image.get_value(image, point,
+                                                       scale=ZOOM_SCALE[self.zoom],
                                                        side='client')
                         values = tools.dictionary.sort(values)
                         # Create the content
