@@ -1,6 +1,5 @@
 # coding=utf-8
-
-''' Functions for calculation indices '''
+""" Functions for calculation indices """
 from __future__ import print_function
 import ee
 
