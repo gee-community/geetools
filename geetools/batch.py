@@ -13,26 +13,37 @@ if not ee.data._initialized:
 
 
 def recrusive_delete_asset(assetId):
-    try:
-        content = ee.data.getList({'id':assetId})
-    except Exception as e:
-        print(str(e))
-        return
+    info = ee.data.getInfo(assetId)
+    if info:
+        ty = info['type']
+        if ty in ['Image', 'FeatureCollection']:
+            # setting content to 0 will delete the assetId
+            content = 0
+        elif ty in ['Folder', 'ImageCollection']:
+            try:
+                content = ee.data.getList({'id':assetId})
+            except Exception as e:
+                print(str(e))
+                return
+        else:
+            print("Can't handle {} type yet".format(ty))
 
-    if content == 0:
-        # delete empty colletion and/or folder
-        ee.data.deleteAsset(assetId)
+        if content == 0:
+            # delete empty colletion and/or folder
+            ee.data.deleteAsset(assetId)
+        else:
+            for asset in content:
+                path = asset['id']
+                ty = asset['type']
+                if ty == 'Image':
+                    # print('deleting {}'.format(path))
+                    ee.data.deleteAsset(path)
+                else:
+                    recrusive_delete_asset(path)
+            # delete empty collection and/or folder
+            ee.data.deleteAsset(assetId)
     else:
-        for asset in content:
-            path = asset['id']
-            ty = asset['type']
-            if ty == 'Image':
-                # print('deleting {}'.format(path))
-                ee.data.deleteAsset(path)
-            else:
-                recrusive_delete_asset(path)
-        # delete empty collection and/or folder
-        ee.data.deleteAsset(assetId)
+        print('{} does not exists or there is another problem'.format(assetId))
 
 
 def convert_data_type(newtype):
@@ -268,10 +279,12 @@ class Image(object):
         name = name if name else image.id().getInfo()
         # Asset ID (Path + name)
         assetId = '/'.join([assetPath, name])
+        # Description
+        description = name.replace('/','_')
         # Init task
         task = ee.batch.Export.image.toAsset(image, assetId=assetId,
                                              region=region, scale=scale,
-                                             description=name,
+                                             description=description,
                                              **kwargs)
         task.start()
 
