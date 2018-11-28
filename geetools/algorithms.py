@@ -73,6 +73,31 @@ def pansharpen_ihs_fusion(image, pan=None, rgb=None):
 class Landsat(object):
 
     @staticmethod
+    def harmonization(image, sr=True, blue='B2', green='B3', red='B4', nir='B5',
+                      swir1='B6', swir2='B7'):
+        """ Slope and intercept
+
+        Roy, D.P., Kovalskyy, V., Zhang, H.K., Vermote, E.F., Yan, L.,
+        Kumar, S.S, Egorov, A., 2016, Characterization of Landsat-7 to
+        Landsat-8 reflective wavelength and normalized difference vegetation
+        index continuity, Remote Sensing of Environment, 185, 57-70.
+        (http:##dx.doi.org/10.1016/j.rse.2015.12.024) Table 2 -
+        reduced major axis (RMA) regression coefficients
+
+        :param image: A Landsat 8 Image
+        :return:
+        """
+        factor = 10000 if sr else 1
+
+        slopes = ee.Image.constant([0.9785, 0.9542, 0.9825, 1.0073, 1.0171, 0.9949])
+        itcp = ee.Image.constant([-0.0095, -0.0016, -0.0022, -0.0021, -0.0030, 0.0029])
+        return image.select([blue, green, red, nir, swir1, swir2])\
+                    .resample('bicubic')\
+                    .subtract(itcp.multiply(factor)).divide(slopes)\
+                    .set('system:time_start', image.get('system:time_start'))\
+                    .toShort()
+
+    @staticmethod
     def brdf_correct(image, red='red', green='green', blue='blue', nir='nir',
                      swir1='swir1', swir2='swir2', satellite=None):
         """ Correct Landsat data for BRDF effects using a c-factor.
