@@ -107,3 +107,35 @@ def sequence(ini, end, step=1):
     condition = mod.neq(0)
     final = ee.Algorithms.If(condition, seq.add(end), seq)
     return ee.List(final)
+
+
+def removeIndex(list, index):
+    list = ee.List(list)
+    index = ee.Number(index)
+    size = list.size()
+
+    def allowed():
+        def zerof(list):
+            return list.slice(1, list.size())
+
+        def rest(list, index):
+            list = ee.List(list)
+            index = ee.Number(index)
+            last = index.eq(list.size())
+
+            def lastf(list):
+                return list.slice(0, list.size().subtract(1))
+
+            def restf(list, index):
+                list = ee.List(list)
+                index = ee.Number(index)
+                first = list.slice(0, index)
+                return first.cat(list.slice(index.add(1), list.size()))
+
+            return ee.List(ee.Algorithms.If(last, lastf(list), restf(list, index)))
+
+        return ee.List(ee.Algorithms.If(index, rest(list, index), zerof(list)))
+
+    condition = index.gte(size).Or(index.lt(0))
+
+    return ee.List(ee.Algorithms.If(condition, -1, allowed()))
