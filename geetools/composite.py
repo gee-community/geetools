@@ -8,17 +8,33 @@ if not ee.data._initialized:
 
 from . import today
 from . import tools
+from . import algorithms
+from .collection import Landsat
 
 
-def highest_qa(collection, qa_band):
-    """ Simple composite with the highest values for the qa_band
+def medoid(collection, bands=None):
+    """ Medoid Mosaic """
 
-    :type collection: ee.ImageCollection
-    :param qa_band: quality band
-    :type qa_band: str
-    :return:
-    """
-    return collection.qualityMosaic(qa_band)
+    first_image = ee.Image(collection.first())
+    ibands = first_image.bandNames()
+
+    bands = bands if bands else ibands
+    collection = collection.select(bands)
+
+    enumerated = tools.imagecollection.enumerateProperty(collection)
+    collist = enumerated.toList(enumerated.size())
+
+    def over_list(im):
+        im = ee.Image(im)
+        n = ee.Number(im.get('enumeration'))
+        filtered = tools.ee_list.removeIndex(collist, n)
+        dist = algorithms.sum_distance(im, filtered).multiply(-1)
+        return im.addBands(dist)
+
+    imlist = ee.List(collist.map(over_list))
+
+    medcol = ee.ImageCollection.fromImages(imlist)
+    return medcol.qualityMosaic('sumdist')
 
 
 def closest_date(collection, target_date, mask_band=None, property_name=None,
