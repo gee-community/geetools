@@ -5,6 +5,8 @@ import ee.data
 import shapefile
 import json
 
+from . import collection as eecollection
+
 if not ee.data._initialized:
     ee.Initialize()
 
@@ -19,6 +21,25 @@ GEOMETRY_TYPES = {
     'Rectangle': ee.geometry.Geometry.Rectangle,
     'GeometryCollection': ee.geometry.Geometry,
 }
+
+
+def enumerateProperty(col, name='enumeration'):
+    """
+
+    :param col:
+    :param name:
+    :return:
+    """
+    enumerated = eecollection.enumerate(col)
+
+    def over_list(l):
+        l = ee.List(l)
+        index = ee.Number(l.get(0))
+        element = l.get(1)
+        return ee.Feature(element).set(name, index)
+
+    featlist = enumerated.map(over_list)
+    return ee.FeatureCollection(featlist)
 
 
 def get_projection(filename):

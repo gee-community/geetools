@@ -3,6 +3,7 @@
 import ee
 import ee.data
 from . import date
+from . import collection as eecollection
 
 if not ee.data._initialized:
     ee.Initialize()
@@ -45,6 +46,25 @@ def wrapper(f, *arg, **kwargs):
     def wrap(img):
         return f(img, *arg, **kwargs)
     return wrap
+
+
+def enumerateProperty(collection, name='enumeration'):
+    """
+
+    :param collection:
+    :param name:
+    :return:
+    """
+    enumerated = eecollection.enumerate(collection)
+
+    def over_list(l):
+        l = ee.List(l)
+        index = ee.Number(l.get(0))
+        element = l.get(1)
+        return ee.Image(element).set(name, index)
+
+    imlist = enumerated.map(over_list)
+    return ee.ImageCollection(imlist)
 
 
 def fill_with_last(collection):
