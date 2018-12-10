@@ -78,7 +78,7 @@ def unit_since_epoch(date, unit='day'):
     return date.difference(epoch, unit).toInt()
 
 
-def get_date_band(img, unit='day', bandname='date'):
+def get_date_band(img, unit='day', bandname='date', property_name=None):
     """ Get a date band from an image representing units since epoch
 
     :param img: the Image
