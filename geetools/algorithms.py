@@ -4,9 +4,185 @@ import ee
 import ee.data
 import math
 from . import satellite as satmodule
+from . import tools
 
 if not ee.data._initialized:
     ee.Initialize()
+
+
+def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
+                     scale=None, geometry=None, band_name='distance_to_mask'):
+    """ Compute the distance to the mask in meters
+
+    :param image: Image holding the mask
+    :type image: ee.Image
+    :param kernel: Kernel to use for computing the distance. By default uses
+        euclidean
+    :type kernel: ee.Kernel
+    :param radius: radius for the kernel. Defaults to 1000
+    :type radius: int
+    :param unit: units for the kernel radius. Defaults to 'meters'
+    :type unit: str
+    :param scale: scale for reprojection. If None, will reproject on the fly
+        (according to EE lazy computing)
+    :type scale: int
+    :param geometry: compute the distance only inside this geometry. If you
+        want to compute the distance inside a clipped image, using this
+        parameter will make the edges not be considered as a mask.
+    :type geometry: ee.Geometry or ee.Feature
+    :param band_name: name of the resulting band. Defaults to
+        'distance_to_mask'
+    :type band_name: str
+    :return: A one band image with the distance to the mask
+    :rtype: ee.Image
+    """
+    if not kernel:
+        kernel = ee.Kernel.euclidean(radius, unit)
+
+    # select first band
+    image = image.select(0)
+
+    # get mask
+    mask = image.mask()
+    inverse = mask.Not()
+
+    if geometry:
+        # manage geometry types
+        if isinstance(geometry, (ee.Feature, ee.FeatureCollection)):
+            geometry = geometry.geometry()
+
+        inverse = inverse.clip(geometry)
+
+    # Compute distance to the mask (inverse)
+    distance = inverse.distance(kernel)
+
+    if scale:
+        proj = image.projection()
+        distance = distance.reproject(proj.atScale(scale))
+
+    # make mask to be the max distance
+    dist_mask = distance.mask().Not().remap([0, 1], [0, radius])
+
+    if geometry:
+        dist_mask = dist_mask.clip(geometry)
+
+    final = distance.unmask().add(dist_mask)
+
+    return final.rename(band_name)
+
+
+def mask_cover(image, geometry=None, scale=1000,
+               property_name='MASK_COVER', max_pixels=1e13):
+    """ Percentage of masked pixels (masked/total * 100) as an Image property
+
+    :param image: ee.Image holding the mask. If the image has more than
+        one band, the first one will be used
+    :type image: ee.Image
+    :param geometry: the value will be computed inside this geometry. If None,
+        will use image boundaries. If unbounded the result will be 0
+    :type geometry: ee.Geometry or ee.Feature
+    :param scale: the scale of the mask
+    :type scale: int
+    :param property_name: the name of the resulting property
+    :type property_name: str
+    :return: The same parsed image with a new property holding the mask cover
+        percentage
+    :rtype: ee.Image
+    """
+    # keep only first band
+    image = image.select(0)
+
+    # get projection
+    projection = image.projection()
+
+    # get band name
+    band = ee.String(image.bandNames().get(0))
+
+    # Make an image with all ones
+    ones_i = ee.Image.constant(1).reproject(projection).rename(band)
+
+    if not geometry:
+        geometry = image.geometry()
+
+    unbounded = geometry.isUnbounded()
+
+    # manage geometry types
+    if isinstance(geometry, (ee.Feature, ee.FeatureCollection)):
+        geometry = geometry.geometry()
+
+    # Get total number of pixels
+    ones = ones_i.reduceRegion(
+        reducer= ee.Reducer.count(),
+        geometry= geometry,
+        scale= scale,
+        maxPixels= max_pixels).get(band)
+    ones = ee.Number(ones)
+
+    # select first band, unmask and get the inverse
+    mask = image.mask()
+    mask_not = mask.Not()
+    image_to_compute = mask.updateMask(mask_not)
+
+    # Get number of zeros in the given image
+    zeros_in_mask =  image_to_compute.reduceRegion(
+        reducer= ee.Reducer.count(),
+        geometry= geometry,
+        scale= scale,
+        maxPixels= max_pixels).get(band)
+    zeros_in_mask = ee.Number(zeros_in_mask)
+
+    percentage = tools.number.trim_decimals(zeros_in_mask.divide(ones), 4)
+
+    # Multiply by 100
+    cover = percentage.multiply(100)
+
+    # Return None if geometry is unbounded
+    final = ee.Number(ee.Algorithms.If(unbounded, 0, cover))
+
+    return image.set(property_name, final)
+
+
+def euclidean_distance(image1, image2, name='distance'):
+    """ Compute the Euclidean distance between two images. The image's bands
+    is the dimension of the arrays.
+
+    :param image1:
+    :type image1: ee.Image
+    :param image2:
+    :type image2: ee.Image
+    :return: a distance image
+    :rtype: ee.Image
+    """
+    bandsi = image1.bandNames()
+
+    proxy = tools.image.empty(0, bandsi)
+    image1 = proxy.where(image1.gt(0), image1)
+    image2 = proxy.where(image2.gt(0), image2)
+
+    return image1.subtract(image2).pow(2).reduce('sum').rename(name)
+
+
+def sum_distance(image, collection):
+    """ Compute de sum of all distances between the given image and the
+    collection passed
+    
+    :param image: 
+    :param collection:
+    :return: 
+    """
+    condition = isinstance(collection, ee.ImageCollection)
+
+    if condition:
+        collection = collection.toList(collection.size())
+
+    accum = ee.Image(0).rename('sumdist')
+
+    def over_rest(im, ini):
+        im = ee.Image(im)
+        dist = ee.Image(euclidean_distance(image, im)).rename('sumdist')
+        return accum.add(dist)
+
+    return ee.Image(collection.iterate(over_rest, accum))
 
 
 def pansharpen_kernel(image, pan, rgb=None, kernel=None):
@@ -71,6 +247,31 @@ def pansharpen_ihs_fusion(image, pan=None, rgb=None):
 
 
 class Landsat(object):
+
+    @staticmethod
+    def harmonization(image, sr=True, blue='B2', green='B3', red='B4', nir='B5',
+                      swir1='B6', swir2='B7'):
+        """ Slope and intercept
+
+        Roy, D.P., Kovalskyy, V., Zhang, H.K., Vermote, E.F., Yan, L.,
+        Kumar, S.S, Egorov, A., 2016, Characterization of Landsat-7 to
+        Landsat-8 reflective wavelength and normalized difference vegetation
+        index continuity, Remote Sensing of Environment, 185, 57-70.
+        (http:##dx.doi.org/10.1016/j.rse.2015.12.024) Table 2 -
+        reduced major axis (RMA) regression coefficients
+
+        :param image: A Landsat 8 Image
+        :return:
+        """
+        factor = 10000 if sr else 1
+
+        slopes = ee.Image.constant([0.9785, 0.9542, 0.9825, 1.0073, 1.0171, 0.9949])
+        itcp = ee.Image.constant([-0.0095, -0.0016, -0.0022, -0.0021, -0.0030, 0.0029])
+        return image.select([blue, green, red, nir, swir1, swir2])\
+                    .resample('bicubic')\
+                    .subtract(itcp.multiply(factor)).divide(slopes)\
+                    .set('system:time_start', image.get('system:time_start'))\
+                    .toShort()
 
     @staticmethod
     def brdf_correct(image, red='red', green='green', blue='blue', nir='nir',

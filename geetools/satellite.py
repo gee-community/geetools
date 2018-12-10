@@ -119,35 +119,54 @@ class Satellite(object):
             msg = 'band {} not founds in collection {}'
             raise ValueError(msg.format(band, self.col_id))
 
+BANDS_RELATION = {
+    "LANDSAT_8":
+        {
+            'blue': 'B2',
+            'green': 'B3',
+            'red': 'B4',
+            'nir': 'B5',
+            'swir': 'B6',
+            'swir2': 'B7',
+            'thermal': 'B10',
+            'thermal2': 'B11'
+        },
+    "LANDSAT_4":
+        {
+            'blue': 'B1',
+            'green': 'B2',
+            'red': 'B3',
+            'nir': 'B4',
+            'swir': 'B5',
+            'swir2': 'B7',
+            'thermal': 'B6'
+        }
+
+}
+
+BAND_SCALES = {
+    "LANDSAT_8":
+        {
+        'B1': 30,
+        'B2': 30,
+        'B3': 30,
+        'B4': 30,
+        'B5': 30,
+        'B6': 30,
+        'B7': 30,
+        'B10': 30,
+        'B11': 30,
+        'pixel_qa': 30,
+        'sr_aerosol': 30,
+        'radsat_qa': 30}
+}
 
 LANDSAT_8_SR = {
     'LANDSAT/LC08/C01/T1_SR': {
         'short_id': 'LANDSAT_8_SR',
         'band_names': Satellite('LANDSAT/LC08/C01/T1_SR').band_names,
-        'bands': {
-            'blue': 'B2',
-            'green': 'B3',
-            'red': 'B4',
-            'nir': 'B5',
-            'swir1': 'B6',
-            'swir2': 'B7',
-            'thermal1': 'B10',
-            'thermal2': 'B11'
-        },
-        'band_resolution': {
-            'B1': 30,
-            'B2': 30,
-            'B3': 30,
-            'B4': 30,
-            'B5': 30,
-            'B6': 30,
-            'B7': 30,
-            'B10': 30,
-            'B11': 30,
-            'pixel_qa': 30,
-            'sr_aerosol': 30,
-            'radsat_qa': 30
-        },
+        'bands': BANDS_RELATION['LANDSAT_8'],
+        'band_resolution': BAND_SCALES['LANDSAT_8'],
         'extra_bands': {},
         'property_names': Satellite('LANDSAT/LC08/C01/T1_SR').property_names,
         'cloud_cover': {
@@ -176,6 +195,7 @@ LANDSAT_8_SR = {
         'end': today()
     }
 }
+
 LANDSAT_7_SR = {
     'LANDSAT/LE07/C01/T1_SR': {
         'short_id': 'LANDSAT_7_SR',

@@ -65,7 +65,7 @@ def daterange_list(start_date, end_date, interval=1, unit='month'):
 
 
 def unit_since_epoch(date, unit='day'):
-    """ Return the number of days since the epoch (1970-1-1)
+    """ Return the number of units since the epoch (1970-1-1)
 
     :param date: the date
     :type date: ee.Date
@@ -92,9 +92,10 @@ def get_date_band(img, unit='day', bandname='date', property_name=None):
     date = img.date()
     diff = unit_since_epoch(date, unit)
     datei = ee.Image.constant(diff).rename(bandname)
-    attr_name = '{}_since_epoch'.format(unit)
+    if not property_name:
+        property_name = '{}_since_epoch'.format(unit)
 
-    datei_attr = datei.set(attr_name, diff).toInt()
+    datei_attr = datei.set(property_name, diff).toInt()
 
     return datei_attr.copyProperties(img, ['system:footprint'])
 

@@ -242,6 +242,43 @@ class BitReader(object):
                 result.append(cat)
         return result
 
+    def decode_image(self, qa_band, image):
+        """ Get an Image with one band per category in the Bit Reader
+
+        :param bit_reader: the bit reader
+        :type bit_reader: BitReader
+        :param qa_band: name of the band that holds the bit information
+        :type qa_band: str
+        :return: a function to map over a collection. The function adds all
+            categories masks as new bands
+        """
+        options = ee.Dictionary(self.info)
+        categories = ee.List(self.all_categories)
+
+        def eachcat(cat, ini):
+            ini = ee.Image(ini)
+            qa = ini.select(qa_band)
+            # get data for category
+            data = ee.Dictionary(options.get(cat))
+            lshift = ee.Number(data.get('lshift'))
+            length = ee.Number(data.get('bit_length'))
+            decoded = ee.Number(data.get('shifted'))
+            # move = places to move bits right and left back
+            move = lshift.add(length)
+            # move bits right and left
+            rest = qa.rightShift(move).leftShift(move)
+            # subtract the rest
+            norest = qa.subtract(rest)
+            # right shift to compare with decoded data
+            to_compare = norest.rightShift(lshift) ## Image
+            # compare if is equal, return 0 if not equal, 1 if equal
+            mask = to_compare.eq(decoded)
+            # rename to the name of the category
+            qa_mask = mask.select([0], [cat])
+
+            return ini.addBands(qa_mask)
+        return ee.Image(categories.iterate(eachcat, image))
+
     def match(self, value, category):
         """ given a value and a category return True if the value includes
         that category, else False """

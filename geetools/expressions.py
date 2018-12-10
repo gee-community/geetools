@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-''' Expression generator for Google Earth Engine '''
+""" Expression generator for Google Earth Engine """
 from __future__ import print_function
 
-class ExpGen(object):
+
+class Expression(object):
     def __init__(self):
         pass
 

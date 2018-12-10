@@ -21,6 +21,12 @@ from copy import copy
 import traceback
 import sys
 
+ZOOM_SCALE = {
+    0: 156543, 1: 78271, 2: 39135, 3: 19567, 4: 9783, 5: 4891, 6: 2445,
+    7: 1222, 8: 611, 9: 305, 10: 152, 11: 76, 12: 38, 13: 19, 14: 9, 15: 5,
+    16: 2, 17: 1, 18: 0.5, 19: 0.3, 20: 0.15, 21: 0.07, 22: 0.03,
+}
+
 
 class Map(ipyleaflet.Map):
     tab_children_dict = Dict()
@@ -34,6 +40,11 @@ class Map(ipyleaflet.Map):
         kwargs.setdefault('max_zoom', 22)
         super(Map, self).__init__(**kwargs)
         self.is_shown = False
+
+        # Width and Height
+        self.width = kwargs.get('width', None)
+        self.height = kwargs.get('height', None)
+        self.set_dimensions(self.width, self.height)
 
         # Correct base layer name
         baselayer = self.layers[0]
@@ -116,10 +127,19 @@ class Map(ipyleaflet.Map):
             copyEELayers.pop(name)
         self.EELayers = copyEELayers
 
-    def move(self, layer_name, direction='up'):
+    def set_dimensions(self, width=None, height=None):
+        """ Set the dimensions for the map
+
+        :param width:
+        :param height:
+        :return:
+        """
+        self.layout = Layout(width=width, height=height)
+
+    def move_layer(self, layer_name, direction='up'):
         ''' Move one step up a layer '''
-        names = self.EELayers.keys()
-        values = self.EELayers.values()
+        names = list(self.EELayers.keys())
+        values = list(self.EELayers.values())
 
         if direction == 'up':
             dir = 1
@@ -129,7 +149,7 @@ class Map(ipyleaflet.Map):
             dir = 0
 
         if layer_name in names:  # if layer exists
-            # index and value of layer to move
+            # index and value of layer to move_layer
             i = names.index(layer_name)
             condition = (i < len(names)-1) if dir == 1 else (i > 0)
             if condition:  # if layer is not in the edge
@@ -744,7 +764,8 @@ class Map(ipyleaflet.Map):
                     # Get the image's values
                     try:
                         image = obj['object']
-                        values = tools.image.get_value(image, point, scale=1,
+                        values = tools.image.get_value(image, point,
+                                                       scale=ZOOM_SCALE[self.zoom],
                                                        side='client')
                         values = tools.dictionary.sort(values)
                         # Create the content
@@ -964,11 +985,11 @@ class LayersWidget(ipytools.RealBox):
 
     def on_up(self, button=None):
         if self.EELayer:
-            self.map.move(self.layer.name, 'up')
+            self.map.move_layer(self.layer.name, 'up')
 
     def on_down(self, button=None):
         if self.EELayer:
-            self.map.move(self.layer.name, 'down')
+            self.map.move_layer(self.layer.name, 'down')
 
     def handle_selection(self, change):
         new = change['new']

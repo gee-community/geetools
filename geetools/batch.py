@@ -622,6 +622,8 @@ class FeatureCollection(object):
         return thefile
 
 
+        return thefile
+
 class Execli(object):
     """ Class to hold the methods to retry calls to Earth Engine """
 

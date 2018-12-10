@@ -8,6 +8,7 @@ from traitlets import List, Unicode, observe, Instance, Tuple, Int, Float
 from .. import batch
 
 # imports for async widgets
+from threading import Thread
 from multiprocessing import Pool
 import time
 
@@ -321,9 +322,9 @@ class AssetManager(VBox):
 
         def handle_yes(button):
             self.children = [self.header, output]
-            pool = Pool(self.POOL_SIZE)
             # pool = pp.ProcessPool(self.POOL_SIZE)
             if selected:
+                assets = [ass for ass in selected.keys()]
                 ''' OLD
                 for asset, ty in selected.items():
                     recrusive_delete_asset_to_widget(asset, output)
@@ -337,11 +338,17 @@ class AssetManager(VBox):
                 # pool.close()
                 # pool.join()
                 '''
-                assets = [ass for ass in selected.keys()]
+                ''' Pool way (not good)
+                pool = Pool(self.POOL_SIZE)
                 pool.map(batch.recrusive_delete_asset, assets)
                 # TODO: cant map recrusive_delete_asset_to_widget because the passed widget is not pickable
                 pool.close()
                 pool.join()
+                '''
+                for assetid in assets:
+                    thread = Thread(target=batch.recrusive_delete_asset,
+                                    args=(assetid,))
+                    thread.start()
 
             # when deleting end, reload
             self.reload()
@@ -429,7 +436,7 @@ class AssetManager(VBox):
         # self.widgets = widgets
         asset_acc = CheckAccordion(widgets=widgets)
 
-        # TODO: set handler for title's checkbox: select all checkboxes
+        # TODO: set handler for title's checkbox: select all checkboxes (DONE)
 
         # set titles
         for i, (title, ty) in enumerate(zip(ids, types)):
@@ -444,18 +451,23 @@ class AssetManager(VBox):
                 wid = self.core(path)
             else:
                 image = ee.Image(path)
-                info = image.getInfo()
+                try:
+                    info = image.getInfo()
+                    width = int(info['bands'][0]['dimensions'][0])
+                    height = int(info['bands'][0]['dimensions'][1])
 
-                width = int(info['bands'][0]['dimensions'][0])
-                height = int(info['bands'][0]['dimensions'][1])
+                    new_width = int(self.thumb_height/height*width)
 
-                new_width = int(self.thumb_height)/height*width
+                    thumb = image.getThumbURL({'dimensions':[new_width,
+                                                             self.thumb_height]})
+                    # wid = ImageWid(value=thumb)
+                    wid_i = HTML('<img src={}>'.format(thumb))
+                    wid_info = create_accordion(info)
+                    wid = HBox(children=[wid_i, wid_info])
+                except Exception as e:
+                    message = str(e)
+                    wid = HTML(message)
 
-                thumb = image.getThumbURL({'dimensions':[new_width, self.thumb_height]})
-                # wid = ImageWid(value=thumb)
-                wid_i = HTML('<img src={}>'.format(thumb))
-                wid_info = create_accordion(info)
-                wid = HBox(children=[wid_i, wid_info])
             asset_acc.set_widget(index, wid)
 
         def handle_checkbox(change):
