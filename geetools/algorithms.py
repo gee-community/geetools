@@ -11,7 +11,8 @@ if not ee.data._initialized:
 
 
 def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
-                     scale=None, geometry=None, band_name='distance_to_mask'):
+                     scale=None, geometry=None, band_name='distance_to_mask',
+                     normalize=False):
     """ Compute the distance to the mask in meters
 
     :param image: Image holding the mask
@@ -33,6 +34,8 @@ def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
     :param band_name: name of the resulting band. Defaults to
         'distance_to_mask'
     :type band_name: str
+    :param normalize: Normalize result (between 0 and 1)
+    :type normalize: bool
     :return: A one band image with the distance to the mask
     :rtype: ee.Image
     """
@@ -67,6 +70,9 @@ def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
         dist_mask = dist_mask.clip(geometry)
 
     final = distance.unmask().add(dist_mask)
+
+    if normalize:
+        final = tools.image.parametrize(final, (0, radius), (0, 1))
 
     return final.rename(band_name)
 
