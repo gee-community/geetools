@@ -163,8 +163,9 @@ def reduce_equal_interval(collection, region, reducer=None, start_date=None,
     return ee.ImageCollection.fromImages(imlist)
 
 
-def get_values(collection, geometry, reducer=ee.Reducer.mean(), scale=None,
-               id='system:index', properties=None, side='server'):
+def get_values(collection, geometry, scale=None, reducer=ee.Reducer.mean(),
+               id='system:index', properties=None, side='server',
+               maxPixels=1e9):
     """ Return all values of all bands of an image collection in the
         specified geometry
 
@@ -211,7 +212,8 @@ def get_values(collection, geometry, reducer=ee.Reducer.mean(), scale=None,
 
     def listval(img, it):
         theid = ee.String(transform(img.get(id)))
-        values = img.reduceRegion(reducer, geometry, scale)
+        values = img.reduceRegion(reducer, geometry, scale,
+                                  maxPixels=maxPixels)
         values = ee.Dictionary(values)
         img_props = img.propertyNames()
 
