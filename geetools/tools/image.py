@@ -11,6 +11,55 @@ if not ee.data._initialized:
     ee.Initialize()
 
 
+def _add_suffix_prefix(image, value, option, bands=None):
+    """ Internal function to handle addPrefix and addSuffix """
+    if bands:
+        bands = ee.List(bands)
+
+    addon = ee.String(value)
+
+    allbands = image.bandNames()
+    bands_ = ee.List(ee.Algorithms.If(bands, bands, allbands))
+
+    def over_bands(band, first):
+        all = ee.List(first)
+        options = ee.Dictionary({
+            'suffix': ee.String(band).cat(addon),
+            'prefix': addon.cat(ee.String(band))
+        })
+        return all.replace(band, ee.String(options.get(option)))
+
+    newbands = bands_.iterate(over_bands, allbands)
+    newbands = ee.List(newbands)
+    return image.select(allbands, newbands)
+
+
+def addSuffix(image, suffix, bands=None):
+    """ Add a suffix to the specified bands
+
+    :param suffix: the value to add as a suffix
+    :type suffix: str
+    :param bands: the bands to apply the suffix. If None, suffix will fill
+        all bands
+    :type bands: list
+    :rtype: ee.Image
+    """
+    return _add_suffix_prefix(image, suffix, 'suffix', bands)
+
+
+def addPrefix(image, prefix, bands=None):
+    """ Add a prefix to the specified bands
+
+    :param prefix: the value to add as a prefix
+    :type prefix: str
+    :param bands: the bands to apply the prefix. If None, prefix will fill
+        all bands
+    :type bands: list
+    :rtype: ee.Image
+    """
+    return _add_suffix_prefix(image, prefix, 'prefix', bands)
+
+
 def empty(value=0, names=None, from_dict=None):
     """ Create a constant image with the given band names and value, and/or
     from a dictionary of {name: value}
@@ -123,6 +172,15 @@ def renameDict(image, names):
     return image.select(bandnames, newnames)
 
 
+def removeBands(image, bands):
+    """ Remove the specified bands from an image """
+    bnames = image.bandNames()
+    bands = ee.List(bands)
+    inter = ee_list.intersection(bnames, bands)
+    diff = bnames.removeAll(inter)
+    return image.select(diff)
+
+
 def parametrize(image, range_from, range_to, bands=None):
     """ Parametrize from a original known range to a fixed new range
 
@@ -159,16 +217,16 @@ def parametrize(image, range_from, range_to, bands=None):
     rango1 = max1.subtract(min1)
 
     # all bands
-    todas = image.bandNames()
+    all = image.bandNames()
 
     # bands to parametrize
     if bands:
-        bandasEE = ee.List(bands)
+        bands_ee = ee.List(bands)
     else:
-        bandasEE = image.bandNames()
+        bands_ee = image.bandNames()
 
-    inter = ee_list.intersection(bandasEE, todas)
-    diff = ee_list.difference(todas, inter)
+    inter = ee_list.intersection(bands_ee, all)
+    diff = ee_list.difference(all, inter)
     image_ = image.select(inter)
 
     # Percentage corresponding to the actual value
@@ -417,6 +475,72 @@ def good_pix(image, retain=None, drop=None, name='good_pix'):
     final = not_bad_not_good.bitwiseXor(final_drop)
 
     return final.select([0], [name])
+
+
+def toGrid(image, size=1, band=None, geometry=None):
+    """ Create a grid from pixels in an image. Results may depend on the image
+    projection. Work fine in Landsat imagery.
+
+    IMPORTANT: This grid is not perfect, it can be misplaced and have some
+    holes due to projection.
+
+    :param image: the image
+    :type image: ee.Image
+    :param size: the size of each cell, according to:
+        - 1: 1 pixel
+        - 2: 9 pixels (3x3)
+        - 3: 25 pixels (5x5)
+        - and so on..
+    :type size: int
+    :param band: the band to get the projection (and so, the scale) from. If
+        None, the first one will be used
+    :type band: str
+    :param geometry: the geometry where the grid will be computed. If the image
+        is unbounded this parameter must be set in order to work. If None,
+        the image geometry will be used if not unbounded.
+    :type geometry: ee.Geometry or ee.Feature
+    """
+    band = band if band else 0
+    iband = image.select(band)
+
+    if geometry:
+        if isinstance(geometry, ee.Feature):
+            geometry = geometry.geometry()
+    else:
+        geometry = image.geometry()
+
+    projection = iband.projection()
+    scale = projection.nominalScale()
+    scale = scale.multiply((int(size)*2)-1)
+    buffer = scale.divide(2)
+
+    # get coordinates image
+    latlon = ee.Image.pixelLonLat().reproject(projection)
+
+    # put each lon lat in a list
+    coords = latlon.select(['longitude', 'latitude'])
+
+    coords = coords.reduceRegion(
+        reducer= ee.Reducer.toList(),
+        geometry= geometry.buffer(scale),
+        scale= scale)
+
+    # get lat & lon
+    lat = ee.List(coords.get('latitude'))
+    lon = ee.List(coords.get('longitude'))
+
+    # zip them. Example: zip([1, 3],[2, 4]) --> [[1, 2], [3,4]]
+    point_list = lon.zip(lat)
+
+    def over_list(p):
+        p = ee.List(p)
+        point = ee.Geometry.Point(p).buffer(buffer).bounds()
+        return ee.Feature(point)
+
+    # make grid
+    fc = ee.FeatureCollection(point_list.map(over_list))
+
+    return fc
 
 
 class Mapping(object):
