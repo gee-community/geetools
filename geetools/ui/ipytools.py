@@ -49,22 +49,66 @@ def create_object_output(object):
     if ty == 'Image':
         info = object.getInfo()
         image_id = info['id'] if 'id' in info else 'No Image ID'
-        prop = info['properties']
-        bands = info['bands']
-        bands_names = [band['id'] for band in bands]
-        bands_types = [band['data_type']['precision'] for band in bands]
-        bands_crs = [band['crs'] for band in bands]
-        new_band_names = ['<li>{} - {} - {}</li>'.format(name, ty, epsg) for name, ty, epsg in zip(bands_names, bands_types, bands_crs)]
-        new_properties = ['<li><b>{}</b>: {}</li>'.format(key, val) for key, val in prop.items()]
+        prop = info.get('properties')
+        bands = info.get('bands')
+        bands_names = [band.get('id') for band in bands]
 
-        header = HTML('<b>Image id:</b> {id} </br>'.format(id=image_id))
+        # BAND PRECISION
+        bands_precision = []
+        for band in bands:
+            data = band.get('data_type')
+            if data:
+                precision = data.get('precision')
+                bands_precision.append(precision)
+
+        # BAND CRS
+        bands_crs = []
+        for band in bands:
+            crs = band.get('crs')
+            bands_crs.append(crs)
+
+        # BAND MIN AND MAX
+        bands_min = []
+        for band in bands:
+            data = band.get('data_type')
+            if data:
+                bmin = data.get('min')
+                bands_min.append(bmin)
+
+        bands_max = []
+        for band in bands:
+            data = band.get('data_type')
+            if data:
+                bmax = data.get('max')
+                bands_max.append(bmax)
+
+        # BANDS
+        new_band_names = []
+        zipped_data = zip(bands_names, bands_precision, bands_min, bands_max,
+                          bands_crs)
+        for name, ty, mn, mx, epsg in zipped_data:
+            value = '<li><b>{}</b> ({}) {} to {} - {}</li>'.format(name,ty,
+                                                                   mn,mx,epsg)
+            new_band_names.append(value)
         bands_wid = HTML('<ul>'+''.join(new_band_names)+'</ul>')
-        prop_wid = HTML('<ul>'+''.join(new_properties)+'</ul>')
+
+        # PROPERTIES
+        if prop:
+            new_properties = []
+            for key, val in prop.items():
+                value = '<li><b>{}</b>: {}</li>'.format(key, val)
+                new_properties.append(value)
+            prop_wid = HTML('<ul>'+''.join(new_properties)+'</ul>')
+        else:
+            prop_wid = HTML('Image has no properties')
+
+        # ID
+        header = HTML('<b>Image id:</b> {id} </br>'.format(id=image_id))
 
         acc = Accordion([bands_wid, prop_wid])
         acc.set_title(0, 'Bands')
         acc.set_title(1, 'Properties')
-        acc.selected_index = None # this will unselect all
+        acc.selected_index = None # thisp will unselect all
 
         return VBox([header, acc])
     elif ty == 'FeatureCollection':
@@ -81,7 +125,11 @@ def create_object_output(object):
 
 
 def create_async_output(object, widget):
-    child = create_object_output(object)
+    try:
+        child = create_object_output(object)
+    except Exception as e:
+        child = HTML('There has been an error: {}'.format(str(e)))
+
     widget.children = [child]
 
 
