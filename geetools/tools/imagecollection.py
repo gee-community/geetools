@@ -106,41 +106,41 @@ def fill_with_last(collection):
     return ee.ImageCollection.fromImages(newcol)
 
 
-def reduce_equal_interval(collection, region, reducer=None, start_date=None,
-                          end_date=None, interval=30, unit='day',
-                          qa_band=None):
+def reduce_equal_interval(collection, interval=30, unit='day', reducer=None,
+                          start_date=None, end_date=None):
     """ Reduce an ImageCollection into a new one that has one image per
         reduced interval, for example, one image per month.
 
-    :param collection:
-    :param region:
-    :param reducer:
-    :param start_date:
-    :param end_date:
-    :param interval:
-    :param unit:
-    :param qa_band:
+    :param collection: the collection
+    :type collection: ee.ImageCollection
+    :param interval: the interval to reduce
+    :type interval: int
+    :param unit: unit of the interval. Can be 'day', 'month', 'year'
+    :param reducer: the reducer to apply where images overlap. If None, uses
+        a median reducer
+    :type reducer: ee.Reducer
+    :param start_date: fix the start date. If None, uses the date of the first
+        image in the collection
+    :type start_date: ee.Date
+    :param end_date: fix the end date. If None, uses the date of the last image
+        in the collection
+    :type end_date: ee.Date
     :return:
     """
-    collection = collection.filterBounds(region)
+    interval = int(interval)  # force to int
     first = ee.Image(collection.sort('system:time_start').first())
-    last = ee.Image(collection.sort('system:time_start', False).first())
+    bands = first.bandNames()
 
     if not start_date:
         start_date = first.date()
     if not end_date:
+        last = ee.Image(collection.sort('system:time_start', False).first())
         end_date = last.date()
-    if not qa_band:
-        qa_band = ee.String(ee.Image(collection.first()).bandNames().get(0))
+    if not reducer:
+        reducer = ee.Reducer.median()
 
-    def apply_reducer(reducer, col):
-        return ee.Image(col.reduce(reducer))
-
-    def apply_function(func, col):
-        return
-
-    def default_function(col, qa_band):
-        return ee.Image(col.qualityMosaic(qa_band))
+    def apply_reducer(red, col):
+        return ee.Image(col.reduce(red))
 
     ranges = date.daterange_list(start_date, end_date, interval, unit)
 
@@ -152,8 +152,12 @@ def reduce_equal_interval(collection, region, reducer=None, start_date=None,
         filtered = collection.filterDate(start, end)
         condition = ee.Number(filtered.size()).gt(0)
         def true():
-            image = apply_function(reducer, filtered)\
-                    .set('system:time_start', end.millis())
+            image = apply_reducer(reducer, filtered)\
+                    .set('system:time_start', end.millis())\
+                    .set('reduced_from', start.format())\
+                    .set('reduced_to', end.format())
+            # rename to original names
+            image = image.select(image.bandNames(), bands)
             result = ini.add(image)
             return result
         return ee.List(ee.Algorithms.If(condition, true(), ini))
