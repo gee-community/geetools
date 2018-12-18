@@ -61,6 +61,9 @@ def closest_date(collection, target_date, mask_band=None, property_name=None,
         to the central image (closest to passed date)
     :type property_name: str
     """
+    # Merge images from a single day
+    collection = tools.imagecollection.reduce_equal_interval(collection, 1)
+
     # HELPER
     def get_mask(img):
         """ Get a mask whether the passed image is already a mask or is a
