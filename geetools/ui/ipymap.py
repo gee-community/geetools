@@ -943,6 +943,7 @@ class ErrorAccordion(Accordion):
         self.set_title(0, 'ERROR')
         self.set_title(1, 'TRACEBACK')
 
+
 class LayersWidget(ipytools.RealBox):
     def __init__(self, map=None, **kwargs):
         super(LayersWidget, self).__init__(**kwargs)
