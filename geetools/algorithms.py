@@ -165,7 +165,12 @@ def euclidean_distance(image1, image2, name='distance'):
     image1 = proxy.where(image1.gt(0), image1)
     image2 = proxy.where(image2.gt(0), image2)
 
-    return image1.subtract(image2).pow(2).reduce('sum').rename(name)
+    a = image1.subtract(image2)
+    b = a.pow(2)
+    c = b.reduce('sum')
+    d = c.sqrt()
+
+    return d.rename(name)
 
 
 def sum_distance(image, collection):
@@ -184,9 +189,10 @@ def sum_distance(image, collection):
     accum = ee.Image(0).rename('sumdist')
 
     def over_rest(im, ini):
+        ini = ee.Image(ini)
         im = ee.Image(im)
         dist = ee.Image(euclidean_distance(image, im)).rename('sumdist')
-        return accum.add(dist)
+        return ini.add(dist)
 
     return ee.Image(collection.iterate(over_rest, accum))
 
