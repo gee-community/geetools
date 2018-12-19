@@ -21,13 +21,20 @@ def medoid(collection, bands=None):
     bands = bands if bands else ibands
     collection = collection.select(bands)
 
+    # Create a unique id property called 'enumeration'
     enumerated = tools.imagecollection.enumerateProperty(collection)
     collist = enumerated.toList(enumerated.size())
 
     def over_list(im):
         im = ee.Image(im)
         n = ee.Number(im.get('enumeration'))
+
+        # Remove the current image from the collection
         filtered = tools.ee_list.removeIndex(collist, n)
+
+        # Compute the sum of the euclidean distance between the current image
+        # and every image in the rest of the collection
+        # multiply by -1 to get the lowest value in the qualityMosaic
         dist = algorithms.sum_distance(im, filtered).multiply(-1)
         return im.addBands(dist)
 
