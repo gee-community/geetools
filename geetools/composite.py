@@ -6,9 +6,7 @@ import ee.data
 if not ee.data._initialized:
     ee.Initialize()
 
-from . import today
-from . import tools
-from . import algorithms
+from . import today, tools, algorithms, wrapper
 from .collection import Landsat
 
 
@@ -19,7 +17,7 @@ def medoid(collection, bands=None):
     ibands = first_image.bandNames()
 
     bands = bands if bands else ibands
-    collection = collection.select(bands)
+    # collection = collection.select(bands)
 
     # Create a unique id property called 'enumeration'
     enumerated = tools.imagecollection.enumerateProperty(collection)
@@ -32,16 +30,25 @@ def medoid(collection, bands=None):
         # Remove the current image from the collection
         filtered = tools.ee_list.removeIndex(collist, n)
 
+        # Select bands for medoid
+        to_process = im.select(bands)
+
+        def over_collist(img):
+            return ee.Image(img).select(bands)
+        filtered = filtered.map(over_collist)
+
         # Compute the sum of the euclidean distance between the current image
         # and every image in the rest of the collection
         # multiply by -1 to get the lowest value in the qualityMosaic
-        dist = algorithms.sum_distance(im, filtered).multiply(-1)
+        dist = algorithms.sum_distance(to_process, filtered).multiply(-1)
         return im.addBands(dist)
 
     imlist = ee.List(collist.map(over_list))
 
     medcol = ee.ImageCollection.fromImages(imlist)
-    return medcol.qualityMosaic('sumdist')
+    comp = medcol.qualityMosaic('sumdist')
+    final = tools.image.removeBands(comp, ['sumdist', 'mask'])
+    return final
 
 
 def closest_date(collection, target_date, mask_band=None, property_name=None,
