@@ -110,6 +110,7 @@ def sequence(ini, end, step=1):
 
 
 def removeIndex(list, index):
+    """ Remove an element by its index """
     list = ee.List(list)
     index = ee.Number(index)
     size = list.size()
