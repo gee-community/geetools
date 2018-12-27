@@ -17,7 +17,6 @@ def medoid(collection, bands=None):
     ibands = first_image.bandNames()
 
     bands = bands if bands else ibands
-    # collection = collection.select(bands)
 
     # Create a unique id property called 'enumeration'
     enumerated = tools.imagecollection.enumerateProperty(collection)
