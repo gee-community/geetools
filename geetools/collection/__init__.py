@@ -9,43 +9,60 @@ from .. import indices, bitreader
 class Collection(object):
     """ Parent class for common operations """
     bands = {}
-    range = {}
+    ranges = {}
     scales = {}
     id = None
     start_date = None
     end_date = None
-    bits = None
-    algorithms = None
+    bits = {}
+    algorithms = {}
+    thermal_bands = []
+    quality_bands = []
+    optical_bands = []
 
     @property
     def collection(self):
+        """ Google Earth Engine Original Image Collection """
         return ee.ImageCollection(self.id)
+
+    def band_data(self, band):
+        """ Data from the parsed band """
+        if band in self.bands:
+            return {
+                'name': self.bands[band],
+                'min': self.ranges[band]['min'],
+                'max': self.ranges[band]['max'],
+                'scale': self.scales[band]
+            }
 
     @property
     def visualization(self):
         vis = {}
-        b = self.bands.get('blue')
-        g = self.bands.get('green')
-        r = self.bands.get('red')
-        n = self.bands.get('nir')
-        s = self.bands.get('swir')
-        s2 = self.bands.get('swir2')
+        b = self.band_data('blue')
+        g = self.band_data('green')
+        r = self.band_data('red')
+        n = self.band_data('nir')
+        s = self.band_data('swir')
+        s2 = self.band_data('swir2')
+
+        def register(one, two, three, factor, name):
+            vis[name] = {
+                'bands': [one['name'], two['name'], three['name']],
+                'min': [one['min'], two['min'], three['min']],
+                'max': [one['max']/factor, two['max']/factor, three['max']/factor]
+            }
 
         if n and s2 and r:
-            vis['NSR2'] = {'bands': [n, s2, r], 'min': self.range['min'],
-                          'max': self.range['max']/2}
+            register(n, s2, r, 2, 'NSR2')
 
         if n and s and r:
-            vis['NSR'] = {'bands': [n, s, r], 'min': self.range['min'],
-                          'max': self.range['max']/2}
+            register(n, s, r, 2, 'NSR')
 
         if r and g and b:
-            vis['RGB'] = {'bands': [r, g, b], 'min': self.range['min'],
-                          'max': self.range['max']/3}
+            register(r, g, b, 3, 'RGB')
 
         if n and r and g:
-            vis['falseColor'] = {'bands': [n, r, g], 'min': self.range['min'],
-                                 'max': self.range['max']/2}
+            register(n, r, g, 2, 'falseColor')
 
         return vis
 
