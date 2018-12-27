@@ -9,6 +9,7 @@ import os.path
 import ee
 import logging
 
+
 def listEE2list(listEE, type='Image'):
     relation = {'Image': ee.Image,
                 'Number': ee.Number,
@@ -20,6 +21,7 @@ def listEE2list(listEE, type='Image'):
         newlist.append(relation[type](listEE.get(el)))
 
     return newlist
+
 
 class ImageStrip(object):
     ''' Create an image strip '''
