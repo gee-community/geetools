@@ -241,7 +241,8 @@ def parametrize(image, range_from, range_to, bands=None):
     # Add the rest of the bands (no parametrized)
     final = image.select(diff).addBands(final)
 
-    return passProperty(image, final, 'system:time_start')
+    # return passProperty(image, final, 'system:time_start')
+    return ee.Image(final.copyProperties(source=image))
 
 
 def sumBands(image, name="sum", bands=None):
