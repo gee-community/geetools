@@ -1,9 +1,12 @@
 # coding=utf-8
 """ User Interface Tools """
-from . import chart, imagestrip, ipymap, ipytools, maptool
 import ee
 import threading
-from .ipymap import Map
+import pprint
+from . import chart, imagestrip, ipymap, ipytools, maptool, dispatcher
+
+from IPython.display import display
+from ipywidgets import Output, HTML, VBox, Widget, Label, Accordion
 
 if not ee.data._initialized:
     ee.Initialize()
@@ -30,12 +33,7 @@ def eprint(*args, **kwargs):
     indent = kwargs.get('indent', 2)
     notebook = kwargs.get('notebook', NOTEBOOK)
     do_async = kwargs.get('do_async', ASYNC)
-
-    import pprint
     pp = pprint.PrettyPrinter(indent=indent)
-
-    from IPython.display import display
-    from ipywidgets import Output, HTML, VBox
 
     # VERTICAL GRID WIDGET TO OUTPUT RESULTS
     infowin = VBox([Output()]*len(args))
@@ -46,31 +44,6 @@ def eprint(*args, **kwargs):
         children[i] = val
         vbox.children = children
 
-    # DISPATCHER
-    def dispatch(eeobject):
-        module = getattr(eeobject, '__module__', None)
-        parent = module.split('.')[0] if module else None
-        if parent == ee.__name__:
-            # DISPATCH!!
-            if isinstance(eeobject, (ee.Date,)):
-                info = eeobject.format().getInfo()
-            else:
-                info = eeobject.getInfo()
-        else:
-            info = str(eeobject)
-
-        return info
-
-    # NOTEBOOK WIDGET
-    def get_widget(eeobject):
-        """ Create a widget with the eeobject information """
-        info = dispatch(eeobject)
-        # DISPATCH
-        if isinstance(info, (dict,)):
-            return ipytools.create_accordion(info)
-        else:
-            return HTML(str(info)+'<br/>')
-
     if do_async and not notebook:
         print('Cannot make async printing outside a Jupyter environment')
         do_async = False
@@ -80,10 +53,10 @@ def eprint(*args, **kwargs):
     def get_info(eeobject, index):
         """ Get Info """
         if notebook:
-            widget = get_widget(eeobject)
+            widget = dispatcher.widget_dispatcher(eeobject)
             setchildren(infowin, index, widget)
         else:
-            info_return[index] = dispatch(eeobject)
+            info_return[index] = dispatcher.eeobject_dispatcher(eeobject)
 
     for i, eeobject in enumerate(args):
         # DO THE SAME FOR EVERY OBJECT
@@ -131,3 +104,5 @@ def getInfo(eeobject):
         get_info(eeobject, False)
 
     return result
+
+from .ipymap import Map
