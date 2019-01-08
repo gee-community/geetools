@@ -148,7 +148,7 @@ def mask_cover(image, geometry=None, scale=1000,
     return image.set(property_name, final)
 
 
-def euclidean_distance(image1, image2, name='distance'):
+def euclidean_distance(image1, image2, bands=None, name='distance'):
     """ Compute the Euclidean distance between two images. The image's bands
     is the dimension of the arrays.
 
@@ -159,16 +159,25 @@ def euclidean_distance(image1, image2, name='distance'):
     :return: a distance image
     :rtype: ee.Image
     """
-    bandsi = image1.bandNames()
+    if not bands:
+        bands = image1.bandNames()
 
-    proxy = tools.image.empty(0, bandsi)
+    image1 = image1.select(bands)
+    image2 = image2.select(bands)
+
+    proxy = tools.image.empty(0, bands)
     image1 = proxy.where(image1.gt(0), image1)
     image2 = proxy.where(image2.gt(0), image2)
 
-    return image1.subtract(image2).pow(2).reduce('sum').rename(name)
+    a = image1.subtract(image2)
+    b = a.pow(2)
+    c = b.reduce('sum')
+    d = c.sqrt()
+
+    return d.rename(name)
 
 
-def sum_distance(image, collection):
+def sum_distance(image, collection, bands=None):
     """ Compute de sum of all distances between the given image and the
     collection passed
     
@@ -184,9 +193,10 @@ def sum_distance(image, collection):
     accum = ee.Image(0).rename('sumdist')
 
     def over_rest(im, ini):
+        ini = ee.Image(ini)
         im = ee.Image(im)
-        dist = ee.Image(euclidean_distance(image, im)).rename('sumdist')
-        return accum.add(dist)
+        dist = ee.Image(euclidean_distance(image, im, bands)).rename('sumdist')
+        return ini.add(dist)
 
     return ee.Image(collection.iterate(over_rest, accum))
 
@@ -255,15 +265,89 @@ def pansharpen_ihs_fusion(image, pan=None, rgb=None):
 class Landsat(object):
 
     @staticmethod
+    def _rescale(image, bands=None, thermal_bands=None, original='TOA',
+                 to='SR', number='all'):
+        """ Rescaling logic """
+        if not bands:
+            bands = ['B1','B2','B3','B4','B5','B6','B7']
+        bands = ee.List(bands)
+
+        if not thermal_bands:
+            thermal_bands = ['B10', 'B11']
+        thermal_bands = ee.List(thermal_bands)
+
+        allbands = bands.cat(thermal_bands)
+
+        if number == '8':
+            max_raw = 65535
+        else:
+            max_raw = 255
+
+        if original == 'TOA' and to == 'SR':
+            scaled = image.select(bands).multiply(10000).toInt16()
+            scaled_thermal = image.select(thermal_bands).multiply(10).toInt16()
+        elif original == 'SR' and to == 'TOA':
+            scaled = image.select(bands).toFloat().divide(10000)
+            scaled_thermal = image.select(thermal_bands).toFloat().divide(10)
+        elif original == 'TOA' and to == 'RAW':
+            scaled = tools.image.parametrize(image.select(bands), (0, 1),
+                                             (0, max_raw))
+            scaled_thermal = tools.image.parametrize(image.select(bands), (0, 1),
+                                                     (0, max_raw)).multiply(1000)
+
+        original_bands = image.bandNames()
+
+        rest_bands = tools.ee_list.difference(original_bands, allbands)
+
+        rest_image = image.select(rest_bands)
+
+        return rest_image.addBands(scaled).addBands(scaled_thermal)
+
+    @staticmethod
+    def rescale_toa_sr(image, bands=None, thermal_bands=None):
+        """ Re-scale a TOA Landsat image to match the data type of SR Landsat
+        image
+
+        :param image: a Landsat TOA image
+        :type image: ee.Image
+        :param bands: bands to rescale by 10000. If None will use the bands for
+            Landsat 8 (['B1','B2','B3','B4','B5','B6','B7']).
+        :type bands: list
+        :param thermal_bands: bands to rescale by 100. Defaults to
+            ['B10', 'B11']
+        :type thermal_bands: list
+        :rtype: ee.Image
+        """
+        return Landsat._rescale(image, bands, thermal_bands, 'TOA', 'SR')
+
+    @staticmethod
+    def rescale_sr_toa(image, bands=None, thermal_bands=None):
+        """ Re-scale a TOA Landsat image to match the data type of SR Landsat
+        image
+
+        :param image: a Landsat TOA image
+        :type image: ee.Image
+        :param bands: bands to rescale by 10000. If None will use the bands for
+            Landsat 8 (B[1-7]).
+        :type bands: list
+        :param thermal_bands: bands to rescale by 100. Defaults to
+            ['B10', 'B11']
+        :type thermal_bands: list
+        :rtype: ee.Image
+        """
+        return Landsat._rescale(image, bands, thermal_bands, 'SR', 'TOA')
+
+    @staticmethod
     def harmonization(image, sr=True, blue='B2', green='B3', red='B4', nir='B5',
                       swir1='B6', swir2='B7'):
-        """ Slope and intercept
+        """ Harmonization of Landsat 8 images to be consistant with
+        Landsat 7 images
 
         Roy, D.P., Kovalskyy, V., Zhang, H.K., Vermote, E.F., Yan, L.,
         Kumar, S.S, Egorov, A., 2016, Characterization of Landsat-7 to
         Landsat-8 reflective wavelength and normalized difference vegetation
         index continuity, Remote Sensing of Environment, 185, 57-70.
-        (http:##dx.doi.org/10.1016/j.rse.2015.12.024) Table 2 -
+        (http://dx.doi.org/10.1016/j.rse.2015.12.024) Table 2 -
         reduced major axis (RMA) regression coefficients
 
         :param image: A Landsat 8 Image
