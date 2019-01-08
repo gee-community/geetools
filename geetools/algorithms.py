@@ -148,7 +148,7 @@ def mask_cover(image, geometry=None, scale=1000,
     return image.set(property_name, final)
 
 
-def euclidean_distance(image1, image2, name='distance'):
+def euclidean_distance(image1, image2, bands=None, name='distance'):
     """ Compute the Euclidean distance between two images. The image's bands
     is the dimension of the arrays.
 
@@ -159,9 +159,13 @@ def euclidean_distance(image1, image2, name='distance'):
     :return: a distance image
     :rtype: ee.Image
     """
-    bandsi = image1.bandNames()
+    if not bands:
+        bands = image1.bandNames()
 
-    proxy = tools.image.empty(0, bandsi)
+    image1 = image1.select(bands)
+    image2 = image2.select(bands)
+
+    proxy = tools.image.empty(0, bands)
     image1 = proxy.where(image1.gt(0), image1)
     image2 = proxy.where(image2.gt(0), image2)
 
@@ -173,7 +177,7 @@ def euclidean_distance(image1, image2, name='distance'):
     return d.rename(name)
 
 
-def sum_distance(image, collection):
+def sum_distance(image, collection, bands=None):
     """ Compute de sum of all distances between the given image and the
     collection passed
     
@@ -191,7 +195,7 @@ def sum_distance(image, collection):
     def over_rest(im, ini):
         ini = ee.Image(ini)
         im = ee.Image(im)
-        dist = ee.Image(euclidean_distance(image, im)).rename('sumdist')
+        dist = ee.Image(euclidean_distance(image, im, bands)).rename('sumdist')
         return ini.add(dist)
 
     return ee.Image(collection.iterate(over_rest, accum))
