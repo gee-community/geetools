@@ -10,13 +10,24 @@ from . import today, tools, algorithms, wrapper
 from .collection import Landsat
 
 
-def medoid(collection, bands=None):
-    """ Medoid Mosaic """
+def medoid(collection, bands=None, discard_zeros=False):
+    """ Medoid Composite
+
+    :param collection: the collection to composite
+    :type collection: ee.ImageCollection
+    :param bands: the bands to use for computation. The composite will include
+        all bands
+    :type bands: list
+    :param discard_zeros: Masked and pixels with value zero will not be use
+        for computation. Improves dark zones.
+    :type discard_zeros: bool
+    :return: the Medoid Composite
+    :rtype: ee.Image
+    """
 
     first_image = ee.Image(collection.first())
-    ibands = first_image.bandNames()
-
-    bands = bands if bands else ibands
+    if not bands:
+        bands = first_image.bandNames()
 
     # Create a unique id property called 'enumeration'
     enumerated = tools.imagecollection.enumerateProperty(collection)
@@ -39,7 +50,8 @@ def medoid(collection, bands=None):
         # Compute the sum of the euclidean distance between the current image
         # and every image in the rest of the collection
         # multiply by -1 to get the lowest value in the qualityMosaic
-        dist = algorithms.sum_distance(to_process, filtered).multiply(-1)
+        dist = algorithms.sum_distance(
+            to_process, filtered, discard_zeros=discard_zeros).multiply(-1)
         return im.addBands(dist)
 
     imlist = ee.List(collist.map(over_list))
