@@ -169,7 +169,11 @@ class Image(object):
             raise ValueError(msg.format(xProperty))
 
         data = tools.imagecollection.get_values(
-            imageCollection, geom, reducer, scale, properties=x_property,
+            collection=imageCollection,
+            geometry=geom,
+            reducer=reducer,
+            scale=scale,
+            properties=x_property,
             side='client')
 
         # Replace band names with labels provided
