@@ -10,6 +10,168 @@ if not ee.data._initialized:
     ee.Initialize()
 
 
+def distribution_linear_band(collection, band, mean=None, max=None,
+                             name='linear_dist'):
+    """ Compute a linear distribution using a specified band.
+
+    f(x) = 1 - (abs(x-mean)/(max-mean))
+
+    :param collection:
+    :type collection: ee.ImageCollection
+    :param band: the name of the band to use
+    :type band: str
+    :param mean: the mean value. If None it will be computed from the source.
+        defaults to None.
+    :type mean: float
+    """
+    if mean is None:
+        imean = ee.Image(collection.select(band).mean()).rename('imean')
+    else:
+        imean = ee.Image.constant(mean).rename('imean')
+
+    if max is None:
+        imax = ee.Image(collection.select(band).max()).rename('imax')
+    else:
+        imax = ee.Image.constant(max).rename('imax')
+
+    def to_map(img):
+        iband = img.select(band)
+
+        result = ee.Image().expression('1-((abs(val-mean))/(max-mean))',
+                                       {'val': iband,
+                                        'mean': imean,
+                                        'max': imax})
+        return img.addBands(result.rename(name))
+
+    return collection.map(to_map)
+
+
+def distribution_linear_property(collection, property, mean=None, max=None,
+                                 name='LINEAR_DIST'):
+    """ Compute a linear distribution using a specified property.
+
+    f(x) = 1 - (abs(x-mean)/(max-mean))
+
+    :param collection:
+    :type collection: ee.ImageCollection
+    :param property: the name of the property to use
+    :type property: str
+    :param mean: the mean value. If None it will be computed from the source.
+        defaults to None.
+    :type mean: float
+    """
+    if mean is None:
+        imean = collection.aggregate_mean(property)
+    else:
+        imean = ee.Number(mean)
+
+    if max is None:
+        imax = collection.aggregate_max(property)
+    else:
+        imax = ee.Number(max)
+
+    def to_map(img):
+        val = ee.Number(img.get(property))
+
+        a = val.subtract(imean).abs()
+        b = a.divide(ee.Number(imax).subtract(imean))
+
+        result = ee.Number(1).subtract(b)
+
+        return img.set(name, result)
+
+    return collection.map(to_map)
+
+
+def distribution_normal_band(collection, band, mean=None, std=None,
+                             factor=-0.5, name='normal_dist'):
+    """ Compute a Normal distribution using a specified band.
+
+    f(x) = exp((((((x-mean)**2)/(2*(std**2))*(factor))/(sqrt(2*pi)*std))))
+
+    :param collection:
+    :type collection: ee.ImageCollection
+    :param band: the name of the band to use
+    :type band: str
+    :param mean: the mean value. If None it will be computed from the source.
+        defaults to None.
+    :type mean: float
+    :param std: the standard deviation value. If None it will be computed from
+        the source. Defaults to None.
+    :type std: float
+    """
+    factor = ee.Number(factor)
+
+    if mean is None:
+        imean = ee.Image(collection.select(band).mean()).rename('imean')
+    else:
+        imean = ee.Image.constant(mean).rename('imean')
+
+    if std is None:
+        istd = ee.Image(collection.select(band).reduce(ee.Reducer.stdDev()))\
+                 .rename('istd')
+    else:
+        istd = ee.Image.constant(std).rename('istd')
+
+    def to_map(img):
+        iband = img.select(band)
+
+        result = ee.Image().expression(
+            'exp((((((val-mean)**2)/(2*(std**2))*(factor))/(sqrt(2*pi)*std))))',
+           {'val': iband,
+            'mean': imean,
+            'std': istd,
+            'factor':factor,
+            'pi': ee.Number(math.pi)})
+        return img.addBands(result.rename(name))
+
+    return collection.map(to_map)
+
+
+def distribution_normal_property(collection, property, mean=None, std=None,
+                                 factor=0.5, name='LINEAR_DIST'):
+    """ Compute a normal distribution using a specified property.
+
+    f(x) = exp((((((x-mean)**2)/(2*(std**2))*(factor))/(sqrt(2*pi)*std))))
+
+    :param collection:
+    :type collection: ee.ImageCollection
+    :param band: the name of the property to use
+    :type band: str
+    :param mean: the mean value. If None it will be computed from the source.
+        defaults to None.
+    :type mean: float
+    :param std: the standard deviation value. If None it will be computed from
+        the source. Defaults to None.
+    :type std: float
+    """
+    pi = ee.Number(math.pi)
+    factor = ee.Number(factor)
+    if mean is None:
+        imean = collection.aggregate_mean(property)
+    else:
+        imean = ee.Number(mean)
+
+    if std is None:
+        istd = collection.aggregate_total_sd(property)
+    else:
+        istd = ee.Number(std)
+
+    def to_map(img):
+        val = ee.Number(img.get(property))
+
+        a = val.subtract(imean).pow(2)
+        b = istd.pow(2).multiply(2)
+        c = a.divide(b).multiply(factor)
+        d = pi.multiply(2).sqrt().multiply(istd)
+
+        result = c.divide(d).exp()
+
+        return img.set(name, result)
+
+    return collection.map(to_map)
+
+
 def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
                      scale=None, geometry=None, band_name='distance_to_mask',
                      normalize=False):
