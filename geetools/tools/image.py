@@ -260,6 +260,7 @@ def sumBands(image, name="sum", bands=None):
     :param bands: names of the bands to be added. If None (default) it sums
         all bands
     :type bands: tuple
+    :return: the parsed image with one additional band with the sum of `bands`
     :rtype: ee.Image
     """
     band_names = image.bandNames()
