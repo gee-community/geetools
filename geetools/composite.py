@@ -44,7 +44,7 @@ def medoid_score(collection, bands=None, discard_zeros=False,
             discard_zeros=discard_zeros)
 
         # Mask zero values
-        dist = dist.updateMask(dist.neq(0))
+        # dist = dist.updateMask(dist.neq(0))
 
         if not normalize:
             # multiply by -1 to get the lowest value in the qualityMosaic
