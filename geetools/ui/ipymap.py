@@ -115,7 +115,14 @@ class Map(ipyleaflet.Map):
         self.EELayers = OrderedDict()
 
     def _add_EELayer(self, name, data):
-        ''' add a pair of name, data to EELayers '''
+        """ Add a pair of name, data to EELayers. Data must be:
+
+        - type: str
+        - object: ee object
+        - visParams: dict
+        - layer: ipyleaflet layer
+
+        """
         copyEELayers = copy(self.EELayers)
         copyEELayers[name] = data
         self.EELayers = copyEELayers
@@ -388,9 +395,9 @@ class Map(ipyleaflet.Map):
                                    popup=HTML(params['pop']))
 
         self._add_EELayer(thename, {'type': 'Geometry',
-                                      'object': geometry,
-                                      'visParams':None,
-                                      'layer': layer})
+                                    'object': geometry,
+                                    'visParams':None,
+                                    'layer': layer})
         return thename
 
     def addFeatureLayer(self, feature, visParams=None, name=None, show=True,
@@ -733,6 +740,34 @@ class Map(ipyleaflet.Map):
         # Get click coordinates
         coords = change['coordinates']
 
+        point_name = 'point inspect at {}'.format(coords)
+        # Widget for adding/removing the point at click
+        def point_widget(coords):
+            coords = maptool.inverse_coordinates(coords)
+            add_button = Button(description='ADD', tooltip='add point to map')
+            rem_button = Button(description='REMOVE',
+                                tooltip='remove point from map')
+
+            def add_func(button=None):
+                p = ipyleaflet.Marker(name=point_name,
+                                      location=coords,
+                                      draggable=False)
+
+                self._add_EELayer(point_name, {
+                    'type': 'temp',
+                    'object': None,
+                    'visParams': None,
+                    'layer': p
+                })
+
+            def remove_func(button=None):
+                self._remove_EELayer(point_name)
+
+            add_button.on_click(add_func)
+            rem_button.on_click(remove_func)
+
+            return HBox([add_button, rem_button])
+
         event = change['type'] # event type
         if event == 'click':  # If the user clicked
             # create a point where the user clicked
@@ -744,7 +779,8 @@ class Map(ipyleaflet.Map):
             # First Accordion row text (name)
             first = 'Point {} at {} zoom'.format(coords, self.zoom)
             namelist = [first]
-            wids4acc = [HTML('')] # first row has no content
+            # wids4acc = [HTML('')] # first row has no content
+            wids4acc = [point_widget(coords)]
 
             # Get only Selected Layers in the Inspector Selector
             selected_layers = dict(zip(self.inspector_wid.selector.label,
