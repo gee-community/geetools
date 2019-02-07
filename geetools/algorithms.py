@@ -129,7 +129,7 @@ def distribution_normal_band(collection, band, mean=None, std=None,
 
 
 def distribution_normal_property(collection, property, mean=None, std=None,
-                                 factor=0.5, name='LINEAR_DIST'):
+                                 factor=0.5, name='NORMAL_DIST'):
     """ Compute a normal distribution using a specified property.
 
     f(x) = exp((((((x-mean)**2)/(2*(std**2))*(factor))/(sqrt(2*pi)*std))))
