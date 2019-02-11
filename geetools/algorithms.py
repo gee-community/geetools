@@ -11,7 +11,7 @@ if not ee.data._initialized:
 
 
 def distribution_linear_band(collection, band, mean=None, max=None,
-                             name='linear_dist'):
+                             min=None, name='linear_dist'):
     """ Compute a linear distribution using a specified band.
 
     f(x) = 1 - (abs(x-mean)/(max-mean))
@@ -34,6 +34,14 @@ def distribution_linear_band(collection, band, mean=None, max=None,
     else:
         imax = ee.Image.constant(max).rename('imax')
 
+    if min is None:
+        imin = ee.Image(collection.select(band).min()).rename('imin')
+    else:
+        imin = ee.Image.constant(min).rename('imin')
+
+    # MAX(max, min.abs)
+    imax = ee.Image(ee.Algorithms.If(imax.gte(imin.abs()), imax, imin.abs()))
+
     def to_map(img):
         iband = img.select(band)
 
@@ -47,7 +55,7 @@ def distribution_linear_band(collection, band, mean=None, max=None,
 
 
 def distribution_linear_property(collection, property, mean=None, max=None,
-                                 name='LINEAR_DIST'):
+                                 min=None, name='LINEAR_DIST'):
     """ Compute a linear distribution using a specified property.
 
     f(x) = 1 - (abs(x-mean)/(max-mean))
@@ -59,16 +67,27 @@ def distribution_linear_property(collection, property, mean=None, max=None,
     :param mean: the mean value. If None it will be computed from the source.
         defaults to None.
     :type mean: float
+    :return: the parsed collection in which each image has an new property for
+        the computed value called by parameter `name`
+    :rtype: ee.ImageCollection
     """
     if mean is None:
-        imean = collection.aggregate_mean(property)
+        imean = ee.Number(collection.aggregate_mean(property))
     else:
         imean = ee.Number(mean)
 
     if max is None:
-        imax = collection.aggregate_max(property)
+        imax = ee.Number(collection.aggregate_max(property))
     else:
         imax = ee.Number(max)
+
+    if min is None:
+        imin = ee.Number(collection.aggregate_min(property))
+    else:
+        imin = ee.Number(min)
+
+    # MAX(max, min.abs)
+    imax = ee.Number(ee.Algorithms.If(imax.gte(imin.abs()), imax, imin.abs()))
 
     def to_map(img):
         val = ee.Number(img.get(property))
@@ -129,10 +148,10 @@ def distribution_normal_band(collection, band, mean=None, std=None,
 
 
 def distribution_normal_property(collection, property, mean=None, std=None,
-                                 factor=0.5, name='NORMAL_DIST'):
+                                 max=None, min=None, name='NORMAL_DIST'):
     """ Compute a normal distribution using a specified property.
 
-    f(x) = exp((((((x-mean)**2)/(2*(std**2))*(factor))/(sqrt(2*pi)*std))))
+    f(x) = exp((((((x-mean)**2)/(2*(std**2))*(factor)))/(sqrt(2*pi)*std)))
 
     :param collection:
     :type collection: ee.ImageCollection
@@ -146,30 +165,46 @@ def distribution_normal_property(collection, property, mean=None, std=None,
     :type std: float
     """
     pi = ee.Number(math.pi)
-    factor = ee.Number(factor)
+
     if mean is None:
-        imean = collection.aggregate_mean(property)
+        imean = ee.Number(collection.aggregate_mean(property))
     else:
         imean = ee.Number(mean)
 
     if std is None:
-        istd = collection.aggregate_total_sd(property)
+        istd = ee.Number(collection.aggregate_total_sd(property))
     else:
         istd = ee.Number(std)
+
+    if max is None:
+        imax = ee.Number(1).divide(istd.multiply(ee.Number(2).multiply(math.pi).sqrt()))
+    else:
+        imax = ee.Number(max)
 
     def to_map(img):
         val = ee.Number(img.get(property))
 
         a = val.subtract(imean).pow(2)
         b = istd.pow(2).multiply(2)
-        c = a.divide(b).multiply(factor)
-        d = pi.multiply(2).sqrt().multiply(istd)
-
-        result = c.divide(d).exp()
-
+        c = a.divide(b).multiply(-1)
+        d = c.exp()
+        result = d.multiply(imax)
         return img.set(name, result)
 
-    return collection.map(to_map)
+    collection = collection.map(to_map)
+
+    if min is None:
+        return collection
+    else:
+        imin = ee.Number(collection.aggregate_min(name))
+        def normalize(img):
+            value = ee.Number(img.get(name))
+            e = value.subtract(imin)
+            f = imax.subtract(imin)
+            g = e.divide(f)
+            result = g.multiply(imax.subtract(ee.Number(min))).add(ee.Number(min))
+            return img.set(name, result)
+        return collection.map(normalize)
 
 
 def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
