@@ -117,37 +117,6 @@ class Image(object):
         self.source = source
 
     @staticmethod
-    def data2pandas(data):
-        """ Convert data coming from tools.imagecollection.get_values to a
-            pandas DataFrame
-
-            :type data: dict
-            :rtype: pandas.DataFrame
-        """
-        # Indices
-        # header
-        allbands = [val.keys() for bands, val in data.items()]
-        header = []
-        for bandlist in allbands:
-            for band in bandlist:
-                if band not in header:
-                    header.append(band)
-
-        data_dict = {}
-        indices = []
-        for i, head in enumerate(header):
-            band_data = []
-            for iid, val in data.items():
-                if i == 0:
-                    indices.append(iid)
-                band_data.append(val[head])
-            data_dict[head] = band_data
-
-        df = pd.DataFrame(data=data_dict, index=indices)
-
-        return df
-
-    @staticmethod
     def check_imageCollection(imageCollection):
         if not isinstance(imageCollection, ee.ImageCollection):
             msg = 'first parameter of Image.doySeries must be an ' \
@@ -219,7 +188,7 @@ class Image(object):
                     data[iid].pop(old_name)
             ydata = labels
 
-        df = Image.data2pandas(data)
+        df = tools.imagecollection.data2pandas(data)
         newdf = df.sort_values(xProperty)
 
         if datetime:
@@ -315,7 +284,7 @@ class Image(object):
 
             data = data.getInfo()
 
-            df = Image.data2pandas(data)
+            df = tools.imagecollection.data2pandas(data)
             newdf = df.sort_values(xProperty)
 
             y_labels = newdf.columns.values.tolist()

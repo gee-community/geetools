@@ -2,6 +2,7 @@
 """ Module holding tools for ee.ImageCollections """
 import ee
 import ee.data
+import pandas as pd
 from . import date
 from . import collection as eecollection
 
@@ -243,3 +244,69 @@ def get_values(collection, geometry, scale=None, reducer=ee.Reducer.mean(),
         return result.getInfo()
     else:
         raise ValueError("side parameter must be 'server' or 'client'")
+
+
+def data2pandas(data):
+    """
+    Convert data coming from tools.imagecollection.get_values to a
+    pandas DataFrame
+
+    :type data: dict
+    :rtype: pandas.DataFrame
+    """
+    # Indices
+    # header
+    allbands = [val.keys() for bands, val in data.items()]
+    header = []
+    for bandlist in allbands:
+        for band in bandlist:
+            if band not in header:
+                header.append(band)
+
+    data_dict = {}
+    indices = []
+    for i, head in enumerate(header):
+        band_data = []
+        for iid, val in data.items():
+            if i == 0:
+                indices.append(iid)
+            band_data.append(val[head])
+        data_dict[head] = band_data
+
+    df = pd.DataFrame(data=data_dict, index=indices)
+
+    return df
+
+
+def parametrize_property(collection, range_from, range_to,
+                         property, name=None):
+    """ Parametrize a property """
+    if not name:
+        name = '{}_parametrized'.format(property)
+
+    original_range = range_from if isinstance(range_from, ee.List) \
+        else ee.List(range_from)
+
+    final_range = range_to if isinstance(range_to, ee.List) \
+        else ee.List(range_to)
+
+    # original min and max
+    min0 = ee.Number(original_range.get(0))
+    max0 = ee.Number(original_range.get(1))
+
+    # range from min to max
+    rango0 = max0.subtract(min0)
+
+    # final min max images
+    min1 = ee.Number(final_range.get(0))
+    max1 = ee.Number(final_range.get(1))
+
+    rango1 = max1.subtract(min1)
+
+    def wrap(img):
+        value = ee.Number(img.get(property))
+        percent = value.subtract(min0).divide(rango0)
+        final = percent.multiply(rango1).add(min1)
+        return img.set(name, final)
+
+    return collection.map(wrap)
