@@ -182,15 +182,14 @@ def removeBands(image, bands):
 
 
 def parametrize(image, range_from, range_to, bands=None):
-    """ Parametrize from a original known range to a fixed new range
+    """ Parametrize from a original **known** range to a fixed new range
 
-    :Parameters:
     :param range_from: Original range. example: (0, 5000)
     :type range_from: tuple
     :param range_to: Fixed new range. example: (500, 1000)
     :type range_to: tuple
     :param bands: bands to parametrize. If *None* all bands will be
-    parametrized.
+        parametrized.
     :type bands: list
 
     :return: Function to use in map() or alone
