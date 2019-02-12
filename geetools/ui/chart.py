@@ -13,9 +13,43 @@ import base64
 import ee
 from .. import tools
 import pandas as pd
+import datetime
 
 # TODO: make not plotted bands values appear on tooltip
 # TODO: give capability to plot a secondary axis with other data
+
+
+def ydata2pandas(ydata):
+    """ Convert data from charts y_data property to pandas """
+    newdict = {}
+    for serie, data in ydata.items():
+        newdata = {}
+        for d in data:
+            newdata[d[0]] = d[1]
+        newdict[serie] = newdata
+
+    return tools.imagecollection.data2pandas(newdict)
+
+
+def concat(*plots):
+    """ Concatenate plots. The type of the resuling plot will be the type
+        of the first parsed plot
+    """
+    first = plots[0]
+    if isinstance(first, DateTimeLine):
+        chart = DateTimeLine()
+    else:
+        chart = Line()
+
+    y_data = {}
+    for plot in plots:
+        p_data = plot.y_data
+        for serie, data in p_data.items():
+            y_data[serie] = data
+            chart.add(serie, data)
+
+    chart.y_data = y_data
+    return chart
 
 
 def render_widget(chart, width=None, height=None):
@@ -63,16 +97,11 @@ def from_pandas(line_chart, dataframe, x=None, y=None, datetime=False):
             if column == x:
                 continue
             ydata = dataframe[column].values.tolist()
-            if datetime:
-                # ydata = [(dt, value) for dt, value in zip(x_values, ydata)]
-                # ydata = tuple(zip(x_values, ydata))
-                nydata = []
-                for n, (dt, value) in enumerate(zip(x_values, ydata)):
-                    if not pd.isnull(dataframe[column][n]):
-                        nydata.append((dt, value))
-                ydata = tuple(nydata)
-            else:
-                ydata = [{'value': data} for data in ydata]
+            nydata = []
+            for n, (dt, value) in enumerate(zip(x_values, ydata)):
+                if not pd.isnull(dataframe[column][n]):
+                    nydata.append((dt, value))
+            ydata = tuple(nydata)
 
             # TODO: add values config
             # pygal.org/en/latest/documentation/configuration/value.html
@@ -83,32 +112,45 @@ def from_pandas(line_chart, dataframe, x=None, y=None, datetime=False):
         line_chart.add(y, ydata)
         line_chart.y_data[y] = ydata
 
-    line_chart.data = dataframe
     return line_chart
 
 
-class Line(pygal.Line):
+class Line(pygal.XY):
     def __init__(self, **kwargs):
         super(Line, self).__init__(**kwargs)
-        self.data = None
         self.y_data = dict()
         self.x_label_rotation = 30
+
+    @property
+    def data(self):
+        return ydata2pandas(self.y_data)
 
     def render_widget(self, width=None, height=None):
         """ Render a pygal chart into a Jupyter Notebook """
         return render_widget(self, width, height)
+
+    def cat(self, *plots):
+        """ Concatenate with other Line Graphics """
+        return concat(self, *plots)
 
 
 class DateTimeLine(pygal.DateTimeLine):
     def __init__(self, **kwargs):
         super(DateTimeLine, self).__init__(**kwargs)
-        self.data = None
         self.y_data = dict()
         self.x_label_rotation = 30
+
+    @property
+    def data(self):
+        return ydata2pandas(self.y_data)
 
     def render_widget(self, width=None, height=None):
         """ Render a pygal chart into a Jupyter Notebook """
         return render_widget(self, width, height)
+
+    def cat(self, *plots):
+        """ Concatenate with other DateTimeLine Graphics """
+        return concat(self, *plots)
 
 
 class Image(object):
@@ -126,7 +168,18 @@ class Image(object):
     @staticmethod
     def series(imageCollection, region, reducer=ee.Reducer.mean(),
                scale=None, xProperty='system:time_start', bands=None,
-               labels=None):
+               properties=None, labels=None):
+        """ Basic plot over an ImageCollection.
+
+        :param imageCollection:
+        :param region:
+        :param reducer:
+        :param scale:
+        :param xProperty:
+        :param bands:
+        :param labels:
+        :return:
+        """
         Image.check_imageCollection(imageCollection)
 
         # scale
@@ -138,16 +191,16 @@ class Image(object):
         allbands = first.bandNames().getInfo()
 
         # Get Y (bands)
-        if not bands:
-            ydata = allbands
-        else:
-            ydata = bands
+        if bands is None and properties is None:
+            bands = allbands
+        elif bands is None and properties is not None:
+            bands = []
 
         # Select bands
-        imageCollection = imageCollection.select(ydata)
+        imageCollection = imageCollection.select(bands)
 
         # Get Images properties
-        properties = first.propertyNames().getInfo()
+        iproperties = first.propertyNames().getInfo()
 
         # If xProperty == 'system:time_start' will compute datetime
         datetime = True if xProperty == 'system:time_start' else False
@@ -162,7 +215,7 @@ class Image(object):
                   ' or `ee.FeatureCollection, found {}'
             raise ValueError(msg.format(type(region)))
 
-        if xProperty in properties:
+        if xProperty in iproperties:
             # include xProperty in data
             x_property = [xProperty]
         elif xProperty in allbands:
@@ -172,6 +225,9 @@ class Image(object):
             msg = 'xProperty "{}" not found in properties or bands'
             raise ValueError(msg.format(xProperty))
 
+        if properties is not None:
+            x_property = x_property + properties
+
         data = tools.imagecollection.get_values(
             collection=imageCollection,
             geometry=geom,
@@ -179,6 +235,13 @@ class Image(object):
             scale=scale,
             properties=x_property,
             side='client')
+
+        if bands and properties:
+            ydata = bands + properties
+        elif bands and not properties:
+            ydata = bands
+        else:
+            ydata = properties
 
         # Replace band names with labels provided
         if labels and len(ydata) == len(labels):
