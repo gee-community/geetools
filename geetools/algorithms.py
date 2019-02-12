@@ -10,203 +10,6 @@ if not ee.data._initialized:
     ee.Initialize()
 
 
-def distribution_linear_band(collection, band, mean=None, max=None,
-                             min=None, name='linear_dist'):
-    """ Compute a linear distribution using a specified band.
-
-    f(x) = 1 - (abs(x-mean)/(max-mean))
-
-    :param collection:
-    :type collection: ee.ImageCollection
-    :param band: the name of the band to use
-    :type band: str
-    :param mean: the mean value. If None it will be computed from the source.
-        defaults to None.
-    :type mean: float
-    """
-    if mean is None:
-        imean = ee.Image(collection.select(band).mean()).rename('imean')
-    else:
-        imean = ee.Image.constant(mean).rename('imean')
-
-    if max is None:
-        imax = ee.Image(collection.select(band).max()).rename('imax')
-    else:
-        imax = ee.Image.constant(max).rename('imax')
-
-    if min is None:
-        imin = ee.Image(collection.select(band).min()).rename('imin')
-    else:
-        imin = ee.Image.constant(min).rename('imin')
-
-    # MAX(max, min.abs)
-    imax = ee.Image(ee.Algorithms.If(imax.gte(imin.abs()), imax, imin.abs()))
-
-    def to_map(img):
-        iband = img.select(band)
-
-        result = ee.Image().expression('1-((abs(val-mean))/(max-mean))',
-                                       {'val': iband,
-                                        'mean': imean,
-                                        'max': imax})
-        return img.addBands(result.rename(name))
-
-    return collection.map(to_map)
-
-
-def distribution_linear_property(collection, property, mean=None, max=None,
-                                 min=None, name='LINEAR_DIST'):
-    """ Compute a linear distribution using a specified property.
-
-    f(x) = 1 - (abs(x-mean)/(max-mean))
-
-    :param collection:
-    :type collection: ee.ImageCollection
-    :param property: the name of the property to use
-    :type property: str
-    :param mean: the mean value. If None it will be computed from the source.
-        defaults to None.
-    :type mean: float
-    :return: the parsed collection in which each image has an new property for
-        the computed value called by parameter `name`
-    :rtype: ee.ImageCollection
-    """
-    if mean is None:
-        imean = ee.Number(collection.aggregate_mean(property))
-    else:
-        imean = ee.Number(mean)
-
-    if max is None:
-        imax = ee.Number(collection.aggregate_max(property))
-    else:
-        imax = ee.Number(max)
-
-    if min is None:
-        imin = ee.Number(collection.aggregate_min(property))
-    else:
-        imin = ee.Number(min)
-
-    # MAX(max, min.abs)
-    imax = ee.Number(ee.Algorithms.If(imax.gte(imin.abs()), imax, imin.abs()))
-
-    def to_map(img):
-        val = ee.Number(img.get(property))
-
-        a = val.subtract(imean).abs()
-        b = a.divide(ee.Number(imax).subtract(imean))
-
-        result = ee.Number(1).subtract(b)
-
-        return img.set(name, result)
-
-    return collection.map(to_map)
-
-
-def distribution_normal_band(collection, band, mean=None, std=None,
-                             factor=-0.5, name='normal_dist'):
-    """ Compute a Normal distribution using a specified band.
-
-    f(x) = exp((((((x-mean)**2)/(2*(std**2))*(factor))/(sqrt(2*pi)*std))))
-
-    :param collection:
-    :type collection: ee.ImageCollection
-    :param band: the name of the band to use
-    :type band: str
-    :param mean: the mean value. If None it will be computed from the source.
-        defaults to None.
-    :type mean: float
-    :param std: the standard deviation value. If None it will be computed from
-        the source. Defaults to None.
-    :type std: float
-    """
-    factor = ee.Number(factor)
-
-    if mean is None:
-        imean = ee.Image(collection.select(band).mean()).rename('imean')
-    else:
-        imean = ee.Image.constant(mean).rename('imean')
-
-    if std is None:
-        istd = ee.Image(collection.select(band).reduce(ee.Reducer.stdDev()))\
-                 .rename('istd')
-    else:
-        istd = ee.Image.constant(std).rename('istd')
-
-    def to_map(img):
-        iband = img.select(band)
-
-        result = ee.Image().expression(
-            'exp((((((val-mean)**2)/(2*(std**2))*(factor))/(sqrt(2*pi)*std))))',
-           {'val': iband,
-            'mean': imean,
-            'std': istd,
-            'factor':factor,
-            'pi': ee.Number(math.pi)})
-        return img.addBands(result.rename(name))
-
-    return collection.map(to_map)
-
-
-def distribution_normal_property(collection, property, mean=None, std=None,
-                                 max=None, min=None, name='NORMAL_DIST'):
-    """ Compute a normal distribution using a specified property.
-
-    f(x) = exp((((((x-mean)**2)/(2*(std**2))*(factor)))/(sqrt(2*pi)*std)))
-
-    :param collection:
-    :type collection: ee.ImageCollection
-    :param band: the name of the property to use
-    :type band: str
-    :param mean: the mean value. If None it will be computed from the source.
-        defaults to None.
-    :type mean: float
-    :param std: the standard deviation value. If None it will be computed from
-        the source. Defaults to None.
-    :type std: float
-    """
-    pi = ee.Number(math.pi)
-
-    if mean is None:
-        imean = ee.Number(collection.aggregate_mean(property))
-    else:
-        imean = ee.Number(mean)
-
-    if std is None:
-        istd = ee.Number(collection.aggregate_total_sd(property))
-    else:
-        istd = ee.Number(std)
-
-    if max is None:
-        imax = ee.Number(1).divide(istd.multiply(ee.Number(2).multiply(math.pi).sqrt()))
-    else:
-        imax = ee.Number(max)
-
-    def to_map(img):
-        val = ee.Number(img.get(property))
-
-        a = val.subtract(imean).pow(2)
-        b = istd.pow(2).multiply(2)
-        c = a.divide(b).multiply(-1)
-        d = c.exp()
-        result = d.multiply(imax)
-        return img.set(name, result)
-
-    collection = collection.map(to_map)
-
-    if min is None:
-        return collection
-    else:
-        imin = ee.Number(collection.aggregate_min(name))
-        def normalize(img):
-            value = ee.Number(img.get(name))
-            e = value.subtract(imin)
-            f = imax.subtract(imin)
-            g = e.divide(f)
-            result = g.multiply(imax.subtract(ee.Number(min))).add(ee.Number(min))
-            return img.set(name, result)
-        return collection.map(normalize)
-
-
 def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
                      scale=None, geometry=None, band_name='distance_to_mask',
                      normalize=False):
@@ -274,8 +77,9 @@ def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
     return final.rename(band_name)
 
 
-def mask_cover(image, geometry=None, scale=1000,
-               property_name='MASK_COVER', max_pixels=1e13):
+def mask_cover(image, geometry=None, scale=1000, property_name='MASK_COVER',
+               crs=None, crsTransform=None, bestEffort=False,
+               maxPixels=1e13, tileScale=1):
     """ Percentage of masked pixels (masked/total * 100) as an Image property
 
     :param image: ee.Image holding the mask. If the image has more than
@@ -318,7 +122,12 @@ def mask_cover(image, geometry=None, scale=1000,
         reducer= ee.Reducer.count(),
         geometry= geometry,
         scale= scale,
-        maxPixels= max_pixels).get(band)
+        maxPixels= maxPixels,
+        crs=crs,
+        crsTransform=crsTransform,
+        bestEffort=bestEffort,
+        tileScale=tileScale,
+    ).get(band)
     ones = ee.Number(ones)
 
     # select first band, unmask and get the inverse
@@ -331,7 +140,12 @@ def mask_cover(image, geometry=None, scale=1000,
         reducer= ee.Reducer.count(),
         geometry= geometry,
         scale= scale,
-        maxPixels= max_pixels).get(band)
+        maxPixels= maxPixels,
+        crs=crs,
+        crsTransform=crsTransform,
+        bestEffort=bestEffort,
+        tileScale=tileScale
+    ).get(band)
     zeros_in_mask = ee.Number(zeros_in_mask)
 
     percentage = tools.number.trim_decimals(zeros_in_mask.divide(ones), 4)
