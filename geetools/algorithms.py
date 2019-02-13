@@ -77,7 +77,7 @@ def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
     return final.rename(band_name)
 
 
-def mask_cover(image, geometry=None, scale=1000, property_name='MASK_COVER',
+def mask_cover(image, geometry=None, scale=None, property_name='MASK_COVER',
                crs=None, crsTransform=None, bestEffort=False,
                maxPixels=1e13, tileScale=1):
     """ Percentage of masked pixels (masked/total * 100) as an Image property
@@ -98,6 +98,9 @@ def mask_cover(image, geometry=None, scale=1000, property_name='MASK_COVER',
     """
     # keep only first band
     image = image.select(0)
+
+    if not scale:
+        scale = image.projection().nominalScale()
 
     # get projection
     projection = image.projection()
