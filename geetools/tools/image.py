@@ -168,7 +168,7 @@ def renameDict(image, names):
     >> {u'BLUE': 0.10094200074672699, u'GREEN': 0.07873955368995667, u'B3': 0.057160500437021255}
     """
     bandnames = image.bandNames()
-    newnames = ee_list.replace_many(bandnames, names)
+    newnames = ee_list.replaceDict(bandnames, names)
     return image.select(bandnames, newnames)
 
 
@@ -573,7 +573,7 @@ def renamePattern(image, pattern, bands=None):
 
     newbands = bands_to_replace.map(wrap)
 
-    new_allbands = ee_list.replace_many(
+    new_allbands = ee_list.replaceDict(
         allbands, ee.Dictionary.fromLists(bands_to_replace, newbands))
 
     return image.select(allbands, new_allbands)

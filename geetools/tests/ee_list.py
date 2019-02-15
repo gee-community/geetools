@@ -24,14 +24,14 @@ class TestList(unittest.TestCase):
         self.assertEqual(unique, [1, 2, 3, 5])
 
     def test_replace_many(self):
-        replaced = listools.replace_many(self.list1, {1:'test', 4:8}).getInfo()
+        replaced = listools.replaceDict(self.list1, {1: 'test', 4:8}).getInfo()
         self.assertEqual(replaced, ['test', 2, 3, 8, 5])
 
         # new test to match image's test
         newlist = ee.List(["B1", "B2", "B3", "B4", "B5", "B6", "B7",
                             "cfmask", "cfmask_conf"])
         self.assertEqual(
-            listools.replace_many(newlist, {'B1':'BLUE', 'B2':'GREEN'}).getInfo(),
+            listools.replaceDict(newlist, {'B1': 'BLUE', 'B2': 'GREEN'}).getInfo(),
             ["BLUE", "GREEN", "B3", "B4", "B5", "B6", "B7",
              "cfmask", "cfmask_conf"])
 

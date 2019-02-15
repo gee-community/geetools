@@ -8,8 +8,8 @@ if not ee.data._initialized:
     ee.Initialize()
 
 
-def replace_many(eelist, to_replace):
-    """ Replace many elements of a Earth Engine List object
+def replaceDict(eelist, to_replace):
+    """ Replace many elements of a Earth Engine List object using a dictionary
 
         **EXAMPLE**
 
