@@ -544,6 +544,41 @@ def toGrid(image, size=1, band=None, geometry=None):
     return fc
 
 
+def renamePattern(image, pattern, bands=None):
+    """ Rename the bands of the parsed image with the given pattern
+
+    :param image:
+    :param pattern: the special keyword `{band}` will be replaced with the actual
+        band name. Spaces will be replaced with underscore. It also will be
+        trimmed
+    :param bands: the bands to rename. If None it'll rename all the bands
+    :return:
+    """
+    allbands = image.bandNames()
+
+    pattern = ee.String(pattern)
+    selected = image.select(bands) if bands else image
+
+    pattern = pattern.trim().split(' ').join('_')
+
+    bands_to_replace = selected.bandNames()
+
+    def wrap(name):
+        condition = pattern.index('{band}').gt(0)
+
+        return ee.String(ee.Algorithms.If(
+            condition,
+            pattern.replace('{band}', ee.String(name)),
+            ee.String(name)))
+
+    newbands = bands_to_replace.map(wrap)
+
+    new_allbands = ee_list.replace_many(
+        allbands, ee.Dictionary.fromLists(bands_to_replace, newbands))
+
+    return image.select(allbands, new_allbands)
+
+
 class Mapping(object):
     """ Mapping functions to map over ImageCollections """
 
