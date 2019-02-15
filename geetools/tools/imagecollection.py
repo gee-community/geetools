@@ -320,7 +320,7 @@ def distribution_linear_band(collection, band, mean=None, max=None,
     """ Compute a linear distribution using a specified band over an
         ImageCollection
 
-    f(x) = 1 - (abs(x-mean)/(max-mean))
+    f(x) = max-(abs(val-mean)/(imax-imin))
 
     :param collection:
     :type collection: ee.ImageCollection
@@ -330,34 +330,46 @@ def distribution_linear_band(collection, band, mean=None, max=None,
         defaults to None.
     :type mean: float
     """
+    imax = ee.Image(collection.select(band).max()).rename('imax')
+    imin = ee.Image(collection.select(band).min()).rename('imin')
+
     if mean is None:
-        imean = ee.Image(collection.select(band).mean()).rename('imean')
+        imean = imax
     else:
         imean = ee.Image.constant(mean).rename('imean')
 
     if max is None:
-        imax = ee.Image(collection.select(band).max()).rename('imax')
-    else:
-        imax = ee.Image.constant(max).rename('imax')
-
-    if min is None:
-        imin = ee.Image(collection.select(band).min()).rename('imin')
-    else:
-        imin = ee.Image.constant(min).rename('imin')
-
-    # MAX(max, min.abs)
-    imax = ee.Image(ee.Algorithms.If(imax.gte(imin.abs()), imax, imin.abs()))
+        max = imean
 
     def to_map(img):
         iband = img.select(band)
 
-        result = ee.Image().expression('1-((abs(val-mean))/(max-mean))',
-                                       {'val': iband,
-                                        'mean': imean,
-                                        'max': imax})
+        result = ee.Image().expression(
+            'max-(abs(val-mean)/(imax-imin))',
+            {'val': iband,
+             'mean': imean,
+             'imax': imax,
+             'imin': imin,
+             'max': max
+             })
         return img.addBands(result.rename(name))
 
-    return collection.map(to_map)
+    collection = collection.map(to_map)
+
+    if min is None:
+        min = imin
+
+    range_min = ee.Image(collection.select(name).min())
+    range_max = ee.Image(collection.select(name).max())
+    def normalize(img):
+        value = img.select(name)
+        e = value.subtract(range_min)
+        f = range_max.subtract(range_min)
+        g = e.divide(f)
+        result = g.multiply(ee.Image(max).subtract(ee.Image(min))) \
+            .add(ee.Image(min))
+        return image_module.replace(img, name, result)
+    return collection.map(normalize)
 
 
 def distribution_linear_property(collection, property, mean=None, max=None,
@@ -378,35 +390,45 @@ def distribution_linear_property(collection, property, mean=None, max=None,
         the computed value called by parameter `name`
     :rtype: ee.ImageCollection
     """
+    imax = ee.Number(collection.aggregate_max(property))
+    imin = ee.Number(collection.aggregate_min(property))
+
     if mean is None:
-        imean = ee.Number(collection.aggregate_mean(property))
+        imean = imax
     else:
         imean = ee.Number(mean)
 
     if max is None:
-        imax = ee.Number(collection.aggregate_max(property))
+        max = imean
     else:
-        imax = ee.Number(max)
-
-    if min is None:
-        imin = ee.Number(collection.aggregate_min(property))
-    else:
-        imin = ee.Number(min)
-
-    # MAX(max, min.abs)
-    imax = ee.Number(ee.Algorithms.If(imax.gte(imin.abs()), imax, imin.abs()))
+        max = ee.Number(max)
 
     def to_map(img):
         val = ee.Number(img.get(property))
 
         a = val.subtract(imean).abs()
-        b = a.divide(ee.Number(imax).subtract(imean))
-
-        result = ee.Number(1).subtract(b)
+        b = imax.subtract(imin)
+        c = a.divide(b)
+        result = max.subtract(c)
 
         return img.set(name, result)
 
-    return collection.map(to_map)
+    collection = collection.map(to_map)
+
+    if min is None:
+        min = imin
+
+    range_min = ee.Number(collection.aggregate_min(name))
+    range_max = ee.Number(collection.aggregate_max(name))
+    def normalize(img):
+        value = ee.Number(img.get(name))
+        e = value.subtract(range_min)
+        f = range_max.subtract(range_min)
+        g = e.divide(f)
+        result = g.multiply(ee.Number(max).subtract(ee.Number(min))) \
+            .add(ee.Number(min))
+        return img.set(name, result)
+    return collection.map(normalize)
 
 
 def distribution_normal_band(collection, band, mean=None, std=None,
