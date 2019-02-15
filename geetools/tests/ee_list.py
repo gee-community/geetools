@@ -20,7 +20,7 @@ class TestList(unittest.TestCase):
 
     def test_remove_duplicates(self):
         duplicated = ee.List([1, 2, 2, 1, 3, 5])
-        unique = listools.remove_duplicates(duplicated).getInfo()
+        unique = listools.removeDuplicates(duplicated).getInfo()
         self.assertEqual(unique, [1, 2, 3, 5])
 
     def test_replace_many(self):
@@ -39,7 +39,7 @@ class TestList(unittest.TestCase):
         test_list = ee.List(['a', 'c'])
         test_dict = ee.Dictionary({'a':1, 'b':5, 'c':8})
 
-        values = listools.get_from_dict(test_list, test_dict).getInfo()
+        values = listools.getFromDict(test_list, test_dict).getInfo()
 
         # assert
         self.assertEqual(values, [1, 8])

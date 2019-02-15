@@ -43,7 +43,7 @@ def binary(conditions, classes, mask_name='dt_mask'):
 
     repeated = new_classes_list.map(mapclasses)
 
-    unique = tools.ee_list.remove_duplicates(repeated)
+    unique = tools.ee_list.removeDuplicates(repeated)
 
     # CREATE INITIAL DICT
     def createinitial(baseclass, ini):

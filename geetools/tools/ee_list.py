@@ -65,7 +65,7 @@ def difference(eelist, to_compare):
         .flatten()
 
 
-def remove_duplicates(eelist):
+def removeDuplicates(eelist):
     """ Remove duplicated values from a EE list object """
     newlist = ee.List([])
     def wrap(element, init):
@@ -75,7 +75,7 @@ def remove_duplicates(eelist):
     return ee.List(eelist.iterate(wrap, newlist))
 
 
-def get_from_dict(eelist, values):
+def getFromDict(eelist, values):
     """ Get a list of Dict's values from a list object. Keys must be unique
 
     :param values: dict to get the values for list's keys
