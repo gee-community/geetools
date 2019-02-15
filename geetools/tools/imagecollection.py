@@ -281,11 +281,20 @@ def data2pandas(data):
     return df
 
 
-def parametrize_property(collection, range_from, range_to,
-                         property, name=None):
-    """ Parametrize a property """
-    if not name:
-        name = '{}_parametrized'.format(property)
+def parametrizeProperty(collection, property, range_from, range_to,
+                        pattern='property_PARAMETRIZED'):
+    """ Parametrize a property
+
+    :param collection: the ImageCollection
+    :param range_from: the original property range
+    :param range_to: the desired property range
+    :param property: the name of the property
+    :param pattern: the name of the resulting property. Wherever it says
+        'property' will be replaced with the passed property.
+    :return: the parsed collection in which every image has a new
+        parametrized property
+    """
+    name = pattern.replace('property', property)
 
     original_range = range_from if isinstance(range_from, ee.List) \
         else ee.List(range_from)
