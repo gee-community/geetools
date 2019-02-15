@@ -27,10 +27,13 @@ def replace_many(eelist, to_replace):
     :return: list with replaced values
     :rtype: ee.List
     """
-    for key, val in to_replace.items():
-        if val:
-            eelist = eelist.replace(key, val)
-    return eelist
+    eelist = ee.List(eelist)
+    to_replace = ee.Dictionary(to_replace)
+    keys = to_replace.keys()
+    def wrap(el):
+        condition = ee.List(keys).indexOf(el)
+        return ee.Algorithms.If(condition.neq(-1), to_replace.get(el), el)
+    return eelist.map(wrap)
 
 
 def intersection(eelist, intersect):
