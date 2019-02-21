@@ -21,18 +21,23 @@ import datetime
 
 def ydata2pandas(ydata):
     """ Convert data from charts y_data property to pandas """
-    newdict = {}
+    dataframes = []
     for serie, data in ydata.items():
-        newdata = {}
+        index = []
+        values = []
         for d in data:
-            newdata[d[0]] = d[1]
-        newdict[serie] = newdata
+            x = d[0]
+            y = d[1]
+            index.append(x)
+            values.append(y)
+        df = pd.DataFrame({serie:values}, index=index)
+        dataframes.append(df)
 
-    return tools.imagecollection.data2pandas(newdict)
+    return pd.concat(dataframes, axis=1, sort=False)
 
 
 def concat(*plots):
-    """ Concatenate plots. The type of the resuling plot will be the type
+    """ Concatenate plots. The type of the resulting plot will be the type
         of the first parsed plot
     """
     first = plots[0]
@@ -156,7 +161,7 @@ class Line(pygal.XY):
         self.x_label_rotation = 30
 
     @property
-    def data(self):
+    def dataframe(self):
         return ydata2pandas(self.y_data)
 
     def render_widget(self, width=None, height=None):
@@ -175,7 +180,7 @@ class DateTimeLine(pygal.DateTimeLine):
         self.x_label_rotation = 30
 
     @property
-    def data(self):
+    def dataframe(self):
         return ydata2pandas(self.y_data)
 
     def render_widget(self, width=None, height=None):
@@ -200,44 +205,68 @@ class Image(object):
             raise ValueError(msg.format(type(imageCollection)))
 
     @staticmethod
-    def series(imageCollection, region, reducer=ee.Reducer.mean(),
-               scale=None, xProperty='system:time_start', bands=None,
-               properties=None, labels=None):
-        """ Basic plot over an ImageCollection.
+    def series(imageCollection, region, reducer='mean', scale=None,
+               xProperty='system:time_start', bands=None, label_bands=None,
+               properties=None, label_properties=None):
+        """ Basic plot over an ImageCollection
 
-        :param imageCollection:
-        :param region:
-        :param reducer:
-        :param scale:
-        :param xProperty:
-        :param bands:
-        :param labels:
-        :return:
+        :param region: the region to reduce over an get a (unique) value
+        :type region: ee.Geometry or ee.Feature or ee.FeatureCollection
+        :param reducer: the reducer to apply over the region.
+        :param scale: the scale to apply the reducer. If None, will use the
+            nominal scale of the first band of the first image of the
+            collection
+        :param xProperty: the property that will be use for the x axis
+        :param bands: the bands that will be used for the y axis
+        :param label_bands: the names for the series of bands. Have to match
+            the length of bands
+        :param properties: the properties that will be used for the y axis
+        :param label_properties: the names for the series of properties. Have
+            to match the length of properties
+        :return: a linear chart
+        :rtype: pygal.XY
         """
         Image.check_imageCollection(imageCollection)
-
-        # scale
-        if not scale:
-            scale = 1
 
         # first image (for getting bands and properties)
         first = ee.Image(imageCollection.first())
         allbands = first.bandNames().getInfo()
 
-        # Get Y (bands)
-        if bands is None and properties is None:
-            bands = allbands
-        elif bands is None and properties is not None:
-            bands = []
+        # scale
+        if not scale:
+            scale = first.select(0).projection().nominalScale()
 
-        if xProperty in allbands:
-            bands.append(xProperty)
+        # Get Y (bands)
+        if not bands:
+            bands = allbands
+            if not label_bands:
+                label_bands = allbands
+        else:
+            if not label_bands:
+                label_bands = bands
+
+        if not properties:
+            properties = []
+            label_properties = []
+        else:
+            if not label_properties:
+                label_properties = properties
+
+                # Check for consistance
+        if len(bands) != len(label_bands):
+            msg = 'The number of the labels for bands must be equal to the ' \
+                  'number of parsed bands. Found {} and {}'.format(
+                len(label_bands), len(bands))
+            raise ValueError(msg)
+
+        if len(properties) != len(label_properties):
+            msg = 'The number of the labels for properties must be equal to ' \
+                  'the number of parsed properties. Found {} and {}'.format(
+                len(label_properties), len(properties))
+            raise ValueError(msg)
 
         # Select bands
         imageCollection = imageCollection.select(bands)
-
-        # Get Images properties
-        iproperties = first.propertyNames().getInfo()
 
         # If xProperty == 'system:time_start' will compute datetime
         datetime = True if xProperty == 'system:time_start' else False
@@ -252,41 +281,39 @@ class Image(object):
                   ' or `ee.FeatureCollection, found {}'
             raise ValueError(msg.format(type(region)))
 
-        if xProperty in iproperties:
-            # include xProperty in data
-            x_property = [xProperty]
-        elif xProperty in allbands:
-            # xProperty will be included in data because is a band
-            x_property = []
-        else:
-            msg = 'xProperty "{}" not found in properties or bands'
-            raise ValueError(msg.format(xProperty))
+        x_properties = [xProperty]
 
         if properties is not None:
-            x_property = x_property + properties
+            x_properties = x_properties + properties
 
         data = tools.imagecollection.get_values(
             collection=imageCollection,
             geometry=geom,
             reducer=reducer,
             scale=scale,
-            properties=x_property,
+            properties=x_properties,
             side='client')
 
-        if bands and properties:
-            ydata = bands + properties
-        elif bands and not properties:
-            ydata = bands
+        if label_bands and label_properties:
+            ydata = label_bands + label_properties
+        elif label_bands and not label_properties:
+            ydata = label_bands
         else:
-            ydata = properties
+            ydata = label_properties
 
         # Replace band names with labels provided
-        if labels and len(ydata) == len(labels):
+        if label_bands:
             for iid, values_dict in data.items():
-                for old_name, new_name in zip(ydata, labels):
+                for old_name, new_name in zip(bands, label_bands):
                     data[iid][new_name] = data[iid][old_name]
                     data[iid].pop(old_name)
-            ydata = labels
+
+        # Replace property names with labels provided
+        if label_properties:
+            for iid, values_dict in data.items():
+                for old_name, new_name in zip(properties, label_properties):
+                    data[iid][new_name] = data[iid][old_name]
+                    data[iid].pop(old_name)
 
         df = tools.imagecollection.data2pandas(data)
         newdf = df.sort_values(xProperty)
@@ -299,7 +326,11 @@ class Image(object):
         line_chart = from_pandas(chart, newdf, y=ydata,
                                  x=xProperty, datetime=datetime)
 
-        reducer_name = reducer.getInfo()['type'].split('.')[1]
+        if isinstance(reducer, str):
+            reducer_name = reducer
+        else:
+            reducer_name = reducer.getInfo()['type'].split('.')[1]
+
         chart_title = 'Band {} in relation with {} across images'
         chart_title = chart_title.format(reducer_name, xProperty)
         line_chart.title = chart_title
@@ -408,42 +439,56 @@ class Image(object):
 
 
     @staticmethod
-    def bandsByRegion(image, region, xProperty='system:index', bands=None,
-                      reducer='mean', scale=None, labels=None, crs=None,
-                      crsTransform=None, tileScale=1):
+    def bandsByRegion(image, collection, xProperty='system:index', bands=None,
+                      reducer='mean', scale=None, labels=None, **kwargs):
         """ Plot values for each region given an xBand
 
-        :param image:
-        :param region:
-        :param xBand:
-        :param bands:
-        :param reducer:
-        :param scale:
-        :param seriesProperty:
-        :return:
+        :param image: The image to get the values from
+        :param collection: The collection must be contained in the image
+        :type collection: ee.FeatureCollection
+        :param xProperty: The property of the Features that will be used as
+            x value. If a band is parsed, the value will be obtained using
+            the parsed reducer
+        :param bands: the band to be in the y axis
+        :param reducer: the reducer to apply in each Feature
+        :param scale: the scale to apply the reducer
+        :return: a chart
+        :rtype: pygal.XY
         """
         allbands = image.bandNames().getInfo()
+
+        if not labels:
+            labels = bands
+
+        # Check for consistance
+        if len(labels) != len(bands):
+            msg = 'The number of labels provided must be the same as the ' \
+                  'number of bands. Found {} and {}'.format(
+                len(labels), len(bands))
+            raise ValueError(msg)
+
         if bands:
             if xProperty in allbands and xProperty not in bands:
                 bands.append(xProperty)
+                labels.append(xProperty)
         else:
             bands = allbands
 
         if xProperty == 'system:index':
             xProperty = None
 
-        if isinstance(region, ee.Geometry):
-            region = ee.FeatureCollection([ee.Feature(region)])
+        if isinstance(collection, ee.Geometry):
+            msg = 'the parsed collection must be a FeatureCollection or a ' \
+                  'Feature'
+            raise ValueError(msg)
 
-        if isinstance(region, ee.Feature):
-            region = ee.FeatureCollection([region])
+        if isinstance(collection, ee.Feature):
+            collection = ee.FeatureCollection([collection])
 
-        image = image.select(bands)
+        image = image.select(bands, labels)
 
-        fc = image.reduceRegions(collection=region, reducer=reducer,
-                                 scale=scale, crs=crs,
-                                 crsTransform=crsTransform,
-                                 tileScale=tileScale)
+        fc = image.reduceRegions(collection=collection, reducer=reducer,
+                                 scale=scale, **kwargs)
 
         if isinstance(reducer, ee.Reducer):
             rname = utils.getReducerName(reducer)
@@ -460,9 +505,10 @@ class Image(object):
             fc = fc.map(rename)
 
         pd = utils.reduceRegionsPandas(fc)
+
         l = Line()
 
-        line_chart = from_pandas(l, pd, x=xProperty, y=bands)
+        line_chart = from_pandas(l, pd, x=xProperty, y=labels)
 
         chart_title = 'Band {} in relation with {} across features'
         chart_title = chart_title.format(rname, xProperty)
