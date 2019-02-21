@@ -548,9 +548,9 @@ def renamePattern(image, pattern, bands=None):
     """ Rename the bands of the parsed image with the given pattern
 
     :param image:
-    :param pattern: the special keyword `{band}` will be replaced with the actual
-        band name. Spaces will be replaced with underscore. It also will be
-        trimmed
+    :param pattern: the special keyword `{band}` will be replaced with the
+        actual band name. Spaces will be replaced with underscore. It also will
+        be trimmed
     :param bands: the bands to rename. If None it'll rename all the bands
     :return:
     """
@@ -577,6 +577,90 @@ def renamePattern(image, pattern, bands=None):
         allbands, ee.Dictionary.fromLists(bands_to_replace, newbands))
 
     return image.select(allbands, new_allbands)
+
+
+def distribution_linear(image, band, range_min=None, range_max=None, mean=None,
+                        min=None, max=None, name='linear_dist', region=None,
+                        scale=None, **kwargs):
+    """ Apply a linear distribution over one image band
+
+    :param band: the band to process
+    :param range_min: the minimum pixel value in the parsed band. If None, it
+        will be computed over the parsed region (heavy process that can fail)
+    :param range_max: the maximum pixel value in the parsed band. If None, it
+        will be computed over the parsed region (heavy process that can fail)
+    :param mean: the value that will take the `max` value
+    :param min: the minimum value that will take the resulting band.
+    :param max: the minimum value that will take the resulting band.
+    :param name: the name of the resulting band
+    :param region: the region to reduce over if no `range_min` and/or no
+        `range_max` has been parsed
+    :param scale: the scale that will be use for reduction if no `range_min`
+        and/or no `range_max` has been parsed
+    :param kwargs: extra arguments for the reduction: crs, crsTransform,
+        bestEffort, maxPixels, tileScale.
+    :return:
+    :rtype: ee.Image
+    """
+    image = image.select(band)
+
+    if not region:
+        region = image.geometry()
+
+    if not scale:
+        scale = image.projection().nominalScale()
+
+    if range_min is None and range_max is None:
+        minmax = image.reduceRegion(reducer=ee.Reducer.minMax(),
+                                    geometry=region, scale=scale, **kwargs)
+        minname = '{}_min'.format(band)
+        maxname = '{}_max'.format(band)
+
+        imin = ee.Number(minmax.get(minname))
+        imax = ee.Number(minmax.get(maxname))
+
+    elif range_min is None:
+        minmax = image.reduceRegion(reducer=ee.Reducer.min(),
+                                    geometry=region, scale=scale, **kwargs)
+        imin = ee.Number(minmax.get(band))
+        imax = ee.Number(range_max)
+
+    elif range_max is None:
+        minmax = image.reduceRegion(reducer=ee.Reducer.max(),
+                                    geometry=region, scale=scale, **kwargs)
+        imax = ee.Number(minmax.get(band))
+        imin = ee.Number(range_min)
+    else:
+        imax = ee.Number(range_max)
+        imin = ee.Number(range_min)
+
+    if mean is None:
+        imean = imax
+    else:
+        imean = ee.Number(mean)
+
+    if max is None:
+        max = imax
+
+    if min is None:
+        min = imin
+
+    condition = imean.lt(imax.divide(2))
+    a = ee.Number(ee.Algorithms.If(condition,
+                                   imax.subtract(imean).abs(),
+                                   imin.subtract(imean).abs()))
+
+    result = ee.Image().expression(
+        'abs(val-mean)*(-1)*((max-min)/a)+max',
+        {'val': image,
+         'mean': imean,
+         'a': a,
+         'imin': imin,
+         'max': max,
+         'min': min
+         })
+
+    return result.rename(name)
 
 
 class Mapping(object):
