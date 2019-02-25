@@ -237,18 +237,25 @@ class Image(object):
             scale = first.select(0).projection().nominalScale()
 
         # Get Y (bands)
-        if not bands:
+        if not bands and not properties:
             bands = allbands
+            properties = []
+            label_properties = []
             if not label_bands:
                 label_bands = allbands
+        elif bands and not properties:
+            properties = []
+            label_properties = []
+            if not label_bands:
+                label_bands = bands
+        elif properties and not bands:
+            bands = []
+            label_bands = []
+            if not label_properties:
+                label_properties = properties
         else:
             if not label_bands:
                 label_bands = bands
-
-        if not properties:
-            properties = []
-            label_properties = []
-        else:
             if not label_properties:
                 label_properties = properties
 
@@ -457,8 +464,17 @@ class Image(object):
         """
         allbands = image.bandNames().getInfo()
 
+        xProperty_is_band = xProperty in allbands
+
+        if not bands:
+            bands = [band for band in allbands]
+
         if not labels:
-            labels = bands
+            labels = [band for band in bands]
+
+        if xProperty_is_band and xProperty not in bands:
+            bands.append(xProperty)
+            labels.append(xProperty)
 
         # Check for consistance
         if len(labels) != len(bands):
@@ -466,13 +482,6 @@ class Image(object):
                   'number of bands. Found {} and {}'.format(
                 len(labels), len(bands))
             raise ValueError(msg)
-
-        if bands:
-            if xProperty in allbands and xProperty not in bands:
-                bands.append(xProperty)
-                labels.append(xProperty)
-        else:
-            bands = allbands
 
         if xProperty == 'system:index':
             xProperty = None
