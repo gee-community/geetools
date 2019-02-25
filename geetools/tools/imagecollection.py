@@ -324,12 +324,13 @@ def parametrizeProperty(collection, property, range_from, range_to,
     return collection.map(wrap)
 
 
-def distribution_linear_band(collection, band, mean=None, max=None,
-                             min=None, name='linear_dist'):
+def distribution_linear_band(collection, band, range_min=None, range_max=None,
+                             mean=None, max=None, min=None,
+                             name='linear_dist'):
     """ Compute a linear distribution using a specified band over an
         ImageCollection
 
-    f(x) = max-(abs(val-mean)/(imax-imin))
+    f(x) = abs(val-mean)*(-1)*((max-min)/a)+max
 
     :param collection:
     :type collection: ee.ImageCollection
@@ -339,8 +340,15 @@ def distribution_linear_band(collection, band, mean=None, max=None,
         defaults to None.
     :type mean: float
     """
-    imax = ee.Image(collection.select(band).max()).rename('imax')
-    imin = ee.Image(collection.select(band).min()).rename('imin')
+    if range_min is None:
+        imin = ee.Image(collection.select(band).min()).rename('imin')
+    else:
+        imin = ee.Image.constant(range_min)
+
+    if range_max is None:
+        imax = ee.Image(collection.select(band).max()).rename('imax')
+    else:
+        imax = ee.Image.constant(range_max)
 
     if mean is None:
         imean = imax
@@ -348,45 +356,47 @@ def distribution_linear_band(collection, band, mean=None, max=None,
         imean = ee.Image.constant(mean).rename('imean')
 
     if max is None:
-        max = imean
+        max = imax
+
+    if min is None:
+        min = imin
+
+    condition = imean.lt(imax.divide(2))
+    # a = ee.Image(ee.Algorithms.If(condition,
+    #                               imax.subtract(imean).abs(),
+    #                               imin.subtract(imean).abs()))
+
+    # Because of
+    # https://groups.google.com/d/msg/google-earth-engine-developers/rars5FsT03g/uQsHzccXAQAJ
+    # https://github.com/google/earthengine-api/issues/80
+    # a = a.where(a.eq(0.0), imax)
+    a = imin.subtract(imean).abs().where(condition, imax.subtract(imean).abs())
 
     def to_map(img):
         iband = img.select(band)
-
         result = ee.Image().expression(
-            'max-(abs(val-mean)/(imax-imin))',
+            'abs(val-mean)*(-1)*((max-min)/a)+max',
             {'val': iband,
              'mean': imean,
-             'imax': imax,
+             'a': a,
              'imin': imin,
-             'max': max
+             'max': max,
+             'min': min
              })
         return img.addBands(result.rename(name))
 
     collection = collection.map(to_map)
 
-    if min is None:
-        min = imin
-
-    range_min = ee.Image(collection.select(name).min())
-    range_max = ee.Image(collection.select(name).max())
-    def normalize(img):
-        value = img.select(name)
-        e = value.subtract(range_min)
-        f = range_max.subtract(range_min)
-        g = e.divide(f)
-        result = g.multiply(ee.Image(max).subtract(ee.Image(min))) \
-            .add(ee.Image(min))
-        return image_module.replace(img, name, result)
-    return collection.map(normalize)
+    return collection
 
 
-def distribution_linear_property(collection, property, mean=None, max=None,
+def distribution_linear_property(collection, property, range_min=None,
+                                 range_max=None,mean=None, max=None,
                                  min=None, name='LINEAR_DIST'):
     """ Compute a linear distribution using a specified property over an
         ImageCollection
 
-    f(x) = 1 - (abs(x-mean)/(max-mean))
+    f(x) = abs(val-mean)*(-1)*((max-min)/a)+max
 
     :param collection:
     :type collection: ee.ImageCollection
@@ -399,8 +409,15 @@ def distribution_linear_property(collection, property, mean=None, max=None,
         the computed value called by parameter `name`
     :rtype: ee.ImageCollection
     """
-    imax = ee.Number(collection.aggregate_max(property))
-    imin = ee.Number(collection.aggregate_min(property))
+    if range_min is None:
+        imin = ee.Number(collection.aggregate_min(property))
+    else:
+        imin = ee.Image.constant(range_min)
+
+    if range_max is None:
+        imax = ee.Number(collection.aggregate_max(property))
+    else:
+        imax = ee.Image.constant(range_max)
 
     if mean is None:
         imean = imax
@@ -408,36 +425,34 @@ def distribution_linear_property(collection, property, mean=None, max=None,
         imean = ee.Number(mean)
 
     if max is None:
-        max = imean
+        max = imax
     else:
         max = ee.Number(max)
+
+    if min is None:
+        min = imin
+    else:
+        min = ee.Number(min)
+
+    condition = imean.lt(imax.divide(2))
+    t = ee.Image(ee.Algorithms.If(condition,
+                                  imax.subtract(imean).abs(),
+                                  imin.subtract(imean).abs()))
 
     def to_map(img):
         val = ee.Number(img.get(property))
 
-        a = val.subtract(imean).abs()
-        b = imax.subtract(imin)
-        c = a.divide(b)
-        result = max.subtract(c)
+        a = val.subtract(imean).abs().multiply(-1)
+        b = max.subtract(min)
+        c = b.divide(t)
+        d = a.multiply(c)
+        result = d.add(max)
 
         return img.set(name, result)
 
     collection = collection.map(to_map)
 
-    if min is None:
-        min = imin
-
-    range_min = ee.Number(collection.aggregate_min(name))
-    range_max = ee.Number(collection.aggregate_max(name))
-    def normalize(img):
-        value = ee.Number(img.get(name))
-        e = value.subtract(range_min)
-        f = range_max.subtract(range_min)
-        g = e.divide(f)
-        result = g.multiply(ee.Number(max).subtract(ee.Number(min))) \
-            .add(ee.Number(min))
-        return img.set(name, result)
-    return collection.map(normalize)
+    return collection
 
 
 def distribution_normal_band(collection, band, mean=None, std=None,
