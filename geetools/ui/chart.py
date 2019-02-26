@@ -312,15 +312,17 @@ class Image(object):
         if label_bands:
             for iid, values_dict in data.items():
                 for old_name, new_name in zip(bands, label_bands):
-                    data[iid][new_name] = data[iid][old_name]
-                    data[iid].pop(old_name)
+                    if new_name != old_name:
+                        data[iid][new_name] = data[iid][old_name]
+                        data[iid].pop(old_name)
 
         # Replace property names with labels provided
         if label_properties:
             for iid, values_dict in data.items():
                 for old_name, new_name in zip(properties, label_properties):
-                    data[iid][new_name] = data[iid][old_name]
-                    data[iid].pop(old_name)
+                    if new_name != old_name:
+                        data[iid][new_name] = data[iid][old_name]
+                        data[iid].pop(old_name)
 
         df = tools.imagecollection.data2pandas(data)
         newdf = df.sort_values(xProperty)
