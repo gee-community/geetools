@@ -361,16 +361,10 @@ def distribution_linear_band(collection, band, range_min=None, range_max=None,
     if min is None:
         min = imin
 
-    condition = imean.lt(imax.divide(2))
-    # a = ee.Image(ee.Algorithms.If(condition,
-    #                               imax.subtract(imean).abs(),
-    #                               imin.subtract(imean).abs()))
-
-    # Because of
-    # https://groups.google.com/d/msg/google-earth-engine-developers/rars5FsT03g/uQsHzccXAQAJ
-    # https://github.com/google/earthengine-api/issues/80
-    # a = a.where(a.eq(0.0), imax)
-    a = imin.subtract(imean).abs().where(condition, imax.subtract(imean).abs())
+    # MAX(ABS(imax-imean);ABS(imin-imean))
+    b = imin.subtract(imean).abs()
+    c = imax.subtract(imean).abs()
+    a = b.max(c)
 
     def to_map(img):
         iband = img.select(band)
@@ -412,12 +406,12 @@ def distribution_linear_property(collection, property, range_min=None,
     if range_min is None:
         imin = ee.Number(collection.aggregate_min(property))
     else:
-        imin = ee.Image.constant(range_min)
+        imin = ee.Number(range_min)
 
     if range_max is None:
         imax = ee.Number(collection.aggregate_max(property))
     else:
-        imax = ee.Image.constant(range_max)
+        imax = ee.Number(range_max)
 
     if mean is None:
         imean = imax
@@ -434,10 +428,9 @@ def distribution_linear_property(collection, property, range_min=None,
     else:
         min = ee.Number(min)
 
-    condition = imean.lt(imax.divide(2))
-    t = ee.Image(ee.Algorithms.If(condition,
-                                  imax.subtract(imean).abs(),
-                                  imin.subtract(imean).abs()))
+    a = imax.subtract(imean).abs()
+    b = imin.subtract(imean).abs()
+    t = a.max(b)
 
     def to_map(img):
         val = ee.Number(img.get(property))

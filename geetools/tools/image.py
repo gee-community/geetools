@@ -646,16 +646,15 @@ def distribution_linear(image, band, range_min=None, range_max=None, mean=None,
     if min is None:
         min = imin
 
-    condition = imean.lt(imax.divide(2))
-    a = ee.Number(ee.Algorithms.If(condition,
-                                   imax.subtract(imean).abs(),
-                                   imin.subtract(imean).abs()))
+    a = imax.subtract(imean).abs()
+    b = imin.subtract(imean).abs()
+    t = a.max(b)
 
     result = ee.Image().expression(
-        'abs(val-mean)*(-1)*((max-min)/a)+max',
+        'abs(val-mean)*(-1)*((max-min)/t)+max',
         {'val': image,
          'mean': imean,
-         'a': a,
+         't': t,
          'imin': imin,
          'max': max,
          'min': min
@@ -664,8 +663,8 @@ def distribution_linear(image, band, range_min=None, range_max=None, mean=None,
     return result.rename(name)
 
 
-def distribution_normal(image, band, mean=None, range_min=None, range_max=None,
-                        max=None, min=None, stretch=4, name='normal_dist',
+def distribution_normal(image, band, range_min=None, range_max=None, mean=None,
+                        min=None, max=None, stretch=4, name='normal_dist',
                         region=None, scale=None, **kwargs):
     """ Compute a Normal distribution using a specified band over an
         ImageCollection
