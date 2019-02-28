@@ -79,3 +79,11 @@ def reduceRegionsPandas(data, index='system:index', add_coordinates=False,
             indexes.append(feature['properties'][index])
 
     return pd.DataFrame(d, indexes)
+
+
+def castImage(value):
+    """ Cast a value into an ee.Image if it is not already """
+    if isinstance(value, ee.Image) or value is None:
+        return value
+    else:
+        return ee.Image.constant(value)
