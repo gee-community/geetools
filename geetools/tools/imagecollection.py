@@ -7,6 +7,7 @@ import math
 from . import date
 from . import image as image_module
 from . import collection as eecollection
+from ..utils import castImage
 
 
 if not ee.data._initialized:
@@ -324,59 +325,49 @@ def parametrizeProperty(collection, property, range_from, range_to,
     return collection.map(wrap)
 
 
-def distribution_linear_band(collection, band, range_min=None, range_max=None,
-                             mean=None, max=None, min=None,
-                             name='linear_dist'):
-    """ Compute a linear distribution using a specified band over an
-        ImageCollection
+def linear_function_band(collection, band, range_min=None, range_max=None,
+                         mean=None, output_min=None, output_max=None,
+                         name='linear_function'):
+    """ Apply a linear function over the bands across every image of the
+    ImageCollection using the following formula:
 
-    f(x) = abs(val-mean)*(-1)*((max-min)/a)+max
+    - a = abs(val-mean)
+    - b = output_max-output_min
+    - c = abs(range_max-mean)
+    - d = abs(range_min-mean)
+    - e = max(c, d)
 
-    :param collection:
-    :type collection: ee.ImageCollection
-    :param band: the name of the band to use
-    :type band: str
-    :param mean: the mean value. If None it will be computed from the source.
-        defaults to None.
-    :type mean: float
+    f(x) = a*(-1)*(b/e)+output_max
+
+    :param band: the band to process
+    :param range_min: the minimum pixel value in the parsed band. If None, it
+        will be computed reducing the collection
+    :param range_max: the maximum pixel value in the parsed band. If None, it
+        will be computed reducing the collection
+    :param output_min: the minimum value that will take the resulting band.
+    :param output_max: the minimum value that will take the resulting band.
+    :param mean: the value on the given range that will take the `output_max`
+        value
+    :param name: the name of the resulting band
+    :return: the parsed collection in which every image will have an extra band
+        that results of applying the linear function over every pixel in the
+        image
+    :rtype: ee.ImageCollection
     """
     if range_min is None:
-        imin = ee.Image(collection.select(band).min()).rename('imin')
+        range_min = ee.Image(collection.select(band).min()).rename('imin')
     else:
-        imin = ee.Image.constant(range_min)
+        range_min = castImage(range_min)
 
     if range_max is None:
-        imax = ee.Image(collection.select(band).max()).rename('imax')
+        range_max = ee.Image(collection.select(band).max()).rename('imax')
     else:
-        imax = ee.Image.constant(range_max)
-
-    if mean is None:
-        imean = imax
-    else:
-        imean = ee.Image.constant(mean).rename('imean')
-
-    if max is None:
-        max = imax
-
-    if min is None:
-        min = imin
-
-    # MAX(ABS(imax-imean);ABS(imin-imean))
-    b = imin.subtract(imean).abs()
-    c = imax.subtract(imean).abs()
-    a = b.max(c)
+        range_max = castImage(range_max)
 
     def to_map(img):
-        iband = img.select(band)
-        result = ee.Image().expression(
-            'abs(val-mean)*(-1)*((max-min)/a)+max',
-            {'val': iband,
-             'mean': imean,
-             'a': a,
-             'imin': imin,
-             'max': max,
-             'min': min
-             })
+        result = image_module.linear_function(img, band, range_min, range_max,
+                                              mean, output_min, output_max,
+                                              name)
         return img.addBands(result.rename(name))
 
     collection = collection.map(to_map)
@@ -384,23 +375,33 @@ def distribution_linear_band(collection, band, range_min=None, range_max=None,
     return collection
 
 
-def distribution_linear_property(collection, property, range_min=None,
-                                 range_max=None,mean=None, max=None,
-                                 min=None, name='LINEAR_DIST'):
-    """ Compute a linear distribution using a specified property over an
-        ImageCollection
+def linear_function_property(collection, property, range_min=None,
+                             range_max=None, mean=None, output_min=None,
+                             output_max=None, name='LINEAR_FUNCTION'):
+    """ Apply a linear function over the properties across every image of the
+    ImageCollection using the following formula:
 
-    f(x) = abs(val-mean)*(-1)*((max-min)/a)+max
+    - a = abs(val-mean)
+    - b = output_max-output_min
+    - c = abs(range_max-mean)
+    - d = abs(range_min-mean)
+    - e = max(c, d)
 
-    :param collection:
-    :type collection: ee.ImageCollection
-    :param property: the name of the property to use
-    :type property: str
-    :param mean: the mean value. If None it will be computed from the source.
-        defaults to None.
-    :type mean: float
-    :return: the parsed collection in which each image has an new property for
-        the computed value called by parameter `name`
+    f(x) = a*(-1)*(b/e)+output_max
+
+    :param property: the property to process
+    :param range_min: the minimum pixel value in the parsed band. If None, it
+        will be computed reducing the collection
+    :param range_max: the maximum pixel value in the parsed band. If None, it
+        will be computed reducing the collection
+    :param output_min: the minimum value that will take the resulting band.
+    :param output_max: the minimum value that will take the resulting band.
+    :param mean: the value on the given range that will take the `output_max`
+        value
+    :param name: the name of the resulting band
+    :return: the parsed collection in which every image will have an extra
+        property that results of applying the linear function over every pixel
+        in the image
     :rtype: ee.ImageCollection
     """
     if range_min is None:
@@ -418,15 +419,15 @@ def distribution_linear_property(collection, property, range_min=None,
     else:
         imean = ee.Number(mean)
 
-    if max is None:
-        max = imax
+    if output_max is None:
+        output_max = imax
     else:
-        max = ee.Number(max)
+        output_max = ee.Number(output_max)
 
-    if min is None:
-        min = imin
+    if output_min is None:
+        output_min = imin
     else:
-        min = ee.Number(min)
+        output_min = ee.Number(output_min)
 
     a = imax.subtract(imean).abs()
     b = imin.subtract(imean).abs()
@@ -436,10 +437,10 @@ def distribution_linear_property(collection, property, range_min=None,
         val = ee.Number(img.get(property))
 
         a = val.subtract(imean).abs().multiply(-1)
-        b = max.subtract(min)
+        b = output_max.subtract(output_min)
         c = b.divide(t)
         d = a.multiply(c)
-        result = d.add(max)
+        result = d.add(output_max)
 
         return img.set(name, result)
 
@@ -448,87 +449,145 @@ def distribution_linear_property(collection, property, range_min=None,
     return collection
 
 
-def distribution_normal_band(collection, band, mean=None, std=None,
-                             max=None, min=None, stretch=-1,
-                             name='normal_dist'):
-    """ Compute a Normal distribution using a specified band over an
-        ImageCollection
+def gauss_function_band(collection, band, range_min=None, range_max=None,
+                        mean=0, output_min=None, output_max=1, std=None,
+                        stretch=1, name='gauss'):
+    """ Compute a Guass function using a specified band over an
+        ImageCollection. See: https://en.wikipedia.org/wiki/Gaussian_function
 
-    f(x) = exp((((((x-mean)**2)/(2*(std**2))*(factor)))/(sqrt(2*pi)*std)))
-
-    :param collection:
-    :type collection: ee.ImageCollection
     :param band: the name of the band to use
     :type band: str
-    :param mean: the mean value. If None it will be computed from the source.
-        defaults to None.
-    :type mean: float
-    :param std: the standard deviation value. If None it will be computed from
-        the source. Defaults to None.
-    :type std: float
+    :param range_min: the minimum pixel value in the parsed band. If None, it
+        will be computed
+    :param range_max: the maximum pixel value in the parsed band. If None, it
+        will be computed
+    :param mean: the position of the center of the peak. Defaults to 0
+    :type mean: int or float
+    :param std: the standard deviation value. Defaults to range/4
+    :type std: int or float
+    :param output_max: height of the curve's peak
+    :type output_max: int or float
+    :param output_min: the desired minimum of the curve
+    :type output_min: int or float
+    :param stretch: a stretching value. As bigger as stretch
+    :type stretch: int or float
+    :param name: the name of the resulting band
+    :return: the parsed collection in which every image will have an extra band
+        that results of applying the gauss function over every pixel in the
+        image
+    :rtype: ee.ImageCollection
     """
-    pi = ee.Image(math.pi)
-
-    if mean is None:
-        imean = ee.Image(collection.select(band).mean()).rename('imean')
+    if range_min is None:
+        range_min = ee.Image(collection.min())
     else:
-        imean = ee.Image.constant(mean).rename('imean')
+        range_min = castImage(range_min)
 
-    if std is None:
-        istd = ee.Image(collection.select(band).reduce(ee.Reducer.stdDev())) \
-            .rename('istd')
+    if range_max is None:
+        range_max = ee.Image(collection.max())
     else:
-        istd = ee.Image.constant(std).rename('istd')
-
-    if max is None:
-        imax = ee.Image(1) \
-            .divide(istd.multiply(ee.Image(2).multiply(pi).sqrt())) \
-            .rename('imax')
-    else:
-        imax = ee.Image(max).rename('imax')
+        range_max = castImage(range_max)
 
     def to_map(img):
-        iband = img.select(band)
 
-        result = ee.Image().expression(
-            'exp(((val-mean)**2)/(2*(std**2))*(stretch))*imax',
-            {'val': iband,
-             'mean': imean,
-             'std': istd,
-             'imax': imax,
-             'stretch': ee.Image(stretch)
-             })
-        return img.addBands(result.rename(name))
+        result = image_module.gauss_function(img, band,
+                                             range_min=range_min,
+                                             range_max=range_max,
+                                             mean=mean, std=std,
+                                             output_min=output_min,
+                                             output_max=output_max,
+                                             stretch=stretch,
+                                             name=name)
+        return img.addBands(result)
 
     collection = collection.map(to_map)
 
-    if min is None:
-        return collection
-    else:
-        imin = ee.Image(collection.select(name).min())
-        def normalize(img):
-            value = img.select(name)
-            e = value.subtract(imin)
-            f = imax.subtract(imin)
-            g = e.divide(f)
-            result = g.multiply(imax.subtract(ee.Image(min))) \
-                .add(ee.Image(min))
-            return image_module.replace(img, name, result)
-        return collection.map(normalize)
+    return collection
 
 
-def distribution_normal_property(collection, property, mean=None, std=None,
-                                 max=None, min=None, stretch=-1,
-                                 name='NORMAL_DIST'):
-    """ Compute a normal distribution using a specified property, over an
-        ImageCollection
-
-    f(x) = exp((((((x-mean)**2)/(2*(std**2))*(factor)))/(sqrt(2*pi)*std)))
+def gauss_function_property(collection, property, range_min=None,
+                            range_max=None, mean=0, output_min=None,
+                            output_max=1, std=None, stretch=1,
+                            name='GAUSS'):
+    """ Compute a Guass function using a specified property over an
+        ImageCollection. See: https://en.wikipedia.org/wiki/Gaussian_function
 
     :param collection:
     :type collection: ee.ImageCollection
-    :param band: the name of the property to use
-    :type band: str
+    :param property: the name of the property to use
+    :type property: str
+    :param range_min: the minimum pixel value in the parsed band. If None, it
+        will be computed
+    :param range_max: the maximum pixel value in the parsed band. If None, it
+        will be computed
+    :param mean: the position of the center of the peak. Defaults to 0
+    :type mean: int or float
+    :param std: the standard deviation value. Defaults to range/4
+    :type std: int or float
+    :param output_max: height of the curve's peak
+    :type output_max: int or float
+    :param output_min: the desired minimum of the curve
+    :type output_min: int or float
+    :param stretch: a stretching value. As bigger as stretch
+    :type stretch: int or float
+    :param name: the name of the resulting property
+    :return: the parsed collection in which every image will have an extra
+        property that results of applying the linear function over every pixel
+        in the image
+    :rtype: ee.ImageCollection
+    """
+    if range_min is None:
+        range_min = ee.Number(collection.aggregate_min(property))
+    else:
+        range_min = ee.Number(range_min)
+
+    if range_max is None:
+        range_max = ee.Number(collection.aggregate_max(property))
+    else:
+        range_max = ee.Number(range_max)
+
+    mean = ee.Number(mean)
+    output_max = ee.Number(output_max)
+    if std is None:
+        std = range_max.subtract(range_min).divide(4)
+    else:
+        std = ee.Number(std)
+    stretch = ee.Number(stretch)
+
+    def to_map(img):
+        def compute_gauss(value):
+            a = value.subtract(mean).pow(2)
+            b = std.pow(2).multiply(-2)
+            c = a.divide(b).multiply(stretch)
+            d = c.exp()
+            return d.multiply(output_max)
+
+        no_parametrized = compute_gauss(ee.Number(img.get(property)))
+
+        if output_min is None:
+            return img.set(name, no_parametrized)
+        else:
+            min_result = compute_gauss(range_min)
+            max_result = compute_gauss(range_max)
+            min_result_final = min_result.min(max_result)
+            e = no_parametrized.subtract(min_result_final)
+            f = output_max.subtract(min_result_final)
+            g = output_max.subtract(output_min)
+            parametrized = e.divide(f).multiply(g).add(output_min)
+            return img.set(name, parametrized)
+
+    collection = collection.map(to_map)
+
+    return collection
+
+
+def normal_distribution_property(collection, property, mean=None, std=None,
+                                 name='NORMAL_DISTRIBUTION'):
+    """ Compute a normal distribution using a specified property, over an
+    ImageCollection. For more see:
+    https://en.wikipedia.org/wiki/Normal_distribution
+
+    :param property: the name of the property to use
+    :type property: str
     :param mean: the mean value. If None it will be computed from the source.
         defaults to None.
     :type mean: float
@@ -546,34 +605,42 @@ def distribution_normal_property(collection, property, mean=None, std=None,
     else:
         istd = ee.Number(std)
 
-    if max is None:
-        imax = ee.Number(1)\
-                 .divide(istd.multiply(ee.Number(2).multiply(math.pi).sqrt()))
+    imax = ee.Number(1)\
+             .divide(istd.multiply(ee.Number(2).multiply(math.pi).sqrt()))
+
+    return gauss_function_property(collection, property, mean=imean,
+                                   output_max=imax, std=istd, name=name)
+
+
+def normal_distribution_band(collection, band, mean=None, std=None,
+                             name='normal_distribution'):
+    """ Compute a normal distribution using a specified band, over an
+    ImageCollection. For more see:
+    https://en.wikipedia.org/wiki/Normal_distribution
+
+    :param band: the name of the property to use
+    :type band: str
+    :param mean: the mean value. If None it will be computed from the source.
+        defaults to None.
+    :type mean: float
+    :param std: the standard deviation value. If None it will be computed from
+        the source. Defaults to None.
+    :type std: float
+    """
+    if mean is None:
+        imean = ee.Image(collection.mean())
     else:
-        imax = ee.Number(max)
+        imean = ee.Image.constant(mean)
 
-    def to_map(img):
-        val = ee.Number(img.get(property))
-
-        a = val.subtract(imean).pow(2)
-        b = istd.pow(2).multiply(2)
-        c = a.divide(b).multiply(stretch)
-        d = c.exp()
-        result = d.multiply(imax)
-        return img.set(name, result)
-
-    collection = collection.map(to_map)
-
-    if min is None:
-        return collection
+    if std is None:
+        istd = ee.Image(collection.reduce(ee.Reducer.stdDev()))
     else:
-        imin = ee.Number(collection.aggregate_min(name))
-        def normalize(img):
-            value = ee.Number(img.get(name))
-            e = value.subtract(imin)
-            f = imax.subtract(imin)
-            g = e.divide(f)
-            result = g.multiply(imax.subtract(ee.Number(min)))\
-                      .add(ee.Number(min))
-            return img.set(name, result)
-        return collection.map(normalize)
+        istd = ee.Image.constant(std)
+
+    ipi = ee.Image.constant(math.pi)
+
+    imax = ee.Image(1) \
+             .divide(istd.multiply(ee.Image.constant(2).multiply(ipi).sqrt()))
+
+    return gauss_function_band(collection, band, mean=imean,
+                               output_max=imax, std=istd, name=name)
