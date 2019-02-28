@@ -7,6 +7,7 @@ import ee
 import ee.data
 import math
 from . import ee_list
+from ..utils import castImage
 
 if not ee.data._initialized:
     ee.Initialize()
@@ -580,19 +581,155 @@ def renamePattern(image, pattern, bands=None):
     return image.select(allbands, new_allbands)
 
 
-def distribution_linear(image, band, range_min=None, range_max=None, mean=None,
-                        min=None, max=None, name='linear_dist', region=None,
-                        scale=None, **kwargs):
-    """ Apply a linear distribution over one image band
+def gauss_function(image, band, range_min=None, range_max=None, mean=0,
+                   std=None, output_min=None, output_max=1, stretch=1,
+                   region=None, scale=None, name='gauss', **kwargs):
+    """ Apply the Guassian function to an Image.
+    https://en.wikipedia.org/wiki/Gaussian_function
+
+    :param band: the name of the band to use
+    :type band: str
+    :param range_min: the minimum pixel value in the parsed band. If None, it
+        will be computed
+    :param range_max: the maximum pixel value in the parsed band. If None, it
+        will be computed
+    :param mean: the position of the center of the peak. Defaults to 0
+    :type mean: int or float
+    :param std: the standard deviation value. Defaults to range/4
+    :type std: int or float
+    :param output_max: height of the curve's peak
+    :type output_max: int or float
+    :param output_min: the desired minimum of the curve
+    :type output_min: int or float
+    :param stretch: a stretching value. As bigger as stretch
+    :type stretch: int or float
+    :param name: name of the resulting band
+    :type name: str
+    """
+    image = image.select(band)
+
+    if not region:
+        region = image.geometry()
+
+    if not scale:
+        scale = image.projection().nominalScale()
+
+    if range_min is None and range_max is None:
+        minmax = image.reduceRegion(reducer=ee.Reducer.minMax(),
+                                    geometry=region, scale=scale, **kwargs)
+        minname = '{}_min'.format(band)
+        maxname = '{}_max'.format(band)
+
+        range_min = ee.Image.constant(minmax.get(minname))
+        range_max = ee.Image.constant(minmax.get(maxname))
+
+    elif range_min is None:
+        minmax = image.reduceRegion(reducer=ee.Reducer.min(),
+                                    geometry=region, scale=scale, **kwargs)
+        range_min = ee.Image.constant(minmax.get(band))
+        range_max = castImage(range_max)
+
+    elif range_max is None:
+        minmax = image.reduceRegion(reducer=ee.Reducer.max(),
+                                    geometry=region, scale=scale, **kwargs)
+        range_max = ee.Image.constant(minmax.get(band))
+        range_min = castImage(range_min)
+    else:
+        range_max = castImage(range_max)
+        range_min = castImage(range_min)
+
+    mean = castImage(mean)
+
+    if std is None:
+        std = range_max.subtract(range_min).divide(4)
+    else:
+        std = castImage(std)
+
+    output_min = castImage(output_min)
+    output_max = castImage(output_max)
+    stretch = castImage(stretch)
+
+    def compute_gauss(img):
+        result = ee.Image().expression(
+            'exp(((val-mean)**2)/(-2*(std**2))*(abs(stretch)))*max',
+            {'val': img,
+             'mean': mean,
+             'std': std,
+             'max': output_max,
+             'stretch': stretch
+             })
+        return result
+
+    no_parametrized = compute_gauss(image)
+
+    if output_min is None:
+        return no_parametrized.rename(name)
+    else:
+        min_result = compute_gauss(range_min)
+        max_result = compute_gauss(range_max)
+        min_result_final = min_result.min(max_result)
+
+        parametrized = ee.Image().expression(
+            '(value-min_result)/(max-min_result)*(max-min)+min',
+            {'value': no_parametrized,
+             'min_result': min_result_final,
+             'max': output_max,
+             'min': output_min
+             })
+        return parametrized.rename(name)
+
+
+def normal_distribution(image, band, mean=None, std=None, region=None,
+                        scale=None, name='normal_distribution', **kwargs):
+    """ Compute a Normal Distribution using the Gaussian Function """
+    pi = ee.Number(math.pi)
+
+    image = image.select(band)
+
+    if mean is None:
+        mean = image.reduceRegion(reducer=ee.Reducer.mean(),
+                                  geometry=region, scale=scale, **kwargs)
+        mean = ee.Image.constant(mean.get(band))
+    else:
+        mean = castImage(mean)
+
+    if std is None:
+        std = image.reduceRegion(reducer=ee.Reducer.stdDev(),
+                                 geometry=region, scale=scale, **kwargs)
+        std = ee.Image.constant(std.get(band))
+    else:
+        std = castImage(std)
+
+    output_max = ee.Image(1)\
+                   .divide(std.multiply(ee.Image(2).multiply(pi).sqrt()))
+
+    return gauss_function(image, band, mean=mean, std=std,
+                          output_max=output_max, name=name, **kwargs)
+
+
+def linear_function(image, band, range_min=None, range_max=None, mean=None,
+                    output_min=None, output_max=None, name='linear_function',
+                    region=None, scale=None, **kwargs):
+    """ Apply a linear function over one image band using the following
+    formula:
+
+    - a = abs(val-mean)
+    - b = output_max-output_min
+    - c = abs(range_max-mean)
+    - d = abs(range_min-mean)
+    - e = max(c, d)
+
+    f(x) = a*(-1)*(b/e)+output_max
 
     :param band: the band to process
     :param range_min: the minimum pixel value in the parsed band. If None, it
         will be computed over the parsed region (heavy process that can fail)
     :param range_max: the maximum pixel value in the parsed band. If None, it
         will be computed over the parsed region (heavy process that can fail)
-    :param mean: the value that will take the `max` value
-    :param min: the minimum value that will take the resulting band.
-    :param max: the minimum value that will take the resulting band.
+    :param output_min: the minimum value that will take the resulting band.
+    :param output_max: the minimum value that will take the resulting band.
+    :param mean: the value on the given range that will take the `output_max`
+        value
     :param name: the name of the resulting band
     :param region: the region to reduce over if no `range_min` and/or no
         `range_max` has been parsed
@@ -600,7 +737,8 @@ def distribution_linear(image, band, range_min=None, range_max=None, mean=None,
         and/or no `range_max` has been parsed
     :param kwargs: extra arguments for the reduction: crs, crsTransform,
         bestEffort, maxPixels, tileScale.
-    :return:
+    :return: a one band image that results of applying the linear function
+        over every pixel in the image
     :rtype: ee.Image
     """
     image = image.select(band)
@@ -617,34 +755,34 @@ def distribution_linear(image, band, range_min=None, range_max=None, mean=None,
         minname = '{}_min'.format(band)
         maxname = '{}_max'.format(band)
 
-        imin = ee.Number(minmax.get(minname))
-        imax = ee.Number(minmax.get(maxname))
+        imin = ee.Image.constant(minmax.get(minname))
+        imax = ee.Image.constant(minmax.get(maxname))
 
     elif range_min is None:
         minmax = image.reduceRegion(reducer=ee.Reducer.min(),
                                     geometry=region, scale=scale, **kwargs)
-        imin = ee.Number(minmax.get(band))
-        imax = ee.Number(range_max)
+        imin = ee.Image.constant(minmax.get(band))
+        imax = castImage(range_max)
 
     elif range_max is None:
         minmax = image.reduceRegion(reducer=ee.Reducer.max(),
                                     geometry=region, scale=scale, **kwargs)
-        imax = ee.Number(minmax.get(band))
-        imin = ee.Number(range_min)
+        imax = ee.Image.constant(minmax.get(band))
+        imin = castImage(range_min)
     else:
-        imax = ee.Number(range_max)
-        imin = ee.Number(range_min)
+        imax = castImage(range_max)
+        imin = castImage(range_min)
 
     if mean is None:
         imean = imax
     else:
-        imean = ee.Number(mean)
+        imean = castImage(mean)
 
-    if max is None:
-        max = imax
+    if output_max is None:
+        output_max = imax
 
-    if min is None:
-        min = imin
+    if output_min is None:
+        output_min = imin
 
     a = imax.subtract(imean).abs()
     b = imin.subtract(imean).abs()
@@ -656,91 +794,8 @@ def distribution_linear(image, band, range_min=None, range_max=None, mean=None,
          'mean': imean,
          't': t,
          'imin': imin,
-         'max': max,
-         'min': min
-         })
-
-    return result.rename(name)
-
-
-def distribution_normal(image, band, range_min=None, range_max=None, mean=None,
-                        min=None, max=None, stretch=4, name='normal_dist',
-                        region=None, scale=None, **kwargs):
-    """ Compute a Normal distribution using a specified band over an
-        ImageCollection
-
-    :param image:
-    :type image: ee.Image
-    :param band: the name of the band to use
-    :type band: str
-    :param mean: the mean value. If None it will be computed from the source.
-        defaults to None.
-    :type mean: float
-    :param std: the standard deviation value. If None it will be computed from
-        the source. Defaults to None.
-    :type std: float
-    """
-    pi = ee.Number(math.pi)
-
-    image = image.select(band)
-
-    if not region:
-        region = image.geometry()
-
-    if not scale:
-        scale = image.projection().nominalScale()
-
-    if range_min is None and range_max is None:
-        minmax = image.reduceRegion(reducer=ee.Reducer.minMax(),
-                                    geometry=region, scale=scale, **kwargs)
-        minname = '{}_min'.format(band)
-        maxname = '{}_max'.format(band)
-
-        imin = ee.Number(minmax.get(minname))
-        imax = ee.Number(minmax.get(maxname))
-
-    elif range_min is None:
-        minmax = image.reduceRegion(reducer=ee.Reducer.min(),
-                                    geometry=region, scale=scale, **kwargs)
-        imin = ee.Number(minmax.get(band))
-        imax = ee.Number(range_max)
-
-    elif range_max is None:
-        minmax = image.reduceRegion(reducer=ee.Reducer.max(),
-                                    geometry=region, scale=scale, **kwargs)
-        imax = ee.Number(minmax.get(band))
-        imin = ee.Number(range_min)
-    else:
-        imax = ee.Number(range_max)
-        imin = ee.Number(range_min)
-
-    if mean is None:
-        imean = imax
-    else:
-        imean = ee.Number(mean)
-
-    if min is None:
-        min = ee.Number(0)
-    else:
-        min = ee.Number(min)
-
-    val_range = imax.subtract(imin)
-    std = val_range.divide(stretch)
-
-    if max is None:
-        max = ee.Number(1).divide(
-            std.multiply(ee.Number(2).multiply(pi).sqrt()))
-    else:
-        max = ee.Number(max)
-
-    result = ee.Image().expression(
-        'exp(((val-mean)**2)/(-2*(std**2)))*max'
-        '-exp(((val-mean)**2)/(-2*(std**2)))*min+min',
-        {'val': image,
-         'mean': imean,
-         'max': max,
-         'min': min,
-         'std': std
+         'max': output_max,
+         'min': output_min
          })
 
     return result.rename(name)
