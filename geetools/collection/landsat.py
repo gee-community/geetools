@@ -327,7 +327,7 @@ class Landsat(Collection):
                 def harmonize(image):
                     return module_alg.Landsat.harmonization(image, False)
         else:
-            harmonize = None
+            harmonize = lambda img: img
 
         return harmonize
 
@@ -347,7 +347,7 @@ class Landsat(Collection):
                                                        s2)
             return brdf
         else:
-            return None
+            return lambda img: img
 
     @property
     def algorithms(self):
