@@ -67,6 +67,7 @@ def difference(eelist, to_compare):
 
 def removeDuplicates(eelist):
     """ Remove duplicated values from a EE list object """
+    # TODO: See ee.List.distinct()
     newlist = ee.List([])
     def wrap(element, init):
         init = ee.List(init)

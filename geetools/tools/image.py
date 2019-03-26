@@ -296,6 +296,7 @@ def replace(image, to_replace, to_add):
     :return: Same Image provided with the band replaced
     :rtype: ee.Image
     """
+    # TODO: see Image.addBands({overwrite:True})
     band = to_add.select([0])
     bands = image.bandNames()
     resto = bands.remove(to_replace)
@@ -604,7 +605,7 @@ def gauss_function(image, band, range_min=None, range_max=None, mean=0,
     :param stretch: a stretching value. As bigger as stretch
     :type stretch: int or float
     :param name: name of the resulting band
-    :type name: str
+    :type name: strmax
     """
     image = image.select(band)
 
