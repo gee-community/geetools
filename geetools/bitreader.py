@@ -242,15 +242,14 @@ class BitReader(object):
                 result.append(cat)
         return result
 
-    def decode_image(self, qa_band, image):
+    def decode_image(self, image, qa_band):
         """ Get an Image with one band per category in the Bit Reader
 
         :param bit_reader: the bit reader
         :type bit_reader: BitReader
         :param qa_band: name of the band that holds the bit information
         :type qa_band: str
-        :return: a function to map over a collection. The function adds all
-            categories masks as new bands
+        :return: the image with the decode bands added
         """
         options = ee.Dictionary(self.info)
         categories = ee.List(self.all_categories)
