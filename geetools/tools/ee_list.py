@@ -44,6 +44,8 @@ def intersection(eelist, intersect):
     :return: list with the intersection (matching values)
     :rtype: ee.List
     """
+    eelist = ee.List(eelist)
+    intersect = ee.List(intersect)
     newlist = ee.List([])
     def wrap(element, first):
         first = ee.List(first)
