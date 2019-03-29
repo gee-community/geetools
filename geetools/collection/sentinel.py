@@ -30,7 +30,13 @@ class Sentinel2(Collection):
         self.start_date = '2015-06-23'
         self.end_date = None
 
-        self.bands = {
+        self.thermal_bands = {}  # No thermal bands =(
+        self.quality_bands = {
+            'qa10': 'QA10',
+            'qa20': 'QA20',
+            'qa60': 'QA60',
+        }
+        self.optical_bands = {
             'aerosol': 'B1',
             'blue': 'B2',
             'green': 'B3',
@@ -44,15 +50,8 @@ class Sentinel2(Collection):
             'cirrus': 'B10',
             'swir': 'B11',
             'swir2': 'B12',
-            'qa10': 'QA10',
-            'qa20': 'QA20',
-            'qa60': 'QA60',
         }
 
-        self.thermal_bands = []  # No thermal bands =(
-        self.quality_bands = ['qa10', 'qa20', 'qa60']
-        self.optical_bands = ['B1','B2', 'B3','B4','B5','B6','B7','B8','B8A',
-                              'B9','B10','B11','B12']
         self.scales = {
             'aerosol': 60, 'blue': 10, 'green': 10, 'red': 10,
             'red_edge_1': 20, 'red_edge_2': 20, 'red_edge_3': 20,
@@ -86,13 +85,11 @@ class Sentinel2(Collection):
         }
 
         if self.process == 'SR':
-            self.bands.update({
+            self.quality_bands.update({
                 'water_vapor_pressure': 'WVP',
                 'aerosol_thickness': 'AOT',
                 'scene_classification_map': 'SCL'
             })
-
-            self.quality_bands.append('scene_classification_map')
 
             self.scales.update({
                 'water_vapor_pressure': 10,
@@ -112,6 +109,15 @@ class Sentinel2(Collection):
                             'ffff52', '0000ff', '818181', 'c0c0c0',
                             'f1f1f1', 'bac5eb', '52fff9']
             }
+
+    @property
+    def bands(self):
+        bands = {}
+        # fill bands
+        bands.update(self.thermal_bands)
+        bands.update(self.optical_bands)
+        bands.update(self.quality_bands)
+        return bands
 
     def SCL_mask(self, image):
         """ Decodify the SCL bands and create a mask for each category """
