@@ -131,7 +131,7 @@ def get_value(image, point, scale=None, side="server"):
         raise ValueError("side parameter must be 'server' or 'client'")
 
 
-def addMultiBands(img, *imgs):
+def _addMultiBands(img, *imgs):
     """ Image.addBands for many images. All bands from all images will be
     put together, so if there is one band with the same name in different
     images, the first occurrence will keep the name and the rest will have a
@@ -144,6 +144,25 @@ def addMultiBands(img, *imgs):
     for i in imgs:
         img = img.addBands(i)
     return img
+
+
+def addMultiBands(image, imageList):
+    """ Image.addBands for many images. All bands from all images will be
+    put together, so if there is one band with the same name in different
+    images, the first occurrence will keep the name and the rest will have a
+    number suffix ({band}_1, {band}_2, etc)
+
+    :param image: images to add bands
+    :param imageList: a list of images
+    :type imageList: ee.List
+    :rtype: ee.Image
+    """
+    def iteration(img, ini):
+        ini = ee.Image(ini)
+        img = ee.Image(img)
+        return ini.addBands(img)
+
+    return imageList.map(iteration(), image)
 
 
 def renameDict(image, names):
@@ -183,7 +202,7 @@ def removeBands(image, bands):
     return image.select(diff)
 
 
-def parametrize(image, range_from, range_to, bands=None):
+def parametrize(image, range_from, range_to, bands=None, drop=False):
     """ Parametrize from a original **known** range to a fixed new range
 
     :param range_from: Original range. example: (0, 5000)
@@ -193,9 +212,11 @@ def parametrize(image, range_from, range_to, bands=None):
     :param bands: bands to parametrize. If *None* all bands will be
         parametrized.
     :type bands: list
+    :param drop: drop the bands that will not be parametrized
+    :type drop: bool
 
-    :return: Function to use in map() or alone
-    :rtype: function
+    :return: the parsed image with the parsed bands parametrized
+    :rtype: ee.Image
     """
     original_range = range_from if isinstance(range_from, ee.List) \
         else ee.List(range_from)
@@ -239,8 +260,9 @@ def parametrize(image, range_from, range_to, bands=None):
 
     final = percent.multiply(rango1).add(min1)
 
-    # Add the rest of the bands (no parametrized)
-    final = image.select(diff).addBands(final)
+    if not drop:
+        # Add the rest of the bands (no parametrized)
+        final = image.select(diff).addBands(final)
 
     # return passProperty(image, final, 'system:time_start')
     return ee.Image(final.copyProperties(source=image))
