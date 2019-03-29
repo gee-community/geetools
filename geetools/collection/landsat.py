@@ -31,9 +31,15 @@ DEFAULTS = {
     3: {'process': 'RAW', 'sensor':'MSS'},
     4: {'process': 'SR', 'sensor':'TM'},
     5: {'process': 'SR', 'sensor':'TM'},
-    7: {'process': 'SR', 'sensor':'TM'},
+    7: {'process': 'SR', 'sensor':'ETM'},
     8: {'process': 'SR', 'sensor':'OLI'},
 }
+NUMBER_PROCESS = {
+    1: ['RAW'], 2: ['RAW'], 3: ['RAW'],
+    4: ['RAW', 'TOA', 'SR'], 5: ['RAW', 'TOA', 'SR'],
+    7: ['RAW', 'TOA', 'SR'], 8: ['RAW', 'TOA', 'SR']
+}
+NUMBER_SENSOR = {k: list(v.keys()) for k, v in NUMBER_ID.items()}
 
 
 class Landsat(Collection):
@@ -47,14 +53,26 @@ class Landsat(Collection):
         :param sensor: One of 'TM', 'MSS', 'ETM', 'OLI'
         :param tier: One of 1, 2
         """
+        super(Landsat, self).__init__()
         self.number = number
         self.process = process if process else DEFAULTS[number]['process']
         self.sensor = sensor if sensor else DEFAULTS[number]['sensor']
         self.tier = tier
 
-        self.cloud_cover = 'CLOUD_COVER'
+        # CHECK AVAILABLE
+        if self.process not in NUMBER_PROCESS[number]:
+            msg = "Landsat {} doesn't have {} process"
+            raise ValueError(msg.format(number, process))
 
-        # Properties
+        if self.sensor not in NUMBER_SENSOR[number]:
+            msg = "Landsat {} doesn't have {} sensor"
+            raise ValueError(msg.format(number, sensor))
+
+        # Landsat common properties
+        self.cloud_cover = 'CLOUD_COVER'
+        self.spacecraft = 'LANDSAT'
+
+        # Properties to compute
         self._id = None
         self._bands = None
         self._scales = None
@@ -65,11 +83,17 @@ class Landsat(Collection):
         self._optical_bands = None
         self._quality_bands = None
 
+        # set algorithms
+        self.algorithms['brdf'] = self.brdf
+        self.algorithms['harmonize'] = self.harmonize
+        self.algorithms['rescale'] = self.rescale_all
+
     @staticmethod
     def fromId(id):
         """ Create a Landsat class from a GEE ID """
-        parts = id.split('/')
         sensors = {'LT': 'TM', 'LM': 'MSS', 'LE': 'ETM', 'LC': 'OLI'}
+        # decompose id
+        parts = id.split('/')
         shortid = parts[1]
         sensor = sensors[shortid[0:2]]
         number = int(shortid[2:4])
@@ -78,7 +102,7 @@ class Landsat(Collection):
 
         if len(process_tier_split) == 1:
             process = 'RAW'
-            tier = process_tier_split[1]
+            tier = process_tier_split[0]
         else:
             process = process_tier_split[1]
             tier = process_tier_split[0]
@@ -282,10 +306,10 @@ class Landsat(Collection):
         """ List of thermal bands """
         if not self._thermal_bands:
             names = ['thermal', 'thermal1', 'thermal2']
-            bands = {}
+            bands = []
             for name, band in self.bands.items():
                 if name in names:
-                    bands[name] = band
+                    bands.append(name)
 
             self._thermal_bands = bands
         return self._thermal_bands
@@ -296,10 +320,10 @@ class Landsat(Collection):
         if not self._optical_bands:
             names = ['blue', 'green', 'red', 'nir', 'nir1', 'nir2', 'swir',
                      'swir1', 'swir2', 'mir', 'ublue', 'pan', 'cirrus']
-            bands = {}
+            bands = []
             for name, band in self.bands.items():
                 if name in names:
-                    bands[name] = band
+                    bands.append(name)
 
             self._optical_bands = bands
         return self._optical_bands
@@ -309,13 +333,21 @@ class Landsat(Collection):
         """ List of thermal bands """
         if not self._quality_bands:
             names = ['bqa', 'cloud_qa', 'pixel_qa', 'sr_aerosol']
-            bands = {}
+            bands = []
             for name, band in self.bands.items():
                 if name in names:
-                    bands[name] = band
+                    bands.append(name)
 
             self._quality_bands = bands
         return self._quality_bands
+
+    @property
+    def start_date(self):
+        return START[self.number]
+
+    @property
+    def end_date(self):
+        return END[self.number]
 
     def harmonize(self):
         """ HARMONIZATION """
@@ -349,132 +381,99 @@ class Landsat(Collection):
         else:
             return lambda img: img
 
-    @property
-    def algorithms(self):
-        if not self._algorithms:
-            algorithm = {}
-            algorithm['harmonization'] = self.harmonize
-            algorithm['brdf'] = self.brdf
-
-            self._algorithms = algorithm
-        return self._algorithms
-
-    @property
-    def start_date(self):
-        return START[self.number]
-
-    @property
-    def end_date(self):
-        return END[self.number]
-
-    def rescale(self, number=None, process=None, drop=False):
-        """ Re-scale bands to match number and process
-
-         :param number: the Landsat satellite to match with
-         :type number: int
-         :param process: the Landsat process to match with
-         :type process: str
-         :param drop: drop the bands that do not match between collections
-         :type drop: bool
-         :return: a function to map over an ImageCollection
-         :rtype: function
-         """
-        # First escape
-        if self.number == number and self.process == process:
-            return lambda img: img
-
-        # Helper
-        # As 'parametrize' will be used several times
-        param = tools.image.parametrize
-
-        # Check if all bands have the same max and min
-        def check(collection, bands):
-            # Second scape
-            if not check_bands(collection, bands):
-                return lambda img: img
-
-        check(self, self.optical_bands)
-        check(self, self.thermal_bands)
-
+    def _rescale(self, band_type, image, number, process, drop=False,
+                 renamed=False):
         # Create comparative collection
+        bands = ee.Dictionary(self.bands)
+
         proxy = Landsat(number, process)
 
-        check(proxy, proxy.optical_bands)
-        check(proxy, proxy.thermal_bands)
+        if band_type == 'thermal':
+            this_band = list(self.thermal_bands.keys())
+            proxy_band = list(proxy.thermal_bands.keys())
 
-        if self.thermal_bands and proxy.thermal_bands:
-            def scale_thermal(image):
-                bandmax = self.ranges[list(self.thermal_bands.keys())[0]]
-                bandmax = ee.Number(ee.Dictionary(bandmax).get('max'))
-                proxymax = proxy.ranges[list(proxy.thermal_bands.keys())[0]]
-                proxymax = ee.Number(ee.Dictionary(proxymax).get('max'))
-                bands = list(self.thermal_bands.values())
-                toscale = image.select(bands)
+        if band_type == 'optical':
+            this_band = list(self.optical_bands.keys())
+            proxy_band = list(proxy.optical_bands.keys())
 
-                return param(toscale, (0, bandmax), (0, proxymax))
+        # get common bands for thermal (thermal1, etc..)
+        # common_bands = ee.List([band for band in this_band if band in
+        # proxy_band])
+        common_bands = tools.ee_list.intersection(ee.List(this_band),
+                                                  ee.List(proxy_band))
+
+        ranges_this = ee.Dictionary(self.ranges)
+        ranges_proxy = ee.Dictionary(proxy.ranges)
+
+        def iteration(band, ini):
+            ini = ee.Image(ini)
+            band = ee.String(band)
+            ranges_this_band = ee.Dictionary(ranges_this.get(band))
+            ranges_proxy_band = ee.Dictionary(ranges_proxy.get(band))
+            min_this = ee.Number(ranges_this_band.get('min'))
+            min_proxy = ee.Number(ranges_proxy_band.get('min'))
+            max_this = ee.Number(ranges_this_band.get('max'))
+            max_proxy = ee.Number(ranges_proxy_band.get('max'))
+            if not renamed:
+                band = ee.String(bands.get(band))
+            return tools.image.parametrize(ini,
+                                           (min_this, max_this),
+                                           (min_proxy, max_proxy),
+                                           bands=[band])
+
+        final = ee.Image(common_bands.iterate(iteration, image))
+        if drop:
+            if not renamed:
+                common_bands = tools.dictionary.extractList(self.bands,
+                                                            common_bands)
+            final = final.select(common_bands)
+
+        return final
+
+    def rescale_thermal(self, image, number, process, drop=False,
+                        renamed=False):
+        """ Re-scale only the thermal bands of an image to match the band
+        from the given number and process """
+        return self._rescale('thermal', image, number, process, drop, renamed)
+
+    def rescale_optical(self, image, number, process, drop=False,
+                        renamed=False):
+        """ Re-scale only the optical bands of an image to match the band
+        from the given number and process """
+        return self._rescale('optical', image, number, process, drop, renamed)
+
+    def rescale_all(self, image, number, process, drop=False, renamed=False):
+        """ Re-scale only the optical and thermal bands of an image to match
+        the band from the given number and process """
+        if drop:
+            optical = self._rescale('optical', image, number,
+                                    process, True, renamed)
+
+            thermal = self._rescale('thermal', image, number,
+                                process, True, renamed)
+
+            all = optical.addBands(thermal)
         else:
-            def scale_thermal(img): return img
+            optical = self._rescale('optical', image, number,
+                                    process, False, renamed)
 
-        if self.optical_bands and proxy.optical_bands:
-            def scale_optical(image):
-                bandmax = self.ranges[list(self.optical_bands.keys())[0]]
-                bandmax = ee.Number(ee.Dictionary(bandmax).get('max'))
-                proxymax = proxy.ranges[list(proxy.optical_bands.keys())[0]]
-                proxymax = ee.Number(ee.Dictionary(proxymax).get('max'))
-                bands = list(self.optical_bands.values())
-                toscale = image.select(bands)
+            all = self._rescale('thermal', optical, number,
+                                process, False, renamed)
 
-                return param(toscale, (0, bandmax), (0, proxymax))
-        else:
-            def scale_optical(img): return img
-
-        intersection_optical = [band for band in self.optical_bands.values() if band in proxy.optical_bands.values()]
-        intersection_thermal = [band for band in self.thermal_bands.values() if band in proxy.thermal_bands.values()]
-
-        def final_scale(image):
-            scaled_optical = scale_optical(image)
-            scaled_thermal = scale_thermal(image)
-
-            if drop:
-                scaled_optical = scaled_optical.select(intersection_optical)
-                scaled_thermal = scaled_thermal.select(intersection_thermal)
-
-            # join optical and thermal bands
-            scaled = scaled_optical.addBands(scaled_thermal)
-            # add quality bands
-            scaled = scaled.addBands(image.select(list(self.quality_bands.values())))
-            scaled_bands = scaled.bandNames()
-            original_bands = image.bandNames()
-            rest_bands = tools.ee_list.difference(original_bands, scaled_bands)
-            rest_image = image.select(rest_bands)
-
-            return rest_image.addBands(scaled)
-
-        return final_scale
+        return all
 
 
-# HELPERS
-def allequal(iterable):
-    """ Check if all elements inside an iterable are equal """
-    first = iterable[0]
-    rest = iterable[1:]
-    for item in rest:
-        if item == first: continue
-        else: return False
-        first = item
-    return True
-
-
-# Check if all bands have the same max and min
-def check_bands(collection, bands):
-    bandsmax = []
-    bandsmin = []
-    for name, band in bands.items():
-        bandmax = collection.ranges[name]['max']
-        bandmin = collection.ranges[name]['min']
-        bandsmax.append(bandmax)
-        bandsmin.append(bandmin)
-
-    if not allequal(bandsmax) or not allequal(bandsmin):
-        return False
-    return True
+# Pre-built objects
+Landsat1 = Landsat(1)
+Landsat2 = Landsat(2)
+Landsat3 = Landsat(3)
+Landsat4SR = Landsat(4) # TM
+Landsat4MSS = Landsat(4, sensor='MSS')
+Landsat4TOA = Landsat(4, sensor='TM', process='TOA')
+Landsat5SR = Landsat(5) # TM
+Landsat5MSS = Landsat(5, sensor='MSS')
+Landsat5TOA = Landsat(5, sensor='TM', process='TOA')
+Landsat7SR = Landsat(7) # ETM
+Landsat7TOA = Landsat(7, process='TOA')
+Landsat8SR = Landsat(8, process='SR')
+Landsat8TOA = Landsat(8, process='TOA')
