@@ -306,10 +306,10 @@ class Landsat(Collection):
         """ List of thermal bands """
         if not self._thermal_bands:
             names = ['thermal', 'thermal1', 'thermal2']
-            bands = []
+            bands = {}
             for name, band in self.bands.items():
                 if name in names:
-                    bands.append(name)
+                    bands[name] = band
 
             self._thermal_bands = bands
         return self._thermal_bands
@@ -320,10 +320,10 @@ class Landsat(Collection):
         if not self._optical_bands:
             names = ['blue', 'green', 'red', 'nir', 'nir1', 'nir2', 'swir',
                      'swir1', 'swir2', 'mir', 'ublue', 'pan', 'cirrus']
-            bands = []
+            bands = {}
             for name, band in self.bands.items():
                 if name in names:
-                    bands.append(name)
+                    bands[name] = band
 
             self._optical_bands = bands
         return self._optical_bands
@@ -333,10 +333,10 @@ class Landsat(Collection):
         """ List of thermal bands """
         if not self._quality_bands:
             names = ['bqa', 'cloud_qa', 'pixel_qa', 'sr_aerosol']
-            bands = []
+            bands = {}
             for name, band in self.bands.items():
                 if name in names:
-                    bands.append(name)
+                    bands[name] = band
 
             self._quality_bands = bands
         return self._quality_bands
