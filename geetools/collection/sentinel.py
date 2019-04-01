@@ -74,7 +74,6 @@ class Sentinel2(Collection):
             'swir': {'max': 10000, 'min': 0},
             'swir2': {'max': 10000, 'min': 0},
         }
-
         self.cloud_cover = 'CLOUD_COVERAGE_ASSESSMENT'
         self.algorithms = {}
         self.bits = {
@@ -102,13 +101,8 @@ class Sentinel2(Collection):
                 'aerosol_thickness': {'max': 65535, 'min': 0},
                 'scene_classification_map': {'max': 11, 'min': 1}
             })
-            self.visualization['SCL'] = {
-                'bands':['SCL'],
-                'min': 1, 'max': 11,
-                'palette': ['ff0004', '868686', '774b0a', '10d22c',
-                            'ffff52', '0000ff', '818181', 'c0c0c0',
-                            'f1f1f1', 'bac5eb', '52fff9']
-            }
+
+            self.algorithms['scl_masks'] = self.SCL_masks
 
     @property
     def bands(self):
@@ -119,7 +113,7 @@ class Sentinel2(Collection):
         bands.update(self.quality_bands)
         return bands
 
-    def SCL_mask(self, image):
+    def SCL_masks(self, image):
         """ Decodify the SCL bands and create a mask for each category """
         if self.process == 'SR':
             scl = image.select('SCL')
