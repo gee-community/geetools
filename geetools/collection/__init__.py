@@ -4,6 +4,10 @@ import ee
 ee.Initialize()
 
 from .. import indices, bitreader
+from datetime import date
+
+
+TODAY = date.today().isoformat()
 
 
 # HELPERS
@@ -14,7 +18,6 @@ def allequal(iterable):
     for item in rest:
         if item == first: continue
         else: return False
-        first = item
     return True
 
 
@@ -59,6 +62,17 @@ def info(collection):
     return data
 
 
+def infoEE(collection):
+    """ Return an information ee.Dictionary """
+    information = info(collection)
+    information.pop('algorithms')
+    information.pop('ee_collection')
+    information.pop('indices')
+    information.pop('visualization')
+
+    return ee.Dictionary(information)
+
+
 class Collection(object):
     """ Parent class for common operations """
     # Common properties for all collections
@@ -86,8 +100,13 @@ class Collection(object):
         """ Band names. The opposite of bands """
         return {v: k for k, v in self.bands.items()}
 
-    @property
-    def visualization(self):
+    def visualization(self, colors, renamed=False):
+        """ Return visualization parameters for ui.Map.addLayer.
+
+        :param colors: 'NSR' (nir swir red), 'NSR2' ((nir swir2 red),
+            'RGB' (red green blue), 'falseColor' (nir red green)
+        """
+        options = ['NSR', 'NSR2', 'RGB', 'falseColor', 'SCL']
         vis = {}
         b = self.band_data('blue')
         g = self.band_data('green')
@@ -95,10 +114,20 @@ class Collection(object):
         n = self.band_data('nir')
         s = self.band_data('swir')
         s2 = self.band_data('swir2')
+        scl = self.band_data('scene_classification_map')
 
         def register(one, two, three, factor, name):
+            if renamed:
+                bandone = one['name']
+                bandtwo = two['name']
+                bandthree = three['name']
+            else:
+                bandone = one['band_name']
+                bandtwo = two['band_name']
+                bandthree = three['band_name']
+
             vis[name] = {
-                'bands': [one['name'], two['name'], three['name']],
+                'bands': [bandone, bandtwo, bandthree],
                 'min': [one['min'], two['min'], three['min']],
                 'max': [one['max']/factor, two['max']/factor, three['max']/factor]
             }
@@ -115,7 +144,25 @@ class Collection(object):
         if n and r and g:
             register(n, r, g, 2, 'falseColor')
 
-        return vis
+        if scl:
+            if renamed:
+                band = scl['name']
+            else:
+                band = scl['band_name']
+
+            vis['SCL'] = {
+                'bands': [band],
+                'min': scl['min'],
+                'max': scl['max'],
+                'palette': ['ff0004', '868686', '774b0a', '10d22c',
+                            'ffff52', '0000ff', '818181', 'c0c0c0',
+                            'f1f1f1', 'bac5eb', '52fff9']
+            }
+
+        if colors in options:
+            return vis[colors]
+        else:
+            return {}
 
     def ndvi(self, name='ndvi'):
         n = self.bands.get('nir')
@@ -285,3 +332,47 @@ def from_id(id):
 
     # tried all collections and did not find it
     raise ValueError('{} not recognized as a valid ID'.format(id))
+
+def rescale(image, collection, collection_from, renamed=False, drop=False):
+    """ Re-scale the values of image which must belong to collection so the
+        values match the ones from collection_from
+
+    :param collection: The Collection to which belongs the image
+    :type collection: Collection
+    :param collection_from: the Collection to get the range from
+    :type collection_from: Collection
+    """
+    from . import group
+    # Create comparative collection
+    bands = ee.Dictionary(collection.bands)
+
+    colgroup = group.CollectionGroup(collection, collection_from)
+    common_bands = ee.List(colgroup.common_bands())
+
+    ranges_this = ee.Dictionary(collection.ranges)
+    ranges_proxy = ee.Dictionary(collection_from.ranges)
+
+    def iteration(band, ini):
+        ini = ee.Image(ini)
+        band = ee.String(band)
+        ranges_this_band = ee.Dictionary(ranges_this.get(band))
+        ranges_proxy_band = ee.Dictionary(ranges_proxy.get(band))
+        min_this = ee.Number(ranges_this_band.get('min'))
+        min_proxy = ee.Number(ranges_proxy_band.get('min'))
+        max_this = ee.Number(ranges_this_band.get('max'))
+        max_proxy = ee.Number(ranges_proxy_band.get('max'))
+        if not renamed:
+            band = ee.String(bands.get(band))
+        return tools.image.parametrize(ini,
+                                       (min_this, max_this),
+                                       (min_proxy, max_proxy),
+                                       bands=[band])
+
+    final = ee.Image(common_bands.iterate(iteration, image))
+    if drop:
+        if not renamed:
+            common_bands = tools.dictionary.extractList(collection.bands,
+                                                        common_bands)
+        final = final.select(common_bands)
+
+    return final
