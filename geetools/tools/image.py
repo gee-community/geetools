@@ -162,7 +162,7 @@ def addMultiBands(image, imageList):
         img = ee.Image(img)
         return ini.addBands(img)
 
-    return imageList.map(iteration(), image)
+    return imageList.iterate(iteration, image)
 
 
 def renameDict(image, names):
