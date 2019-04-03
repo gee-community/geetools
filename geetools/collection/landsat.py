@@ -1,6 +1,6 @@
 # coding=utf-8
 """ Google Earth Engine Landsat Collections """
-from . import Collection
+from . import Collection, TODAY
 from .. import bitreader, cloud_mask, tools
 from .. import algorithms as module_alg
 import ee
@@ -24,7 +24,7 @@ START = {1: '1972-07-23', 2: '1975-01-22', 3: '1978-03-05',
          4: '1982-07-16', 5: '1984-01-01', 7: '1999-01-01',
          8: '2013-04-11'}
 END = {1: '1978-01-07', 2: '1982-02-26', 3: '1983-03-31',
-       4: '1993-12-14', 5: '2012-05-05', 7: None, 8: None}
+       4: '1993-12-14', 5: '2012-05-05', 7: TODAY, 8: TODAY}
 DEFAULTS = {
     1: {'process': 'RAW', 'sensor':'MSS'},
     2: {'process': 'RAW', 'sensor':'MSS'},

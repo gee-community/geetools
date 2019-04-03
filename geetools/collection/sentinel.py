@@ -1,6 +1,6 @@
 # coding=utf-8
 """ Google Earth Engine Sentinel Collections """
-from . import Collection
+from . import Collection, TODAY
 from .. import bitreader, cloud_mask, tools
 from .. import algorithms as module_alg
 import ee
@@ -28,7 +28,7 @@ class Sentinel2(Collection):
         self.process = process
 
         self.start_date = '2015-06-23'
-        self.end_date = None
+        self.end_date = TODAY
 
         self.thermal_bands = {}  # No thermal bands =(
         self.quality_bands = {
