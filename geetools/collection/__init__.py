@@ -8,7 +8,17 @@ from datetime import date
 
 
 TODAY = date.today().isoformat()
-
+PIXEL_TYPES = {
+    'float': ee.Image.toFloat,
+    'double': ee.Image.toDouble,
+    'int8': ee.Image.toInt8,
+    'uint8': ee.Image.toUint8,
+    'int16': ee.Image.toInt16,
+    'uint16': ee.Image.toUint16,
+    'int32': ee.Image.toInt32,
+    'uint32': ee.Image.toUint32,
+    'int64': ee.Image.toInt64
+}
 
 # HELPERS
 def allequal(iterable):
@@ -206,22 +216,53 @@ class Collection(object):
 
     def band_data(self, band):
         """ Data from the parsed band """
+        name = None
+        band_name = None
+        min = None
+        max = None
+        scale = None
+        ty = None
+
         if band in self.bands:
-            return {
-                'name': band,
-                'band_name': self.bands[band],
-                'min': self.ranges[band]['min'],
-                'max': self.ranges[band]['max'],
-                'scale': self.scales[band]
-            }
+            name = band
+            band_name = self.bands[band]
         elif band in self.band_names:
             name = self.band_names[band]
-            return {
-                'name': name,
-                'band_name': band,
-                'min': self.ranges[name]['min'],
-                'max': self.ranges[name]['max'],
-                'scale': self.scales[name]
+            band_name = band
+
+        if band in self.bands or band in self.band_names:
+            min = self.ranges[name]['min']
+            max = self.ranges[name]['max']
+            scale = self.scales[name]
+
+            # Guess pixel type
+            if min >= 0:
+                if max <= 255:
+                    ty = 'uint8'
+                elif max <= 65535:
+                    ty = 'uint16'
+                elif max <= 4294967295:
+                    ty = 'uint32'
+            if min < 0:
+                if max <= 127:
+                    ty = 'int8'
+                elif max <= 32767:
+                    ty = 'int16'
+                elif max <= 2147483647:
+                    ty = 'int32'
+                elif max <= 9223372036854776000:
+                    ty = 'int64'
+
+            if min >= -1 and max <= 1:
+                ty = 'double'
+
+        return {
+            'name': name,
+            'band_name': band_name,
+            'min': min,
+            'max': max,
+            'scale': scale,
+            'type': ty
             }
 
     def bit_image(self, qa, image):
@@ -311,10 +352,15 @@ class Collection(object):
 
         return quality
 
+    def proxy_image(self):
+        """ Create an Image with the band names, type and scale but empty """
+
+
 
 from .landsat import *
 from .sentinel import *
 from . import landsat, sentinel
+
 
 def from_id(id):
     """ Create a collection from a parsed ID """
@@ -333,24 +379,60 @@ def from_id(id):
     # tried all collections and did not find it
     raise ValueError('{} not recognized as a valid ID'.format(id))
 
-def rescale(image, collection, collection_from, renamed=False, drop=False):
+
+def get_common_bands(*collections, type_of_band=None):
+    """ Get the common bands of the parsed collections """
+    first = collections[0]
+    if type_of_band == 'optical':
+        first_bands = first.optical_bands
+    elif type_of_band == 'thermal':
+        first_bands = first.thermal_bands
+    elif type_of_band == 'quality':
+        first_bands = first.quality_bands
+    else:
+        first_bands = first.bands
+
+    first_set = set(first_bands.keys())
+    if (len(collections) == 1):
+        return first_bands
+    else:
+        rest = collections[1:]
+        for col in rest:
+            if type_of_band == 'optical':
+                bands = col.optical_bands
+            elif type_of_band == 'thermal':
+                bands = col.thermal_bands
+            elif type_of_band == 'quality':
+                bands = col.quality_bands
+            else:
+                bands = col.bands
+            bandset = set(bands.keys())
+            first_set = first_set.intersection(bandset)
+
+    return list(first_set)
+
+
+
+def rescale(image, col, collection_to_match, renamed=False, drop=False):
     """ Re-scale the values of image which must belong to collection so the
         values match the ones from collection_from
 
     :param collection: The Collection to which belongs the image
     :type collection: Collection
-    :param collection_from: the Collection to get the range from
-    :type collection_from: Collection
+    :param collection_to_match: the Collection to get the range from
+    :type collection_to_match: Collection
     """
-    from . import group
     # Create comparative collection
-    bands = ee.Dictionary(collection.bands)
+    bands = ee.Dictionary(col.bands)
 
-    colgroup = group.CollectionGroup(collection, collection_from)
-    common_bands = ee.List(colgroup.common_bands())
+    common_optical_bands = ee.List(get_common_bands(col, collection_to_match,
+                                                    type_of_band='optical'))
+    common_thermal_bands = ee.List(get_common_bands(col, collection_to_match,
+                                                    type_of_band='thermal'))
+    common_bands = common_optical_bands.cat(common_thermal_bands)
 
-    ranges_this = ee.Dictionary(collection.ranges)
-    ranges_proxy = ee.Dictionary(collection_from.ranges)
+    ranges_this = ee.Dictionary(col.ranges)
+    ranges_proxy = ee.Dictionary(collection_to_match.ranges)
 
     def iteration(band, ini):
         ini = ee.Image(ini)
@@ -361,18 +443,34 @@ def rescale(image, collection, collection_from, renamed=False, drop=False):
         min_proxy = ee.Number(ranges_proxy_band.get('min'))
         max_this = ee.Number(ranges_this_band.get('max'))
         max_proxy = ee.Number(ranges_proxy_band.get('max'))
-        if not renamed:
-            band = ee.String(bands.get(band))
-        return tools.image.parametrize(ini,
-                                       (min_this, max_this),
-                                       (min_proxy, max_proxy),
-                                       bands=[band])
+
+        equal_min = min_this.eq(min_proxy)
+        equal_max = max_this.eq(max_proxy)
+        equal = equal_min.And(equal_max)
+
+        def true(ini):
+            return ini
+
+        def false(ini, bands, band, min_this, max_this, min_proxy, max_proxy):
+            if not renamed:
+                band = ee.String(bands.get(band))
+
+            return tools.image.parametrize(ini,
+                                           (min_this, max_this),
+                                           (min_proxy, max_proxy),
+                                           bands=[band])
+
+        return ee.Image(ee.Algorithms.If(
+            equal, true(ini),
+            false(ini, bands, band, min_this, max_this, min_proxy, max_proxy)))
 
     final = ee.Image(common_bands.iterate(iteration, image))
     if drop:
         if not renamed:
-            common_bands = tools.dictionary.extractList(collection.bands,
+            common_bands = tools.dictionary.extractList(col.bands,
                                                         common_bands)
         final = final.select(common_bands)
 
     return final
+
+from .group import CollectionGroup

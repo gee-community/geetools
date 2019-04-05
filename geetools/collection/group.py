@@ -1,27 +1,18 @@
 # coding=utf-8
 """ Group of collections """
-
+from . import get_common_bands, rescale
 
 class CollectionGroup(object):
     def __init__(self, *args):
         self.collections = args
 
-    def common_bands(self):
+    @property
+    def ids(self):
+        return [col.id for col in self.collections]
+
+    def common_bands(self, type_of_band=None):
         """ Get a list of the bands that exist in all collections """
-        first = self.collections[0]
-        first_bands = first.bands
-        first_set = set(first_bands.keys())
-
-        if (len(self.collections) == 1):
-            return first_bands
-        else:
-            rest = self.collections[1:]
-            for col in rest:
-                bands = col.bands
-                bandset = set(bands.keys())
-                first_set = first_set.intersection(bandset)
-
-        return list(first_set)
+        return get_common_bands(*self.collections, type_of_band=type_of_band)
 
     def scales(self):
         """ Get the minimum scale value that takes evey common band """
@@ -37,3 +28,24 @@ class CollectionGroup(object):
 
         return scales
 
+    def ee_collection(self):
+        """ Build a unique Earth Engine ImageCollection with common bands
+        renamed and scaled to match the first collection of the group """
+        first_col = self.collections[0]
+        bands = self.common_bands()
+
+        first_col_ee = first_col.collection
+        first_col_ee_renamed = first_col_ee.map(
+            lambda img: first_col.rename_all(img)).select(bands)
+
+        for i, col in enumerate(self.collections):
+            if i == 0: continue
+            col_ee = col.collection
+            renamed = col_ee.map(lambda img: col.rename_all(img))
+            rescaled = renamed.map(
+                lambda img: rescale(img, col, first_col,
+                                    renamed=True)).select(bands)
+
+            first_col_ee_renamed = first_col_ee_renamed.merge(rescaled)
+
+        return first_col_ee_renamed

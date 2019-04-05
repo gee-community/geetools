@@ -145,7 +145,7 @@ class Landsat(Collection):
 
             if self.number == 8:
                 band = {
-                    'ublue': 'B1', 'blue': 'B2', 'green': 'B3', 'red': 'B4',
+                    'aerosol': 'B1', 'blue': 'B2', 'green': 'B3', 'red': 'B4',
                     'nir':'B5', 'swir':'B6', 'swir2':'B7', 'thermal':'B10',
                     'thermal2':'B11'
                 }
@@ -161,7 +161,7 @@ class Landsat(Collection):
                     band['thermal'] = 'B6'
 
                 if self.number == 8:
-                    band['aerosol'] = 'sr_aerosol'
+                    band['sr_aerosol'] = 'sr_aerosol'
 
             if self.process in ['TOA', 'RAW']:
                 band['bqa'] = 'BQA'
@@ -318,8 +318,8 @@ class Landsat(Collection):
     def optical_bands(self):
         """ List of thermal bands """
         if not self._optical_bands:
-            names = ['blue', 'green', 'red', 'nir', 'nir1', 'nir2', 'swir',
-                     'swir1', 'swir2', 'mir', 'ublue', 'pan', 'cirrus']
+            names = ['aerosol', 'blue', 'green', 'red', 'nir', 'nir1', 'nir2',
+                     'swir', 'swir1', 'swir2', 'mir', 'ublue', 'pan', 'cirrus']
             bands = {}
             for name, band in self.bands.items():
                 if name in names:
@@ -332,7 +332,7 @@ class Landsat(Collection):
     def quality_bands(self):
         """ List of thermal bands """
         if not self._quality_bands:
-            names = ['bqa', 'cloud_qa', 'pixel_qa', 'sr_aerosol']
+            names = ['bqa', 'cloud_qa', 'pixel_qa']
             bands = {}
             for name, band in self.bands.items():
                 if name in names:
