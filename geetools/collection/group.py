@@ -10,9 +10,9 @@ class CollectionGroup(object):
     def ids(self):
         return [col.id for col in self.collections]
 
-    def common_bands(self, type_of_band=None):
+    def common_bands(self, reference='all'):
         """ Get a list of the bands that exist in all collections """
-        return get_common_bands(*self.collections, reference=type_of_band)
+        return get_common_bands(*self.collections, reference=reference)
 
     def scales(self):
         """ Get the minimum scale value that takes evey common band """
