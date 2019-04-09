@@ -12,7 +12,7 @@ class CollectionGroup(object):
 
     def common_bands(self, type_of_band=None):
         """ Get a list of the bands that exist in all collections """
-        return get_common_bands(*self.collections, type_of_band=type_of_band)
+        return get_common_bands(*self.collections, reference=type_of_band)
 
     def scales(self):
         """ Get the minimum scale value that takes evey common band """

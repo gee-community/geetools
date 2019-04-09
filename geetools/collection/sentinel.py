@@ -1,6 +1,6 @@
 # coding=utf-8
 """ Google Earth Engine Sentinel Collections """
-from . import Collection, TODAY
+from . import Collection, TODAY, Band
 from .. import bitreader, cloud_mask, tools
 from .. import algorithms as module_alg
 import ee
@@ -17,7 +17,8 @@ class Sentinel2(Collection):
             msg = '{} is not a valid process'
             raise ValueError(msg.format(process))
 
-        # ID
+        self._bands = None
+
         if process == 'TOA':
             self.id = 'COPERNICUS/S2'
         else:
@@ -30,88 +31,56 @@ class Sentinel2(Collection):
         self.start_date = '2015-06-23'
         self.end_date = TODAY
 
-        self.thermal_bands = {}  # No thermal bands =(
-        self.quality_bands = {
-            'qa10': 'QA10',
-            'qa20': 'QA20',
-            'qa60': 'QA60',
-        }
-        self.optical_bands = {
-            'aerosol': 'B1',
-            'blue': 'B2',
-            'green': 'B3',
-            'red': 'B4',
-            'red_edge_1': 'B5',
-            'red_edge_2': 'B6',
-            'red_edge_3': 'B7',
-            'nir': 'B8',
-            'red_edge_4': 'B8A',
-            'water_vapor': 'B9',
-            'cirrus': 'B10',
-            'swir': 'B11',
-            'swir2': 'B12',
-        }
-
-        self.scales = {
-            'aerosol': 60, 'blue': 10, 'green': 10, 'red': 10,
-            'red_edge_1': 20, 'red_edge_2': 20, 'red_edge_3': 20,
-            'nir': 10, 'red_edge_4': 20, 'water_vapor': 60, 'cirrus': 60,
-            'swir': 20, 'swir2': 20, 'qa10': 10, 'qa20': 20, 'qa60': 60,
-        }
-
-        self.ranges = {
-            'aerosol': {'max': 10000, 'min': 0},
-            'blue': {'max': 10000, 'min': 0},
-            'green': {'max': 10000, 'min': 0},
-            'red': {'max': 10000, 'min': 0},
-            'red_edge_1': {'max': 10000, 'min': 0},
-            'red_edge_2': {'max': 10000, 'min': 0},
-            'red_edge_3': {'max': 10000, 'min': 0},
-            'nir': {'max': 10000, 'min': 0},
-            'red_edge_4': {'max': 10000, 'min': 0},
-            'water_vapor': {'max': 10000, 'min': 0},
-            'cirrus': {'max': 10000, 'min': 0},
-            'swir': {'max': 10000, 'min': 0},
-            'swir2': {'max': 10000, 'min': 0},
-        }
         self.cloud_cover = 'CLOUD_COVERAGE_ASSESSMENT'
         self.algorithms = {}
-        self.bits = {
-            'qa60': {
-                '10':{1:'cloud'},
-                '11':{1:'cirrus'}
-            }
-        }
 
         if self.process == 'SR':
-            self.quality_bands.update({
-                'water_vapor_pressure': 'WVP',
-                'aerosol_thickness': 'AOT',
-                'scene_classification_map': 'SCL'
-            })
-
-            self.scales.update({
-                'water_vapor_pressure': 10,
-                'aerosol_thickness': 10,
-                'scene_classification_map': 20
-            })
-
-            self.ranges.update({
-                'water_vapor_pressure': {'max': 65535, 'min': 0},
-                'aerosol_thickness': {'max': 65535, 'min': 0},
-                'scene_classification_map': {'max': 11, 'min': 1}
-            })
-
             self.algorithms['scl_masks'] = self.SCL_masks
 
     @property
     def bands(self):
-        bands = {}
-        # fill bands
-        bands.update(self.thermal_bands)
-        bands.update(self.optical_bands)
-        bands.update(self.quality_bands)
-        return bands
+        if not self._bands:
+            band = [None]*30
+            common = {'min':0, 'max': 10000, 'precision': 'uint16',
+                      'reference': 'optical'}
+            band[0] = Band('B1', 'aerosol', scale=60, **common)
+            band[1] = Band('B2', 'blue', scale=10, **common)
+            band[2] = Band('B3', 'green', scale=10, **common)
+            band[3] = Band('B4', 'red', scale=10, **common)
+            band[4] = Band('B5', 'red_edge_1', scale=20, **common)
+            band[5] = Band('B6', 'red_edge_2', scale=20, **common)
+            band[6] = Band('B7', 'red_edge_3', scale=20, **common)
+            band[7] = Band('B8', 'nir', scale=10, **common)
+            band[8] = Band('B8A', 'red_edge_4', scale=20, **common)
+            band[9] = Band('B9', 'water_vapor', scale=60, **common)
+            swir = Band('B11', 'swir', scale=20, **common)
+            swir2 = Band('B12', 'swir2', scale=20, **common)
+            qa10 = Band('QA10', 'qa10', scale=10, reference='bits')
+            qa20 = Band('QA20', 'qa20', scale=20, reference='bits')
+            qa60 = Band('QA60', 'qa60', scale=60, reference='bits',
+                        bits={'10':{1:'cloud'}, '11':{1:'cirrus'}})
+
+            if self.process in ['TOA']:
+                band[10] = Band('B10', 'cirrus', scale=60, **common)
+                band[11] = swir
+                band[12] = swir2
+                band[13] = qa10
+                band[14] = qa20
+                band[15] = qa60
+
+            if self.process in ['SR']:
+                band[10] = swir
+                band[11] = swir2
+                band[12] = Band('AOT', 'aerosol_thickness', 'uint16', 10,
+                                0, 65535, 'optical')
+                band[13] = Band('WVP', 'water_vapor_pressure', 'uint16', 10,
+                                0, 65535, 'optical')
+                band[14] = Band('SCL', 'scene_classification_map', 'uint8', 20,
+                                1, 11, 'classification')
+
+            self._bands = [b for b in band if b]
+
+        return self._bands
 
     def SCL_masks(self, image):
         """ Decodify the SCL bands and create a mask for each category """
