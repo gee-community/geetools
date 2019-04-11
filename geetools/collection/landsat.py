@@ -1,7 +1,7 @@
 # coding=utf-8
 """ Google Earth Engine Landsat Collections """
 from . import Collection, TODAY, Band
-from .. import bitreader, cloud_mask, tools
+from .. import tools
 from .. import algorithms as module_alg
 import ee
 
@@ -40,7 +40,26 @@ NUMBER_PROCESS = {
     7: ['RAW', 'TOA', 'SR'], 8: ['RAW', 'TOA', 'SR']
 }
 NUMBER_SENSOR = {k: list(v.keys()) for k, v in NUMBER_ID.items()}
-
+IDS = [
+    'LANDSAT/LM01/C01/T1',
+    'LANDSAT/LM01/C01/T2',
+    'LANDSAT/LM02/C01/T1',
+    'LANDSAT/LM02/C01/T2',
+    'LANDSAT/LM03/C01/T1',
+    'LANDSAT/LM03/C01/T2',
+    'LANDSAT/LM04/C01/T1',
+    'LANDSAT/LM04/C01/T2',
+    'LANDSAT/LM05/C01/T1',
+    'LANDSAT/LM05/C01/T2',
+    'LANDSAT/LT04/C01/T1', 'LANDSAT/LT04/C01/T1_TOA', 'LANDSAT/LT04/C01/T1_SR',
+    'LANDSAT/LT04/C01/T2', 'LANDSAT/LT04/C01/T2_TOA', 'LANDSAT/LT04/C01/T2_SR',
+    'LANDSAT/LT05/C01/T1', 'LANDSAT/LT05/C01/T1_TOA', 'LANDSAT/LT05/C01/T1_SR',
+    'LANDSAT/LT05/C01/T1', 'LANDSAT/LT05/C01/T1_TOA', 'LANDSAT/LT05/C01/T1_SR',
+    'LANDSAT/LE07/C01/T1', 'LANDSAT/LE07/C01/T1_TOA', 'LANDSAT/LE07/C01/T1_SR',
+    'LANDSAT/LE07/C01/T2', 'LANDSAT/LE07/C01/T2_TOA', 'LANDSAT/LE07/C01/T2_SR',
+    'LANDSAT/LC08/C01/T1', 'LANDSAT/LC08/C01/T1_TOA', 'LANDSAT/LC08/C01/T1_SR',
+    'LANDSAT/LC08/C01/T2', 'LANDSAT/LC08/C01/T2_TOA', 'LANDSAT/LC08/C01/T2_SR',
+]
 
 class Landsat(Collection):
     """  Landsat Collection """
@@ -61,12 +80,17 @@ class Landsat(Collection):
 
         # CHECK AVAILABLE
         if self.process not in NUMBER_PROCESS[number]:
-            msg = "Landsat {} doesn't have {} process"
-            raise ValueError(msg.format(number, process))
+            msg = "Process {} not available for Landsat {}"
+            raise ValueError(msg.format(self.process, number))
 
         if self.sensor not in NUMBER_SENSOR[number]:
-            msg = "Landsat {} doesn't have {} sensor"
-            raise ValueError(msg.format(number, sensor))
+            msg = "Sensor {} not available for Landsat {}"
+            raise ValueError(msg.format(self.sensor, number))
+
+        # Catch L4 MSS TOA or SR
+        if self.sensor == 'MSS' and self.process in ['SR', 'TOA']:
+            msg = 'Process {} not available for sensor {}'
+            self.sensor = 'RAW'
 
         # Landsat common properties
         self.cloud_cover = 'CLOUD_COVER'
@@ -91,6 +115,10 @@ class Landsat(Collection):
     @staticmethod
     def fromId(id):
         """ Create a Landsat class from a GEE ID """
+        if id not in IDS:
+            msg = 'Collection {} not available'
+            raise ValueError(msg.format(id))
+
         sensors = {'LT': 'TM', 'LM': 'MSS', 'LE': 'ETM', 'LC': 'OLI'}
         # decompose id
         parts = id.split('/')
@@ -342,23 +370,25 @@ class Landsat(Collection):
 
         return harmonize
 
-    def brdf(self):
+    def brdf(self, image, renamed=False):
         """ BRDF Correction """
         # BRDF
-        r = self.bands.get('red')
-        g = self.bands.get('green')
-        b = self.bands.get('blue')
-        n = self.bands.get('nir')
-        s1 = self.bands.get('swir1')
-        s2 = self.bands.get('swir2')
+        bands = []
+        all_present = True
+        for band in ['red', 'green', 'blue', 'nir', 'swir', 'swir2']:
+            if not renamed:
+                bid = self.get_band(band, 'name').id
+            else:
+                bid = self.get_band(band, 'name').name
+            if not bid:
+                all_present = False
+                break
+            bands.append(bid)
 
-        if r and g and b and n and s1 and s2:
-            def brdf(image):
-                return module_alg.Landsat.brdf_correct(image, r, g, b, n, s1,
-                                                       s2)
-            return brdf
+        if all_present:
+            return module_alg.Landsat.brdf_correct(image, *bands)
         else:
-            return lambda img: img
+            return image
 
     def _rescale(self, band_type, image, number, process, drop=False,
                  renamed=False):
@@ -441,18 +471,47 @@ class Landsat(Collection):
 
         return all
 
+    # FACTORY
+    @classmethod
+    def Landsat1(cls, tier=1):
+        return cls(1, tier=tier)
 
-# Pre-built objects
-Landsat1 = Landsat(1)
-Landsat2 = Landsat(2)
-Landsat3 = Landsat(3)
-Landsat4SR = Landsat(4) # TM
-Landsat4MSS = Landsat(4, sensor='MSS')
-Landsat4TOA = Landsat(4, sensor='TM', process='TOA')
-Landsat5SR = Landsat(5) # TM
-Landsat5MSS = Landsat(5, sensor='MSS')
-Landsat5TOA = Landsat(5, sensor='TM', process='TOA')
-Landsat7SR = Landsat(7) # ETM
-Landsat7TOA = Landsat(7, process='TOA')
-Landsat8SR = Landsat(8, process='SR')
-Landsat8TOA = Landsat(8, process='TOA')
+    @classmethod
+    def Landsat2(cls, tier=1):
+        return cls(2, tier=tier)
+
+    @classmethod
+    def Landsat3(cls, tier=1):
+        return cls(3, tier=tier)
+
+    @classmethod
+    def Landsat4SR(cls, tier=1):
+        return cls(4, sensor='TM', process='SR', tier=tier)
+
+    @classmethod
+    def Landsat4TOA(cls, tier=1):
+        return cls(4, sensor='TM', process='TOA', tier=tier)
+
+    @classmethod
+    def Landsat5SR(cls, tier=1):
+        return cls(5, process='SR', tier=tier)
+
+    @classmethod
+    def Landsat5TOA(cls, tier=1):
+        return cls(5, process='TOA', tier=tier)
+
+    @classmethod
+    def Landsat7SR(cls, tier=1):
+        return cls(7, process='SR', tier=tier)
+
+    @classmethod
+    def Landsat7TOA(cls, tier=1):
+        return cls(7, process='TOA', tier=tier)
+
+    @classmethod
+    def Landsat8SR(cls, tier=1):
+        return cls(8, process='SR', tier=tier)
+
+    @classmethod
+    def Landsat8TOA(cls, tier=1):
+        return cls(8, process='TOA', tier=tier)
