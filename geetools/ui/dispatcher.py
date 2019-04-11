@@ -14,7 +14,39 @@ def belong_to_ee(eeobject):
         return False
 
 
-def dispatch_image(image, widget=False):
+# GENERAL DISPATCHER
+def dispatch(eeobject, notebook=False):
+    """ General dispatcher """
+    if belong_to_ee(eeobject):
+        # DISPATCH!!
+        if isinstance(eeobject, (ee.Image,)):
+            return dispatch_image(eeobject, notebook)
+        elif isinstance(eeobject, (ee.Date,)):
+            return dispatch_date(eeobject, notebook)
+        elif isinstance(eeobject, (ee.DateRange,)):
+            return dispatch_daterange(eeobject, notebook)
+        # ADD MORE ABOVE ME!
+        else:
+            info = eeobject.getInfo()
+
+            if notebook:
+                if isinstance(info, (dict,)):
+                    info = eeobject_dispatcher(eeobject)
+                    return ipytools.create_accordion(info)
+                else:
+                    info = eeobject_dispatcher(eeobject)
+                    return HTML(str(info)+'<br/>')
+
+            return info
+    else:
+        info = str(eeobject)
+        if notebook:
+            return Label(info)
+        else:
+            return info
+
+
+def dispatch_image(image, notebook=False):
     """ Dispatch a Widget for an Image Object """
     info = image.getInfo()
 
@@ -53,7 +85,7 @@ def dispatch_image(image, widget=False):
             bmax = data.get('max')
             bands_max.append(bmax)
 
-    if not widget:
+    if not notebook:
         return info
     else:
         # BANDS
@@ -87,49 +119,34 @@ def dispatch_image(image, widget=False):
         return VBox([header, acc])
 
 
-def dispatch_date(date, widget=False):
+def dispatch_date(date, notebook=False):
     """ Dispatch a ee.Date """
     info = date.format().getInfo()
 
-    if not widget:
+    if not notebook:
         return info
     else:
         return Label(info)
 
 
+def dispatch_daterange(daterange, notebook=False):
+    """ Dispatch a DateRange """
+    start = daterange.start().format().getInfo()
+    end = daterange.end().format().getInfo()
+    value = '{} to {}'.format(start, end)
+
+    if not notebook:
+        return value
+    else:
+        return Label(value)
+
+
 # OBJECT DISPATCHER
 def eeobject_dispatcher(eeobject):
-    if belong_to_ee(eeobject):
-        # DISPATCH!!
-        if isinstance(eeobject, (ee.Date,)):
-            return dispatch_date(eeobject)
-
-        elif isinstance(eeobject, (ee.Image,)):
-            return dispatch_image(eeobject)
-
-        else:
-            return eeobject.getInfo()
-    else:
-        return str(eeobject)
+    return dispatch(eeobject, False)
 
 
 # WIDGET DISPATCHER
 def widget_dispatcher(eeobject):
     """ Dispatch a Widget regarding its type """
-    if belong_to_ee(eeobject):
-        # DISPATCH!!
-        if isinstance(eeobject, (ee.Image,)):
-            return dispatch_image(eeobject, True)
-
-        elif isinstance(eeobject, (ee.Date,)):
-            return dispatch_date(eeobject, True)
-
-        else:
-            info = eeobject.getInfo()
-
-            if isinstance(info, (dict,)):
-                info = eeobject_dispatcher(eeobject)
-                return ipytools.create_accordion(info)
-            else:
-                info = eeobject_dispatcher(eeobject)
-                return HTML(str(info)+'<br/>')
+    return dispatch(eeobject, True)

@@ -8,9 +8,6 @@ from . import chart, imagestrip, ipymap, ipytools, maptool, dispatcher
 from IPython.display import display
 from ipywidgets import Output, HTML, VBox, Widget, Label, Accordion
 
-if not ee.data._initialized:
-    ee.Initialize()
-
 
 NOTEBOOK = False
 ASYNC = False
