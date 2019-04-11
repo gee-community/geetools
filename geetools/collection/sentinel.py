@@ -1,12 +1,15 @@
 # coding=utf-8
 """ Google Earth Engine Sentinel Collections """
 from . import Collection, TODAY, Band
-from .. import bitreader, cloud_mask, tools
-from .. import algorithms as module_alg
+from .. import tools
 import ee
 
 NUNBERS = [1, 2]
 PROCESSES = ['TOA', 'SR']
+IDS = [
+    'COPERNICUS/S2',
+    'COPERNICUS/S2_SR'
+]
 
 
 class Sentinel2(Collection):
@@ -135,6 +138,11 @@ class Sentinel2(Collection):
             msg = '{} not recognized as a Sentinel 2 ID'
             raise ValueError(msg.format(id))
 
+    # FACTORY
+    @classmethod
+    def Sentinel2TOA(cls):
+        return cls('TOA')
 
-Sentinel2TOA = Sentinel2()
-Sentinel2SR = Sentinel2('SR')
+    @classmethod
+    def Sentienl2SR(cls):
+        return cls('SR')
