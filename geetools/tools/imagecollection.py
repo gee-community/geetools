@@ -194,33 +194,16 @@ def get_values(collection, geometry, scale=None, reducer=ee.Reducer.mean(),
     :rtype: dict
     """
     if not scale:
-        # scale = minscale(ee.Image(self.first()))
         scale = 1
     else:
         scale = int(scale)
-
-    propid = ee.Image(collection.first()).get(id).getInfo()
-    def transform(eeobject):
-        try: # Py2
-            isstr = isinstance(propid, (str, unicode))
-        except: # Py3
-            isstr = isinstance(propid, (str))
-
-        if isinstance(propid, (int, float)):
-            return ee.Number(eeobject).format()
-        elif isstr:
-            return ee.String(eeobject)
-        else:
-            msg = 'property must be a number or string, found {}'
-            raise ValueError(msg.format(type(propid)))
-
 
     if not properties:
         properties = []
     properties = ee.List(properties)
 
     def listval(img, it):
-        theid = ee.String(transform(img.get(id)))
+        theid = ee.Algorithms.String(img.get(id))
         values = img.reduceRegion(reducer, geometry, scale,
                                   maxPixels=maxPixels)
         values = ee.Dictionary(values)
@@ -232,15 +215,14 @@ def get_values(collection, geometry, scale=None, reducer=ee.Reducer.mean(),
             def true():
                 value = img.get(prop)
                 return ini.set(prop, value)
-            # value = img.get(prop)
-            # return ini.set(prop, value)
             return ee.Algorithms.If(condition, true(), ini)
 
         with_prop = ee.Dictionary(properties.iterate(add_properties, values))
         return ee.Dictionary(it).set(theid, with_prop)
 
     result = collection.iterate(listval, ee.Dictionary({}))
-    result = ee.Dictionary(result)
+    result = ee.Dictionary(ee.Algorithms.If(collection.size().neq(0),
+                                            result, {}))
 
     if side == 'server':
         return result
