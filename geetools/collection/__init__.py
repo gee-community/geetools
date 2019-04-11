@@ -298,49 +298,49 @@ class Collection(object):
         else:
             return {}
 
-    def ndvi(self, name='ndvi', renamed=False):
+    def ndvi(self, image, name='ndvi', renamed=False):
         if renamed:
             n = 'nir'
             r = 'red'
         else:
-            n = self.get_band('nir').id
-            r = self.get_band('red').id
+            n = self.get_band('nir', 'name').id
+            r = self.get_band('red', 'name').id
         if n and r:
-            return indices.ndvi(n, r, name, False)
+            return indices.ndvi(n, r, name, False)(image)
         else:
             raise ValueError('ndvi index cannot be computed in {}'.format(
                 self.id
             ))
 
-    def evi(self, name='evi', renamed=False):
+    def evi(self, image, name='evi', renamed=False):
         if renamed:
             n = 'nir'
             r = 'red'
             b = 'blue'
         else:
-            n = self.get_band('nir').id
-            r = self.get_band('red').id
-            b = self.get_band('blue').id
+            n = self.get_band('nir', 'name').id
+            r = self.get_band('red', 'name').id
+            b = self.get_band('blue', 'name').id
         if n and r and b:
-            return indices.evi(n, r, b, bandname=name, addBand=False)
+            return indices.evi(n, r, b, bandname=name, addBand=False)(image)
         else:
             raise ValueError('evi index cannot be computed in {}'.format(
                 self.id
             ))
 
-    def nbr(self, name='nbr', renamed=False):
+    def nbr(self, image, name='nbr', renamed=False):
         if renamed:
             n = 'nir'
             s = 'swir2'
             if not s:
                 s = 'swir'
         else:
-            n = self.get_band('nir').id
-            s = self.get_band('swir2').id
+            n = self.get_band('nir', 'name').id
+            s = self.get_band('swir2', 'name').id
             if not s:
-                s = self.get_band('swir').id
+                s = self.get_band('swir', 'name').id
         if n and s:
-            return indices.nbr(n, s, name, False)
+            return indices.nbr(n, s, name, False)(image)
         else:
             raise ValueError('nbr index cannot be computed in {}'.format(
                 self.id
@@ -427,6 +427,10 @@ class Collection(object):
 from .landsat import *
 from .sentinel import *
 from . import landsat, sentinel
+from .landsat import Landsat
+from .sentinel import Sentinel2
+
+IDS = landsat.IDS + sentinel.IDS
 
 
 def from_id(id):
@@ -514,6 +518,7 @@ def rescale(image, col, collection_to_match, reference='all', renamed=False,
             new_common.append(name)
             setrange(b, ranges)
             setrange(b_proxy, ranges_other)
+            precisions[name] = b_proxy.precision
 
     new_common = ee.List(new_common)
     ranges_this = ee.Dictionary(ranges)
@@ -555,3 +560,18 @@ def rescale(image, col, collection_to_match, reference='all', renamed=False,
     return final
 
 from .group import CollectionGroup
+
+# Preload factory methods
+Landsat1 = Landsat.Landsat1
+Landsat2 = Landsat.Landsat2
+Landsat3 = Landsat.Landsat3
+Landsat4SR = Landsat.Landsat4SR
+Landsat4TOA = Landsat.Landsat4TOA
+Landsat5SR = Landsat.Landsat5SR
+Landsat5TOA = Landsat.Landsat5TOA
+Landsat7SR = Landsat.Landsat7SR
+Landsat7TOA = Landsat.Landsat7TOA
+Landsat8SR = Landsat.Landsat8SR
+Landsat8TOA = Landsat.Landsat8TOA
+Sentinel2TOA = Sentinel2.Sentinel2TOA
+Sentinel2SR = Sentinel2.Sentienl2SR
