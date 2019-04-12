@@ -3,13 +3,11 @@
 import ee
 import ee.data
 
-if not ee.data._initialized:
-    ee.Initialize()
-
 from . import tools
 
+
 class BitReader(object):
-    ''' Bit Reader.
+    """ Bit Reader
 
     Initializes with parameter `options`, which must be a dictionary with
     the following format:
@@ -44,8 +42,7 @@ class BitReader(object):
         ```
         >>False
 
-    '''
-
+    """
     @staticmethod
     def get_bin(bit, nbits=None, shift=0):
         ''' from https://stackoverflow.com/questions/699866/python-int-to-binary '''
@@ -75,21 +72,25 @@ class BitReader(object):
     @staticmethod
     def decode_key(key):
         ''' decodes an option's key into a list '''
-        bits = key.split('-')
+        if isinstance(key, (str,)):
+            bits = key.split('-')
 
-        try:
-            ini = int(bits[0])
-            if len(bits) == 1:
-                end = ini
-            else:
-                end = int(bits[1])
-        except:
-            mje = 'keys must be with the following format "bit-bit", ' \
-                  'example "0-1" (found {})'
-            raise ValueError(mje.format(key))
+            try:
+                ini = int(bits[0])
+                if len(bits) == 1:
+                    end = ini
+                else:
+                    end = int(bits[1])
+            except:
+                mje = 'keys must be with the following format "bit-bit", ' \
+                      'example "0-1" (found {})'
+                raise ValueError(mje.format(key))
 
-        bits_list = range(ini, end+1)
-        return bits_list
+            bits_list = range(ini, end+1)
+            return bits_list
+        elif isinstance(key, (int, float)):
+            value = int(key)
+            return (value, value+1)
 
     def __init__(self, options, bit_length=None):
         self.options = options
