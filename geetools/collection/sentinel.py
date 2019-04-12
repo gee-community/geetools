@@ -23,9 +23,9 @@ class Sentinel2(Collection):
         self._bands = None
 
         if process == 'TOA':
-            self.id = 'COPERNICUS/S2'
+            self._id = 'COPERNICUS/S2'
         else:
-            self.id = 'COPERNICUS/S2_SR'
+            self._id = 'COPERNICUS/S2_SR'
 
         self.number = 2
         self.spacecraft = 'SENTINEL'
@@ -80,6 +80,9 @@ class Sentinel2(Collection):
                                 0, 65535, 'optical')
                 band[14] = Band('SCL', 'scene_classification_map', 'uint8', 20,
                                 1, 11, 'classification')
+                band[15] = qa10
+                band[16] = qa20
+                band[17] = qa60
 
             self._bands = [b for b in band if b]
 
