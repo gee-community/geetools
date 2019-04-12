@@ -20,6 +20,7 @@ PIXEL_TYPES = {
     'int64': ee.Image.toInt64
 }
 
+
 # HELPERS
 def allequal(iterable):
     """ Check if all elements inside an iterable are equal """
@@ -29,6 +30,7 @@ def allequal(iterable):
         if item == first: continue
         else: return False
     return True
+
 
 def convert_precision(image, precision):
     """ Convert data type precisions """
@@ -132,15 +134,34 @@ class Band(object):
 
 class Collection(object):
     """ Parent class for common operations """
-    # Common properties for all collections
-    bands = []
-    spacecraft = None
-    id = None
-    start_date = None
-    end_date = None
-    bits = {}
-    algorithms = {}
-    cloud_cover = None
+    def __init__(self, **kwargs):
+        self._bands = None
+        self._id = None
+        self.spacecraft = kwargs.get('spacecraft', None)
+        self.start_date = kwargs.get('start_date', None)
+        self.end_date = kwargs.get('end_date', None)
+        self.cloud_cover = kwargs.get('cloud_cover', None)
+        self.algorithms = kwargs.get('algorithms', {})
+        self.masks = kwargs.get('masks', {
+            'cloud': {},
+            'shadow': {},
+            'snow': {},
+            'water': {},
+            'cirrus': {}
+        })
+
+    @property
+    def bands(self):
+        if not self._bands:
+            self._bands = None
+        return self._bands
+
+    @property
+    def id(self):
+        """ Google Earth Engine ID """
+        if not self._id:
+            self._id = None
+        return self._id
 
     @property
     def collection(self):
@@ -219,6 +240,56 @@ class Collection(object):
 
         return scales_dict
 
+    def bit_options(self, renamed=False):
+        options = {}
+        for band in self.bands:
+            if band.reference == 'bits' and band.bits:
+                name = band.name if renamed else band.id
+                opt = []
+                for allclss in band.bits.values():
+                    for _, clss in allclss.items():
+                        opt.append(clss)
+                options[name] = opt
+        return options
+
+    def get_mask(self, image, mask_band, classes='all', renamed=False):
+        """ Get a mask image """
+        bandnames = self.band_names(renamed=renamed)
+
+        # CHECKS
+        if mask_band not in bandnames:
+            msg = 'band {} not present in bands {}'
+            raise ValueError(msg.format(mask_band, bandnames))
+        options = self.bit_options(renamed)[mask_band]
+        if classes != 'all' and classes != ['all']:
+            if not isinstance(classes, (list, tuple)):
+                msg = 'classes param must be "all" or a list of classes'
+                raise ValueError(msg)
+            for clas in classes:
+                if clas not in options:
+                    msg = 'class {} not available for band {}, only {}'
+                    raise ValueError(msg.format(clas, mask_band, options))
+
+        if classes == 'all' or classes == ['all']:
+            selection = options
+        else:
+            selection = classes
+
+        mask = self.bit_image(image, mask_band, renamed).select(selection)
+        return mask
+
+    def apply_mask(self, image, mask_band, classes='all', renamed=False):
+        """ Apply a mask """
+        mask = self.get_mask(image, mask_band, classes, renamed)
+        options = mask.bandNames()
+
+        def wrap(band, img):
+            img = ee.Image(img)
+            band = ee.String(band)
+            m = mask.select(band)
+            return img.updateMask(m.Not())
+
+        return ee.Image(options.iterate(wrap, image))
 
     def get_band(self, band, by='id'):
         """ get a band by its id or name """
@@ -353,7 +424,7 @@ class Collection(object):
         'nbr': nbr
     }
 
-    def bit_image(self, qa, image):
+    def bit_image(self, image, qa, renamed=False):
         """ Get an image from the bit information from the qa band
 
         :param qa: the quality band name
@@ -362,12 +433,17 @@ class Collection(object):
         :type image: ee.Image
         :return: the image with the decode bands added
         """
-        if qa not in self.bands.values():
+        if renamed:
+            band = self.get_band(qa, 'name')
+        else:
+            band = self.get_band(qa, 'id')
+
+        if not band:
             raise ValueError('{} band not present in {}'.format(
                 qa, self.id
             ))
 
-        reader = bitreader.BitReader(self.bits[qa])
+        reader = bitreader.BitReader(band.bits)
         return reader.decode_image(image, qa)
 
     def check_bands(self, bands):
