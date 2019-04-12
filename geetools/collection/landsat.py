@@ -90,7 +90,7 @@ class Landsat(Collection):
         # Catch L4 MSS TOA or SR
         if self.sensor == 'MSS' and self.process in ['SR', 'TOA']:
             msg = 'Process {} not available for sensor {}'
-            self.sensor = 'RAW'
+            self.process = 'RAW'
 
         # Landsat common properties
         self.cloud_cover = 'CLOUD_COVER'
@@ -101,8 +101,6 @@ class Landsat(Collection):
         self._bands = None
         self._scales = None
         self._ranges = None
-        self._algorithms = None
-        self._bits = None
         self._thermal_bands = None
         self._optical_bands = None
         self._quality_bands = None
@@ -111,6 +109,10 @@ class Landsat(Collection):
         self.algorithms['brdf'] = self.brdf
         self.algorithms['harmonize'] = self.harmonize
         self.algorithms['rescale'] = self.rescale_all
+
+        # dates
+        self.start_date = START[self.number]
+        self.end_date = END[self.number]
 
     @staticmethod
     def fromId(id):
@@ -208,7 +210,8 @@ class Landsat(Collection):
             bqa = Band('BQA', 'bqa', 'uint16', 30, reference='bits',
                        bits={'4': {1:'cloud'},
                              '5-6': {3:'high_confidence_cloud'},
-                             '7-8': {3:'shadow'}, '9-10': {3:'snow'}})
+                             '7-8': {3:'shadow'},
+                             '9-10': {3:'snow'}})
 
             sr_aerosol = Band('sr_aerosol', 'sr_aerosol', 'uint8', 30,
                               reference='bits',
@@ -221,12 +224,22 @@ class Landsat(Collection):
                               })
 
             if sensor in ['MSS']:
-                band[0] = Band('B1', 'green', 'int8', 60, 0, 255, 'optical')
-                band[1] = Band('B2', 'red', 'int8', 60, 0, 255, 'optical')
-                band[2] = Band('B3', 'nir', 'int8', 60, 0, 255, 'optical')
-                band[3] = Band('B4', 'nir2', 'int8', 30, 0, 255, 'optical')
-                band[4] = Band('BQA', 'bqa', 'int16', 60, reference='bits',
-                               bits={4: {1: 'clouds'}})
+                green = Band('B1', 'green', 'int8', 60, 0, 255, 'optical')
+                red = Band('B2', 'red', 'int8', 60, 0, 255, 'optical')
+                nir = Band('B3', 'nir', 'int8', 60, 0, 255, 'optical')
+                nir2 = Band('B4', 'nir2', 'int8', 30, 0, 255, 'optical')
+                qa = Band('BQA', 'bqa', 'int16', 60, reference='bits',
+                           bits={'4': {1: 'cloud'}})
+                if number in [1, 2, 3]:
+                    green.id = 'B4'
+                    red.id = 'B5'
+                    nir.id = 'B6'
+                    nir2.id = 'B7'
+                band[0] = green
+                band[1] = red
+                band[2] = nir
+                band[3] = nir2
+                band[4] = qa
 
             # Opticals
             if number in [4, 5, 7]:
@@ -317,6 +330,12 @@ class Landsat(Collection):
                         b.min = 0
                         b.max = max_sr
                     band[9] = sr_aerosol
+                    pixel_qa.bits = {'1': {1:'clear'}, '2': {1:'water'},
+                                     '3': {1:'shadow'}, '4': {1:'snow'},
+                                     '5': {1:'cloud'},
+                                     '6-7':{3:'high_confidence_cloud'},
+                                     '8-9':{3:'high_confidence_cirrus'}
+                                     }
                     band[10] = pixel_qa
                     band[11] = radsat_qa_8
                 if process in ['TOA']:
@@ -347,14 +366,6 @@ class Landsat(Collection):
 
             self._bands = [b for b in band if b]
         return self._bands
-
-    @property
-    def start_date(self):
-        return START[self.number]
-
-    @property
-    def end_date(self):
-        return END[self.number]
 
     def harmonize(self):
         """ HARMONIZATION """
