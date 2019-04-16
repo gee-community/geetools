@@ -142,13 +142,6 @@ class Collection(object):
         self.end_date = kwargs.get('end_date', None)
         self.cloud_cover = kwargs.get('cloud_cover', None)
         self.algorithms = kwargs.get('algorithms', {})
-        self.masks = kwargs.get('masks', {
-            'cloud': {},
-            'shadow': {},
-            'snow': {},
-            'water': {},
-            'cirrus': {}
-        })
 
     @property
     def bands(self):
@@ -534,8 +527,10 @@ def get_common_bands(*collections, reference='all', match='id'):
     :type match: str
     """
     first = collections[0]
-
     renamed = True if match == 'name' else False
+
+    if len(collections) == 1:
+        return first.band_names(reference, renamed)
 
     first_set = set(first.band_names(reference, renamed))
     if len(collections) == 1:

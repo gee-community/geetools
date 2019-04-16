@@ -1,7 +1,7 @@
 # coding=utf-8
 """ Google Earth Engine Sentinel Collections """
 from . import Collection, TODAY, Band
-from .. import tools
+from .. import tools, cloud_mask
 import ee
 
 NUNBERS = [1, 2]
@@ -28,17 +28,21 @@ class Sentinel2(Collection):
             self._id = 'COPERNICUS/S2_SR'
 
         self.number = 2
-        self.spacecraft = 'SENTINEL'
+        self.spacecraft = 'SENTINEL2'
         self.process = process
 
         self.start_date = '2015-06-23'
         self.end_date = TODAY
 
         self.cloud_cover = 'CLOUD_COVERAGE_ASSESSMENT'
-        self.algorithms = {}
+        self.algorithms = {
+            'hollstein': cloud_mask.apply_hollstein
+        }
 
         if self.process == 'SR':
             self.algorithms['scl_masks'] = self.SCL_masks
+
+
 
     @property
     def bands(self):
