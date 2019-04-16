@@ -361,6 +361,87 @@ def compute(image, mask_band, bits, options=None, name_all='all_masks'):
     return good_pix
 
 
+def hollstein_mask(image,
+                   options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
+                   aerosol='B1', blue='B2', green='B3', red_edge1='B5',
+                   red_edge2='B6', red_edge3='B7', red_edge4='B8A',
+                   water_vapor='B9', cirrus='B10', swir='B11',
+                   name='hollstein'):
+    """ Get Hollstein mask """
+    def difference(a, b):
+        def wrap(img):
+            return img.select(a).subtract(img.select(b))
+        return wrap
+
+    def ratio(a, b):
+        def wrap(img):
+            return img.select(a).divide(img.select(b))
+        return wrap
+
+    # 1
+    b3 = image.select(green).lt(3190)
+
+    # 2
+    b8a = image.select(red_edge4).lt(1660)
+    r511 = ratio(red_edge1, swir)(image).lt(4.33)
+
+    # 3
+    s1110 = difference(swir, cirrus)(image).lt(2550)
+    b3_3 = image.select(green).lt(5250)
+    r210 = ratio(blue, cirrus)(image).lt(14.689)
+    s37 = difference(green, red_edge3)(image).lt(270)
+
+    # 4
+    r15 = ratio(aerosol, red_edge1)(image).lt(1.184)
+    s67 = difference(red_edge2, red_edge3)(image).lt(-160)
+    b1 = image.select(aerosol).lt(3000)
+    r29 =  ratio(blue, water_vapor)(image).lt(0.788)
+    s911 = difference(water_vapor, swir)(image).lt(210)
+    s911_2 = difference(water_vapor, swir)(image).lt(-970)
+
+    snow = {'snow':[['1',0], ['22',0], ['34',0]]}
+    cloud = {'cloud-1':[['1',0], ['22',1],['33',1],['44',1]],
+             'cloud-2':[['1',0], ['22',1],['33',0],['45',0]]}
+    cirrus = {'cirrus-1':[['1',0], ['22',1],['33',1],['44',0]],
+              'cirrus-2':[['1',1], ['21',0],['32',1],['43',0]]}
+    shadow = {'shadow-1':[['1',1], ['21',1],['31',1],['41',0]],
+              'shadow-2':[['1',1], ['21',1],['31',0],['42',0]],
+              'shadow-3':[['1',0], ['22',0],['34',1],['46',0]]}
+    water = {'water':[['1',1], ['21',1],['31',0],['42',1]]}
+
+    all = {'cloud':cloud,
+           'snow': snow,
+           'shadow':shadow,
+           'water':water,
+           'cirrus':cirrus}
+
+    final = {}
+
+    for option in options:
+        final.update(all[option])
+
+    dtf = decision_tree.binary(
+        {'1':b3,
+         '21':b8a, '22':r511,
+         '31':s37, '32':r210, '33':s1110, '34':b3_3,
+         '41': s911_2, '42':s911, '43':r29, '44':s67, '45':b1, '46':r15
+         }, final, name)
+
+    return dtf
+
+
+def apply_hollstein(image,
+                    options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
+                    aerosol='B1', blue='B2', green='B3', red_edge1='B5',
+                    red_edge2='B6', red_edge3='B7', red_edge4='B8A',
+                    water_vapor='B9', cirrus='B10', swir='B11'):
+    """ Apply Hollstein mask """
+    mask = hollstein_mask(image, options, aerosol, blue, green, red_edge1,
+                          red_edge2, red_edge3, red_edge4, water_vapor,
+                          cirrus, swir).select('hollstein')
+    return image.updateMask(mask)
+
+
 def hollstein_S2(options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
                  name='hollstein', addBands=False, updateMask=True):
     """ Compute Hollstein Decision tree for detecting clouds, clouds shadow,
@@ -378,69 +459,9 @@ def hollstein_S2(options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
     :return: a function for applying the mask
     :rtype: function
     """
-
-    def difference(a, b):
-        def wrap(img):
-            return img.select(a).subtract(img.select(b))
-        return wrap
-
-    def ratio(a, b):
-        def wrap(img):
-            return img.select(a).divide(img.select(b))
-        return wrap
-
     def compute_dt(img):
 
-        # 1
-        b3 = img.select('B3').lt(3190)
-
-        # 2
-        b8a = img.select('B8A').lt(1660)
-        r511 = ratio('B5', 'B11')(img).lt(4.33)
-
-        # 3
-        s1110 = difference('B11', 'B10')(img).lt(2550)
-        b3_3 = img.select('B3').lt(5250)
-        r210 = ratio('B2','B10')(img).lt(14.689)
-        s37 = difference('B3', 'B7')(img).lt(270)
-
-        # 4
-        r15 = ratio('B1', 'B5')(img).lt(1.184)
-        s67 = difference('B6', 'B7')(img).lt(-160)
-        b1 = img.select('B1').lt(3000)
-        r29 =  ratio('B2', 'B9')(img).lt(0.788)
-        s911 = difference('B9', 'B11')(img).lt(210)
-        s911_2 = difference('B9', 'B11')(img).lt(-970)
-
-        snow = {'snow':[['1',0], ['22',0], ['34',0]]}
-        cloud = {'cloud-1':[['1',0], ['22',1],['33',1],['44',1]],
-                 'cloud-2':[['1',0], ['22',1],['33',0],['45',0]]}
-        cirrus = {'cirrus-1':[['1',0], ['22',1],['33',1],['44',0]],
-                  'cirrus-2':[['1',1], ['21',0],['32',1],['43',0]]}
-        shadow = {'shadow-1':[['1',1], ['21',1],['31',1],['41',0]],
-                  'shadow-2':[['1',1], ['21',1],['31',0],['42',0]],
-                  'shadow-3':[['1',0], ['22',0],['34',1],['46',0]]}
-        water = {'water':[['1',1], ['21',1],['31',0],['42',1]]}
-
-        all = {'cloud':cloud,
-               'snow': snow,
-               'shadow':shadow,
-               'water':water,
-               'cirrus':cirrus}
-
-        final = {}
-
-        for option in options:
-            final.update(all[option])
-
-        dtf = decision_tree.binary(
-            {'1':b3,
-             '21':b8a, '22':r511,
-             '31':s37, '32':r210, '33':s1110, '34':b3_3,
-             '41': s911_2, '42':s911, '43':r29, '44':s67, '45':b1, '46':r15
-             }, final, name)
-
-        results = dtf
+        results = hollstein_mask(img, options, name)
 
         if updateMask and addBands:
             return img.addBands(results).updateMask(results.select(name))
