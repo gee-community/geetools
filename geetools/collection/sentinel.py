@@ -62,10 +62,13 @@ class Sentinel2(Collection):
             band[9] = Band('B9', 'water_vapor', scale=60, **common)
             swir = Band('B11', 'swir', scale=20, **common)
             swir2 = Band('B12', 'swir2', scale=20, **common)
-            qa10 = Band('QA10', 'qa10', scale=10, reference='bits')
-            qa20 = Band('QA20', 'qa20', scale=20, reference='bits')
+            qa10 = Band('QA10', 'qa10', scale=10, reference='bits',
+                        precision='uint16')
+            qa20 = Band('QA20', 'qa20', scale=20, reference='bits',
+                        precision='uint32')
             qa60 = Band('QA60', 'qa60', scale=60, reference='bits',
-                        bits={'10':{1:'cloud'}, '11':{1:'cirrus'}})
+                        bits={'10':{1:'cloud'}, '11':{1:'cirrus'}},
+                        precision='uint16')
 
             if self.process in ['TOA']:
                 band[10] = Band('B10', 'cirrus', scale=60, **common)
