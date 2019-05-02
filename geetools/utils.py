@@ -4,6 +4,7 @@
 import pandas as pd
 from copy import deepcopy
 import ee
+import re
 
 
 def getReducerName(reducer):
@@ -87,3 +88,38 @@ def castImage(value):
         return value
     else:
         return ee.Image.constant(value)
+
+
+def make_name(img, pattern, date_pattern=None):
+    """ Make a name with the given pattern. The pattern must contain the
+    propeties to replace between curly braces. There are 2 special words:
+
+    * 'system_date': replace with the date of the image formatted with
+      `date_pattern`, which defaults to 'yyyyMMdd'
+    * 'id' or 'ID': the image id. If None, it'll be replaced with 'id'
+
+    Pattern example (supposing each image has a property called `city`):
+    'image from {city} on {system_date}'
+    """
+    properties = re.findall(r'{(\w+)}', pattern)
+    to_replace = {}
+    for prop in properties:
+        if prop in ['system_date']:
+            if date_pattern is None:
+                date_pattern = 'yyyyMMdd'
+            condition = img.propertyNames().contains('system:time_start')
+            value = ee.String(ee.Algorithms.If(condition,
+                                               img.date().format(date_pattern),
+                                               'date'))
+            value = value.getInfo()
+        elif prop in ['id', 'ID']:
+            value = img.id().getInfo()
+            if value is None:
+                value = 'id'
+        else:
+            value = img.get(prop).getInfo()
+            if value is None:
+                value = prop
+
+        to_replace[prop] = value
+    return pattern.format(**to_replace)
