@@ -4,6 +4,7 @@ import ee
 from ..tools.image import get_value
 ee.Initialize()
 
+
 class TestExpressions(unittest.TestCase):
 
     def setUp(self):

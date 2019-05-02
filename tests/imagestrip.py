@@ -5,6 +5,7 @@ from ..ui import imagestrip
 from PIL.Image import Image
 ee.Initialize()
 
+
 class TestStrip(unittest.TestCase):
 
     def setUp(self):

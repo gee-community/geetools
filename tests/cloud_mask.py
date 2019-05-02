@@ -4,6 +4,8 @@ import ee
 from .. import tools, cloud_mask
 from ..tools.image import get_value
 from ..tools.geometry import getRegion
+
+# Initialize
 ee.Initialize()
 
 area = ee.Geometry.Point([-65.80, -25.01])

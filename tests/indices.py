@@ -4,12 +4,13 @@ import unittest
 import ee
 from .. import indices
 from ..tools.image import get_value
-ee.Initialize()
 from . import TEST_CLOUD_IMAGES
+ee.Initialize()
 
 p = ee.Geometry.Point([-71.69, -42.07])
 image = ee.Image(TEST_CLOUD_IMAGES['S2'])
 col = ee.ImageCollection('COPERNICUS/S2').filterBounds(p)
+
 
 class TestIndices(unittest.TestCase):
     def test(self):
