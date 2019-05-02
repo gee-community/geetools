@@ -367,19 +367,23 @@ class Landsat(Collection):
             self._bands = [b for b in band if b]
         return self._bands
 
-    def harmonize(self):
+    def harmonize(self, image, renamed=False):
         """ HARMONIZATION """
+        options = ['blue', 'green', 'red', 'nir', 'swir', 'swir2']
         if self.number == 8:
-            if self.process == 'SR':
-                def harmonize(image):
-                    return module_alg.Landsat.harmonization(image, True)
+            if renamed:
+                bands = {band.name:band.name for band in self.bands if band.name in options}
             else:
-                def harmonize(image):
-                    return module_alg.Landsat.harmonization(image, False)
-        else:
-            harmonize = lambda img: img
+                bands = {band.name:band.id for band in self.bands if band.name in options}
 
-        return harmonize
+            max_value = max(
+                [band.max for band in self.bands if band.name in options])
+            harmonized = module_alg.Landsat.harmonization(
+                image, max_value=max_value, **bands)
+        else:
+            harmonized = image
+
+        return harmonized
 
     def brdf(self, image, renamed=False):
         """ BRDF Correction """

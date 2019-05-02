@@ -4,10 +4,7 @@ import ee
 import ee.data
 import math
 from . import satellite as satmodule
-from . import tools
-
-if not ee.data._initialized:
-    ee.Initialize()
+from . import tools, utils
 
 
 def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
@@ -371,8 +368,8 @@ class Landsat(object):
         return Landsat._rescale(image, bands, thermal_bands, 'SR', 'TOA')
 
     @staticmethod
-    def harmonization(image, sr=True, blue='B2', green='B3', red='B4', nir='B5',
-                      swir1='B6', swir2='B7'):
+    def harmonization(image, blue='B2', green='B3', red='B4', nir='B5',
+                      swir='B6', swir2='B7', max_value=None):
         """ Harmonization of Landsat 8 images to be consistant with
         Landsat 7 images
 
@@ -384,17 +381,31 @@ class Landsat(object):
         reduced major axis (RMA) regression coefficients
 
         :param image: A Landsat 8 Image
+        :param max_value: the maximum value for the optical bands. For float
+            bands it is 1 (TOA), for int16 it is 10000 (SR) and for int8 it is
+            255 (RAW). It default to 1 (TOA)
         :return:
         """
-        factor = 10000 if sr else 1
+        bands = ee.List([blue, green, red, nir, swir, swir2])
+        band_types = image.bandTypes().select(bands)
 
-        slopes = ee.Image.constant([0.9785, 0.9542, 0.9825, 1.0073, 1.0171, 0.9949])
-        itcp = ee.Image.constant([-0.0095, -0.0016, -0.0022, -0.0021, -0.0030, 0.0029])
-        return image.select([blue, green, red, nir, swir1, swir2])\
-                    .resample('bicubic')\
-                    .subtract(itcp.multiply(factor)).divide(slopes)\
-                    .set('system:time_start', image.get('system:time_start'))\
-                    .toShort()
+        if max_value is None:
+            max_value = 1
+
+        slopes = ee.Image.constant([0.9785, 0.9542, 0.9825,
+                                    1.0073, 1.0171, 0.9949])
+        itcp = ee.Image.constant([-0.0095, -0.0016, -0.0022,
+                                  -0.0021, -0.0030, 0.0029])
+
+        only_bands = image.select(bands)
+        resampled = only_bands.resample('bicubic')
+
+        harmonized = resampled.subtract(itcp.multiply(max_value)).divide(slopes)
+
+        harmonized = harmonized.cast(band_types)
+
+        # append rest of the bands
+        return image.addBands(harmonized, overwrite=True)
 
     @staticmethod
     def brdf_correct(image, red='red', green='green', blue='blue', nir='nir',
