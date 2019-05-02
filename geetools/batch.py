@@ -1,15 +1,12 @@
 # coding=utf-8
 """ Module holding batch processing for Earth Engine """
 import ee
-import ee.data
 from . import tools
 import os
 import functools
 import traceback
 import time
-
-if not ee.data._initialized:
-    ee.Initialize()
+from .utils import *
 
 
 def recrusive_delete_asset(assetId):
@@ -380,14 +377,18 @@ class Image(object):
 class ImageCollection(object):
 
     @staticmethod
-    def toDrive(col, folder, scale=30, dataType="float", region=None,
-                **kwargs):
+    def toDrive(collection, folder, namePattern='{id}', scale=30,
+                dataType="float", region=None, datePattern=None, **kwargs):
         """ Upload all images from one collection to Google Drive. You can use
         the same arguments as the original function
         ee.batch.export.image.toDrive
 
-        :param col: Collection to upload
-        :type col: ee.ImageCollection
+        :param collection: Collection to upload
+        :type collection: ee.ImageCollection
+        :param folder: Google Drive folder to export the images to
+        :type folder: str
+        :param namePattern: pattern for the name. See make_name function
+        :type namePattern: str
         :param region: area to upload. Defualt to the footprint of the first
             image in the collection
         :type region: ee.Geometry.Rectangle or ee.Feature
@@ -401,36 +402,44 @@ class ImageCollection(object):
             "double", "int", "Uint8", "Int8" or a casting function like
             *ee.Image.toFloat*
         :type dataType: str
+        :param datePattern: pattern for date if specified in namePattern.
+            Defaults to 'yyyyMMdd'
+        :type datePattern: str
         :return: list of tasks
         :rtype: list
         """
-        size = col.size().getInfo()
-        alist = col.toList(size)
+        # empty tasks list
         tasklist = []
+        # get region
+        region = tools.geometry.getRegion(region)
+        # Make a list of images
+        img_list = collection.toList(collection.size())
 
-        if region is None:
-            region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
-        else:
-            region = tools.geometry.getRegion(region)
+        n = 0
+        while True:
+            try:
+                img = ee.Image(img_list.get(n))
 
-        for idx in range(0, size):
-            img = alist.get(idx)
-            img = ee.Image(img)
-            name = img.id().getInfo().split("/")[-1]
+                name = make_name(img, namePattern, datePattern)
 
-            # convert data type
-            img = convert_data_type(dataType)(img)
+                # convert data type
+                img = convert_data_type(dataType)(img)
 
-            task = ee.batch.Export.image.toDrive(image=img,
-                                                 description=name,
-                                                 folder=folder,
-                                                 fileNamePrefix=name,
-                                                 region=region,
-                                                 scale=scale, **kwargs)
-            task.start()
-            tasklist.append(task)
-
-        return tasklist
+                task = ee.batch.Export.image.toDrive(image=img,
+                                                     description=name,
+                                                     folder=folder,
+                                                     fileNamePrefix=name,
+                                                     region=region,
+                                                     scale=scale, **kwargs)
+                task.start()
+                tasklist.append(task)
+                n += 1
+            except Exception as e:
+                error = str(e).split(':')
+                if error[0] == 'List.get':
+                    break
+                else:
+                    raise e
 
     @staticmethod
     def toAsset(col, assetPath, scale=30, region=None, create=True,
