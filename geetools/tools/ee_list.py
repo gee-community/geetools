@@ -31,8 +31,10 @@ def replaceDict(eelist, to_replace):
     to_replace = ee.Dictionary(to_replace)
     keys = to_replace.keys()
     def wrap(el):
-        condition = ee.List(keys).indexOf(el)
-        return ee.Algorithms.If(condition.neq(-1), to_replace.get(el), el)
+        # Convert to String
+        elstr = ee.Algorithms.String(el)
+        condition = ee.List(keys).indexOf(elstr)
+        return ee.Algorithms.If(condition.neq(-1), to_replace.get(elstr), el)
     return eelist.map(wrap)
 
 
