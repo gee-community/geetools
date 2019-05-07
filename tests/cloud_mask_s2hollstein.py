@@ -3,7 +3,7 @@
 import ee
 from geetools import cloud_mask
 from geetools.tools.image import get_value
-from . import assert_equal
+from . import TEST_CLOUD_IMAGES
 
 # Initialize
 ee.Initialize()
@@ -13,7 +13,7 @@ p_shadow = ee.Geometry.Point([-72.40366193088799, -42.8993149292846])
 p_snow = ee.Geometry.Point([-72.31921773694792, -42.92788613999289])
 p_cirrus = ee.Geometry.Point([-72.36041235428117, -42.90549801791416])
 
-image = ee.Image('COPERNICUS/S2/20150825T143316_20150825T144048_T18GYT')
+image = TEST_CLOUD_IMAGES['S2']
 
 
 def test_clouds():

@@ -3,7 +3,7 @@
 import ee
 from geetools import cloud_mask
 from geetools.tools.image import get_value
-from . import assert_equal
+from . import TEST_CLOUD_IMAGES
 
 # Initialize
 ee.Initialize()
@@ -12,7 +12,7 @@ p_cloud = ee.Geometry.Point([-69.7850919885049, -42.74847761369703])
 p_snow = ee.Geometry.Point([-69.95680141007878, -43.08818524620294])
 p_shadow = ee.Geometry.Point([-69.85037130586764, -42.78657084334236])
 
-image = ee.Image('LANDSAT/LT05/C01/T1_TOA/LT05_231090_19860810')
+image = TEST_CLOUD_IMAGES['L5TOA']
 
 
 def test_clouds():
