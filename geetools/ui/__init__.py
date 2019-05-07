@@ -103,3 +103,4 @@ def getInfo(eeobject):
     return result
 
 from .ipymap import Map
+from .ipytools import TaskManager, AssetManager
