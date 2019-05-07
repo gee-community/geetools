@@ -12,7 +12,7 @@ col = ee.ImageCollection('COPERNICUS/S2').filterBounds(p)
 
 
 def test_ndvi():
-    collection = col.map(indices.ndvi('B8','B4'))
+    collection = col.map(lambda img: img.addBands(indices.ndvi(img, 'B8','B4')))
     image = ee.Image(collection.first())
     values = get_value(image, p, 10, side='client')
     NIR = float(values['B8'])
@@ -24,7 +24,7 @@ def test_ndvi():
 
 
 def test_evi():
-    collection = col.map(indices.evi('B8', 'B4', 'B2'))
+    collection = col.map(lambda img: img.addBands(indices.evi(img, 'B8', 'B4', 'B2')))
     image = ee.Image(collection.first())
     values = get_value(image, p, 10, side='client')
     NIR = float(values['B8'])
@@ -38,7 +38,7 @@ def test_evi():
 
 
 def test_nbr():
-    collection = col.map(indices.nbr('B8', 'B12'))
+    collection = col.map(lambda img: img.addBands(indices.nbr(img, 'B8', 'B12')))
     image = ee.Image(collection.first())
     values = get_value(image, p, 10, side='client')
     NIR = float(values['B8'])
@@ -51,7 +51,7 @@ def test_nbr():
 
 
 def test_nbr2():
-    collection = col.map(indices.nbr2('B11', 'B12'))
+    collection = col.map(lambda img: img.addBands(indices.nbr2(img, 'B11', 'B12')))
     image = ee.Image(collection.first())
     values = get_value(image, p, 10, side='client')
     SWIR1 = float(values['B11'])

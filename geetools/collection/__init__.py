@@ -370,7 +370,7 @@ class Collection(object):
             n = self.get_band('nir', 'name').id
             r = self.get_band('red', 'name').id
         if n and r:
-            return indices.ndvi(n, r, name, False)(image)
+            return indices.ndvi(image, n, r, name)
         else:
             raise ValueError('ndvi index cannot be computed in {}'.format(
                 self.id
@@ -386,7 +386,7 @@ class Collection(object):
             r = self.get_band('red', 'name').id
             b = self.get_band('blue', 'name').id
         if n and r and b:
-            return indices.evi(n, r, b, bandname=name, addBand=False)(image)
+            return indices.evi(image, n, r, b, bandname=name)
         else:
             raise ValueError('evi index cannot be computed in {}'.format(
                 self.id
@@ -404,7 +404,7 @@ class Collection(object):
             if not s:
                 s = self.get_band('swir', 'name').id
         if n and s:
-            return indices.nbr(n, s, name, False)(image)
+            return indices.nbr(image, n, s, name)
         else:
             raise ValueError('nbr index cannot be computed in {}'.format(
                 self.id
