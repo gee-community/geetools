@@ -1,9 +1,6 @@
 # coding=utf-8
 """ Module holding tools for ee.Date """
 import ee
-if not ee.data._initialized:
-    ee.Initialize()
-
 from datetime import datetime, timedelta
 
 EE_EPOCH = datetime(1970, 1, 1, 0, 0, 0)

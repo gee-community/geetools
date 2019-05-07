@@ -6,8 +6,6 @@ import ee.data
 import os
 import json
 
-if not ee.data._initialized:
-    ee.Initialize()
 
 def esave(eeobject, filename, path=None):
     """ Saves any EE object to a file with extension .gee

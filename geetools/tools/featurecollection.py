@@ -4,11 +4,8 @@ import ee
 import ee.data
 import shapefile
 import json
-
 from . import collection as eecollection
 
-if not ee.data._initialized:
-    ee.Initialize()
 
 GEOMETRY_TYPES = {
     'LineString': ee.geometry.Geometry.LineString,

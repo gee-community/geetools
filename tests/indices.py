@@ -4,7 +4,6 @@ import ee
 from geetools import indices
 from geetools.tools.image import get_value
 from . import TEST_CLOUD_IMAGES
-ee.Initialize()
 
 image = ee.Image(TEST_CLOUD_IMAGES['S2'])
 p = image.geometry().centroid()

@@ -4,9 +4,6 @@ import ee
 import ee.data
 from collections import OrderedDict
 
-if not ee.data._initialized:
-    ee.Initialize()
-
 
 def sort(dictionary):
     """ Sort a dictionary. Can be a `dict` or a `ee.Dictionary`

@@ -7,10 +7,6 @@ from . import decision_tree
 import ee
 from . import __version__
 from .bitreader import BitReader
-
-import ee.data
-if not ee.data._initialized: ee.Initialize()
-
 # options for BitReaders for known collections
 
 # 16 bits

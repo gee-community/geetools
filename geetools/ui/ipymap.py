@@ -9,8 +9,6 @@ from ipywidgets import HTML, Tab, Accordion, HBox, SelectMultiple, Select,\
                        FloatRangeSlider
 from IPython.display import display
 from traitlets import Dict, observe
-import ee
-if not ee.data._initialized: ee.Initialize()
 from collections import OrderedDict
 from .. import tools
 from .maptool import inverse_coordinates, get_image_tile, get_geojson_tile, \
@@ -20,6 +18,7 @@ import threading
 from copy import copy
 import traceback
 import sys
+import ee
 
 ZOOM_SCALE = {
     0: 156543, 1: 78271, 2: 39135, 3: 19567, 4: 9783, 5: 4891, 6: 2445,

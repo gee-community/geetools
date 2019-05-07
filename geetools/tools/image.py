@@ -9,9 +9,6 @@ import math
 from . import ee_list
 from ..utils import castImage
 
-if not ee.data._initialized:
-    ee.Initialize()
-
 
 def _add_suffix_prefix(image, value, option, bands=None):
     """ Internal function to handle addPrefix and addSuffix """

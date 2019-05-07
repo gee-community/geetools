@@ -10,10 +10,6 @@ from . import collection as eecollection
 from ..utils import castImage
 
 
-if not ee.data._initialized:
-    ee.Initialize()
-
-
 def add(collection, image):
     """ Add an Image to the Collection
 
@@ -111,6 +107,48 @@ def fill_with_last(collection):
     return ee.ImageCollection.fromImages(newcol)
 
 
+def mosaic_same_day(collection, reducer=None):
+    """ Return a collection where images from the same day are mosaicked
+
+    :param reducer: the reducer to use for merging images from the same day.
+        Defaults to 'first'
+    :type reducer: ee.Reducer
+    :return: a new image collection with 1 image per day. The only property
+        kept is `system:time_start`
+    :rtype: ee.ImageCollection
+    """
+    if reducer is None:
+        reducer = ee.Reducer.first()
+
+    def make_date_list(img, l):
+        l = ee.List(l)
+        img = ee.Image(img)
+        date = img.date()
+        # make clean date
+        day = date.get('day')
+        month = date.get('month')
+        year = date.get('year')
+        clean_date = ee.Date.fromYMD(year, month, day)
+        condition = l.contains(clean_date)
+
+        return ee.Algorithms.If(condition, l, l.add(clean_date))
+
+    col_list = collection.toList(collection.size())
+    date_list = ee.List(col_list.iterate(make_date_list, ee.List([])))
+
+    def make_col(date):
+        date = ee.Date(date)
+        filtered = collection.filterDate(date, date.advance(1, 'day'))
+        first_img = ee.Image(filtered.first())
+        mosaic = filtered.reduce(reducer).set('system:time_start',
+                                              date.millis())
+        return mosaic.rename(first_img.bandNames())
+
+    new_col = ee.ImageCollection.fromImages(date_list.map(make_col))
+
+    return new_col
+
+
 def reduce_equal_interval(collection, interval=30, unit='day', reducer=None,
                           start_date=None, end_date=None):
     """ Reduce an ImageCollection into a new one that has one image per
@@ -172,7 +210,7 @@ def reduce_equal_interval(collection, interval=30, unit='day', reducer=None,
     return ee.ImageCollection.fromImages(imlist)
 
 
-def get_values(collection, geometry, scale=None, reducer=ee.Reducer.mean(),
+def get_values(collection, geometry, scale=None, reducer=None,
                id='system:index', properties=None, side='server',
                maxPixels=1e9):
     """ Return all values of all bands of an image collection in the
@@ -193,6 +231,9 @@ def get_values(collection, geometry, scale=None, reducer=ee.Reducer.mean(),
     :return: Values of all bands in the ponit
     :rtype: dict
     """
+    if reducer is None:
+        reducer = ee.Reducer.mean()
+
     if not scale:
         scale = 1
     else:

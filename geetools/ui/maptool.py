@@ -13,8 +13,6 @@ import json
 import math
 from uuid import uuid4
 
-if not ee.data._initialized: ee.Initialize()
-
 
 class Map(folium.Map):
 

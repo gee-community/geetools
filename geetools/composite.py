@@ -1,11 +1,6 @@
 # coding=utf-8
 """ Module holding tools for creating composites """
 import ee
-import ee.data
-
-if not ee.data._initialized:
-    ee.Initialize()
-
 from . import today, tools, algorithms, wrapper
 from .collection import Landsat
 
