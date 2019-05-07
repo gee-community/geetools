@@ -2,7 +2,6 @@
 """ Functions for calculation indices """
 from __future__ import print_function
 import ee
-ee.Initialize()
 
 
 FORMULAS = {

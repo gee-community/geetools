@@ -20,6 +20,4 @@ from . import tools, bitreader, cloud_mask, expressions, decision_tree,\
 from .ui.ipymap import Map
 from .ui import eprint
 from . import algorithms
-from .satellite import Satellite
-from .satellite import today
 from .tools.imagecollection import wrapper

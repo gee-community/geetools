@@ -3,8 +3,7 @@
 import ee
 import ee.data
 import math
-from . import satellite as satmodule
-from . import tools, utils
+from . import tools
 
 
 def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
@@ -409,7 +408,7 @@ class Landsat(object):
 
     @staticmethod
     def brdf_correct(image, red='red', green='green', blue='blue', nir='nir',
-                     swir1='swir1', swir2='swir2', satellite=None):
+                     swir1='swir1', swir2='swir2'):
         """ Correct Landsat data for BRDF effects using a c-factor.
 
         D.P. Roy, H.K. Zhang, J. Ju, J.L. Gomez-Dans, P.E. Lewis, C.B. Schaaf,
@@ -425,21 +424,9 @@ class Landsat(object):
         If the band names of the passed image are 'blue', 'green', etc,
         those will be used, if not, relations must be indicated in params.
 
-        :param satellite: a Satellite object. The passed image must have the
-            same bands as the original satellite.
-        :type satellite: satmodule.Satellite
         :rtype: ee.Image
         """
         constants = {'pi': math.pi}
-
-        if satellite:
-            sat = satmodule.Satellite(satellite)
-            red = sat.bands['red']
-            green = sat.bands['green']
-            blue = sat.bands['blue']
-            nir = sat.bands['nir']
-            swir1 = sat.bands['swir1']
-            swir2 = sat.bands['swir2']
 
         ### HELPERS ###
         def merge(o1, o2):
