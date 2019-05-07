@@ -1,8 +1,7 @@
 # coding=utf-8
 """ Module holding tools for creating composites """
 import ee
-from . import today, tools, algorithms, wrapper
-from .collection import Landsat
+from . import tools, algorithms
 
 
 def medoid_score(collection, bands=None, discard_zeros=False,
