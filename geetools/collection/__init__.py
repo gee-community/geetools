@@ -1,24 +1,10 @@
 # coding=utf-8
 """ Google Earth Engine collections """
 import ee
-ee.Initialize()
-
 from .. import indices, bitreader
 from datetime import date
 
-
 TODAY = date.today().isoformat()
-PIXEL_TYPES = {
-    'float': ee.Image.toFloat,
-    'double': ee.Image.toDouble,
-    'int8': ee.Image.toInt8,
-    'uint8': ee.Image.toUint8,
-    'int16': ee.Image.toInt16,
-    'uint16': ee.Image.toUint16,
-    'int32': ee.Image.toInt32,
-    'uint32': ee.Image.toUint32,
-    'int64': ee.Image.toInt64
-}
 
 
 # HELPERS

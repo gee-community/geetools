@@ -2,10 +2,6 @@
 """ Tools for Earth Engine ee.List objects """
 
 import ee
-import ee.data
-
-if not ee.data._initialized:
-    ee.Initialize()
 
 
 def replaceDict(eelist, to_replace):

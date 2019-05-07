@@ -15,7 +15,6 @@ import time
 
 # import EE
 import ee
-if not ee.data._initialized: ee.Initialize()
 
 
 def create_accordion(dictionary):
