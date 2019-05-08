@@ -86,7 +86,7 @@ BITS_SENTINEL2 = {
 }
 
 
-def decode_bits_ee(bit_reader, qa_band):
+def decodeBitsEE(bit_reader, qa_band):
     """
     :param bit_reader: the bit reader
     :type bit_reader: BitReader
@@ -125,9 +125,9 @@ def decode_bits_ee(bit_reader, qa_band):
     return wrap
 
 
-def general_mask(options, reader, qa_band, update_mask=True,
-                 add_mask_band=True, add_every_mask=False,
-                 all_masks_name='mask'):
+def generalMask(options, reader, qa_band, update_mask=True,
+                add_mask_band=True, add_every_mask=False,
+                all_masks_name='mask'):
     """ General function to get a bit mask band given a set of options
     a bit reader and the name of the qa_band
 
@@ -138,7 +138,7 @@ def general_mask(options, reader, qa_band, update_mask=True,
     :param addBands: whether to add the mask band for all options or not
     :return: a function to map over a collection
     """
-    encoder = decode_bits_ee(reader, qa_band)
+    encoder = decodeBitsEE(reader, qa_band)
     opt = ee.List(options)
     clases = ("'{}', "*len(options))[:-2].format(*options)
 
@@ -227,10 +227,10 @@ def modis09ga(options=('cloud', 'mix', 'shadow', 'snow'), update_mask=True,
     :return: a function to use in a map function over a collection
     """
     reader = BitReader(BITS_MODIS09GA, 16)
-    return general_mask(options, reader, 'state_1km',
-                        update_mask=update_mask,
-                        add_mask_band=add_mask_band,
-                        add_every_mask=add_every_mask)
+    return generalMask(options, reader, 'state_1km',
+                       update_mask=update_mask,
+                       add_mask_band=add_mask_band,
+                       add_every_mask=add_every_mask)
 
 
 def modis13q1(options=('cloud', 'adjacent', 'shadow', 'snow'),
@@ -240,65 +240,65 @@ def modis13q1(options=('cloud', 'adjacent', 'shadow', 'snow'),
     :return: a function to use in a map function over a collection
     """
     reader = BitReader(BITS_MODIS13Q1, 16)
-    return general_mask(options, reader, 'DetailedQA',
-                        update_mask=update_mask,
-                        add_mask_band=add_mask_band,
-                        add_every_mask=add_every_mask)
+    return generalMask(options, reader, 'DetailedQA',
+                       update_mask=update_mask,
+                       add_mask_band=add_mask_band,
+                       add_every_mask=add_every_mask)
 
 
-def landsat457SR_cloudQA(options=('cloud', 'adjacent', 'shadow', 'snow'),
-                 update_mask=True, add_mask_band=True, add_every_mask=False):
+def landsat457SRCloudQA(options=('cloud', 'adjacent', 'shadow', 'snow'),
+                        update_mask=True, add_mask_band=True, add_every_mask=False):
 
     reader = BitReader(BITS_LANDSAT_CLOUD_QA, 8)
-    return general_mask(options, reader, 'sr_cloud_qa',
-                        update_mask=update_mask,
-                        add_mask_band=add_mask_band,
-                        add_every_mask=add_every_mask)
+    return generalMask(options, reader, 'sr_cloud_qa',
+                       update_mask=update_mask,
+                       add_mask_band=add_mask_band,
+                       add_every_mask=add_every_mask)
 
 
-def landsat457SR_pixelQA(options=('cloud', 'shadow', 'snow'),
-                 update_mask=True, add_mask_band=True, add_every_mask=False):
+def landsat457SRPixelQA(options=('cloud', 'shadow', 'snow'),
+                        update_mask=True, add_mask_band=True, add_every_mask=False):
     reader = BitReader(BITS_LANDSAT_PIXEL_QA, 16)
-    return general_mask(options, reader, 'pixel_qa',
-                        update_mask=update_mask,
-                        add_mask_band=add_mask_band,
-                        add_every_mask=add_every_mask)
+    return generalMask(options, reader, 'pixel_qa',
+                       update_mask=update_mask,
+                       add_mask_band=add_mask_band,
+                       add_every_mask=add_every_mask)
 
 
-def landsat8SR_pixelQA(options=('cloud', 'shadow', 'snow', 'cirrus'),
-                update_mask=True, add_mask_band=True, add_every_mask=False):
+def landsat8SRPixelQA(options=('cloud', 'shadow', 'snow', 'cirrus'),
+                      update_mask=True, add_mask_band=True, add_every_mask=False):
     reader = BitReader(BITS_LANDSAT_PIXEL_QA_L8, 16)
-    return general_mask(options, reader, 'pixel_qa',
-                        update_mask=update_mask,
-                        add_mask_band=add_mask_band,
-                        add_every_mask=add_every_mask)
+    return generalMask(options, reader, 'pixel_qa',
+                       update_mask=update_mask,
+                       add_mask_band=add_mask_band,
+                       add_every_mask=add_every_mask)
 
 
-def landsat457TOA_BQA(options=('cloud', 'shadow', 'snow'),
-                update_mask=True, add_mask_band=True, add_every_mask=False):
+def landsat457ToaBQA(options=('cloud', 'shadow', 'snow'),
+                     update_mask=True, add_mask_band=True, add_every_mask=False):
     reader = BitReader(BITS_LANDSAT_BQA, 16)
-    return general_mask(options, reader, 'BQA',
-                        update_mask=update_mask,
-                        add_mask_band=add_mask_band,
-                        add_every_mask=add_every_mask)
+    return generalMask(options, reader, 'BQA',
+                       update_mask=update_mask,
+                       add_mask_band=add_mask_band,
+                       add_every_mask=add_every_mask)
 
 
-def landsat8TOA_BQA(options=('cloud', 'shadow', 'snow', 'cirrus'),
-                update_mask=True, add_mask_band=True, add_every_mask=False):
+def landsat8ToaBQA(options=('cloud', 'shadow', 'snow', 'cirrus'),
+                   update_mask=True, add_mask_band=True, add_every_mask=False):
     reader = BitReader(BITS_LANDSAT_BQA_L8, 16)
-    return general_mask(options, reader, 'BQA',
-                        update_mask=update_mask,
-                        add_mask_band=add_mask_band,
-                        add_every_mask=add_every_mask)
+    return generalMask(options, reader, 'BQA',
+                       update_mask=update_mask,
+                       add_mask_band=add_mask_band,
+                       add_every_mask=add_every_mask)
 
 
 def sentinel2(options=('cloud', 'cirrus'), update_mask=True,
               add_mask_band=True, add_every_mask=False):
     reader = BitReader(BITS_SENTINEL2, 16)
-    return general_mask(options, reader, 'QA60',
-                        update_mask=update_mask,
-                        add_mask_band=add_mask_band,
-                        add_every_mask=add_every_mask)
+    return generalMask(options, reader, 'QA60',
+                       update_mask=update_mask,
+                       add_mask_band=add_mask_band,
+                       add_every_mask=add_every_mask)
 
 
 def compute(image, mask_band, bits, options=None, name_all='all_masks'):
@@ -338,9 +338,9 @@ def compute(image, mask_band, bits, options=None, name_all='all_masks'):
         def for_true():
             """ function to execute if condition == True """
             # get the mask for the option
-            mask = tools.image.compute_bits(image, bits_dict.get(option),
-                                            bits_dict.get(option),
-                                            option)
+            mask = tools.image.computeBits(image, bits_dict.get(option),
+                                           bits_dict.get(option),
+                                           option)
 
             # name the mask
             # mask = ee.Image(mask).select([0], [option])
@@ -357,12 +357,12 @@ def compute(image, mask_band, bits, options=None, name_all='all_masks'):
     return good_pix
 
 
-def hollstein_mask(image,
-                   options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
-                   aerosol='B1', blue='B2', green='B3', red_edge1='B5',
-                   red_edge2='B6', red_edge3='B7', red_edge4='B8A',
-                   water_vapor='B9', cirrus='B10', swir='B11',
-                   name='hollstein'):
+def hollsteinMask(image,
+                  options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
+                  aerosol='B1', blue='B2', green='B3', red_edge1='B5',
+                  red_edge2='B6', red_edge3='B7', red_edge4='B8A',
+                  water_vapor='B9', cirrus='B10', swir='B11',
+                  name='hollstein'):
     """ Get Hollstein mask """
     def difference(a, b):
         def wrap(img):
@@ -426,20 +426,20 @@ def hollstein_mask(image,
     return dtf
 
 
-def apply_hollstein(image,
-                    options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
-                    aerosol='B1', blue='B2', green='B3', red_edge1='B5',
-                    red_edge2='B6', red_edge3='B7', red_edge4='B8A',
-                    water_vapor='B9', cirrus='B10', swir='B11'):
+def applyHollstein(image,
+                   options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
+                   aerosol='B1', blue='B2', green='B3', red_edge1='B5',
+                   red_edge2='B6', red_edge3='B7', red_edge4='B8A',
+                   water_vapor='B9', cirrus='B10', swir='B11'):
     """ Apply Hollstein mask """
-    mask = hollstein_mask(image, options, aerosol, blue, green, red_edge1,
-                          red_edge2, red_edge3, red_edge4, water_vapor,
-                          cirrus, swir).select('hollstein')
+    mask = hollsteinMask(image, options, aerosol, blue, green, red_edge1,
+                         red_edge2, red_edge3, red_edge4, water_vapor,
+                         cirrus, swir).select('hollstein')
     return image.updateMask(mask)
 
 
-def hollstein_S2(options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
-                 name='hollstein', addBands=False, updateMask=True):
+def hollsteinS2(options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
+                name='hollstein', addBands=False, updateMask=True):
     """ Compute Hollstein Decision tree for detecting clouds, clouds shadow,
     cirrus, snow and water in Sentinel 2 imagery
 
@@ -457,7 +457,7 @@ def hollstein_S2(options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
     """
     def compute_dt(img):
 
-        results = hollstein_mask(img, options, name)
+        results = hollsteinMask(img, options, name)
 
         if updateMask and addBands:
             return img.addBands(results).updateMask(results.select(name))
@@ -469,7 +469,7 @@ def hollstein_S2(options=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
     return compute_dt
 
 
-def dark_pixels(green, swir2, threshold=0.25):
+def darkPixels(green, swir2, threshold=0.25):
     """ Detect dark pixels from green and swir2 band
 
     :param green: name of the green band
@@ -499,9 +499,9 @@ def ledaps(image):
     """
     cmask = image.select('QA')
 
-    valid_data_mask = tools.image.compute_bits(cmask, 1, 1, 'valid_data')
-    cloud_mask = tools.image.compute_bits(cmask, 2, 2, 'cloud')
-    snow_mask = tools.image.compute_bits(cmask, 4, 4, 'snow')
+    valid_data_mask = tools.image.computeBits(cmask, 1, 1, 'valid_data')
+    cloud_mask = tools.image.computeBits(cmask, 2, 2, 'cloud')
+    snow_mask = tools.image.computeBits(cmask, 4, 4, 'snow')
 
     good_pix = cloud_mask.eq(0).And(valid_data_mask.eq(0)).And(snow_mask.eq(0))
     result = image.updateMask(good_pix)

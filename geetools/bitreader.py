@@ -44,7 +44,7 @@ class BitReader(object):
 
     """
     @staticmethod
-    def get_bin(bit, nbits=None, shift=0):
+    def getBin(bit, nbits=None, shift=0):
         ''' from https://stackoverflow.com/questions/699866/python-int-to-binary '''
         pure = bin(bit)[2:]
 
@@ -70,7 +70,7 @@ class BitReader(object):
         return shifted.zfill(nbits)
 
     @staticmethod
-    def decode_key(key):
+    def decodeKey(key):
         ''' decodes an option's key into a list '''
         if isinstance(key, (str,)):
             bits = key.split('-')
@@ -95,9 +95,9 @@ class BitReader(object):
     def __init__(self, options, bit_length=None):
         self.options = options
 
-        def all_bits():
+        def allBits():
             ''' get a list of all bits and check consistance '''
-            all_values  = [x for key in options.keys() for x in self.decode_key(key)]
+            all_values  = [x for key in options.keys() for x in self.decodeKey(key)]
             for val in all_values:
                 n = all_values.count(val)
                 if n>1:
@@ -119,7 +119,7 @@ class BitReader(object):
         self.all_categories = all_cat
         ###
 
-        all_values = all_bits()
+        all_values = allBits()
 
         self.bit_length = len(range(min(all_values), max(all_values)+1)) \
             if not bit_length else bit_length
@@ -128,7 +128,7 @@ class BitReader(object):
 
         info = {}
         for key, val in options.items():
-            bits_list = self.decode_key(key)
+            bits_list = self.decodeKey(key)
             bit_length_cat = len(bits_list)
             for i, cat in val.items():
                 info[cat] = {'bit_length':bit_length_cat,
@@ -146,7 +146,7 @@ class BitReader(object):
         shifted = decoded<<lshift
         return shifted
 
-    def encode_band(self, category, mask, name=None):
+    def encodeBand(self, category, mask, name=None):
         """ Make an image in which all pixels have the value for the given
         category
 
@@ -170,11 +170,11 @@ class BitReader(object):
         return image.updateMask(mask)
 
 
-    def encode_and(self, *args):
+    def encodeAnd(self, *args):
         """ decodes a comination of the given categories. returns a list of
         possible values """
         first = args[0]
-        values_first = self.encode_one(first)
+        values_first = self.encodeOne(first)
 
         def get_match(list1, list2):
             return [val for val in list2 if val in list1]
@@ -182,35 +182,35 @@ class BitReader(object):
         result = values_first
 
         for cat in args[1:]:
-            values = self.encode_one(cat)
+            values = self.encodeOne(cat)
             result = get_match(result, values)
         return result
 
-    def encode_or(self, *args):
+    def encodeOr(self, *args):
         """ decodes a comination of the given categories. returns a list of
         possible values """
         first = args[0]
-        values_first = self.encode_one(first)
+        values_first = self.encodeOne(first)
 
         for cat in args[1:]:
-            values = self.encode_one(cat)
+            values = self.encodeOne(cat)
             for value in values:
                 if value not in values_first:
                     values_first.append(value)
 
         return values_first
 
-    def encode_not(self, *args):
+    def encodeNot(self, *args):
         """ Given a set of categories return a list of values that DO NOT
         match with any """
         result = []
-        match = self.encode_or(*args)
+        match = self.encodeOr(*args)
         for bit in range(self.max):
             if bit not in match:
                 result.append(bit)
         return result
 
-    def encode_one(self, cat):
+    def encodeOne(self, cat):
         """ Given a category, return a list of values that match it """
         info = self.info[cat]
         lshift = info['lshift']
@@ -243,7 +243,7 @@ class BitReader(object):
                 result.append(cat)
         return result
 
-    def decode_image(self, image, qa_band):
+    def decodeImage(self, image, qa_band):
         """ Get an Image with one band per category in the Bit Reader
 
         :param bit_reader: the bit reader

@@ -1,7 +1,7 @@
 # coding=utf-8
 
 import ee
-from geetools.tools.image import get_value
+from geetools.tools.image import getValue
 ee.Initialize()
 
 
@@ -17,8 +17,8 @@ def test_expressions():
     img_max = l8SR.expression(exp_max).select([0], ["max"])
     img_min = l8SR.expression(exp_min).select([0], ["min"])
 
-    vals_max = get_value(img_max, p_l8SR_no_cloud, 30, 'client')
-    vals_min = get_value(img_min, p_l8SR_no_cloud, 30, 'client')
+    vals_max = getValue(img_max, p_l8SR_no_cloud, 30, 'client')
+    vals_min = getValue(img_min, p_l8SR_no_cloud, 30, 'client')
 
     assert vals_max["max"] == 580
     assert vals_min["min"] == 517

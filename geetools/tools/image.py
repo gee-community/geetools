@@ -94,7 +94,7 @@ def empty(value=0, names=None, from_dict=None):
     return image
 
 
-def get_value(image, point, scale=None, side="server"):
+def getValue(image, point, scale=None, side="server"):
     """ Return the value of all bands of the image in the specified point
 
     :param img: Image to get the info from
@@ -412,7 +412,7 @@ def minscale(image):
     return ee.Number(bands.slice(1).iterate(wrap, ini))
 
 
-def compute_bits(image, start, end, newName):
+def computeBits(image, start, end, newName):
     """ Compute the bits of an image
 
     :param start: start bit
@@ -464,7 +464,7 @@ def passProperty(image, to, properties):
     return to
 
 
-def good_pix(image, retain=None, drop=None, name='good_pix'):
+def goodPix(image, retain=None, drop=None, name='good_pix'):
     """ Get a 'good pixels' bands from the image's bands that retain the good
     pixels and drop the bad pixels. It will first retain the retainable bands
     and then drop the droppable ones
@@ -601,9 +601,9 @@ def renamePattern(image, pattern, bands=None):
     return image.select(allbands, new_allbands)
 
 
-def gauss_function(image, band, range_min=None, range_max=None, mean=0,
-                   std=None, output_min=None, output_max=1, stretch=1,
-                   region=None, scale=None, name='gauss', **kwargs):
+def gaussFunction(image, band, range_min=None, range_max=None, mean=0,
+                  std=None, output_min=None, output_max=1, stretch=1,
+                  region=None, scale=None, name='gauss', **kwargs):
     """ Apply the Guassian function to an Image.
     https://en.wikipedia.org/wiki/Gaussian_function
 
@@ -699,8 +699,8 @@ def gauss_function(image, band, range_min=None, range_max=None, mean=0,
         return parametrized.rename(name)
 
 
-def normal_distribution(image, band, mean=None, std=None, region=None,
-                        scale=None, name='normal_distribution', **kwargs):
+def normalDistribution(image, band, mean=None, std=None, region=None,
+                       scale=None, name='normal_distribution', **kwargs):
     """ Compute a Normal Distribution using the Gaussian Function """
     pi = ee.Number(math.pi)
 
@@ -723,13 +723,13 @@ def normal_distribution(image, band, mean=None, std=None, region=None,
     output_max = ee.Image(1)\
                    .divide(std.multiply(ee.Image(2).multiply(pi).sqrt()))
 
-    return gauss_function(image, band, mean=mean, std=std,
-                          output_max=output_max, name=name, **kwargs)
+    return gaussFunction(image, band, mean=mean, std=std,
+                         output_max=output_max, name=name, **kwargs)
 
 
-def linear_function(image, band, range_min=None, range_max=None, mean=None,
-                    output_min=None, output_max=None, name='linear_function',
-                    region=None, scale=None, **kwargs):
+def linearFunction(image, band, range_min=None, range_max=None, mean=None,
+                   output_min=None, output_max=None, name='linear_function',
+                   region=None, scale=None, **kwargs):
     """ Apply a linear function over one image band using the following
     formula:
 
@@ -917,7 +917,7 @@ class Mapping(object):
     @staticmethod
     def good_pix(retain=None, drop=None, name='good_pix'):
         def wrap(img):
-            return good_pix(img, retain, drop, name)
+            return goodPix(img, retain, drop, name)
         return wrap
 
 

@@ -13,7 +13,7 @@ p_l8SR_no_cloud = ee.Geometry.Point([-66.0306, -24.9338])
 
 def test_addConstantBands():
     newimg = tools.image.addConstantBands(l8SR, 0, "a", "b", "c")
-    vals = tools.image.get_value(newimg, p_l8SR_no_cloud, 30, 'client')
+    vals = tools.image.getValue(newimg, p_l8SR_no_cloud, 30, 'client')
 
     assert vals["B1"] == 517
     assert vals["a"] == 0
@@ -21,7 +21,7 @@ def test_addConstantBands():
     assert vals["c"] == 0
 
     newimg2 = tools.image.addConstantBands(l8SR, a=0, b=1, c=2)
-    vals2 = tools.image.get_value(newimg2, p_l8SR_no_cloud, 30, 'client')
+    vals2 = tools.image.getValue(newimg2, p_l8SR_no_cloud, 30, 'client')
 
     assert vals2["B1"] == 517
     assert vals2["a"] == 0
@@ -29,7 +29,7 @@ def test_addConstantBands():
     assert vals2["c"] == 2
 
     newimg3 = tools.image.addConstantBands(l8SR, 0, "a", "b", "c", d=1, e=2)
-    vals3 = tools.image.get_value(newimg3, p_l8SR_no_cloud, 30, 'client')
+    vals3 = tools.image.getValue(newimg3, p_l8SR_no_cloud, 30, 'client')
 
     assert vals3["B1"] == 517
     assert vals3["a"] == 0
@@ -47,7 +47,7 @@ def test_replace():
     newimg = tools.image.replace(l8SR, "B1", testband)
 
     # get a value from a point with no clouds
-    vals = tools.image.get_value(newimg, p_l8SR_no_cloud, 30, 'client')
+    vals = tools.image.getValue(newimg, p_l8SR_no_cloud, 30, 'client')
 
     # assert
     assert vals["anyname"] == 10
@@ -56,7 +56,7 @@ def test_replace():
 def test_sumBands():
     newimg = tools.image.sumBands(l8SR, "added_bands", ("B1", "B2", "B3"))
 
-    vals = tools.image.get_value(newimg, p_l8SR_no_cloud, 30, 'client')
+    vals = tools.image.getValue(newimg, p_l8SR_no_cloud, 30, 'client')
     suma = int(vals["B1"]) + int(vals["B2"]) + int(vals["B3"])
 
     assert vals["added_bands"] == suma
@@ -72,7 +72,7 @@ def test_rename_bands():
     i = tools.image.renameDict(l8SR, {"B1": "BLUE", "B2": "GREEN"})
 
     # get value from point in a cloud free zone
-    vals = tools.image.get_value(i, p_l8SR_no_cloud, 30, 'client')
+    vals = tools.image.getValue(i, p_l8SR_no_cloud, 30, 'client')
 
     # get new band names
     bands = i.bandNames().getInfo()
@@ -89,7 +89,7 @@ def test_parametrize():
     newimg = tools.image.parametrize(l8SR, (0, 10000), (0, 1), ["B1", "B2"])
 
     # get a value
-    vals = tools.image.get_value(newimg, p_l8SR_no_cloud, 30, 'client')
+    vals = tools.image.getValue(newimg, p_l8SR_no_cloud, 30, 'client')
 
     # assert
     assert vals["B1"] == 517.0/10000

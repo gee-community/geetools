@@ -108,7 +108,7 @@ class Landsat(Collection):
         # set algorithms
         self.algorithms['brdf'] = self.brdf
         self.algorithms['harmonize'] = self.harmonize
-        self.algorithms['rescale'] = self.rescale_all
+        self.algorithms['rescale'] = self.rescaleAll
 
         # dates
         self.start_date = START[self.number]
@@ -392,16 +392,16 @@ class Landsat(Collection):
         all_present = True
         for band in ['red', 'green', 'blue', 'nir', 'swir', 'swir2']:
             if not renamed:
-                bid = self.get_band(band, 'name').id
+                bid = self.getBand(band, 'name').id
             else:
-                bid = self.get_band(band, 'name').name
+                bid = self.getBand(band, 'name').name
             if not bid:
                 all_present = False
                 break
             bands.append(bid)
 
         if all_present:
-            return module_alg.Landsat.brdf_correct(image, *bands)
+            return module_alg.Landsat.brdfCorrect(image, *bands)
         else:
             return image
 
@@ -413,12 +413,12 @@ class Landsat(Collection):
         proxy = Landsat(number, process)
 
         if band_type == 'thermal':
-            this_band = list(self.thermal_bands.keys())
-            proxy_band = list(proxy.thermal_bands.keys())
+            this_band = list(self.thermalBands.keys())
+            proxy_band = list(proxy.thermalBands.keys())
 
         if band_type == 'optical':
-            this_band = list(self.optical_bands.keys())
-            proxy_band = list(proxy.optical_bands.keys())
+            this_band = list(self.opticalBands.keys())
+            proxy_band = list(proxy.opticalBands.keys())
 
         # get common bands for thermal (thermal1, etc..)
         # common_bands = ee.List([band for band in this_band if band in
@@ -454,19 +454,19 @@ class Landsat(Collection):
 
         return final
 
-    def rescale_thermal(self, image, number, process, drop=False,
-                        renamed=False):
+    def rescaleThermal(self, image, number, process, drop=False,
+                       renamed=False):
         """ Re-scale only the thermal bands of an image to match the band
         from the given number and process """
         return self._rescale('thermal', image, number, process, drop, renamed)
 
-    def rescale_optical(self, image, number, process, drop=False,
-                        renamed=False):
+    def rescaleOptical(self, image, number, process, drop=False,
+                       renamed=False):
         """ Re-scale only the optical bands of an image to match the band
         from the given number and process """
         return self._rescale('optical', image, number, process, drop, renamed)
 
-    def rescale_all(self, image, number, process, drop=False, renamed=False):
+    def rescaleAll(self, image, number, process, drop=False, renamed=False):
         """ Re-scale only the optical and thermal bands of an image to match
         the band from the given number and process """
         if drop:

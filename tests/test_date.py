@@ -19,7 +19,7 @@ def test_daterange_list():
         ee.DateRange('2014-01-01', '2015-01-01')
     ])
 
-    daterange_list = tools.date.daterange_list(start_date, end_date,
-                                               interval, unit)
+    daterange_list = tools.date.daterangeList(start_date, end_date,
+                                              interval, unit)
 
     assert expected == daterange_list

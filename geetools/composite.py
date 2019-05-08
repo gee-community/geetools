@@ -4,8 +4,8 @@ import ee
 from . import tools, algorithms
 
 
-def medoid_score(collection, bands=None, discard_zeros=False,
-                 bandname='sumdist', normalize=True):
+def medoidScore(collection, bands=None, discard_zeros=False,
+                bandname='sumdist', normalize=True):
     """ Compute a score to reflect 'how far' is from the medoid. Same params
      as medoid() """
     first_image = ee.Image(collection.first())
@@ -32,7 +32,7 @@ def medoid_score(collection, bands=None, discard_zeros=False,
 
         # Compute the sum of the euclidean distance between the current image
         # and every image in the rest of the collection
-        dist = algorithms.sum_distance(
+        dist = algorithms.sumDistance(
             to_process, filtered,
             name=bandname,
             discard_zeros=discard_zeros)
@@ -84,14 +84,14 @@ def medoid(collection, bands=None, discard_zeros=False):
     :return: the Medoid Composite
     :rtype: ee.Image
     """
-    medcol = medoid_score(collection, bands, discard_zeros)
+    medcol = medoidScore(collection, bands, discard_zeros)
     comp = medcol.qualityMosaic('sumdist')
     final = tools.image.removeBands(comp, ['sumdist', 'mask'])
     return final
 
 
-def closest_date(collection, target_date, mask_band=None, property_name=None,
-                 clip_to_first=False, limit=50):
+def closestDate(collection, target_date, mask_band=None, property_name=None,
+                clip_to_first=False, limit=50):
     """ Get the image closest to the given date, and fill masked values in
     that image with values from the closest date. Images must be already
     masked. Use parameter `limit` for better speed
@@ -115,7 +115,7 @@ def closest_date(collection, target_date, mask_band=None, property_name=None,
     :type property_name: str
     """
     # Merge images from a single day
-    collection = tools.imagecollection.reduce_equal_interval(collection, 1)
+    collection = tools.imagecollection.reduceEqualInterval(collection, 1)
 
     # HELPER
     def get_mask(img):
@@ -138,7 +138,7 @@ def closest_date(collection, target_date, mask_band=None, property_name=None,
 
     # add date band
     def add_date(img):
-        date_band = tools.date.get_date_band(img)
+        date_band = tools.date.getDateBand(img)
         return img.addBands(date_band)
     new = new.map(add_date)
 

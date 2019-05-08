@@ -9,7 +9,7 @@ import time
 from .utils import *
 
 
-def recrusive_delete_asset(assetId):
+def recrusiveDeleteAsset(assetId):
     info = ee.data.getInfo(assetId)
     if info:
         ty = info['type']
@@ -36,14 +36,14 @@ def recrusive_delete_asset(assetId):
                     # print('deleting {}'.format(path))
                     ee.data.deleteAsset(path)
                 else:
-                    recrusive_delete_asset(path)
+                    recrusiveDeleteAsset(path)
             # delete empty collection and/or folder
             ee.data.deleteAsset(assetId)
     else:
         print('{} does not exists or there is another problem'.format(assetId))
 
 
-def convert_data_type(newtype):
+def convertDataType(newtype):
     """ Convert an image to the specified data type
 
     :param newtype: the data type. One of 'float', 'int', 'byte', 'double',
@@ -67,7 +67,7 @@ def convert_data_type(newtype):
     return wrap
 
 
-def create_assets(asset_ids, asset_type, mk_parents):
+def createAssets(asset_ids, asset_type, mk_parents):
     """Creates the specified assets if they do not exist.
     This is a fork of the original function in 'ee.data' module with the
     difference that
@@ -253,7 +253,7 @@ class Image(object):
         :rtype: ee.batch.Task
         """
         # Convert data type
-        image = convert_data_type(dataType)(image)
+        image = convertDataType(dataType)(image)
 
         # Check if the user is specified in the asset path
         is_user = (assetPath.split('/')[0] == 'users')
@@ -268,7 +268,7 @@ class Image(object):
         if create:
             # Recrusive create path
             path2create = assetPath #  '/'.join(assetPath.split('/')[:-1])
-            create_assets([path2create], to, True)
+            createAssets([path2create], to, True)
 
         # Region
         region = tools.geometry.getRegion(region)
@@ -329,7 +329,7 @@ class Image(object):
                 name = 'unknown_image'
 
         # convert data type
-        image = convert_data_type(dataType)(image)
+        image = convertDataType(dataType)(image)
 
         def unpack(thelist):
             unpacked = []
@@ -420,10 +420,10 @@ class ImageCollection(object):
             try:
                 img = ee.Image(img_list.get(n))
 
-                name = make_name(img, namePattern, datePattern)
+                name = makeName(img, namePattern, datePattern)
 
                 # convert data type
-                img = convert_data_type(dataType)(img)
+                img = convertDataType(dataType)(img)
 
                 task = ee.batch.Export.image.toDrive(image=img,
                                                      description=name,
@@ -473,7 +473,7 @@ class ImageCollection(object):
         tasklist = []
 
         if create:
-            create_assets([assetPath], 'ImageCollection', True)
+            createAssets([assetPath], 'ImageCollection', True)
 
         if region is None:
             first_img = ee.Image(alist.get(0))

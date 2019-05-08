@@ -4,7 +4,7 @@ import ee
 from ipywidgets import *
 from . import ipytools
 
-def belong_to_ee(eeobject):
+def belongToEE(eeobject):
     """ Determine if the parsed object belongs to the Earth Engine API """
     module = getattr(eeobject, '__module__', None)
     parent = module.split('.')[0] if module else None
@@ -17,24 +17,24 @@ def belong_to_ee(eeobject):
 # GENERAL DISPATCHER
 def dispatch(eeobject, notebook=False):
     """ General dispatcher """
-    if belong_to_ee(eeobject):
+    if belongToEE(eeobject):
         # DISPATCH!!
         if isinstance(eeobject, (ee.Image,)):
-            return dispatch_image(eeobject, notebook)
+            return dispatchImage(eeobject, notebook)
         elif isinstance(eeobject, (ee.Date,)):
-            return dispatch_date(eeobject, notebook)
+            return dispatchDate(eeobject, notebook)
         elif isinstance(eeobject, (ee.DateRange,)):
-            return dispatch_daterange(eeobject, notebook)
+            return dispatchDaterange(eeobject, notebook)
         # ADD MORE ABOVE ME!
         else:
             info = eeobject.getInfo()
 
             if notebook:
                 if isinstance(info, (dict,)):
-                    info = eeobject_dispatcher(eeobject)
+                    info = eeobjectDispatcher(eeobject)
                     return ipytools.create_accordion(info)
                 else:
-                    info = eeobject_dispatcher(eeobject)
+                    info = eeobjectDispatcher(eeobject)
                     return HTML(str(info)+'<br/>')
 
             return info
@@ -46,7 +46,7 @@ def dispatch(eeobject, notebook=False):
             return info
 
 
-def dispatch_image(image, notebook=False):
+def dispatchImage(image, notebook=False):
     """ Dispatch a Widget for an Image Object """
     info = image.getInfo()
 
@@ -119,7 +119,7 @@ def dispatch_image(image, notebook=False):
         return VBox([header, acc])
 
 
-def dispatch_date(date, notebook=False):
+def dispatchDate(date, notebook=False):
     """ Dispatch a ee.Date """
     info = date.format().getInfo()
 
@@ -129,7 +129,7 @@ def dispatch_date(date, notebook=False):
         return Label(info)
 
 
-def dispatch_daterange(daterange, notebook=False):
+def dispatchDaterange(daterange, notebook=False):
     """ Dispatch a DateRange """
     start = daterange.start().format().getInfo()
     end = daterange.end().format().getInfo()
@@ -142,11 +142,11 @@ def dispatch_daterange(daterange, notebook=False):
 
 
 # OBJECT DISPATCHER
-def eeobject_dispatcher(eeobject):
+def eeobjectDispatcher(eeobject):
     return dispatch(eeobject, False)
 
 
 # WIDGET DISPATCHER
-def widget_dispatcher(eeobject):
+def widgetDispatcher(eeobject):
     """ Dispatch a Widget regarding its type """
     return dispatch(eeobject, True)

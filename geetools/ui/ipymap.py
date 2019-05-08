@@ -11,8 +11,8 @@ from IPython.display import display
 from traitlets import Dict, observe
 from collections import OrderedDict
 from .. import tools
-from .maptool import inverse_coordinates, get_image_tile, get_geojson_tile, \
-                     get_bounds, get_zoom, feature_properties_output
+from .maptool import inverseCoordinates, getImageTile, getGeojsonTile, \
+                     getBounds, getZoom, featurePropertiesOutput
 from . import maptool, ipytools
 import threading
 from copy import copy
@@ -43,7 +43,7 @@ class Map(ipyleaflet.Map):
         # Width and Height
         self.width = kwargs.get('width', None)
         self.height = kwargs.get('height', None)
-        self.set_dimensions(self.width, self.height)
+        self.setDimensions(self.width, self.height)
 
         # Correct base layer name
         baselayer = self.layers[0]
@@ -133,7 +133,7 @@ class Map(ipyleaflet.Map):
             copyEELayers.pop(name)
         self.EELayers = copyEELayers
 
-    def set_dimensions(self, width=None, height=None):
+    def setDimensions(self, width=None, height=None):
         """ Set the dimensions for the map
 
         :param width:
@@ -142,7 +142,7 @@ class Map(ipyleaflet.Map):
         """
         self.layout = Layout(width=width, height=height)
 
-    def move_layer(self, layer_name, direction='up'):
+    def moveLayer(self, layer_name, direction='up'):
         ''' Move one step up a layer '''
         names = list(self.EELayers.keys())
         values = list(self.EELayers.values())
@@ -199,16 +199,16 @@ class Map(ipyleaflet.Map):
         self.layers_widget.selector.options = new # self.EELayers
 
     @property
-    def added_images(self):
+    def addedImages(self):
         return sum(
             [1 for val in self.EELayers.values() if val['type'] == 'Image'])
 
     @property
-    def added_geometries(self):
+    def addedGeometries(self):
         return sum(
             [1 for val in self.EELayers.values() if val['type'] == 'Geometry'])
 
-    def task_widget(self):
+    def taskWidget(self):
         with self.tasksWid:
             while True:
                 list = ee.data.getTaskList()
@@ -241,7 +241,7 @@ class Map(ipyleaflet.Map):
 
         self.is_shown = True
 
-    def show_tab(self, name):
+    def showTab(self, name):
         """ Show only a Tab Widget by calling its name. This is useful mainly
         in Jupyter Lab where you can see outputs in different tab_widget
 
@@ -277,13 +277,13 @@ class Map(ipyleaflet.Map):
                 return
             else:
                 # Get URL, attribution & vis params
-                params = get_image_tile(image, visParams, show, opacity)
+                params = getImageTile(image, visParams, show, opacity)
 
                 # Remove Layer
                 self.removeLayer(name)
         else:
             # Get URL, attribution & vis params
-            params = get_image_tile(image, visParams, show, opacity)
+            params = getImageTile(image, visParams, show, opacity)
 
         layer = ipyleaflet.TileLayer(url=params['url'],
                                      attribution=params['attribution'],
@@ -337,7 +337,7 @@ class Map(ipyleaflet.Map):
         :return: the name of the added layer
         :rtype: str
         """
-        thename = name if name else 'Feature {}'.format(self.added_geometries)
+        thename = name if name else 'Feature {}'.format(self.addedGeometries)
 
         # Check if layer exists
         if thename in self.EELayers.keys():
@@ -347,7 +347,7 @@ class Map(ipyleaflet.Map):
             else:
                 self.removeLayer(thename)
 
-        params = get_geojson_tile(feature, thename, inspect)
+        params = getGeojsonTile(feature, thename, inspect)
         layer = ipyleaflet.GeoJSON(data=params['geojson'],
                                    name=thename,
                                    popup=HTML(params['pop']))
@@ -378,7 +378,7 @@ class Map(ipyleaflet.Map):
         :return: the name of the added layer
         :rtype: str
         """
-        thename = name if name else 'Geometry {}'.format(self.added_geometries)
+        thename = name if name else 'Geometry {}'.format(self.addedGeometries)
 
         # Check if layer exists
         if thename in self.EELayers.keys():
@@ -388,7 +388,7 @@ class Map(ipyleaflet.Map):
             else:
                 self.removeLayer(thename)
 
-        params = get_geojson_tile(geometry, thename, inspect)
+        params = getGeojsonTile(geometry, thename, inspect)
         layer = ipyleaflet.GeoJSON(data=params['geojson'],
                                    name=thename,
                                    popup=HTML(params['pop']))
@@ -427,7 +427,7 @@ class Map(ipyleaflet.Map):
 
         proxy_layer = maptool.paint(feature, out_color, fill_color, outline)
 
-        thename = name if name else '{} {}'.format(ty, self.added_geometries)
+        thename = name if name else '{} {}'.format(ty, self.addedGeometries)
 
         img_params = {'bands':['vis-red', 'vis-green', 'vis-blue'],
                       'min': 0, 'max':255}
@@ -439,13 +439,13 @@ class Map(ipyleaflet.Map):
                 return
             else:
                 # Get URL, attribution & vis params
-                params = get_image_tile(proxy_layer, img_params, show, opacity)
+                params = getImageTile(proxy_layer, img_params, show, opacity)
 
                 # Remove Layer
                 self.removeLayer(thename)
         else:
             # Get URL, attribution & vis params
-            params = get_image_tile(proxy_layer, img_params, show, opacity)
+            params = getImageTile(proxy_layer, img_params, show, opacity)
 
         layer = ipyleaflet.TileLayer(url=params['url'],
                                      attribution=params['attribution'],
@@ -525,7 +525,7 @@ class Map(ipyleaflet.Map):
 
         # CASE: ee.Image
         if isinstance(eeObject, ee.Image):
-            image_name = name if name else 'Image {}'.format(self.added_images)
+            image_name = name if name else 'Image {}'.format(self.addedImages)
             EELayer = self.addImage(eeObject, visParams=visParams,
                                     name=image_name, show=show,
                                     opacity=opacity, replace=replace)
@@ -554,7 +554,7 @@ class Map(ipyleaflet.Map):
             added_layer = self.addImage(mosaic, visParams=visParams, name=thename,
                                         show=show, opacity=opacity, replace=replace)
             '''
-            thename = name if name else 'ImageCollection {}'.format(self.added_images)
+            thename = name if name else 'ImageCollection {}'.format(self.addedImages)
             EELayer = self.addMosaic(eeObject, visParams, thename, show,
                                      opacity, replace)
             self._add_EELayer(thename, EELayer)
@@ -615,20 +615,20 @@ class Map(ipyleaflet.Map):
             Currently: 1 or 2
         :type: int
         """
-        bounds = get_bounds(eeObject)
+        bounds = getBounds(eeObject)
         if bounds:
             try:
-                inverse = inverse_coordinates(bounds)
+                inverse = inverseCoordinates(bounds)
                 centroid = ee.Geometry.Polygon(inverse)\
                              .centroid().getInfo()['coordinates']
             except:
                 centroid = [0, 0]
 
-            self.center = inverse_coordinates(centroid)
+            self.center = inverseCoordinates(centroid)
             if zoom:
                 self.zoom = zoom
             else:
-                self.zoom = get_zoom(bounds, method)
+                self.zoom = getZoom(bounds, method)
 
     def getCenter(self):
         """ Returns the coordinates at the center of the map.
@@ -639,7 +639,7 @@ class Map(ipyleaflet.Map):
         :return:
         """
         center = self.center
-        coords = inverse_coordinates(center)
+        coords = inverseCoordinates(center)
         return ee.Geometry.Point(coords)
 
     def getBounds(self, asGeoJSON=True):
@@ -652,7 +652,7 @@ class Map(ipyleaflet.Map):
 
         Returns: GeoJSONGeometry|List<Number>|String
         """
-        bounds = inverse_coordinates(self.bounds)
+        bounds = inverseCoordinates(self.bounds)
         if asGeoJSON:
             return ee.Geometry.Rectangle(bounds)
         else:
@@ -704,7 +704,7 @@ class Map(ipyleaflet.Map):
                         # Add widget to handler arguments
                         kwargs['widget'] = self.tab_children_dict[name]
                         coords = kwargs['coordinates']
-                        kwargs['coordinates'] = inverse_coordinates(coords)
+                        kwargs['coordinates'] = inverseCoordinates(coords)
                         kwargs['map'] = self
                         return f(**kwargs)
                     return wrap
@@ -742,7 +742,7 @@ class Map(ipyleaflet.Map):
         point_name = 'point inspect at {}'.format(coords)
         # Widget for adding/removing the point at click
         def point_widget(coords):
-            coords = maptool.inverse_coordinates(coords)
+            coords = maptool.inverseCoordinates(coords)
             add_button = Button(description='ADD', tooltip='add point to map')
             rem_button = Button(description='REMOVE',
                                 tooltip='remove point from map')
@@ -799,9 +799,9 @@ class Map(ipyleaflet.Map):
                     # Get the image's values
                     try:
                         image = obj['object']
-                        values = tools.image.get_value(image, point,
-                                                       scale=ZOOM_SCALE[self.zoom],
-                                                       side='client')
+                        values = tools.image.getValue(image, point,
+                                                      scale=ZOOM_SCALE[self.zoom],
+                                                      side='client')
                         values = tools.dictionary.sort(values)
                         # Create the content
                         img_html = ''
@@ -852,7 +852,7 @@ class Map(ipyleaflet.Map):
                             rows.append(row)
 
                         # Create the content
-                        html = maptool.create_html_table(header, rows)
+                        html = maptool.createHTMLTable(header, rows)
                         wid = HTML(html)
                         # append widget to list of widgets
                         wids4acc.append(wid)
@@ -871,7 +871,7 @@ class Map(ipyleaflet.Map):
                         feat = obj['object']
                         feat_geom = feat.geometry()
                         if feat_geom.contains(point).getInfo():
-                            info = feature_properties_output(feat)
+                            info = featurePropertiesOutput(feat)
                             wid = HTML(info)
                             # append widget to list of widgets
                             wids4acc.append(wid)
@@ -892,7 +892,7 @@ class Map(ipyleaflet.Map):
                         filtered = fc.filterBounds(point)
                         if filtered.size().getInfo() > 0:
                             feat = ee.Feature(filtered.first())
-                            info = feature_properties_output(feat)
+                            info = featurePropertiesOutput(feat)
                             wid = HTML(info)
                             # append widget to list of widgets
                             wids4acc.append(wid)
@@ -990,22 +990,22 @@ class LayersWidget(ipytools.RealBox):
 
         # Buttons
         self.center = Button(description='Center')
-        self.center.on_click(self.on_click_center)
+        self.center.on_click(self.onClickCenter)
 
         self.remove = Button(description='Remove')
-        self.remove.on_click(self.on_click_remove)
+        self.remove.on_click(self.onClickRemove)
 
         self.show_prop = Button(description='Show Object')
-        self.show_prop.on_click(self.on_click_show_object)
+        self.show_prop.on_click(self.onClickShowObject)
 
         self.vis = Button(description='Visualization')
-        self.vis.on_click(self.on_click_vis)
+        self.vis.on_click(self.onClickVis)
 
         self.move_up = Button(description='Move up')
-        self.move_up.on_click(self.on_up)
+        self.move_up.on_click(self.onUp)
 
         self.move_down = Button(description='Move down')
-        self.move_down.on_click(self.on_down)
+        self.move_down.on_click(self.onDown)
 
         # Buttons Group 1
         self.group1 = VBox([self.center, self.remove,
@@ -1019,13 +1019,13 @@ class LayersWidget(ipytools.RealBox):
 
         self.selector.observe(self.handle_selection, names='value')
 
-    def on_up(self, button=None):
+    def onUp(self, button=None):
         if self.EELayer:
-            self.map.move_layer(self.layer.name, 'up')
+            self.map.moveLayer(self.layer.name, 'up')
 
-    def on_down(self, button=None):
+    def onDown(self, button=None):
         if self.EELayer:
-            self.map.move_layer(self.layer.name, 'down')
+            self.map.moveLayer(self.layer.name, 'down')
 
     def handle_selection(self, change):
         new = change['new']
@@ -1040,7 +1040,7 @@ class LayersWidget(ipytools.RealBox):
             self.ty = new['type']
             self.vis = new['visParams']
 
-    def on_click_show_object(self, button=None):
+    def onClickShowObject(self, button=None):
         if self.EELayer:
             loading = HTML('Loading <b>{}</b>...'.format(self.layer.name))
             widget = VBox([loading])
@@ -1051,15 +1051,15 @@ class LayersWidget(ipytools.RealBox):
                           [widget]]
             thread.start()
 
-    def on_click_center(self, button=None):
+    def onClickCenter(self, button=None):
         if self.EELayer:
             self.map.centerObject(self.obj)
 
-    def on_click_remove(self, button=None):
+    def onClickRemove(self, button=None):
         if self.EELayer:
             self.map.removeLayer(self.layer.name)
 
-    def on_click_vis(self, button=None):
+    def onClickVis(self, button=None):
         if self.EELayer:
             # options
             selector = self.selector

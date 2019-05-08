@@ -6,9 +6,9 @@ import math
 from . import tools
 
 
-def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
-                     scale=None, geometry=None, band_name='distance_to_mask',
-                     normalize=False):
+def distanceToMask(image, kernel=None, radius=1000, unit='meters',
+                   scale=None, geometry=None, band_name='distance_to_mask',
+                   normalize=False):
     """ Compute the distance to the mask in meters
 
     :param image: Image holding the mask
@@ -73,9 +73,9 @@ def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
     return final.rename(band_name)
 
 
-def mask_cover(image, geometry=None, scale=None, property_name='MASK_COVER',
-               crs=None, crsTransform=None, bestEffort=False,
-               maxPixels=1e13, tileScale=1):
+def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
+              crs=None, crsTransform=None, bestEffort=False,
+              maxPixels=1e13, tileScale=1):
     """ Percentage of masked pixels (masked/total * 100) as an Image property
 
     :param image: ee.Image holding the mask. If the image has more than
@@ -147,7 +147,7 @@ def mask_cover(image, geometry=None, scale=None, property_name='MASK_COVER',
     ).get(band)
     zeros_in_mask = ee.Number(zeros_in_mask)
 
-    percentage = tools.number.trim_decimals(zeros_in_mask.divide(ones), 4)
+    percentage = tools.number.trimDecimals(zeros_in_mask.divide(ones), 4)
 
     # Multiply by 100
     cover = percentage.multiply(100)
@@ -158,8 +158,8 @@ def mask_cover(image, geometry=None, scale=None, property_name='MASK_COVER',
     return image.set(property_name, final)
 
 
-def euclidean_distance(image1, image2, bands=None, discard_zeros=False,
-                       name='distance'):
+def euclideanDistance(image1, image2, bands=None, discard_zeros=False,
+                      name='distance'):
     """ Compute the Euclidean distance between two images. The image's bands
     is the dimension of the arrays.
 
@@ -204,8 +204,8 @@ def euclidean_distance(image1, image2, bands=None, discard_zeros=False,
     return d.rename(name)
 
 
-def sum_distance(image, collection, bands=None, discard_zeros=False,
-                 name='sumdist'):
+def sumDistance(image, collection, bands=None, discard_zeros=False,
+                name='sumdist'):
     """ Compute de sum of all distances between the given image and the
     collection passed
     
@@ -223,14 +223,14 @@ def sum_distance(image, collection, bands=None, discard_zeros=False,
     def over_rest(im, ini):
         ini = ee.Image(ini)
         im = ee.Image(im)
-        dist = ee.Image(euclidean_distance(image, im, bands, discard_zeros))\
+        dist = ee.Image(euclideanDistance(image, im, bands, discard_zeros))\
                  .rename(name)
         return ini.add(dist)
 
     return ee.Image(collection.iterate(over_rest, accum))
 
 
-def pansharpen_kernel(image, pan, rgb=None, kernel=None):
+def pansharpenKernel(image, pan, rgb=None, kernel=None):
     """
     Compute the per-pixel means of the unsharpened bands
     source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine
@@ -264,7 +264,7 @@ def pansharpen_kernel(image, pan, rgb=None, kernel=None):
     return bgr.divide(bgr_mean).multiply(pani).multiply(gain)
 
 
-def pansharpen_ihs_fusion(image, pan=None, rgb=None):
+def pansharpenIhsFusion(image, pan=None, rgb=None):
     """
     HSV-based Pan-Sharpening
     source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine
@@ -333,7 +333,7 @@ class Landsat(object):
         return rest_image.addBands(scaled).addBands(scaled_thermal)
 
     @staticmethod
-    def rescale_toa_sr(image, bands=None, thermal_bands=None):
+    def rescaleToaSr(image, bands=None, thermal_bands=None):
         """ Re-scale a TOA Landsat image to match the data type of SR Landsat
         image
 
@@ -350,7 +350,7 @@ class Landsat(object):
         return Landsat._rescale(image, bands, thermal_bands, 'TOA', 'SR')
 
     @staticmethod
-    def rescale_sr_toa(image, bands=None, thermal_bands=None):
+    def rescaleSrToa(image, bands=None, thermal_bands=None):
         """ Re-scale a TOA Landsat image to match the data type of SR Landsat
         image
 
@@ -407,8 +407,8 @@ class Landsat(object):
         return image.addBands(harmonized, overwrite=True)
 
     @staticmethod
-    def brdf_correct(image, red='red', green='green', blue='blue', nir='nir',
-                     swir1='swir1', swir2='swir2'):
+    def brdfCorrect(image, red='red', green='green', blue='blue', nir='nir',
+                    swir1='swir1', swir2='swir2'):
         """ Correct Landsat data for BRDF effects using a c-factor.
 
         D.P. Roy, H.K. Zhang, J. Ju, J.L. Gomez-Dans, P.E. Lewis, C.B. Schaaf,

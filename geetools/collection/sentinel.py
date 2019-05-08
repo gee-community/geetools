@@ -36,11 +36,11 @@ class Sentinel2(Collection):
 
         self.cloud_cover = 'CLOUD_COVERAGE_ASSESSMENT'
         self.algorithms = {
-            'hollstein': cloud_mask.apply_hollstein
+            'hollstein': cloud_mask.applyHollstein
         }
 
         if self.process == 'SR':
-            self.algorithms['scl_masks'] = self.SCL_masks
+            self.algorithms['scl_masks'] = self.SclMasks
 
 
 
@@ -95,12 +95,12 @@ class Sentinel2(Collection):
 
         return self._bands
 
-    def SCL_masks(self, image):
+    def SclMasks(self, image):
         """ Decodify the SCL bands and create a mask for each category """
         if self.process == 'SR':
             scl = image.select('SCL')
 
-            data = ee.Dictionary(self.SCL_data)
+            data = ee.Dictionary(self.SclData)
 
             def wrap(band_value, name):
                 band_value = ee.Number.parse(band_value)
@@ -119,7 +119,7 @@ class Sentinel2(Collection):
         return image
 
     @property
-    def SCL_data(self):
+    def SclData(self):
         data = None
         if self.process == 'SR':
             data = {

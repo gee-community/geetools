@@ -18,7 +18,7 @@ def allequal(iterable):
     return True
 
 
-def convert_precision(image, precision):
+def convertPrecision(image, precision):
     """ Convert data type precisions """
     TYPES = ee.Dictionary({'float': image.toFloat(),
                            'double': image.toDouble(),
@@ -33,14 +33,14 @@ def convert_precision(image, precision):
     return ee.Image(TYPES.get(precision))
 
 
-def convert_precisions(image, precision_dict):
+def convertPrecisions(image, precision_dict):
     precisions = ee.Dictionary(precision_dict)
     bands = ee.List(precisions.keys())
     def iteration(band, ini):
         ini = ee.Image(ini)
         imgband = ini.select([band])
         precision = ee.String(precisions.get(band))
-        newband = convert_precision(imgband, precision)
+        newband = convertPrecision(imgband, precision)
         return tools.image.replace(ini, band, newband)
 
     return ee.Image(bands.iterate(iteration, image))
@@ -64,15 +64,15 @@ def info(collection, renamed=False):
     data['end_date'] = collection.end_date
     data['algorithms'] = collection.algorithms
     if not renamed:
-        data['thermal_bands'] = [b.id for b in collection.thermal_bands]
-        data['bit_bands'] = [b.id for b in collection.bit_bands]
-        data['optical_bands'] = [b.id for b in collection.optical_bands]
-        data['classification_bands'] = [b.id for b in collection.classification_bands]
+        data['thermal_bands'] = [b.id for b in collection.thermalBands]
+        data['bit_bands'] = [b.id for b in collection.bitBands]
+        data['optical_bands'] = [b.id for b in collection.opticalBands]
+        data['classification_bands'] = [b.id for b in collection.classificationBands]
     else:
-        data['thermal_bands'] = [b.name for b in collection.thermal_bands]
-        data['bit_bands'] = [b.name for b in collection.bit_bands]
-        data['optical_bands'] = [b.name for b in collection.optical_bands]
-        data['classification_bands'] = [b.name for b in collection.classification_bands]
+        data['thermal_bands'] = [b.name for b in collection.thermalBands]
+        data['bit_bands'] = [b.name for b in collection.bitBands]
+        data['optical_bands'] = [b.name for b in collection.opticalBands]
+        data['classification_bands'] = [b.name for b in collection.classificationBands]
 
     data['cloud_cover'] = collection.cloud_cover
     data['ee_collection'] = collection.collection
@@ -148,22 +148,22 @@ class Collection(object):
         return ee.ImageCollection(self.id)
 
     @property
-    def optical_bands(self):
+    def opticalBands(self):
         return [band for band in self.bands if band.reference == 'optical']
 
     @property
-    def thermal_bands(self):
+    def thermalBands(self):
         return [band for band in self.bands if band.reference == 'thermal']
 
     @property
-    def bit_bands(self):
+    def bitBands(self):
         return [band for band in self.bands if band.reference == 'bits']
 
     @property
-    def classification_bands(self):
+    def classificationBands(self):
         return [band for band in self.bands if band.reference == 'classification']
 
-    def band_names(self, reference='all', renamed=False):
+    def bandNames(self, reference='all', renamed=False):
         """ List of band names """
         if reference == 'all':
             if not renamed:
@@ -219,7 +219,7 @@ class Collection(object):
 
         return scales_dict
 
-    def bit_options(self, renamed=False):
+    def bitOptions(self, renamed=False):
         options = {}
         for band in self.bands:
             if band.reference == 'bits' and band.bits:
@@ -231,15 +231,15 @@ class Collection(object):
                 options[name] = opt
         return options
 
-    def get_mask(self, image, mask_band, classes='all', renamed=False):
+    def getMask(self, image, mask_band, classes='all', renamed=False):
         """ Get a mask image """
-        bandnames = self.band_names(renamed=renamed)
+        bandnames = self.bandNames(renamed=renamed)
 
         # CHECKS
         if mask_band not in bandnames:
             msg = 'band {} not present in bands {}'
             raise ValueError(msg.format(mask_band, bandnames))
-        options = self.bit_options(renamed)[mask_band]
+        options = self.bitOptions(renamed)[mask_band]
         if classes != 'all' and classes != ['all']:
             if not isinstance(classes, (list, tuple)):
                 msg = 'classes param must be "all" or a list of classes'
@@ -254,12 +254,12 @@ class Collection(object):
         else:
             selection = classes
 
-        mask = self.bit_image(image, mask_band, renamed).select(selection)
+        mask = self.bitImage(image, mask_band, renamed).select(selection)
         return mask
 
-    def apply_mask(self, image, mask_band, classes='all', renamed=False):
+    def applyMask(self, image, mask_band, classes='all', renamed=False):
         """ Apply a mask """
-        mask = self.get_mask(image, mask_band, classes, renamed)
+        mask = self.getMask(image, mask_band, classes, renamed)
         options = mask.bandNames()
 
         def wrap(band, img):
@@ -270,7 +270,7 @@ class Collection(object):
 
         return ee.Image(options.iterate(wrap, image))
 
-    def get_band(self, band, by='id'):
+    def getBand(self, band, by='id'):
         """ get a band by its id or name """
         data = None
         for b in self.bands:
@@ -292,13 +292,13 @@ class Collection(object):
         """
         options = ['NSR', 'NSR2', 'RGB', 'falseColor', 'SCL']
         vis = {}
-        b = self.get_band('blue', 'name')
-        g = self.get_band('green', 'name')
-        r = self.get_band('red', 'name')
-        n = self.get_band('nir', 'name')
-        s = self.get_band('swir', 'name')
-        s2 = self.get_band('swir2', 'name')
-        scl = self.get_band('scene_classification_map', 'name')
+        b = self.getBand('blue', 'name')
+        g = self.getBand('green', 'name')
+        r = self.getBand('red', 'name')
+        n = self.getBand('nir', 'name')
+        s = self.getBand('swir', 'name')
+        s2 = self.getBand('swir2', 'name')
+        scl = self.getBand('scene_classification_map', 'name')
 
         def register(one, two, three, factor, name):
             if renamed:
@@ -353,8 +353,8 @@ class Collection(object):
             n = 'nir'
             r = 'red'
         else:
-            n = self.get_band('nir', 'name').id
-            r = self.get_band('red', 'name').id
+            n = self.getBand('nir', 'name').id
+            r = self.getBand('red', 'name').id
         if n and r:
             return indices.ndvi(image, n, r, name)
         else:
@@ -368,9 +368,9 @@ class Collection(object):
             r = 'red'
             b = 'blue'
         else:
-            n = self.get_band('nir', 'name').id
-            r = self.get_band('red', 'name').id
-            b = self.get_band('blue', 'name').id
+            n = self.getBand('nir', 'name').id
+            r = self.getBand('red', 'name').id
+            b = self.getBand('blue', 'name').id
         if n and r and b:
             return indices.evi(image, n, r, b, bandname=name)
         else:
@@ -385,10 +385,10 @@ class Collection(object):
             if not s:
                 s = 'swir'
         else:
-            n = self.get_band('nir', 'name').id
-            s = self.get_band('swir2', 'name').id
+            n = self.getBand('nir', 'name').id
+            s = self.getBand('swir2', 'name').id
             if not s:
-                s = self.get_band('swir', 'name').id
+                s = self.getBand('swir', 'name').id
         if n and s:
             return indices.nbr(image, n, s, name)
         else:
@@ -403,7 +403,7 @@ class Collection(object):
         'nbr': nbr
     }
 
-    def bit_image(self, image, qa, renamed=False):
+    def bitImage(self, image, qa, renamed=False):
         """ Get an image from the bit information from the qa band
 
         :param qa: the quality band name
@@ -413,9 +413,9 @@ class Collection(object):
         :return: the image with the decode bands added
         """
         if renamed:
-            band = self.get_band(qa, 'name')
+            band = self.getBand(qa, 'name')
         else:
-            band = self.get_band(qa, 'id')
+            band = self.getBand(qa, 'id')
 
         if not band:
             raise ValueError('{} band not present in {}'.format(
@@ -423,9 +423,9 @@ class Collection(object):
             ))
 
         reader = bitreader.BitReader(band.bits)
-        return reader.decode_image(image, qa)
+        return reader.decodeImage(image, qa)
 
-    def check_bands(self, bands):
+    def checkBands(self, bands):
         """ Check if all bands have the same max and min
 
         :type collection: Collection
@@ -454,7 +454,7 @@ class Collection(object):
 
         return tools.image.renameDict(image, original_names)
 
-    def proxy_image(self, renamed=False):
+    def proxyImage(self, renamed=False):
         """ Create an Image with the band names, type and scale but empty """
         precisions = self.precisions(renamed=renamed)
         first_band = self.bands[0]
@@ -464,7 +464,7 @@ class Collection(object):
             name = first_band.name
 
         init = ee.Image.constant(0).rename(name)
-        init = convert_precision(init, precisions[name])
+        init = convertPrecision(init, precisions[name])
         for i, band in enumerate(self.bands):
             if i == 0: continue
             if not renamed:
@@ -473,7 +473,7 @@ class Collection(object):
                 name = band.name
 
             img = ee.Image.constant(0).rename(name)
-            img = convert_precision(img, precisions[name])
+            img = convertPrecision(img, precisions[name])
             init = init.addBands(img)
 
         return init
@@ -488,7 +488,7 @@ from .sentinel import Sentinel2
 IDS = landsat.IDS + sentinel.IDS
 
 
-def from_id(id):
+def fromId(id):
     """ Create a collection from a parsed ID """
     functions = [
         landsat.Landsat.fromId,
@@ -506,7 +506,7 @@ def from_id(id):
     raise ValueError('{} not recognized as a valid ID'.format(id))
 
 
-def get_common_bands(*collections, reference='all', match='id'):
+def getCommonBands(*collections, reference='all', match='id'):
     """ Get the common bands of the parsed collections
 
     :param match: the field to match, can be: id or name
@@ -516,15 +516,15 @@ def get_common_bands(*collections, reference='all', match='id'):
     renamed = True if match == 'name' else False
 
     if len(collections) == 1:
-        return first.band_names(reference, renamed)
+        return first.bandNames(reference, renamed)
 
-    first_set = set(first.band_names(reference, renamed))
+    first_set = set(first.bandNames(reference, renamed))
     if len(collections) == 1:
-        return first.band_names
+        return first.bandNames
     else:
         rest = collections[1:]
         for col in rest:
-            bandset = set(col.band_names(reference, renamed))
+            bandset = set(col.bandNames(reference, renamed))
             first_set = first_set.intersection(bandset)
 
     return list(first_set)
@@ -544,8 +544,8 @@ def rescale(image, col, collection_to_match, reference='all', renamed=False,
     """
     # Create comparative collection
     # bands = ee.Dictionary(col.bands)
-    common_bands = get_common_bands(col, collection_to_match,
-                                    reference=reference, match='name')
+    common_bands = getCommonBands(col, collection_to_match,
+                                  reference=reference, match='name')
     # keep only bands with min and max values
     new_common = []
 
@@ -562,8 +562,8 @@ def rescale(image, col, collection_to_match, reference='all', renamed=False,
 
     precisions = {}
     for band in common_bands:
-        b = col.get_band(band, 'name')
-        b_proxy = collection_to_match.get_band(band, 'name')
+        b = col.getBand(band, 'name')
+        b_proxy = collection_to_match.getBand(band, 'name')
         if b.min is not None and \
                 b.max is not None and \
                 b_proxy.min is not None and \
@@ -610,7 +610,7 @@ def rescale(image, col, collection_to_match, reference='all', renamed=False,
             false(ini, band, min_this, max_this, min_proxy, max_proxy)))
 
     final = ee.Image(new_common.iterate(iteration, image))
-    final = convert_precisions(final, precisions)
+    final = convertPrecisions(final, precisions)
     if drop:
         final = final.select(new_common)
 

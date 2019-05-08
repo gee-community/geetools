@@ -57,7 +57,7 @@ def concat(*plots):
     return chart
 
 
-def render_widget(chart, width=None, height=None):
+def renderWidget(chart, width=None, height=None):
     """ Render a pygal chart into a Jupyter Notebook """
     from ipywidgets import HTML
 
@@ -79,8 +79,8 @@ def render_widget(chart, width=None, height=None):
     return HTML(html)
 
 
-def from_pandas(line_chart, dataframe, x=None, y=None, datetime=False,
-                drop_null=True):
+def fromPandas(line_chart, dataframe, x=None, y=None, datetime=False,
+               drop_null=True):
     """ Creates a Line chart from a pandas dataFrame """
 
     ### CHECK FOR PANDAS DATAFRAME
@@ -119,7 +119,7 @@ def from_pandas(line_chart, dataframe, x=None, y=None, datetime=False,
     if not datetime:
         x_values = labels
     else:
-        x_values = [tools.date.millis2datetime(d) for d in labels]
+        x_values = [tools.date.millisToDatetime(d) for d in labels]
 
     # add property to parsed line_chart object
     line_chart.x_labels = x_values
@@ -164,9 +164,9 @@ class Line(pygal.XY):
     def dataframe(self):
         return ydata2pandas(self.y_data)
 
-    def render_widget(self, width=None, height=None):
+    def renderWidget(self, width=None, height=None):
         """ Render a pygal chart into a Jupyter Notebook """
-        return render_widget(self, width, height)
+        return renderWidget(self, width, height)
 
     def cat(self, *plots):
         """ Concatenate with other Line Graphics """
@@ -183,9 +183,9 @@ class DateTimeLine(pygal.DateTimeLine):
     def dataframe(self):
         return ydata2pandas(self.y_data)
 
-    def render_widget(self, width=None, height=None):
+    def renderWidget(self, width=None, height=None):
         """ Render a pygal chart into a Jupyter Notebook """
-        return render_widget(self, width, height)
+        return renderWidget(self, width, height)
 
     def cat(self, *plots):
         """ Concatenate with other DateTimeLine Graphics """
@@ -293,7 +293,7 @@ class Image(object):
         if properties is not None:
             x_properties = x_properties + properties
 
-        data = tools.imagecollection.get_values(
+        data = tools.imagecollection.getValues(
             collection=imageCollection,
             geometry=geom,
             reducer=reducer,
@@ -332,8 +332,8 @@ class Image(object):
         else:
             chart = Line()
 
-        line_chart = from_pandas(chart, newdf, y=ydata,
-                                 x=xProperty, datetime=datetime)
+        line_chart = fromPandas(chart, newdf, y=ydata,
+                                x=xProperty, datetime=datetime)
 
         if isinstance(reducer, str):
             reducer_name = reducer
@@ -434,8 +434,8 @@ class Image(object):
             else:
                 chart = Line()
 
-            line_chart = from_pandas(chart, newdf, y=y_labels,
-                                     x=xProperty, datetime=datetime)
+            line_chart = fromPandas(chart, newdf, y=y_labels,
+                                    x=xProperty, datetime=datetime)
 
             reducer_name = reducer.getInfo()['type'].split('.')[1]
             chart_title = '{} {} values in different regions in relation ' \
@@ -519,7 +519,7 @@ class Image(object):
 
         l = Line()
 
-        line_chart = from_pandas(l, pd, x=xProperty, y=labels)
+        line_chart = fromPandas(l, pd, x=xProperty, y=labels)
 
         chart_title = 'Band {} in relation with {} across features'
         chart_title = chart_title.format(rname, xProperty)

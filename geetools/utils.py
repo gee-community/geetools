@@ -90,7 +90,7 @@ def castImage(value):
         return ee.Image.constant(value)
 
 
-def make_name(img, pattern, date_pattern=None):
+def makeName(img, pattern, date_pattern=None):
     """ Make a name with the given pattern. The pattern must contain the
     propeties to replace between curly braces. There are 2 special words:
 

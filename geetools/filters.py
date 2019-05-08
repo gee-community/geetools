@@ -6,7 +6,7 @@ from __future__ import print_function
 import ee
 
 
-def date_range(range):
+def dateRange(range):
     """ Filter by DateRange
 
     :param range: date range

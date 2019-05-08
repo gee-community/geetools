@@ -72,7 +72,7 @@ def enumerateProperty(col, name='enumeration'):
     return ee.FeatureCollection(featlist)
 
 
-def get_projection(filename):
+def getProjection(filename):
     """ Get EPSG from a shapefile using ogr
 
     :param filename: an ESRI shapefile (.shp)
@@ -116,7 +116,7 @@ def fromShapefile(filename, start=None, end=None):
     types = dict(zip(field_names, field_types))
     features = []
 
-    projection = get_projection(filename)
+    projection = getProjection(filename)
 
     # filter records with start and end
     start = start if start else 0

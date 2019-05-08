@@ -22,7 +22,7 @@ def add(collection, image):
     return ee.ImageCollection.fromImages(append)
 
 
-def get_id(collection):
+def getId(collection):
     """ Get the ImageCollection id.
 
     **CLIENT SIDE**
@@ -68,7 +68,7 @@ def enumerateProperty(collection, name='enumeration'):
     return ee.ImageCollection(imlist)
 
 
-def fill_with_last(collection):
+def fillWithLast(collection):
     """ Fill masked values of each image pixel with the last available
     value
 
@@ -107,7 +107,7 @@ def fill_with_last(collection):
     return ee.ImageCollection.fromImages(newcol)
 
 
-def mosaic_same_day(collection, reducer=None):
+def mosaicSameDay(collection, reducer=None):
     """ Return a collection where images from the same day are mosaicked
 
     :param reducer: the reducer to use for merging images from the same day.
@@ -149,8 +149,8 @@ def mosaic_same_day(collection, reducer=None):
     return new_col
 
 
-def reduce_equal_interval(collection, interval=30, unit='day', reducer=None,
-                          start_date=None, end_date=None):
+def reduceEqualInterval(collection, interval=30, unit='day', reducer=None,
+                        start_date=None, end_date=None):
     """ Reduce an ImageCollection into a new one that has one image per
         reduced interval, for example, one image per month.
 
@@ -185,7 +185,7 @@ def reduce_equal_interval(collection, interval=30, unit='day', reducer=None,
     def apply_reducer(red, col):
         return ee.Image(col.reduce(red))
 
-    ranges = date.daterange_list(start_date, end_date, interval, unit)
+    ranges = date.daterangeList(start_date, end_date, interval, unit)
 
     def over_ranges(drange, ini):
         ini = ee.List(ini)
@@ -210,9 +210,9 @@ def reduce_equal_interval(collection, interval=30, unit='day', reducer=None,
     return ee.ImageCollection.fromImages(imlist)
 
 
-def get_values(collection, geometry, scale=None, reducer=None,
-               id='system:index', properties=None, side='server',
-               maxPixels=1e9):
+def getValues(collection, geometry, scale=None, reducer=None,
+              id='system:index', properties=None, side='server',
+              maxPixels=1e9):
     """ Return all values of all bands of an image collection in the
         specified geometry
 
@@ -348,9 +348,9 @@ def parametrizeProperty(collection, property, range_from, range_to,
     return collection.map(wrap)
 
 
-def linear_function_band(collection, band, range_min=None, range_max=None,
-                         mean=None, output_min=None, output_max=None,
-                         name='linear_function'):
+def linearFunctionBand(collection, band, range_min=None, range_max=None,
+                       mean=None, output_min=None, output_max=None,
+                       name='linear_function'):
     """ Apply a linear function over the bands across every image of the
     ImageCollection using the following formula:
 
@@ -388,9 +388,9 @@ def linear_function_band(collection, band, range_min=None, range_max=None,
         range_max = castImage(range_max)
 
     def to_map(img):
-        result = image_module.linear_function(img, band, range_min, range_max,
-                                              mean, output_min, output_max,
-                                              name)
+        result = image_module.linearFunction(img, band, range_min, range_max,
+                                             mean, output_min, output_max,
+                                             name)
         return img.addBands(result.rename(name))
 
     collection = collection.map(to_map)
@@ -398,9 +398,9 @@ def linear_function_band(collection, band, range_min=None, range_max=None,
     return collection
 
 
-def linear_function_property(collection, property, range_min=None,
-                             range_max=None, mean=None, output_min=None,
-                             output_max=None, name='LINEAR_FUNCTION'):
+def linearFunctionProperty(collection, property, range_min=None,
+                           range_max=None, mean=None, output_min=None,
+                           output_max=None, name='LINEAR_FUNCTION'):
     """ Apply a linear function over the properties across every image of the
     ImageCollection using the following formula:
 
@@ -472,9 +472,9 @@ def linear_function_property(collection, property, range_min=None,
     return collection
 
 
-def gauss_function_band(collection, band, range_min=None, range_max=None,
-                        mean=0, output_min=None, output_max=1, std=None,
-                        stretch=1, name='gauss'):
+def gaussFunctionBand(collection, band, range_min=None, range_max=None,
+                      mean=0, output_min=None, output_max=1, std=None,
+                      stretch=1, name='gauss'):
     """ Compute a Guass function using a specified band over an
         ImageCollection. See: https://en.wikipedia.org/wiki/Gaussian_function
 
@@ -512,14 +512,14 @@ def gauss_function_band(collection, band, range_min=None, range_max=None,
 
     def to_map(img):
 
-        result = image_module.gauss_function(img, band,
-                                             range_min=range_min,
-                                             range_max=range_max,
-                                             mean=mean, std=std,
-                                             output_min=output_min,
-                                             output_max=output_max,
-                                             stretch=stretch,
-                                             name=name)
+        result = image_module.gaussFunction(img, band,
+                                            range_min=range_min,
+                                            range_max=range_max,
+                                            mean=mean, std=std,
+                                            output_min=output_min,
+                                            output_max=output_max,
+                                            stretch=stretch,
+                                            name=name)
         return img.addBands(result)
 
     collection = collection.map(to_map)
@@ -527,10 +527,10 @@ def gauss_function_band(collection, band, range_min=None, range_max=None,
     return collection
 
 
-def gauss_function_property(collection, property, range_min=None,
-                            range_max=None, mean=0, output_min=None,
-                            output_max=1, std=None, stretch=1,
-                            name='GAUSS'):
+def gaussFunctionProperty(collection, property, range_min=None,
+                          range_max=None, mean=0, output_min=None,
+                          output_max=1, std=None, stretch=1,
+                          name='GAUSS'):
     """ Compute a Guass function using a specified property over an
         ImageCollection. See: https://en.wikipedia.org/wiki/Gaussian_function
 
@@ -603,8 +603,8 @@ def gauss_function_property(collection, property, range_min=None,
     return collection
 
 
-def normal_distribution_property(collection, property, mean=None, std=None,
-                                 name='NORMAL_DISTRIBUTION'):
+def normalDistributionProperty(collection, property, mean=None, std=None,
+                               name='NORMAL_DISTRIBUTION'):
     """ Compute a normal distribution using a specified property, over an
     ImageCollection. For more see:
     https://en.wikipedia.org/wiki/Normal_distribution
@@ -631,12 +631,12 @@ def normal_distribution_property(collection, property, mean=None, std=None,
     imax = ee.Number(1)\
              .divide(istd.multiply(ee.Number(2).multiply(math.pi).sqrt()))
 
-    return gauss_function_property(collection, property, mean=imean,
-                                   output_max=imax, std=istd, name=name)
+    return gaussFunctionProperty(collection, property, mean=imean,
+                                 output_max=imax, std=istd, name=name)
 
 
-def normal_distribution_band(collection, band, mean=None, std=None,
-                             name='normal_distribution'):
+def normalDistributionBand(collection, band, mean=None, std=None,
+                           name='normal_distribution'):
     """ Compute a normal distribution using a specified band, over an
     ImageCollection. For more see:
     https://en.wikipedia.org/wiki/Normal_distribution
@@ -665,5 +665,5 @@ def normal_distribution_band(collection, band, mean=None, std=None,
     imax = ee.Image(1) \
              .divide(istd.multiply(ee.Image.constant(2).multiply(ipi).sqrt()))
 
-    return gauss_function_band(collection, band, mean=imean,
-                               output_max=imax, std=istd, name=name)
+    return gaussFunctionBand(collection, band, mean=imean,
+                             output_max=imax, std=istd, name=name)

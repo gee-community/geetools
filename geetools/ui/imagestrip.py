@@ -231,8 +231,8 @@ class ImageStrip(object):
 
         return strip
 
-    def from_list(self, imlist, namelist, viz_bands, min, max, region,
-                  folder, check=True, desclist=None, **kwargs):
+    def fromList(self, imlist, namelist, viz_bands, min, max, region,
+                 folder, check=True, desclist=None, **kwargs):
         """ Download every image and create the strip
 
         :param imlist: Satellite Images (not PIL!!!!!!)
@@ -366,9 +366,9 @@ class ImageStrip(object):
         else:
             return self.create(list_of_lists, namelist)
 
-    def from_collection(self, collections, viz_param=None, region=None,
-                        name=None, folder=None, properties=None,
-                        drawRegion=False, zoom=0, description="", **kwargs):
+    def fromCollection(self, collections, viz_param=None, region=None,
+                       name=None, folder=None, properties=None,
+                       drawRegion=False, zoom=0, description="", **kwargs):
         ''' Create an image strip from a given ee.ImageCollection or ee.List
 
         :param collections: contains the images (ee.Image)
@@ -512,6 +512,6 @@ class ImageStrip(object):
 
         # print arguments["draw_polygons"]
 
-        i = pl.from_list(**arguments)
+        i = pl.fromList(**arguments)
 
         return i

@@ -6,7 +6,7 @@ from ipywidgets import HTML, Tab, Accordion, Checkbox, HBox, Layout, Widget, \
 from traitlets import List, Unicode, observe, Instance, Tuple, Int, Float
 
 from .. import batch
-from .dispatcher import widget_dispatcher
+from .dispatcher import widgetDispatcher
 
 # imports for async widgets
 from threading import Thread
@@ -47,7 +47,7 @@ def create_object_output(object):
     ty = object.__class__.__name__
 
     if ty == 'Image':
-        return widget_dispatcher(object)
+        return widgetDispatcher(object)
     elif ty == 'FeatureCollection':
         try:
             info = object.getInfo()
@@ -331,7 +331,7 @@ class AssetManager(VBox):
                 pool.join()
                 '''
                 for assetid in assets:
-                    thread = Thread(target=batch.recrusive_delete_asset,
+                    thread = Thread(target=batch.recrusiveDeleteAsset,
                                     args=(assetid,))
                     thread.start()
 

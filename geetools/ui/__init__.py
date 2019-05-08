@@ -50,10 +50,10 @@ def eprint(*args, **kwargs):
     def get_info(eeobject, index):
         """ Get Info """
         if notebook:
-            widget = dispatcher.widget_dispatcher(eeobject)
+            widget = dispatcher.widgetDispatcher(eeobject)
             setchildren(infowin, index, widget)
         else:
-            info_return[index] = dispatcher.eeobject_dispatcher(eeobject)
+            info_return[index] = dispatcher.eeobjectDispatcher(eeobject)
 
     for i, eeobject in enumerate(args):
         # DO THE SAME FOR EVERY OBJECT
@@ -102,5 +102,8 @@ def getInfo(eeobject):
 
     return result
 
-from .ipymap import Map
-from .ipytools import TaskManager, AssetManager
+try:
+    from .ipymap import Map
+    from .ipytools import TaskManager, AssetManager
+except ImportError:
+    pass
