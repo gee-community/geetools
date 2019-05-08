@@ -94,6 +94,15 @@ def empty(value=0, names=None, from_dict=None):
     return image
 
 
+def emptyBackground(image, value=0):
+    """ Make all background pixels (not only masked, but all over the world)
+    take the parsed value """
+    bnames = image.bandNames()
+    emp = empty(value, bnames)
+    return ee.Image(emp.where(image, image).copyProperties(
+        source=image, properties=image.propertyNames()))
+
+
 def getValue(image, point, scale=None, side="server"):
     """ Return the value of all bands of the image in the specified point
 
