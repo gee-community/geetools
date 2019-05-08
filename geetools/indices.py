@@ -3,11 +3,6 @@
 from __future__ import print_function
 import ee
 
-import ee.data
-if not ee.data._initialized: ee.Initialize()
-
-true = ee.Number(1)
-false = ee.Number(0)
 
 FORMULAS = {
     'NDVI': '(NIR-RED)/(NIR+RED)',
@@ -18,30 +13,25 @@ FORMULAS = {
 
 AVAILABLE = FORMULAS.keys()
 
-def compute(index, band_params, extra_params=None, addBand=True,
-            bandname=None):
+def compute(image, index, band_params, extra_params=None, bandname=None):
     if index not in AVAILABLE:
         raise ValueError('Index not available')
 
     if not bandname:
         bandname = index
 
-    addBandEE = true if addBand else false
     extra_params = extra_params if extra_params else {}
 
     formula = FORMULAS[index]
 
-    def calc(img):
-        band_params_mapped = {
-            key: img.select([val]) for key, val in band_params.items()}
-        band_params_mapped.update(extra_params)
-        nd = img.expression(formula, band_params_mapped).select([0], [bandname])
-        result = ee.Algorithms.If(addBandEE, img.addBands(nd), nd)
-        return ee.Image(result)
+    band_params_mapped = {
+        key: image.select([val]) for key, val in band_params.items()}
+    band_params_mapped.update(extra_params)
+    nd = image.expression(formula, band_params_mapped).rename(bandname)
 
-    return calc
+    return nd
 
-def ndvi(nir, red, bandname='ndvi', addBand=True):
+def ndvi(image, nir, red, bandname='ndvi'):
     """ Calculates NDVI index
 
     :USE:
@@ -66,12 +56,10 @@ def ndvi(nir, red, bandname='ndvi', addBand=True):
     :return: The function to apply a map() over a collection
     :rtype: function
     """
-    return compute('NDVI', {'NIR':nir, 'RED':red},
-                   addBand=addBand, bandname=bandname)
+    return compute(image, 'NDVI', {'NIR':nir, 'RED':red}, bandname=bandname)
 
 
-def evi(nir, red, blue, G=2.5, C1=6, C2=7.5, L=1,
-        bandname='evi', addBand=True):
+def evi(image, nir, red, blue, G=2.5, C1=6, C2=7.5, L=1, bandname='evi'):
     """ Calculates EVI index
 
     :param nir: name of the Near Infrared () band
@@ -98,12 +86,11 @@ def evi(nir, red, blue, G=2.5, C1=6, C2=7.5, L=1,
     C2 = float(C2)
     L = float(L)
 
-    return compute('EVI', {'NIR':nir, 'RED':red, 'BLUE':blue},
-                          {'G':G, 'C1':C1, 'C2':C2, 'L':L},
-                   addBand=addBand, bandname=bandname)
+    return compute(image, 'EVI', {'NIR':nir, 'RED':red, 'BLUE':blue},
+                   {'G':G, 'C1':C1, 'C2':C2, 'L':L}, bandname=bandname)
 
 
-def nbr(nir, swir2, bandname='nbr', addBand=True):
+def nbr(image, nir, swir2, bandname='nbr'):
     """ Calculates NBR index
 
     :USE:
@@ -128,11 +115,10 @@ def nbr(nir, swir2, bandname='nbr', addBand=True):
     :return: The function to apply a map() over a collection
     :rtype: function
     """
-    return compute('NBR', {'NIR':nir, 'SWIR2':swir2}, addBand=addBand,
-                   bandname=bandname)
+    return compute(image, 'NBR', {'NIR':nir, 'SWIR2':swir2}, bandname=bandname)
 
 
-def nbr2(swir, swir2, bandname='nbr2', addBand=True):
+def nbr2(image, swir, swir2, bandname='nbr2'):
     """ Calculates NBR index
 
     :USE:
@@ -157,8 +143,7 @@ def nbr2(swir, swir2, bandname='nbr2', addBand=True):
     :return: The function to apply a map() over a collection
     :rtype: function
     """
-    return compute('NBR2', {'SWIR':swir, 'SWIR2':swir2}, addBand=addBand,
-                   bandname=bandname)
+    return compute(image, 'NBR2', {'SWIR':swir, 'SWIR2':swir2}, bandname=bandname)
 
 
 REL = {"NDVI": ndvi,

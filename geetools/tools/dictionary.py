@@ -4,9 +4,6 @@ import ee
 import ee.data
 from collections import OrderedDict
 
-if not ee.data._initialized:
-    ee.Initialize()
-
 
 def sort(dictionary):
     """ Sort a dictionary. Can be a `dict` or a `ee.Dictionary`
@@ -34,3 +31,16 @@ def sort(dictionary):
         return ee.Dictionary(ordered.iterate(iteration, ee.Dictionary()))
     else:
         return dictionary
+
+
+def extractList(dict, list):
+    """ Extract values from a list of keys """
+    empty = ee.List([])
+    list = ee.List(list)
+    dict = ee.Dictionary(dict)
+    def iteration(el, first):
+        f = ee.List(first)
+        cond = dict.contains(el)
+        return ee.Algorithms.If(cond, f.add(dict.get(el)), f)
+    values = ee.List(list.iterate(iteration, empty))
+    return values

@@ -3,16 +3,12 @@
 import ee
 import ee.data
 import math
-from . import satellite as satmodule
 from . import tools
 
-if not ee.data._initialized:
-    ee.Initialize()
 
-
-def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
-                     scale=None, geometry=None, band_name='distance_to_mask',
-                     normalize=False):
+def distanceToMask(image, kernel=None, radius=1000, unit='meters',
+                   scale=None, geometry=None, band_name='distance_to_mask',
+                   normalize=False):
     """ Compute the distance to the mask in meters
 
     :param image: Image holding the mask
@@ -77,8 +73,9 @@ def distance_to_mask(image, kernel=None, radius=1000, unit='meters',
     return final.rename(band_name)
 
 
-def mask_cover(image, geometry=None, scale=1000,
-               property_name='MASK_COVER', max_pixels=1e13):
+def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
+              crs=None, crsTransform=None, bestEffort=False,
+              maxPixels=1e13, tileScale=1):
     """ Percentage of masked pixels (masked/total * 100) as an Image property
 
     :param image: ee.Image holding the mask. If the image has more than
@@ -97,6 +94,9 @@ def mask_cover(image, geometry=None, scale=1000,
     """
     # keep only first band
     image = image.select(0)
+
+    if not scale:
+        scale = image.projection().nominalScale()
 
     # get projection
     projection = image.projection()
@@ -121,7 +121,12 @@ def mask_cover(image, geometry=None, scale=1000,
         reducer= ee.Reducer.count(),
         geometry= geometry,
         scale= scale,
-        maxPixels= max_pixels).get(band)
+        maxPixels= maxPixels,
+        crs=crs,
+        crsTransform=crsTransform,
+        bestEffort=bestEffort,
+        tileScale=tileScale,
+    ).get(band)
     ones = ee.Number(ones)
 
     # select first band, unmask and get the inverse
@@ -134,10 +139,15 @@ def mask_cover(image, geometry=None, scale=1000,
         reducer= ee.Reducer.count(),
         geometry= geometry,
         scale= scale,
-        maxPixels= max_pixels).get(band)
+        maxPixels= maxPixels,
+        crs=crs,
+        crsTransform=crsTransform,
+        bestEffort=bestEffort,
+        tileScale=tileScale
+    ).get(band)
     zeros_in_mask = ee.Number(zeros_in_mask)
 
-    percentage = tools.number.trim_decimals(zeros_in_mask.divide(ones), 4)
+    percentage = tools.number.trimDecimals(zeros_in_mask.divide(ones), 4)
 
     # Multiply by 100
     cover = percentage.multiply(100)
@@ -148,8 +158,8 @@ def mask_cover(image, geometry=None, scale=1000,
     return image.set(property_name, final)
 
 
-def euclidean_distance(image1, image2, bands=None, discard_zeros=False,
-                       name='distance'):
+def euclideanDistance(image1, image2, bands=None, discard_zeros=False,
+                      name='distance'):
     """ Compute the Euclidean distance between two images. The image's bands
     is the dimension of the arrays.
 
@@ -194,8 +204,8 @@ def euclidean_distance(image1, image2, bands=None, discard_zeros=False,
     return d.rename(name)
 
 
-def sum_distance(image, collection, bands=None, discard_zeros=False,
-                 name='sumdist'):
+def sumDistance(image, collection, bands=None, discard_zeros=False,
+                name='sumdist'):
     """ Compute de sum of all distances between the given image and the
     collection passed
     
@@ -213,14 +223,14 @@ def sum_distance(image, collection, bands=None, discard_zeros=False,
     def over_rest(im, ini):
         ini = ee.Image(ini)
         im = ee.Image(im)
-        dist = ee.Image(euclidean_distance(image, im, bands, discard_zeros))\
+        dist = ee.Image(euclideanDistance(image, im, bands, discard_zeros))\
                  .rename(name)
         return ini.add(dist)
 
     return ee.Image(collection.iterate(over_rest, accum))
 
 
-def pansharpen_kernel(image, pan, rgb=None, kernel=None):
+def pansharpenKernel(image, pan, rgb=None, kernel=None):
     """
     Compute the per-pixel means of the unsharpened bands
     source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine
@@ -254,7 +264,7 @@ def pansharpen_kernel(image, pan, rgb=None, kernel=None):
     return bgr.divide(bgr_mean).multiply(pani).multiply(gain)
 
 
-def pansharpen_ihs_fusion(image, pan=None, rgb=None):
+def pansharpenIhsFusion(image, pan=None, rgb=None):
     """
     HSV-based Pan-Sharpening
     source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine
@@ -323,7 +333,7 @@ class Landsat(object):
         return rest_image.addBands(scaled).addBands(scaled_thermal)
 
     @staticmethod
-    def rescale_toa_sr(image, bands=None, thermal_bands=None):
+    def rescaleToaSr(image, bands=None, thermal_bands=None):
         """ Re-scale a TOA Landsat image to match the data type of SR Landsat
         image
 
@@ -340,7 +350,7 @@ class Landsat(object):
         return Landsat._rescale(image, bands, thermal_bands, 'TOA', 'SR')
 
     @staticmethod
-    def rescale_sr_toa(image, bands=None, thermal_bands=None):
+    def rescaleSrToa(image, bands=None, thermal_bands=None):
         """ Re-scale a TOA Landsat image to match the data type of SR Landsat
         image
 
@@ -357,8 +367,8 @@ class Landsat(object):
         return Landsat._rescale(image, bands, thermal_bands, 'SR', 'TOA')
 
     @staticmethod
-    def harmonization(image, sr=True, blue='B2', green='B3', red='B4', nir='B5',
-                      swir1='B6', swir2='B7'):
+    def harmonization(image, blue='B2', green='B3', red='B4', nir='B5',
+                      swir='B6', swir2='B7', max_value=None):
         """ Harmonization of Landsat 8 images to be consistant with
         Landsat 7 images
 
@@ -370,21 +380,35 @@ class Landsat(object):
         reduced major axis (RMA) regression coefficients
 
         :param image: A Landsat 8 Image
+        :param max_value: the maximum value for the optical bands. For float
+            bands it is 1 (TOA), for int16 it is 10000 (SR) and for int8 it is
+            255 (RAW). It default to 1 (TOA)
         :return:
         """
-        factor = 10000 if sr else 1
+        bands = ee.List([blue, green, red, nir, swir, swir2])
+        band_types = image.bandTypes().select(bands)
 
-        slopes = ee.Image.constant([0.9785, 0.9542, 0.9825, 1.0073, 1.0171, 0.9949])
-        itcp = ee.Image.constant([-0.0095, -0.0016, -0.0022, -0.0021, -0.0030, 0.0029])
-        return image.select([blue, green, red, nir, swir1, swir2])\
-                    .resample('bicubic')\
-                    .subtract(itcp.multiply(factor)).divide(slopes)\
-                    .set('system:time_start', image.get('system:time_start'))\
-                    .toShort()
+        if max_value is None:
+            max_value = 1
+
+        slopes = ee.Image.constant([0.9785, 0.9542, 0.9825,
+                                    1.0073, 1.0171, 0.9949])
+        itcp = ee.Image.constant([-0.0095, -0.0016, -0.0022,
+                                  -0.0021, -0.0030, 0.0029])
+
+        only_bands = image.select(bands)
+        resampled = only_bands.resample('bicubic')
+
+        harmonized = resampled.subtract(itcp.multiply(max_value)).divide(slopes)
+
+        harmonized = harmonized.cast(band_types)
+
+        # append rest of the bands
+        return image.addBands(harmonized, overwrite=True)
 
     @staticmethod
-    def brdf_correct(image, red='red', green='green', blue='blue', nir='nir',
-                     swir1='swir1', swir2='swir2', satellite=None):
+    def brdfCorrect(image, red='red', green='green', blue='blue', nir='nir',
+                    swir1='swir1', swir2='swir2'):
         """ Correct Landsat data for BRDF effects using a c-factor.
 
         D.P. Roy, H.K. Zhang, J. Ju, J.L. Gomez-Dans, P.E. Lewis, C.B. Schaaf,
@@ -400,21 +424,9 @@ class Landsat(object):
         If the band names of the passed image are 'blue', 'green', etc,
         those will be used, if not, relations must be indicated in params.
 
-        :param satellite: a Satellite object. The passed image must have the
-            same bands as the original satellite.
-        :type satellite: satmodule.Satellite
         :rtype: ee.Image
         """
         constants = {'pi': math.pi}
-
-        if satellite:
-            sat = satmodule.Satellite(satellite)
-            red = sat.bands['red']
-            green = sat.bands['green']
-            blue = sat.bands['blue']
-            nir = sat.bands['nir']
-            swir1 = sat.bands['swir1']
-            swir2 = sat.bands['swir2']
 
         ### HELPERS ###
         def merge(o1, o2):

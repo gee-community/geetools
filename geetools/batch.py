@@ -1,18 +1,15 @@
 # coding=utf-8
 """ Module holding batch processing for Earth Engine """
 import ee
-import ee.data
 from . import tools
 import os
 import functools
 import traceback
 import time
-
-if not ee.data._initialized:
-    ee.Initialize()
+from .utils import *
 
 
-def recrusive_delete_asset(assetId):
+def recrusiveDeleteAsset(assetId):
     info = ee.data.getInfo(assetId)
     if info:
         ty = info['type']
@@ -39,14 +36,14 @@ def recrusive_delete_asset(assetId):
                     # print('deleting {}'.format(path))
                     ee.data.deleteAsset(path)
                 else:
-                    recrusive_delete_asset(path)
+                    recrusiveDeleteAsset(path)
             # delete empty collection and/or folder
             ee.data.deleteAsset(assetId)
     else:
         print('{} does not exists or there is another problem'.format(assetId))
 
 
-def convert_data_type(newtype):
+def convertDataType(newtype):
     """ Convert an image to the specified data type
 
     :param newtype: the data type. One of 'float', 'int', 'byte', 'double',
@@ -70,7 +67,7 @@ def convert_data_type(newtype):
     return wrap
 
 
-def create_assets(asset_ids, asset_type, mk_parents):
+def createAssets(asset_ids, asset_type, mk_parents):
     """Creates the specified assets if they do not exist.
     This is a fork of the original function in 'ee.data' module with the
     difference that
@@ -256,7 +253,7 @@ class Image(object):
         :rtype: ee.batch.Task
         """
         # Convert data type
-        image = convert_data_type(dataType)(image)
+        image = convertDataType(dataType)(image)
 
         # Check if the user is specified in the asset path
         is_user = (assetPath.split('/')[0] == 'users')
@@ -271,7 +268,7 @@ class Image(object):
         if create:
             # Recrusive create path
             path2create = assetPath #  '/'.join(assetPath.split('/')[:-1])
-            create_assets([path2create], to, True)
+            createAssets([path2create], to, True)
 
         # Region
         region = tools.geometry.getRegion(region)
@@ -332,7 +329,7 @@ class Image(object):
                 name = 'unknown_image'
 
         # convert data type
-        image = convert_data_type(dataType)(image)
+        image = convertDataType(dataType)(image)
 
         def unpack(thelist):
             unpacked = []
@@ -380,14 +377,18 @@ class Image(object):
 class ImageCollection(object):
 
     @staticmethod
-    def toDrive(col, folder, scale=30, dataType="float", region=None,
-                **kwargs):
+    def toDrive(collection, folder, namePattern='{id}', scale=30,
+                dataType="float", region=None, datePattern=None, **kwargs):
         """ Upload all images from one collection to Google Drive. You can use
         the same arguments as the original function
         ee.batch.export.image.toDrive
 
-        :param col: Collection to upload
-        :type col: ee.ImageCollection
+        :param collection: Collection to upload
+        :type collection: ee.ImageCollection
+        :param folder: Google Drive folder to export the images to
+        :type folder: str
+        :param namePattern: pattern for the name. See make_name function
+        :type namePattern: str
         :param region: area to upload. Defualt to the footprint of the first
             image in the collection
         :type region: ee.Geometry.Rectangle or ee.Feature
@@ -401,36 +402,44 @@ class ImageCollection(object):
             "double", "int", "Uint8", "Int8" or a casting function like
             *ee.Image.toFloat*
         :type dataType: str
+        :param datePattern: pattern for date if specified in namePattern.
+            Defaults to 'yyyyMMdd'
+        :type datePattern: str
         :return: list of tasks
         :rtype: list
         """
-        size = col.size().getInfo()
-        alist = col.toList(size)
+        # empty tasks list
         tasklist = []
+        # get region
+        region = tools.geometry.getRegion(region)
+        # Make a list of images
+        img_list = collection.toList(collection.size())
 
-        if region is None:
-            region = ee.Image(alist.get(0)).geometry().getInfo()["coordinates"]
-        else:
-            region = tools.geometry.getRegion(region)
+        n = 0
+        while True:
+            try:
+                img = ee.Image(img_list.get(n))
 
-        for idx in range(0, size):
-            img = alist.get(idx)
-            img = ee.Image(img)
-            name = img.id().getInfo().split("/")[-1]
+                name = makeName(img, namePattern, datePattern)
 
-            # convert data type
-            img = convert_data_type(dataType)(img)
+                # convert data type
+                img = convertDataType(dataType)(img)
 
-            task = ee.batch.Export.image.toDrive(image=img,
-                                                 description=name,
-                                                 folder=folder,
-                                                 fileNamePrefix=name,
-                                                 region=region,
-                                                 scale=scale, **kwargs)
-            task.start()
-            tasklist.append(task)
-
-        return tasklist
+                task = ee.batch.Export.image.toDrive(image=img,
+                                                     description=name,
+                                                     folder=folder,
+                                                     fileNamePrefix=name,
+                                                     region=region,
+                                                     scale=scale, **kwargs)
+                task.start()
+                tasklist.append(task)
+                n += 1
+            except Exception as e:
+                error = str(e).split(':')
+                if error[0] == 'List.get':
+                    break
+                else:
+                    raise e
 
     @staticmethod
     def toAsset(col, assetPath, scale=30, region=None, create=True,
@@ -464,7 +473,7 @@ class ImageCollection(object):
         tasklist = []
 
         if create:
-            create_assets([assetPath], 'ImageCollection', True)
+            createAssets([assetPath], 'ImageCollection', True)
 
         if region is None:
             first_img = ee.Image(alist.get(0))
@@ -621,8 +630,6 @@ class FeatureCollection(object):
         thefile = downloadFile(url, filename, filetype)
         return thefile
 
-
-        return thefile
 
 class Execli(object):
     """ Class to hold the methods to retry calls to Earth Engine """

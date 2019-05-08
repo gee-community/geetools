@@ -5,10 +5,8 @@ Set of custom filters for Google Earth Engine.
 from __future__ import print_function
 import ee
 
-import ee.data
-if not ee.data._initialized: ee.Initialize()
 
-def date_range(range):
+def dateRange(range):
     """ Filter by DateRange
 
     :param range: date range

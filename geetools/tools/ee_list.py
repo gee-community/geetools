@@ -2,14 +2,10 @@
 """ Tools for Earth Engine ee.List objects """
 
 import ee
-import ee.data
-
-if not ee.data._initialized:
-    ee.Initialize()
 
 
-def replace_many(eelist, to_replace):
-    """ Replace many elements of a Earth Engine List object
+def replaceDict(eelist, to_replace):
+    """ Replace many elements of a Earth Engine List object using a dictionary
 
         **EXAMPLE**
 
@@ -27,10 +23,15 @@ def replace_many(eelist, to_replace):
     :return: list with replaced values
     :rtype: ee.List
     """
-    for key, val in to_replace.items():
-        if val:
-            eelist = eelist.replace(key, val)
-    return eelist
+    eelist = ee.List(eelist)
+    to_replace = ee.Dictionary(to_replace)
+    keys = to_replace.keys()
+    def wrap(el):
+        # Convert to String
+        elstr = ee.Algorithms.String(el)
+        condition = ee.List(keys).indexOf(elstr)
+        return ee.Algorithms.If(condition.neq(-1), to_replace.get(elstr), el)
+    return eelist.map(wrap)
 
 
 def intersection(eelist, intersect):
@@ -41,6 +42,8 @@ def intersection(eelist, intersect):
     :return: list with the intersection (matching values)
     :rtype: ee.List
     """
+    eelist = ee.List(eelist)
+    intersect = ee.List(intersect)
     newlist = ee.List([])
     def wrap(element, first):
         first = ee.List(first)
@@ -62,8 +65,9 @@ def difference(eelist, to_compare):
         .flatten()
 
 
-def remove_duplicates(eelist):
+def removeDuplicates(eelist):
     """ Remove duplicated values from a EE list object """
+    # TODO: See ee.List.distinct()
     newlist = ee.List([])
     def wrap(element, init):
         init = ee.List(init)
@@ -72,7 +76,7 @@ def remove_duplicates(eelist):
     return ee.List(eelist.iterate(wrap, newlist))
 
 
-def get_from_dict(eelist, values):
+def getFromDict(eelist, values):
     """ Get a list of Dict's values from a list object. Keys must be unique
 
     :param values: dict to get the values for list's keys
@@ -110,6 +114,7 @@ def sequence(ini, end, step=1):
 
 
 def removeIndex(list, index):
+    """ Remove an element by its index """
     list = ee.List(list)
     index = ee.Number(index)
     size = list.size()

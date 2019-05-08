@@ -13,8 +13,6 @@ import json
 import math
 from uuid import uuid4
 
-if not ee.data._initialized: ee.Initialize()
-
 
 class Map(folium.Map):
 
@@ -47,7 +45,7 @@ class Map(folium.Map):
         info = geometry.getInfo()
         type = info['type']
         coords = info['coordinates']
-        coords = inverse_coordinates(coords)
+        coords = inverseCoordinates(coords)
 
         if data:
             # Try to get the image scale
@@ -56,7 +54,7 @@ class Map(folium.Map):
             # Reduce if computed scale is too big
             scale = 1 if scale > 500 else scale
 
-            values = tools.image.get_value(data, geometry, scale, 'client')
+            values = tools.image.getValue(data, geometry, scale, 'client')
             val_str = ''
             for key, val in values.items():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
@@ -99,7 +97,7 @@ class Map(folium.Map):
         """
 
         def addImage(image):
-            params = get_image_tile(image, visParams, show, opacity)
+            params = getImageTile(image, visParams, show, opacity)
             layer = folium.TileLayer(attr=params['attribution'],
                                      name=name,
                                      overlay=params['overlay'],
@@ -108,7 +106,7 @@ class Map(folium.Map):
             return self
 
         def addGeoJson(geometry):
-            params = get_geojson_tile(geometry, name, inspect)
+            params = getGeojsonTile(geometry, name, inspect)
             geojson = json.dumps(params['geojson'])
             layer = features.GeoJson(geojson,
                                      name=name)
@@ -149,12 +147,12 @@ class Map(folium.Map):
         The zoom level, from 1 to 24. If unspecified, computed based on the object's bounding box.
         :return:
         """
-        bounds = get_bounds(eeObject)[0]
+        bounds = getBounds(eeObject)[0]
         self.fit_bounds([bounds[0], bounds[2]], max_zoom=zoom)
 
         return self
 
-def get_bounds(eeObject):
+def getBounds(eeObject):
     if isinstance(eeObject, list):
         bounds = eeObject
     else:
@@ -175,10 +173,10 @@ def get_bounds(eeObject):
         print("can't center object because it is unbounded")
         return None
 
-    bounds = inverse_coordinates(bounds)
+    bounds = inverseCoordinates(bounds)
     return bounds
 
-def get_default_vis(image, stretch=0.8):
+def getDefaultVis(image, stretch=0.8):
     bandnames = image.bandNames().getInfo()
 
     if len(bandnames) < 3:
@@ -221,7 +219,7 @@ def get_default_vis(image, stretch=0.8):
     max = limits[btype]
     return {'bands':bandnames, 'min':min, 'max':max}
 
-def is_point(item):
+def isPoint(item):
     """ Determine if the given list has the structure of a point. This is:
     it is a list or tuple with two int or float items """
     if isinstance(item, list) or isinstance(item, tuple):
@@ -236,27 +234,27 @@ def is_point(item):
     else:
         return False
 
-def inverse_coordinates(coords):
+def inverseCoordinates(coords):
     """ Inverse a set of coordinates (any nesting depth)
 
     :param coords: a nested list of points
     :type coords: list
     """
     newlist = []
-    if is_point(coords):
+    if isPoint(coords):
         return [coords[1], coords[0]]
     elif not isinstance(coords, list) and not isinstance(coords, tuple):
         raise ValueError('coordinates to inverse must be minimum a point')
     for i, it in enumerate(coords):
-        p = is_point(it)
+        p = isPoint(it)
         if not p and (isinstance(it, list) or isinstance(it, tuple)):
-            newlist.append(inverse_coordinates(it))
+            newlist.append(inverseCoordinates(it))
         else:
             newp = [it[1],it[0]]
             newlist.append(newp)
     return newlist
 
-def visparams_str2list(params):
+def visparamsStrToList(params):
     ''' Transform a string formated as needed by ee.data.getMapId to a list
 
     :param params: params to convert
@@ -270,7 +268,7 @@ def visparams_str2list(params):
         proxy_bands.append(band.strip())
     return proxy_bands
 
-def visparams_list2str(params):
+def visparamsListToStr(params):
     ''' Transform a list to a string formated as needed by
         ee.data.getMapId
 
@@ -288,8 +286,8 @@ def visparams_list2str(params):
         newbands = '{}'.format(params[0])
     return newbands
 
-def get_image_tile(image, visParams, show=True, opacity=None,
-                   overlay=True):
+def getImageTile(image, visParams, show=True, opacity=None,
+                 overlay=True):
 
     proxy = {}
     params = visParams if visParams else {}
@@ -307,14 +305,14 @@ def get_image_tile(image, visParams, show=True, opacity=None,
     # if the passed bands is a string formatted like required by GEE, get the
     # list out of it
     if isinstance(bands, str):
-        bands_list = visparams_str2list(bands)
-        bands_str = visparams_list2str(bands_list)
+        bands_list = visparamsStrToList(bands)
+        bands_str = visparamsListToStr(bands_list)
 
     # Transform list to getMapId format
     # ['b1', 'b2', 'b3'] == 'b1, b2, b3'
     if isinstance(bands, list):
         bands_list = bands
-        bands_str = visparams_list2str(bands)
+        bands_str = visparamsListToStr(bands)
 
     # Set proxy parameteres
     proxy['bands'] = bands_str
@@ -324,7 +322,7 @@ def get_image_tile(image, visParams, show=True, opacity=None,
 
     # if the passed min is a list, convert to the format required by GEE
     if isinstance(themin, list):
-        themin = visparams_list2str(themin)
+        themin = visparamsListToStr(themin)
 
     proxy['min'] = themin
 
@@ -352,7 +350,7 @@ def get_image_tile(image, visParams, show=True, opacity=None,
     # if the passed max is a list or the max is computed by the default function
     # convert to the format required by GEE
     if isinstance(themax, list):
-        themax = visparams_list2str(themax)
+        themax = visparamsListToStr(themax)
 
     proxy['max'] = themax
 
@@ -361,7 +359,7 @@ def get_image_tile(image, visParams, show=True, opacity=None,
         if len(bands_list) == 1:
             palette = params.get('palette')
             if isinstance(palette, str):
-                palette = visparams_str2list(palette)
+                palette = visparamsStrToList(palette)
             toformat = '{},'*len(palette)
             palette = toformat[:-1].format(*palette)
             proxy['palette'] = palette
@@ -384,7 +382,7 @@ def get_image_tile(image, visParams, show=True, opacity=None,
             'visParams': proxy,
             }
 
-def feature_properties_output(feat):
+def featurePropertiesOutput(feat):
     ''' generates a string for features properties '''
     info = feat.getInfo()
     properties = info['properties']
@@ -394,8 +392,8 @@ def feature_properties_output(feat):
         stdout += '<b>{}</b>: {}</br>'.format(prop, value)
     return stdout
 
-def get_geojson_tile(geometry, name=None,
-                     inspect={'data':None, 'reducer':None, 'scale':None}):
+def getGeojsonTile(geometry, name=None,
+                   inspect={'data':None, 'reducer':None, 'scale':None}):
     ''' Get a GeoJson giving a ee.Geometry or ee.Feature '''
 
     if isinstance(geometry, ee.Feature):
@@ -417,12 +415,12 @@ def get_geojson_tile(geometry, name=None,
     if type in gjson_types:
         data = inspect['data']
         if feat:
-            default_popup = feature_properties_output(feat)
+            default_popup = featurePropertiesOutput(feat)
         else:
             default_popup = type
         red = inspect.get('reducer','first')
         sca = inspect.get('scale', None)
-        popval = get_data(geometry, data, red, sca, name) if data else default_popup
+        popval = getData(geometry, data, red, sca, name) if data else default_popup
         geojson = geometry.getInfo()
 
         return {'geojson':geojson,
@@ -431,7 +429,7 @@ def get_geojson_tile(geometry, name=None,
     else:
         print('unrecognized object type to add to map')
 
-def get_zoom(bounds, method=1):
+def getZoom(bounds, method=1):
     '''
     as ipyleaflet does not have a fit bounds method, try to get the zoom to fit
 
@@ -486,7 +484,7 @@ def get_zoom(bounds, method=1):
     return finalzoom
 
 # TODO: Multiple dispatch! https://www.artima.com/weblogs/viewpost.jsp?thread=101605
-def get_data(geometry, obj, reducer='first', scale=None, name=None):
+def getData(geometry, obj, reducer='first', scale=None, name=None):
     ''' Get data from an ee.ComputedObject using a giving ee.Geometry '''
     accepted = (ee.Image, ee.ImageCollection, ee.Feature, ee.FeatureCollection)
 
@@ -506,7 +504,7 @@ def get_data(geometry, obj, reducer='first', scale=None, name=None):
         # Reduce if computed scale is too big
         scale = 1 if scale > 500 else scale
         if t == 'Point':
-            values = tools.image.get_value(obj, geometry, scale, 'client')
+            values = tools.image.getValue(obj, geometry, scale, 'client')
             val_str = '<h3>Data from {}'.format(name)
             for key, val in values.items():
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
@@ -519,7 +517,7 @@ def get_data(geometry, obj, reducer='first', scale=None, name=None):
                 val_str += '<b>{}:</b> {}</br>'.format(key, val)
             return val_str
 
-def create_html(dictionary, nest=0, ini='', indent=2):
+def createHTML(dictionary, nest=0, ini='', indent=2):
     """ Create a HTML output from a dict object
 
     :param nest: nesting level to start (defaults to 0)
@@ -537,21 +535,21 @@ def create_html(dictionary, nest=0, ini='', indent=2):
             line = '{}<b>{}</b>:</br>'.format('&nbsp;'*nest, key)
             ini += line
             newnest = nest+indent
-            ini = create_html(val, newnest, ini)
+            ini = createHTML(val, newnest, ini)
         elif isinstance(val, list):
             # tranform list to a dictionary
             dictval = {k: v for k, v in enumerate(val)}
             line = '{}<b>{}</b>:</br>'.format('&nbsp;'*nest, key)
             ini += line
             newnest = nest+indent
-            ini = create_html(dictval, newnest, ini)
+            ini = createHTML(dictval, newnest, ini)
         else:
             line = '{}<b>{}</b>: {}</br>'.format('&nbsp;'*nest, key, val)
             ini += line
 
     return ini
 
-def create_html_table(header, rows):
+def createHTMLTable(header, rows):
     ''' Create a HTML table
 
     :param header: a list of headers

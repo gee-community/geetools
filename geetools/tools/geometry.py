@@ -3,9 +3,30 @@
 import ee
 import ee.data
 
-if not ee.data._initialized:
-    ee.Initialize()
 
+UNBOUNDED = [[[-180.0, -90.0], [180.0, -90.0],
+              [180.0, 90.0], [-180.0, 90.0],
+              [-180.0, -90.0]]]
+
+UNBOUNDED_2 = [[[None, None], [None, None],
+                [None, None], [None, None],
+                [None, None]]]
+
+
+def isUnbounded(geometry):
+    """ Check if the geometry is unbounded using the module's definition of
+    unboundness. It's a client-side function. For server-side function use
+
+    `ee.Geometry.isUnbounded()`
+    """
+    bounds = geometry.getInfo()['coordinates']
+    check1 = bounds == UNBOUNDED
+    check2 = bounds == UNBOUNDED_2
+
+    if (check1 or check2):
+        return True
+    else:
+        return False
 
 UNBOUNDED = [[[-180.0, -90.0], [180.0, -90.0],
               [180.0, 90.0], [-180.0, 90.0],

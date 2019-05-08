@@ -1,30 +1,13 @@
 # coding=utf-8
 """ Module holding tools for creating composites """
 import ee
-import ee.data
-
-if not ee.data._initialized:
-    ee.Initialize()
-
-from . import today, tools, algorithms, wrapper
-from .collection import Landsat
+from . import tools, algorithms
 
 
-def medoid(collection, bands=None, discard_zeros=False):
-    """ Medoid Composite
-
-    :param collection: the collection to composite
-    :type collection: ee.ImageCollection
-    :param bands: the bands to use for computation. The composite will include
-        all bands
-    :type bands: list
-    :param discard_zeros: Masked and pixels with value zero will not be use
-        for computation. Improves dark zones.
-    :type discard_zeros: bool
-    :return: the Medoid Composite
-    :rtype: ee.Image
-    """
-
+def medoidScore(collection, bands=None, discard_zeros=False,
+                bandname='sumdist', normalize=True):
+    """ Compute a score to reflect 'how far' is from the medoid. Same params
+     as medoid() """
     first_image = ee.Image(collection.first())
     if not bands:
         bands = first_image.bandNames()
@@ -49,21 +32,66 @@ def medoid(collection, bands=None, discard_zeros=False):
 
         # Compute the sum of the euclidean distance between the current image
         # and every image in the rest of the collection
-        # multiply by -1 to get the lowest value in the qualityMosaic
-        dist = algorithms.sum_distance(
-            to_process, filtered, discard_zeros=discard_zeros).multiply(-1)
+        dist = algorithms.sumDistance(
+            to_process, filtered,
+            name=bandname,
+            discard_zeros=discard_zeros)
+
+        # Mask zero values
+        if not normalize:
+            # multiply by -1 to get the lowest value in the qualityMosaic
+            dist = dist.multiply(-1)
+
         return im.addBands(dist)
 
     imlist = ee.List(collist.map(over_list))
 
     medcol = ee.ImageCollection.fromImages(imlist)
+
+    # Normalize result to be between 0 and 1
+    if normalize:
+        min_sumdist = ee.Image(medcol.select(bandname).min())\
+                        .rename('min_sumdist')
+        max_sumdist = ee.Image(medcol.select(bandname).max()) \
+                        .rename('max_sumdist')
+
+        def to_normalize(img):
+            sumdist = img.select(bandname)
+            newband = ee.Image().expression(
+                '1-((val-min)/(max-min))',
+                {'val': sumdist,
+                 'min': min_sumdist,
+                 'max': max_sumdist}
+            ).rename(bandname)
+            return tools.image.replace(img, bandname, newband)
+
+        medcol = medcol.map(to_normalize)
+
+    return medcol
+
+
+def medoid(collection, bands=None, discard_zeros=False):
+    """ Medoid Composite
+
+    :param collection: the collection to composite
+    :type collection: ee.ImageCollection
+    :param bands: the bands to use for computation. The composite will include
+        all bands
+    :type bands: list
+    :param discard_zeros: Masked and pixels with value zero will not be use
+        for computation. Improves dark zones.
+    :type discard_zeros: bool
+    :return: the Medoid Composite
+    :rtype: ee.Image
+    """
+    medcol = medoidScore(collection, bands, discard_zeros)
     comp = medcol.qualityMosaic('sumdist')
     final = tools.image.removeBands(comp, ['sumdist', 'mask'])
     return final
 
 
-def closest_date(collection, target_date, mask_band=None, property_name=None,
-                 clip_to_first=False, limit=50):
+def closestDate(collection, target_date, mask_band=None, property_name=None,
+                clip_to_first=False, limit=50):
     """ Get the image closest to the given date, and fill masked values in
     that image with values from the closest date. Images must be already
     masked. Use parameter `limit` for better speed
@@ -87,7 +115,7 @@ def closest_date(collection, target_date, mask_band=None, property_name=None,
     :type property_name: str
     """
     # Merge images from a single day
-    collection = tools.imagecollection.reduce_equal_interval(collection, 1)
+    collection = tools.imagecollection.mosaicSameDay(collection)
 
     # HELPER
     def get_mask(img):
@@ -110,7 +138,7 @@ def closest_date(collection, target_date, mask_band=None, property_name=None,
 
     # add date band
     def add_date(img):
-        date_band = tools.date.get_date_band(img)
+        date_band = tools.date.getDateBand(img)
         return img.addBands(date_band)
     new = new.map(add_date)
 

@@ -3,7 +3,6 @@
 
 import ee
 import ee.data
-if not ee.data._initialized: ee.Initialize()
 
 
 class SNIC(object):
@@ -38,6 +37,6 @@ class SNIC(object):
 
         return self.original.reproject(projection)
 
-    def extract_features(self, func):
+    def extractFeatures(self, func):
         """ Extract features in each cluster given a function """
         pass
