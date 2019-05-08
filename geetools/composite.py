@@ -115,7 +115,7 @@ def closestDate(collection, target_date, mask_band=None, property_name=None,
     :type property_name: str
     """
     # Merge images from a single day
-    collection = tools.imagecollection.reduceEqualInterval(collection, 1)
+    collection = tools.imagecollection.mosaicSameDay(collection)
 
     # HELPER
     def get_mask(img):
