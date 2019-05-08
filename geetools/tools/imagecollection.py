@@ -107,6 +107,23 @@ def fillWithLast(collection):
     return ee.ImageCollection.fromImages(newcol)
 
 
+def mergeGeometries(collection):
+    """ Merge the geometries of many images. Return ee.Geometry """
+    imlist = collection.toList(collection.size())
+
+    first = ee.Image(imlist.get(0))
+    rest = imlist.slice(1)
+
+    def wrap(img, ini):
+        ini = ee.Geometry(ini)
+        img = ee.Image(img)
+        geom = img.geometry()
+        union = geom.union(ini)
+        return union.dissolve()
+
+    return ee.Geometry(rest.iterate(wrap, first.geometry()))
+
+
 def mosaicSameDay(collection, reducer=None):
     """ Return a collection where images from the same day are mosaicked
 
@@ -118,7 +135,7 @@ def mosaicSameDay(collection, reducer=None):
     :rtype: ee.ImageCollection
     """
     if reducer is None:
-        reducer = ee.Reducer.first()
+        reducer = ee.Reducer.mean()
 
     def make_date_list(img, l):
         l = ee.List(l)
@@ -138,14 +155,20 @@ def mosaicSameDay(collection, reducer=None):
 
     def make_col(date):
         date = ee.Date(date)
-        filtered = collection.filterDate(date, date.advance(1, 'day'))
-        first_img = ee.Image(filtered.first())
-        mosaic = filtered.reduce(reducer).set('system:time_start',
-                                              date.millis())
+        def wrap(img):
+            e = image_module.emptyBackground(img, -9999)
+            return e.updateMask(e.neq(-9999))
+
+        filtered = collection.filterDate(date, date.advance(1, 'day')).map(wrap)
+        first_img = ee.Image(collection.first())
+
+        mosaic = filtered.reduce(reducer).set(
+            'system:time_start', date.millis(),
+            'system:footprint', mergeGeometries(filtered)
+        )
         return mosaic.rename(first_img.bandNames())
 
     new_col = ee.ImageCollection.fromImages(date_list.map(make_col))
-
     return new_col
 
 
