@@ -426,6 +426,7 @@ class Landsat(object):
 
         :rtype: ee.Image
         """
+        original = image
         constants = {'pi': math.pi}
 
         ### HELPERS ###
@@ -783,6 +784,6 @@ class Landsat(object):
                 img = applyCFactor(img, bandName, coefficients)
             return img
 
-        image = adjustBands(image)
+        image = adjustBands(image).select(inputBandNames)
 
-        return image.select(inputBandNames)
+        return original.addBands(image, overwrite=True)
