@@ -20,7 +20,7 @@ import traceback
 import sys
 import ee
 
-ZOOM_SCALE = {
+ZOOM_SCALES = {
     0: 156543, 1: 78271, 2: 39135, 3: 19567, 4: 9783, 5: 4891, 6: 2445,
     7: 1222, 8: 611, 9: 305, 10: 152, 11: 76, 12: 38, 13: 19, 14: 9, 15: 5,
     16: 2, 17: 1, 18: 0.5, 19: 0.3, 20: 0.15, 21: 0.07, 22: 0.03,
@@ -127,7 +127,7 @@ class Map(ipyleaflet.Map):
         self.EELayers = copyEELayers
 
     def _remove_EELayer(self, name):
-        ''' remove layer from EELayers '''
+        """ remove layer from EELayers """
         copyEELayers = copy(self.EELayers)
         if name in copyEELayers:
             copyEELayers.pop(name)
@@ -143,7 +143,7 @@ class Map(ipyleaflet.Map):
         self.layout = Layout(width=width, height=height)
 
     def moveLayer(self, layer_name, direction='up'):
-        ''' Move one step up a layer '''
+        """ Move one step up a layer """
         names = list(self.EELayers.keys())
         values = list(self.EELayers.values())
 
@@ -213,7 +213,8 @@ class Map(ipyleaflet.Map):
             while True:
                 list = ee.data.getTaskList()
 
-    def show(self, tabs=True, layer_control=True, draw_control=False):
+    def show(self, tabs=True, layer_control=True, draw_control=False,
+             fullscreen=True):
         """ Show the Map on the Notebook """
         if not self.is_shown:
             if layer_control:
@@ -222,11 +223,13 @@ class Map(ipyleaflet.Map):
                 self.add_control(lc)
             if draw_control:
                 # Draw Control
-                dc = ipyleaflet.DrawControl(# edit=False,
-                                            # marker={'shapeOptions': {}}
-                                            )
+                dc = ipyleaflet.DrawControl(edit=False)
                 dc.on_draw(self.handle_draw)
                 self.add_control(dc)
+            if fullscreen:
+                # Control
+                full_control = ipyleaflet.FullScreenControl()
+                self.add_control(full_control)
 
             if tabs:
                 display(self, self.tab_widget)
@@ -240,6 +243,8 @@ class Map(ipyleaflet.Map):
                 display(self)
 
         self.is_shown = True
+        # Start with crosshair cursor
+        self.default_style = {'cursor': 'crosshair'}
 
     def showTab(self, name):
         """ Show only a Tab Widget by calling its name. This is useful mainly
@@ -734,6 +739,12 @@ class Map(ipyleaflet.Map):
                 if handler:
                     self.on_interaction(handler)
 
+            # Set cursor type
+            if new_name == 'Inspector':
+                self.default_style = {'cursor': 'crosshair'}
+            else:
+                self.default_style = {'cursor': 'grab'}
+
     def handle_inspector(self, **change):
         """ Handle function for the Inspector Widget """
         # Get click coordinates
@@ -800,7 +811,7 @@ class Map(ipyleaflet.Map):
                     try:
                         image = obj['object']
                         values = tools.image.getValue(image, point,
-                                                      scale=ZOOM_SCALE[self.zoom],
+                                                      scale=ZOOM_SCALES[self.zoom],
                                                       side='client')
                         values = tools.dictionary.sort(values)
                         # Create the content
@@ -827,7 +838,7 @@ class Map(ipyleaflet.Map):
                     try:
                         collection = obj['object']
                         values = tools.imagecollection.getValues(
-                            collection, point, scale=ZOOM_SCALE[self.zoom],
+                            collection, point, scale=ZOOM_SCALES[self.zoom],
                             properties=['system:time_start'],
                             side='client')
 
@@ -944,6 +955,7 @@ class Map(ipyleaflet.Map):
         geom = self.draw_types[ty](coords)
         if action == 'created':
             self.addGeometry(geom)
+            dc_widget.clear()
         elif action == 'deleted':
             for key, val in self.EELayers.items():
                 if geom == val:
