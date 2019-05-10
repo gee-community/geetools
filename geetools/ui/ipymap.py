@@ -826,9 +826,10 @@ class Map(ipyleaflet.Map):
                     # Get the values from all images
                     try:
                         collection = obj['object']
-                        values = tools.image.get_values(collection, point, scale=1,
-                                                  properties=['system:time_start'],
-                                                  side='client')
+                        values = tools.imagecollection.getValues(
+                            collection, point, scale=ZOOM_SCALE[self.zoom],
+                            properties=['system:time_start'],
+                            side='client')
 
                         # header
                         allbands = [val.keys() for bands, val in values.items()]
