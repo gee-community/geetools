@@ -515,11 +515,13 @@ class TaskManager(VBox):
         self.failedVBox = VBox()
         self.canceledVBox = VBox()
         self.unknownVBox = VBox()
+        self.readyVBox = VBox()
 
         self.tab_widgets_rel = {'RUNNING': self.runningVBox,
                                 'COMPLETED': self.completedVBox,
                                 'FAILED': self.failedVBox,
                                 'CANCELLED': self.canceledVBox,
+                                'READY': self.readyVBox,
                                 'UNKNOWN': self.unknownVBox}
 
         # Create Tabs
@@ -595,9 +597,10 @@ class TaskManager(VBox):
                 failed_list = []
                 canceled_list = []
                 unknown_list = []
+                ready_list = []
                 all_list = {'RUNNING': running_list, 'COMPLETED': completed_list,
                             'FAILED': failed_list, 'CANCELLED': canceled_list,
-                            'UNKNOWN': unknown_list}
+                            'READY': ready_list, 'UNKNOWN': unknown_list}
                 for task in tasklist:
                     state = task['state']
                     accordion = create_accordion(task)
@@ -623,6 +626,7 @@ class TaskManager(VBox):
                 self.failedVBox.children = tuple(failed_list)
                 self.canceledVBox.children = tuple(canceled_list)
                 self.unknownVBox.children = tuple(unknown_list)
+                self.readyVBox.children = tuple(ready_list)
             except Exception as e:
                 self.selected_tab().children = (HTML(str(e)),)
         return wrap
