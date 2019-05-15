@@ -9,13 +9,124 @@ from .. import batch
 from .dispatcher import widgetDispatcher
 
 # imports for async widgets
-from threading import Thread
-from multiprocessing import Pool
+from .threading import Thread
 import time
+import datetime
 
 # import EE
 import ee
 
+
+def get_datetime(timestamp):
+    return datetime.datetime.fromtimestamp(float(timestamp)/1000)
+
+
+def format_timestamp(timestamp):
+    """ Format a POSIX timestamp given in milliseconds """
+    dt = get_datetime(timestamp)
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def format_ellapsed(secods):
+    if secods < 60:
+        return '{}s'.format(int(secods))
+    elif secods < 3600:
+        minutes = secods/60
+        seconds = (minutes-int(minutes))*60
+        return '{}m {}s'.format(int(minutes), int(seconds))
+    elif secods < 86400:
+        hours = secods/3600
+        minutes = (hours-int(hours))*60
+        seconds = (minutes-int(minutes))*60
+        return '{}h {}m {}s'.format(int(hours), int(minutes), int(seconds))
+    else:
+        days = secods/86400
+        hours = (days-int(days))*60
+        minutes = (hours-int(hours))*60
+        seconds = (minutes-int(minutes))*60
+        return '{}d {}h {}m {}s'.format(int(days), int(hours), int(minutes), int(seconds))
+
+
+def task_formatter(task):
+    """ Format a task and return a widget """
+    now_dt = datetime.datetime.now()
+    state = task.get('state')
+    task_id = task.get('id')
+    # UPDATED TIME
+    # updated = task.get('update_timestamp_ms')
+    # if updated:
+    #      update_ts = get_timestamp(updated)
+
+    # CREATION TIME
+    creation = task.get('creation_timestamp_ms')
+    created_str = format_timestamp(creation) if creation else ''
+
+    # ELLAPSED
+    if creation:
+        delta_ellapsed = now_dt - get_datetime(creation)
+        ellapsed = format_ellapsed(delta_ellapsed.total_seconds())
+    else:
+        ellapsed = ''
+
+    # TYPE
+    task_type = task.get('task_type')
+    # DESCRIPTION
+    description = task.get('description')
+    if state == 'READY':
+        html_str = """
+        <strong>created on:</strong> {creation}</br>
+        <strong>ellapsed since creation:</strong> {ellapsed}
+        """.format(creation=created_str, ellapsed=ellapsed)
+        widget = HTML(html_str)
+    elif state == 'RUNNING':
+        start = task.get('start_timestamp_ms')
+        start_dt = get_datetime(start)
+        start_str = format_timestamp(start)
+        running_td = now_dt - start_dt
+        running_str = format_ellapsed(running_td.total_seconds())
+        html_str = """
+        <strong>created on:</strong> {creation}</br>
+        <strong>started running on:</strong> {start}</br>
+        <strong>ellapsed since creation:</strong> {ellapsed}</br>
+        <strong>running:</strong> {running}
+        """.format(creation=created_str, ellapsed=ellapsed,
+                   running=running_str, start=start_str)
+        widget = HTML(html_str)
+    elif state == 'COMPLETED':
+        urls = task.get('output_url')
+        url = urls[0]
+
+        start = task.get('start_timestamp_ms')
+        start_dt = get_datetime(start)
+        start_str = format_timestamp(start)
+
+        finish = task.get('update_timestamp_ms')
+        finish_dt = get_datetime(finish)
+        finish_str = format_timestamp(finish)
+
+        running_td = finish_dt - start_dt
+        running_str = format_ellapsed(running_td.total_seconds())
+
+        html_str = """
+        <strong>created on:</strong> {creation}</br>
+        <strong>started running on:</strong> {start}</br>
+        <strong>finished running on:</strong> {finish}</br>
+        <strong>ellapsed since creation:</strong> {ellapsed}</br>
+        <strong>running:</strong> {running}</br>
+        <strong>URL:</strong> {url}
+        """.format(url=url, creation=created_str, ellapsed=ellapsed,
+                   running=running_str, start=start_str, finish=finish_str)
+        widget = HTML(html_str)
+    elif state == 'FAILED':
+        widget = create_accordion(task)
+    elif state == 'CANCELLED':
+        widget = create_accordion(task)
+    else:
+        widget = create_accordion(task)
+
+    widget.task_id = task_id
+    widget.task_state = state
+    return widget
 
 def create_accordion(dictionary):
     """ Create an Accordion output from a dict object """
@@ -494,7 +605,7 @@ class TaskManager(VBox):
                               tooltip='Refresh Tasks List')
         self.autorefresh = ToggleButton(description='auto-refresh',
                                         tooltip='click to enable/disable autorefresh')
-        self.slider = IntSlider(min=1, max=10, step=1, value=5)
+        self.slider = IntSlider(min=5, max=120, step=1, value=15)
         self.hbox = HBox([self.checkbox, self.refresh,
                           self.cancel_selected, self.cancel_all,
                           self.autorefresh, self.slider])
@@ -535,53 +646,38 @@ class TaskManager(VBox):
             self.tabs.children = self.tab_widgets
             self.tabs.set_title(key, val)
 
-        ''' autorefresh
-        def update_task_list(widget):
-            # widget is a VBox
-            tasklist = ee.data.getTaskList()
-            widlist = []
-            for task in tasklist:
-                accordion = create_accordion(task)
-                if task.has_key('description'):
-                    name = '{} ({})'.format(task['description'], task['state'])
-                else:
-                    name = '{} ({})'.format(task['output_url'][0].split('/')[-1], task['state'])
-                mainacc = Accordion(children=(accordion, ))
-                mainacc.set_title(0, name)
-                mainacc.selected_index = None
-                wid = CheckRow(mainacc)
-                #wid = CheckRow(accordion)
-                widlist.append(wid)
-            widget.children = tuple(widlist)
-
-        '''
-        def loop(widget):
-            while True:
-                self.update_task_list()(self.refresh)
-                time.sleep(self.slider.value)
-
         # First widget
-        self.update_task_list(vbox=self.runningVBox)(self.refresh)
+        self.update_task_list()
         # self.children = (self.hbox, self.taskVBox)
         self.children = (self.hbox, self.tabs)
 
         # Set on_click for refresh button
-        self.refresh.on_click(self.update_task_list(vbox=self.selected_tab()))
-        ''' autorefresh
-        thread = threading.Thread(target=loop, args=(self.taskVBox,))
-        thread.start()
-        '''
+        self.refresh.on_click(lambda refresh: self.update_task_list())
+
         # Set on_clicks
         self.cancel_all.on_click(self.cancel_all_click)
         self.cancel_selected.on_click(self.cancel_selected_click)
-        # self.autorefresh
+        self.autorefresh.observe(self.autorefresh_handler, names='value')
 
-    def autorefresh_loop(self):
-        pass
+    def autorefresh_loop(self, slider):
+        while True:
+            time.sleep(slider.value)
+            self.update_task_list()
+
+    def autorefresh_handler(self, change):
+        value = change['new']
+        owner = change['owner']
+        if value:
+            p = Thread(target=self.autorefresh_loop, args=(self.slider,))
+            p.start()
+            owner.process = p
+        else:
+            owner.process.terminate()
+            owner.process.join()
 
     def tab_handler(self, change):
         if change['name'] == 'selected_index':
-            self.update_task_list()(self.refresh)
+            self.update_task_list()
 
     def selected_tab(self):
         ''' get the selected tab '''
@@ -589,50 +685,43 @@ class TaskManager(VBox):
         tab_name = self.tab_index[index]
         return self.tab_widgets_rel[tab_name]
 
-    def update_task_list(self, **kwargs):
-        def wrap(button):
-            self.selected_tab().children = (HTML('Loading...'),)
-            try:
-                tasklist = ee.data.getTaskList()
-                # empty lists
-                running_list = []
-                completed_list = []
-                failed_list = []
-                canceled_list = []
-                unknown_list = []
-                ready_list = []
-                all_list = {'RUNNING': running_list, 'COMPLETED': completed_list,
-                            'FAILED': failed_list, 'CANCELLED': canceled_list,
-                            'READY': ready_list, 'UNKNOWN': unknown_list}
-                for task in tasklist:
-                    state = task['state']
-                    accordion = create_accordion(task)
-                    if task['state'] == 'COMPLETED':
-                        start = int(task['start_timestamp_ms'])
-                        end = int(task['creation_timestamp_ms'])
-                        seconds = float((start-end))/1000
-                        name = '{} ({} sec)'.format(task['output_url'][0].split('/')[-1],
-                                                         seconds)
-                    else:
-                        name = '{}'.format(task['description'])
-                    # Accordion for CheckRow widget
-                    mainacc = Accordion(children=(accordion, ))
-                    mainacc.set_title(0, name)
-                    mainacc.selected_index = None
-                    # CheckRow
-                    wid = CheckRow(mainacc)
-                    # Append widget to the CORRECT list
-                    all_list[state].append(wid)
-                # Assign Children
-                self.runningVBox.children = tuple(running_list)
-                self.completedVBox.children = tuple(completed_list)
-                self.failedVBox.children = tuple(failed_list)
-                self.canceledVBox.children = tuple(canceled_list)
-                self.unknownVBox.children = tuple(unknown_list)
-                self.readyVBox.children = tuple(ready_list)
-            except Exception as e:
-                self.selected_tab().children = (HTML(str(e)),)
-        return wrap
+    def update_task_list(self):
+        self.selected_tab().children = (HTML('Loading...'),)
+        try:
+            tasklist = ee.data.getTaskList()
+            # empty lists
+            running_list = []
+            completed_list = []
+            failed_list = []
+            canceled_list = []
+            unknown_list = []
+            ready_list = []
+            all_list = {'RUNNING': running_list, 'COMPLETED': completed_list,
+                        'FAILED': failed_list, 'CANCELLED': canceled_list,
+                        'READY': ready_list, 'UNKNOWN': unknown_list}
+            for task in tasklist:
+                state = task['state']
+                description = task['description']
+                task_type = task['task_type']
+                name = '{} ({})'.format(description, task_type)
+                # # Accordion for CheckRow widget
+                taskwidget = task_formatter(task)
+                mainacc = Accordion(children=(taskwidget, ))
+                mainacc.set_title(0, name)
+                mainacc.selected_index = None
+                # CheckRow
+                wid = CheckRow(mainacc)
+                # Append widget to the CORRECT list
+                all_list[state].append(wid)
+            # Assign Children
+            self.runningVBox.children = tuple(running_list)
+            self.completedVBox.children = tuple(completed_list)
+            self.failedVBox.children = tuple(failed_list)
+            self.canceledVBox.children = tuple(canceled_list)
+            self.unknownVBox.children = tuple(unknown_list)
+            self.readyVBox.children = tuple(ready_list)
+        except Exception as e:
+            self.selected_tab().children = (HTML(str(e)),)
 
     def get_selected(self):
         """ Get selected Tasks
@@ -664,22 +753,18 @@ class TaskManager(VBox):
                 return child.value
 
     def get_selected_taskid(self):
-        selected = self.get_selected()
+        """ Get selected Tasks ID
+
+        :return: a list of the selected task ids
+        """
         selected_wid = self.selected_tab() # VBox
         children = selected_wid.children
         taskid_list = []
-        for select in selected:
-            '''
-            checkrow = children[select]
-            mainacc = checkrow.widget
-            selectedacc = mainacc.children[0]
-            for n, child in enumerate(selectedacc.children):
-                title = selectedacc.get_title(n)
-                if title == 'id':
-                    taskid_list.append(child.value)
-            '''
-            taskid = self.get_taskid(select)
-            taskid_list.append(taskid)
+        for child in children:
+            html_wid = child.widget.children[0]
+            selected = child.checkbox.value
+            if selected:
+                taskid_list.append(html_wid.task_id)
 
         return taskid_list
 
@@ -690,7 +775,7 @@ class TaskManager(VBox):
                 ee.data.cancelTask(taskid)
             except:
                 continue
-        self.update_task_list()(self.refresh)
+        self.update_task_list()
 
     def cancel_all_click(self, button):
         selected_wid = self.selected_tab() # VBox
@@ -701,7 +786,7 @@ class TaskManager(VBox):
                 ee.data.cancelTask(taskid)
             except:
                 continue
-        self.update_task_list()(self.refresh)
+        self.update_task_list()
 
 
 class ConfirmationWidget(VBox):
