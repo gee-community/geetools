@@ -121,26 +121,13 @@ class Band(object):
 class Collection(object):
     """ Parent class for common operations """
     def __init__(self, **kwargs):
-        self._bands = None
-        self._id = None
+        self.id = kwargs.get('id', None)
+        self.bands = kwargs.get('bands', None)
         self.spacecraft = kwargs.get('spacecraft', None)
         self.start_date = kwargs.get('start_date', None)
         self.end_date = kwargs.get('end_date', None)
         self.cloud_cover = kwargs.get('cloud_cover', None)
         self.algorithms = kwargs.get('algorithms', {})
-
-    @property
-    def bands(self):
-        if not self._bands:
-            self._bands = None
-        return self._bands
-
-    @property
-    def id(self):
-        """ Google Earth Engine ID """
-        if not self._id:
-            self._id = None
-        return self._id
 
     @property
     def collection(self):

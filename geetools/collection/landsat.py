@@ -96,15 +96,6 @@ class Landsat(Collection):
         self.cloud_cover = 'CLOUD_COVER'
         self.spacecraft = 'LANDSAT'
 
-        # Properties to compute
-        self._id = None
-        self._bands = None
-        self._scales = None
-        self._ranges = None
-        self._thermal_bands = None
-        self._optical_bands = None
-        self._quality_bands = None
-
         # set algorithms
         self.algorithms['brdf'] = self.brdf
         self.algorithms['harmonize'] = self.harmonize
@@ -113,6 +104,12 @@ class Landsat(Collection):
         # dates
         self.start_date = START[self.number]
         self.end_date = END[self.number]
+
+        # ID
+        self.id = self._make_id()
+
+        # BANDS
+        self.bands = self._make_bands()
 
     @staticmethod
     def fromId(id):
@@ -139,233 +136,226 @@ class Landsat(Collection):
 
         return Landsat(number, process, sensor, int(tier[1]))
 
-    @property
-    def id(self):
-        """ Google Earth Engine ID """
-        if not self._id:
-            self._id = 'LANDSAT/{}/C01/{}{}'.format(
-                NUMBER_ID[self.number][self.sensor],
-                TIER_ID[self.tier],
-                PROCESS_ID[self.process])
+    def _make_id(self):
+        """ Make ID from parsed data """
+        return 'LANDSAT/{}/C01/{}{}'.format(
+            NUMBER_ID[self.number][self.sensor],
+            TIER_ID[self.tier],
+            PROCESS_ID[self.process])
 
-        return self._id
+    def _make_bands(self):
+        """ Band's name relation. Return a list of bands (Band instances) """
+        band = [None]*20
+        number = self.number
+        process = self.process
+        sensor = self.sensor
 
-    @property
-    def bands(self):
-        """ Band's name relation. Return a dict """
-        if not self._bands:
-            band = [None]*20
-            number = self.number
-            process = self.process
-            sensor = self.sensor
+        max_raw_8 = 65535
+        max_raw = 255
+        max_toa_optical = 1
+        max_toa_thermal = 1000
+        max_sr = 10000
 
-            max_raw_8 = 65535
-            max_raw = 255
-            max_toa_optical = 1
-            max_toa_thermal = 1000
-            max_sr = 10000
+        # 457 SR
+        atm_op = Band('sr_atmos_opacity', 'atmos_opacity', 'int16', 30,
+                      -32768, 32767, reference='classification')
+        cloud_qa_bits = {'0': {1:'ddv'},
+                         '1': {1:'cloud'},
+                         '2': {1:'shadow'},
+                         '3': {1:'adjacent'},
+                         '4': {1:'snow'},
+                         '5': {1:'water'}}
+        sr_cloud_qa = Band('sr_cloud_qa', 'cloud_qa', 'uint8', 30,
+                           reference='bits', bits=cloud_qa_bits)
 
-            # 457 SR
-            atm_op = Band('sr_atmos_opacity', 'atmos_opacity', 'int16', 30,
-                          -32768, 32767, reference='classification')
-            cloud_qa_bits = {'0': {1:'ddv'},
-                             '1': {1:'cloud'},
-                             '2': {1:'shadow'},
-                             '3': {1:'adjacent'},
-                             '4': {1:'snow'},
-                             '5': {1:'water'}}
-            sr_cloud_qa = Band('sr_cloud_qa', 'cloud_qa', 'uint8', 30,
-                               reference='bits', bits=cloud_qa_bits)
+        pixel_qa = Band('pixel_qa', 'pixel_qa', 'uint16', 30,
+                        reference='bits')
 
-            pixel_qa = Band('pixel_qa', 'pixel_qa', 'uint16', 30,
-                            reference='bits')
+        radsat_qa_457 = Band('radsat_qa', 'radsat_qa', 'uint8', 30,
+                             reference='bits',
+                             bits={
+                                 1: {1:'B1_saturated'},
+                                 2: {1:'B2_saturated'},
+                                 3: {1:'B3_saturated'},
+                                 4: {1:'B4_saturated'},
+                                 5: {1:'B5_saturated'},
+                                 6: {1:'B6_saturated'},
+                                 7: {1:'B7_saturated'},
+                             })
 
-            radsat_qa_457 = Band('radsat_qa', 'radsat_qa', 'uint8', 30,
-                                 reference='bits',
-                                 bits={
-                                     1: {1:'B1_saturated'},
-                                     2: {1:'B2_saturated'},
-                                     3: {1:'B3_saturated'},
-                                     4: {1:'B4_saturated'},
-                                     5: {1:'B5_saturated'},
-                                     6: {1:'B6_saturated'},
-                                     7: {1:'B7_saturated'},
-                                 })
+        radsat_qa_8 = Band('radsat_qa', 'radsat_qa', 'uint16', 30,
+                           reference='bits',
+                           bits={
+                               1: {1:'B1_saturated'},
+                               2: {1:'B2_saturated'},
+                               3: {1:'B3_saturated'},
+                               4: {1:'B4_saturated'},
+                               5: {1:'B5_saturated'},
+                               6: {1:'B6_saturated'},
+                               7: {1:'B7_saturated'},
+                               9: {1:'B9_saturated'},
+                               10: {1:'B10_saturated'},
+                               11: {1:'B11_saturated'},
+                           })
 
-            radsat_qa_8 = Band('radsat_qa', 'radsat_qa', 'uint16', 30,
-                               reference='bits',
-                               bits={
-                                   1: {1:'B1_saturated'},
-                                   2: {1:'B2_saturated'},
-                                   3: {1:'B3_saturated'},
-                                   4: {1:'B4_saturated'},
-                                   5: {1:'B5_saturated'},
-                                   6: {1:'B6_saturated'},
-                                   7: {1:'B7_saturated'},
-                                   9: {1:'B9_saturated'},
-                                   10: {1:'B10_saturated'},
-                                   11: {1:'B11_saturated'},
-                               })
+        bqa = Band('BQA', 'bqa', 'uint16', 30, reference='bits',
+                   bits={'4': {1:'cloud'},
+                         '5-6': {3:'high_confidence_cloud'},
+                         '7-8': {3:'shadow'},
+                         '9-10': {3:'snow'}})
 
-            bqa = Band('BQA', 'bqa', 'uint16', 30, reference='bits',
-                       bits={'4': {1:'cloud'},
-                             '5-6': {3:'high_confidence_cloud'},
-                             '7-8': {3:'shadow'},
-                             '9-10': {3:'snow'}})
+        sr_aerosol = Band('sr_aerosol', 'sr_aerosol', 'uint8', 30,
+                          reference='bits',
+                          bits={
+                              '3': {1: 'water'},
+                              '6-7': {0: 'climatology',
+                                      1: 'low',
+                                      2:'medium',
+                                      3: 'high'}
+                          })
 
-            sr_aerosol = Band('sr_aerosol', 'sr_aerosol', 'uint8', 30,
-                              reference='bits',
-                              bits={
-                                  '3': {1: 'water'},
-                                  '6-7': {0: 'climatology',
-                                          1: 'low',
-                                          2:'medium',
-                                          3: 'high'}
-                              })
+        if sensor in ['MSS']:
+            green = Band('B1', 'green', 'int8', 60, 0, 255, 'optical')
+            red = Band('B2', 'red', 'int8', 60, 0, 255, 'optical')
+            nir = Band('B3', 'nir', 'int8', 60, 0, 255, 'optical')
+            nir2 = Band('B4', 'nir2', 'int8', 30, 0, 255, 'optical')
+            qa = Band('BQA', 'bqa', 'int16', 60, reference='bits',
+                       bits={'4': {1: 'cloud'}})
+            if number in [1, 2, 3]:
+                green.id = 'B4'
+                red.id = 'B5'
+                nir.id = 'B6'
+                nir2.id = 'B7'
+            band[0] = green
+            band[1] = red
+            band[2] = nir
+            band[3] = nir2
+            band[4] = qa
 
-            if sensor in ['MSS']:
-                green = Band('B1', 'green', 'int8', 60, 0, 255, 'optical')
-                red = Band('B2', 'red', 'int8', 60, 0, 255, 'optical')
-                nir = Band('B3', 'nir', 'int8', 60, 0, 255, 'optical')
-                nir2 = Band('B4', 'nir2', 'int8', 30, 0, 255, 'optical')
-                qa = Band('BQA', 'bqa', 'int16', 60, reference='bits',
-                           bits={'4': {1: 'cloud'}})
-                if number in [1, 2, 3]:
-                    green.id = 'B4'
-                    red.id = 'B5'
-                    nir.id = 'B6'
-                    nir2.id = 'B7'
-                band[0] = green
-                band[1] = red
-                band[2] = nir
-                band[3] = nir2
-                band[4] = qa
+        # Opticals
+        if number in [4, 5, 7]:
+            common = dict(scale=30, reference='optical')
+            band[0] = Band('B1', 'blue', **common)
+            band[1] = Band('B2', 'green', **common)
+            band[2] = Band('B3', 'red', **common)
+            band[3] = Band('B4', 'nir', **common)
+            band[4] = Band('B5', 'swir', **common)
+            band[5] = Band('B6', 'thermal', scale=30, reference='thermal')
+            band[6] = Band('B7', 'swir2', **common)
+            if process in ['SR']:
+                # set precision for SR
+                for b in band:
+                    if not b: continue
+                    b.precision = 'int16'
+                    b.min = 0
+                    b.max = max_sr
+                band[7] = atm_op
+                band[8] = sr_cloud_qa
+                pixel_qa.bits = {'1': {1:'clear'}, '2': {1:'water'},
+                                 '3': {1:'shadow'}, '4': {1:'snow'},
+                                 '5': {1:'cloud'},
+                                 '6-7':{3:'high_confidence_cloud'}}
+                band[9] = pixel_qa
+                band[10] = radsat_qa_457
+            if process in ['TOA']:
+                for b in band:
+                    if not b: continue
+                    b.precision = 'float'
+                    b.min = 0
+                    b.max = max_toa_optical
+            if process in ['RAW']:
+                for b in band:
+                    if not b: continue
+                    b.precision = 'uint8'
+                    b.min = 0
+                    b.max = max_raw
 
-            # Opticals
-            if number in [4, 5, 7]:
-                common = dict(scale=30, reference='optical')
-                band[0] = Band('B1', 'blue', **common)
-                band[1] = Band('B2', 'green', **common)
-                band[2] = Band('B3', 'red', **common)
-                band[3] = Band('B4', 'nir', **common)
-                band[4] = Band('B5', 'swir', **common)
-                band[5] = Band('B6', 'thermal', scale=30, reference='thermal')
-                band[6] = Band('B7', 'swir2', **common)
-                if process in ['SR']:
-                    # set precision for SR
-                    for b in band:
-                        if not b: continue
-                        b.precision = 'int16'
-                        b.min = 0
-                        b.max = max_sr
-                    band[7] = atm_op
-                    band[8] = sr_cloud_qa
-                    pixel_qa.bits = {'1': {1:'clear'}, '2': {1:'water'},
-                                     '3': {1:'shadow'}, '4': {1:'snow'},
-                                     '5': {1:'cloud'},
-                                     '6-7':{3:'high_confidence_cloud'}}
-                    band[9] = pixel_qa
-                    band[10] = radsat_qa_457
-                if process in ['TOA']:
-                    for b in band:
-                        if not b: continue
-                        b.precision = 'float'
-                        b.min = 0
+        # BQA
+        if number in [4, 5] and process in ['RAW', 'TOA']:
+            band[7] = bqa
+
+        if number in [7] and process in ['RAW', 'TOA']:
+            band[9] = bqa
+            # change swir2 from position 6 to 7
+            band[7] = band[6]
+
+        # B6_VCID_1/2 bands. Overwrites band 5 set before
+        if number in [7] and process in ['TOA']:
+            band[5] = Band('B6_VCID_1', 'thermal', 'float', 30, 0,
+                           max_toa_thermal, reference='thermal')
+            band[6] = Band('B6_VCID_2', 'thermal2', 'float', 30, 0,
+                           max_toa_thermal, reference='thermal')
+            # set pan band
+            band[8] = Band('B8', 'pan', 'float', 15, 0, max_toa_optical,
+                           reference='optical')
+
+        if number in [7] and process in ['RAW']:
+            band[5] = Band('B6_VCID_1', 'thermal', 'uint8', 30, 0, max_raw,
+                           reference='thermal')
+            band[6] = Band('B6_VCID_2', 'thermal2', 'uint8', 30, 0,
+                           max_raw, reference='thermal')
+            # set pan band
+            band[8] = Band('B8', 'pan', 'uint8', 15, 0, max_raw,
+                           reference='optical')
+
+        if self.number == 8:
+            common = dict(scale=30)
+            thermal = Band('B10', 'thermal', reference='thermal', **common)
+            thermal2 = Band('B11', 'thermal2', reference='thermal',**common)
+            pan = Band('B8', 'pan', reference='optical', scale=15)
+            cirrus = Band('B9', 'cirrus', reference='optical', scale=15)
+
+            band[0] = Band('B1', 'aerosol', reference='optical', **common)
+            band[1] = Band('B2', 'blue', reference='optical', **common)
+            band[2] = Band('B3', 'green', reference='optical', **common)
+            band[3] = Band('B4', 'red', reference='optical',**common)
+            band[4] = Band('B5', 'nir', reference='optical',**common)
+            band[5] = Band('B6', 'swir', reference='optical',**common)
+            band[6] = Band('B7', 'swir2', reference='optical', **common)
+            if process in ['SR']:
+                band[7] = thermal
+                band[8] = thermal2
+                for b in band:
+                    if not b: continue
+                    b.precision = 'int16'
+                    b.min = 0
+                    b.max = max_sr
+                band[9] = sr_aerosol
+                pixel_qa.bits = {'1': {1:'clear'}, '2': {1:'water'},
+                                 '3': {1:'shadow'}, '4': {1:'snow'},
+                                 '5': {1:'cloud'},
+                                 '6-7':{3:'high_confidence_cloud'},
+                                 '8-9':{3:'high_confidence_cirrus'}
+                                 }
+                band[10] = pixel_qa
+                band[11] = radsat_qa_8
+            if process in ['TOA']:
+                band[7] = pan
+                band[8] = cirrus
+                band[9] = thermal
+                band[10] = thermal2
+                for b in band:
+                    if not b: continue
+                    b.precision = 'float'
+                    b.min = 0
+                    if b.reference == 'optical':
                         b.max = max_toa_optical
-                if process in ['RAW']:
-                    for b in band:
-                        if not b: continue
-                        b.precision = 'uint8'
-                        b.min = 0
-                        b.max = max_raw
+                    elif b.reference == 'thermal':
+                        b.max = max_toa_thermal
+                band[11] = bqa
+            if process in ['RAW']:
+                band[7] = pan
+                band[8] = cirrus
+                band[9] = thermal
+                band[10] = thermal2
+                for b in band:
+                    if not b: continue
+                    b.precision = 'uint16'
+                    b.min = 0
+                    b.max = max_raw_8
+                band[11] = bqa
 
-            # BQA
-            if number in [4, 5] and process in ['RAW', 'TOA']:
-                band[7] = bqa
-
-            if number in [7] and process in ['RAW', 'TOA']:
-                band[9] = bqa
-                # change swir2 from position 6 to 7
-                band[7] = band[6]
-
-            # B6_VCID_1/2 bands. Overwrites band 5 set before
-            if number in [7] and process in ['TOA']:
-                band[5] = Band('B6_VCID_1', 'thermal', 'float', 30, 0,
-                               max_toa_thermal, reference='thermal')
-                band[6] = Band('B6_VCID_2', 'thermal2', 'float', 30, 0,
-                               max_toa_thermal, reference='thermal')
-                # set pan band
-                band[8] = Band('B8', 'pan', 'float', 15, 0, max_toa_optical,
-                               reference='optical')
-
-            if number in [7] and process in ['RAW']:
-                band[5] = Band('B6_VCID_1', 'thermal', 'uint8', 30, 0, max_raw,
-                               reference='thermal')
-                band[6] = Band('B6_VCID_2', 'thermal2', 'uint8', 30, 0,
-                               max_raw, reference='thermal')
-                # set pan band
-                band[8] = Band('B8', 'pan', 'uint8', 15, 0, max_raw,
-                               reference='optical')
-
-            if self.number == 8:
-                common = dict(scale=30)
-                thermal = Band('B10', 'thermal', reference='thermal', **common)
-                thermal2 = Band('B11', 'thermal2', reference='thermal',**common)
-                pan = Band('B8', 'pan', reference='optical', scale=15)
-                cirrus = Band('B9', 'cirrus', reference='optical', scale=15)
-
-                band[0] = Band('B1', 'aerosol', reference='optical', **common)
-                band[1] = Band('B2', 'blue', reference='optical', **common)
-                band[2] = Band('B3', 'green', reference='optical', **common)
-                band[3] = Band('B4', 'red', reference='optical',**common)
-                band[4] = Band('B5', 'nir', reference='optical',**common)
-                band[5] = Band('B6', 'swir', reference='optical',**common)
-                band[6] = Band('B7', 'swir2', reference='optical', **common)
-                if process in ['SR']:
-                    band[7] = thermal
-                    band[8] = thermal2
-                    for b in band:
-                        if not b: continue
-                        b.precision = 'int16'
-                        b.min = 0
-                        b.max = max_sr
-                    band[9] = sr_aerosol
-                    pixel_qa.bits = {'1': {1:'clear'}, '2': {1:'water'},
-                                     '3': {1:'shadow'}, '4': {1:'snow'},
-                                     '5': {1:'cloud'},
-                                     '6-7':{3:'high_confidence_cloud'},
-                                     '8-9':{3:'high_confidence_cirrus'}
-                                     }
-                    band[10] = pixel_qa
-                    band[11] = radsat_qa_8
-                if process in ['TOA']:
-                    band[7] = pan
-                    band[8] = cirrus
-                    band[9] = thermal
-                    band[10] = thermal2
-                    for b in band:
-                        if not b: continue
-                        b.precision = 'float'
-                        b.min = 0
-                        if b.reference == 'optical':
-                            b.max = max_toa_optical
-                        elif b.reference == 'thermal':
-                            b.max = max_toa_thermal
-                    band[11] = bqa
-                if process in ['RAW']:
-                    band[7] = pan
-                    band[8] = cirrus
-                    band[9] = thermal
-                    band[10] = thermal2
-                    for b in band:
-                        if not b: continue
-                        b.precision = 'uint16'
-                        b.min = 0
-                        b.max = max_raw_8
-                    band[11] = bqa
-
-            self._bands = [b for b in band if b]
-        return self._bands
+        return [b for b in band if b]
 
     def harmonize(self, image, renamed=False):
         """ HARMONIZATION """
