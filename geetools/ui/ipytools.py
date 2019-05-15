@@ -502,11 +502,14 @@ class TaskManager(VBox):
         # Tabs for COMPLETED, FAILED, etc
         self.tabs = Tab()
         # Tabs index
-        self.tab_index = {0: 'RUNNING',
-                          1: 'COMPLETED',
-                          2: 'FAILED',
-                          3: 'CANCELLED',
-                          4: 'UNKNOWN'}
+        self.tab_index = {
+            0: 'READY',
+            1: 'RUNNING',
+            2: 'COMPLETED',
+            3: 'FAILED',
+            4: 'CANCELLED',
+            5: 'UNKNOWN'
+        }
 
         self.taskVBox = VBox()
 
