@@ -10,7 +10,7 @@ from ipywidgets import HTML, Tab, Accordion, HBox, SelectMultiple, Select,\
 from IPython.display import display
 from traitlets import Dict, observe
 from collections import OrderedDict
-from .. import tools
+from .. import tools, utils
 from .maptool import inverseCoordinates, getImageTile, getGeojsonTile, \
                      getBounds, getZoom, featurePropertiesOutput
 from . import maptool, ipytools
@@ -476,42 +476,31 @@ class Map(ipyleaflet.Map):
         EELayer['object'] = ee.ImageCollection(collection)
         return EELayer
 
-    def addImageCollection(self, collection, visParams=None, nametags=['id'],
-                           show=False, opacity=None):
+    def addImageCollection(self, collection, visParams=None,
+                           namePattern='{id}', show=False, opacity=None,
+                           datePattern='yyyyMMdd'):
         """ Add every Image of an ImageCollection to the Map
 
         :param collection: the ImageCollection
         :type collection: ee.ImageCollection
         :param visParams: visualization parameter for each image. See `addImage`
         :type visParams: dict
-        :param nametags: tags that will be the name for each image. It must be
-            a list in which each element is a string. Each string can be any
-            Image property, or one of the following:
-            - system_date: the name will be the date of each Image
-            - id: the name will be the ID of each Image (Default)
-        :type nametags: list
+        :param namePattern: the name pattern (uses geetools.utils.makeName)
+        :type namePattern: str
         :param show: If True, adds and shows the Image, otherwise only add it
         :type show: bool
         """
-        size = collection.size().getInfo()
+        size = collection.size()
         collist = collection.toList(size)
-        separation = ' '
-        for inx in range(size):
-            img = ee.Image(collist.get(inx))
-            name = ''
-            properties = img.propertyNames().getInfo()
-            for nametag in nametags:
-                if nametag == 'id':
-                    newname = img.id().getInfo()
-                elif nametag == 'system_date':
-                    newname = ee.Date(img.date()).format('YYYY-MM-dd').getInfo()
-                elif nametag in properties:
-                    newname = "{}:{}{}".format(nametag, img.get(nametag).getInfo(), separation)
-                else:
-                    newname = img.id().getInfo()
-
-                name += newname
-            self.addLayer(img, visParams, str(name), show, opacity)
+        n = 0
+        while True:
+            try:
+                img = ee.Image(collist.get(n))
+                name = utils.makeName(img, namePattern, datePattern)
+                self.addLayer(img, visParams, str(name), show, opacity)
+                n += 1
+            except:
+                break
 
     def addLayer(self, eeObject, visParams=None, name=None, show=True,
                  opacity=None, replace=True, **kwargs):

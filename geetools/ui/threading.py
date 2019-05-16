@@ -1,6 +1,8 @@
 # coding=utf-8
 
-""" Multithreading hack to add the ability to stop a thread """
+""" Multithreading hack to add the ability to stop a thread
+from http://tomerfiliba.com/recipes/Thread2/
+"""
 
 import threading
 import inspect
