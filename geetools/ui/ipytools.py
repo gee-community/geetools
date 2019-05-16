@@ -59,6 +59,7 @@ def task_formatter(task):
 
     # CREATION TIME
     creation = task.get('creation_timestamp_ms')
+    created_dt = get_datetime(creation)
     created_str = format_timestamp(creation) if creation else ''
 
     # ELLAPSED
@@ -68,10 +69,6 @@ def task_formatter(task):
     else:
         ellapsed = ''
 
-    # TYPE
-    task_type = task.get('task_type')
-    # DESCRIPTION
-    description = task.get('description')
     if state == 'READY':
         html_str = """
         <strong>created on:</strong> {creation}</br>
@@ -120,7 +117,20 @@ def task_formatter(task):
     elif state == 'FAILED':
         widget = create_accordion(task)
     elif state == 'CANCELLED':
-        widget = create_accordion(task)
+        cancelled_ts = task.get('update_timestamp_ms')
+        cancelled_dt = get_datetime(cancelled_ts)
+        cancelled_str = format_timestamp(cancelled_ts)
+        active_td = cancelled_dt - created_dt
+        active_str = format_ellapsed(active_td.total_seconds())
+
+        html_str = """
+        <strong>created on:</strong> {creation}</br>
+        <strong>cancelled on:</strong> {cancel}</br>
+        <strong>active for:</strong> {active}</br>
+        <strong>ellapsed since creation:</strong> {ellapsed}</br>
+        """.format(creation=created_str, ellapsed=ellapsed,
+                   cancel=cancelled_str, active=active_str)
+        widget = HTML(html_str)
     else:
         widget = create_accordion(task)
 
