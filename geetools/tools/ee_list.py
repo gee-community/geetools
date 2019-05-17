@@ -144,3 +144,14 @@ def removeIndex(list, index):
     condition = index.gte(size).Or(index.lt(0))
 
     return ee.List(ee.Algorithms.If(condition, -1, allowed()))
+
+
+def format(eelist):
+    """ Convert a list to a string """
+    def wrap(el, ini):
+        ini = ee.String(ini)
+        strel = ee.Algorithms.String(el)
+        return ini.cat(',').cat(strel)
+
+    liststr = ee.String(eelist.iterate(wrap, ''))
+    return liststr.replace('^,', '[').cat(']')
