@@ -19,6 +19,7 @@ def esave(eeobject, filename, path=None):
     with open(os.path.join(path, filename+'.gee'), 'w') as js:
         json.dump(obj, js)
 
+
 def eopen(file, path=None):
     """ Opens a files saved with `esave` method
 

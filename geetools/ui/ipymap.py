@@ -525,41 +525,29 @@ class Map(ipyleaflet.Map):
                                     opacity=opacity, replace=replace)
 
             self._add_EELayer(image_name, EELayer)
-            added_layer = EELayer
 
         # CASE: ee.Geometry
         elif isinstance(eeObject, ee.Geometry):
             geom = eeObject if isinstance(eeObject, ee.Geometry) else eeObject.geometry()
             kw = {'visParams':visParams, 'name':name, 'show':show, 'opacity':opacity}
             if kwargs.get('inspect'): kw.setdefault('inspect', kwargs.get('inspect'))
-            added_layer = self.addGeometry(geom, replace=replace, **kw)
+            self.addGeometry(geom, replace=replace, **kw)
 
         # CASE: ee.Feature & ee.FeatureCollection
         elif isinstance(eeObject, ee.Feature) or isinstance(eeObject, ee.FeatureCollection):
             feat = eeObject
             kw = {'visParams':visParams, 'name':name, 'show':show, 'opacity':opacity}
-            added_layer = self.addFeatureLayer(feat, replace=replace, **kw)
+            self.addFeatureLayer(feat, replace=replace, **kw)
 
         # CASE: ee.ImageCollection
         elif isinstance(eeObject, ee.ImageCollection):
-            '''
-            proxy = eeObject.sort('system:time_start')
-            mosaic = ee.Image(proxy.mosaic())
-            added_layer = self.addImage(mosaic, visParams=visParams, name=thename,
-                                        show=show, opacity=opacity, replace=replace)
-            '''
             thename = name if name else 'ImageCollection {}'.format(self.addedImages)
             EELayer = self.addMosaic(eeObject, visParams, thename, show,
                                      opacity, replace)
             self._add_EELayer(thename, EELayer)
-
-            added_layer = EELayer
-
         else:
-            added_layer = None
             print("`addLayer` doesn't support adding {} objects to the map".format(type(eeObject)))
 
-        # return added_layer
 
     def removeLayer(self, name):
         """ Remove a layer by its name """
