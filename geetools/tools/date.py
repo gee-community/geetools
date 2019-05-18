@@ -36,7 +36,7 @@ def daterangeList(start_date, end_date, interval=1, unit='month'):
     :return: a list holding ee.DateRange
     :rtype: list
     """
-    units = ['year', 'month' 'week', 'day', 'hour', 'minute', 'second']
+    units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second']
     if unit not in units:
         raise ValueError('unit param must be one of {}'.format(units))
 
@@ -95,6 +95,45 @@ def getDateBand(img, unit='day', bandname='date', property_name=None):
     datei_attr = datei.set(property_name, diff).toInt()
 
     return datei_attr.copyProperties(img, ['system:footprint'])
+
+
+def makeDateBand(image, format='YMMdd', bandname='date'):
+    """ Make a date band using a formatter. Format pattern:
+
+    C       century of era (>=0)         number        20
+    Y       year of era (>=0)            year          1996
+
+    x       weekyear                     year          1996
+    w       week of weekyear             number        8
+    ww      week of weekyear             number        08
+    e       day of week                  number        2
+    ee      day of week                  number        02
+
+    y       year                         year          1996
+    D       day of year                  number        5
+    DD      day of year                  number        05
+    DDD     day of year                  number        005
+    M       month of year                month         7
+    MM      month of year                month         07
+    d       day of month                 number        5
+    dd      day of month                 number        05
+
+    K       hour of halfday (0~11)       number        0
+    h       clockhour of halfday (1~12)  number        12
+
+    H       hour of day (0~23)           number        0
+    k       clockhour of day (1~24)      number        24
+    m       minute of hour               number        30
+    s       second of minute             number        55
+    S       fraction of second           number        978
+    """
+    f = ee.String(format)
+    # catch string formats for month
+    pattern = f.replace('(MMM+)', 'MM')
+
+    idate = image.date().format(pattern)
+    idate_number = ee.Number.parse(idate)
+    return ee.Image.constant(idate_number).rename(bandname)
 
 
 def dateSinceEpoch(date, unit='day'):
