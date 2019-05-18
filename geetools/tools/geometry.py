@@ -52,12 +52,13 @@ def isUnbounded(geometry):
     else:
         return False
 
-def getRegion(eeobject, bounds=False):
+def getRegion(eeobject, bounds=False, error=1):
     """ Gets the region of a given geometry to use in exporting tasks. The
     argument can be a Geometry, Feature or Image
 
     :param eeobject: geometry to get region of
     :type eeobject: ee.Feature, ee.Geometry, ee.Image
+    :param error: error parameter of ee.Element.geometry
     :return: region coordinates ready to use in a client-side EE function
     :rtype: json
     """
@@ -82,14 +83,14 @@ def getRegion(eeobject, bounds=False):
         region = dispatch(geometry)
     # Feature and Image
     elif isinstance(eeobject, (ee.Feature, ee.Image)):
-        geometry = eeobject.geometry().bounds() if bounds else eeobject.geometry()
+        geometry = eeobject.geometry(error).bounds() if bounds else eeobject.geometry(error)
         region = dispatch(geometry)
     # FeatureCollection and ImageCollection
     elif isinstance(eeobject, (ee.FeatureCollection, ee.ImageCollection)):
         if bounds:
-            geometry = eeobject.geometry().bounds()
+            geometry = eeobject.geometry(error).bounds()
         else:
-            geometry = eeobject.geometry().dissolve()
+            geometry = eeobject.geometry(error).dissolve()
         region = dispatch(geometry)
     # List
     elif isinstance(eeobject, list):
