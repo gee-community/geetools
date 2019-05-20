@@ -160,7 +160,7 @@ def addMultiBands(image, imageList):
 
     :param image: images to add bands
     :param imageList: a list of images
-    :type imageList: ee.List
+    :type imageList: list or ee.List
     :rtype: ee.Image
     """
     def iteration(img, ini):
@@ -168,7 +168,7 @@ def addMultiBands(image, imageList):
         img = ee.Image(img)
         return ini.addBands(img)
 
-    return imageList.iterate(iteration, image)
+    return ee.List(imageList).iterate(iteration, image)
 
 
 def renameDict(image, names):

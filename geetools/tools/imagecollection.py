@@ -233,6 +233,38 @@ def reduceEqualInterval(collection, interval=30, unit='day', reducer=None,
     return ee.ImageCollection.fromImages(imlist)
 
 
+def makeEqualInterval(collection, interval=1, unit='month'):
+    """ Make a list of image collections filtered by the given interval,
+    for example, one month. Starts from the end of the parsed collection
+
+    :param collection: the collection
+    :type collection: ee.ImageCollection
+    :param interval: the interval
+    :type interval: int
+    :param unit: unit of the interval. Can be 'day', 'month', 'year'
+    :rtype: ee.List
+    """
+    interval = int(interval)  # force to int
+    collist = collection.sort('system:time_start').toList(collection.size())
+    start_date = ee.Image(collist.get(0)).date()
+    end_date = ee.Image(collist.get(-1)).date()
+
+    ranges = date.daterangeList(start_date, end_date, interval, unit)
+
+    def over_ranges(drange, ini):
+        ini = ee.List(ini)
+        drange = ee.DateRange(drange)
+        start = drange.start()
+        end = drange.end()
+        filtered = collection.filterDate(start, end)
+        condition = ee.Number(filtered.size()).gt(0)
+        return ee.List(ee.Algorithms.If(condition, ini.add(filtered), ini))
+
+    imlist = ee.List(ranges.iterate(over_ranges, ee.List([])))
+
+    return imlist
+
+
 def getValues(collection, geometry, scale=None, reducer=None,
               id='system:index', properties=None, side='server',
               maxPixels=1e9):

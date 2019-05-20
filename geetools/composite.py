@@ -1,6 +1,7 @@
 # coding=utf-8
 """ Module holding tools for creating composites """
 import ee
+from uuid import uuid4
 from . import tools, algorithms
 
 
@@ -90,103 +91,59 @@ def medoid(collection, bands=None, discard_zeros=False):
     return final
 
 
-def closestDate(collection, target_date, mask_band=None, property_name=None,
-                clip_to_first=False, limit=50):
-    """ Get the image closest to the given date, and fill masked values in
-    that image with values from the closest date. Images must be already
-    masked. Use parameter `limit` for better speed
+def closestDate(col, clip_to_first=False):
+    """ Make a composite in which masked pixels are filled with the
+    last available pixel. Make sure all image bands are casted
 
-    :param collection: the collection with masked images
-    :type collection: ee.ImageCollection
-    :param target_date: the target date
-    :type target_date: ee.Date or str or int
-    :param mask_band: the name of the band that holds the band. CAUTION: all
-        bands will be masked with this mask to avoid mixing pixels from
-        different images. If None, it'll use the first band
-    :type mask_band: str
-    :param limit: number of image to use. Too many can throw an error, and few
-        many can leave 'holes' (masked pixels)
-    :type limit: int
-    :param clip_to_first: if True, the resulting composite will be clipped to
-        the first image footprint. Defaults to False
-    :type clip_to_first: bool
-    :param property_name: name of the property that will hold the 'closeness'
-        to the central image (closest to passed date)
-    :type property_name: str
+    :param clip_to_first: whether to clip with the 'first' image
+        geometry
     """
-    # Merge images from a single day
-    collection = tools.imagecollection.mosaicSameDay(collection)
+    col = col.sort('system:time_start', False)
+    first = ee.Image(col.first())
 
-    # HELPER
-    def get_mask(img):
-        """ Get a mask whether the passed image is already a mask or is a
-        masked image """
-        unmasked = img.unmask()
-        return unmasked.divide(unmasked)
+    # band names
+    bandnames = first.bandNames()
 
-    if not mask_band:
-        mask_band = ee.String(ee.Image(collection.first()).bandNames().get(0))
+    if clip_to_first:
+        col = col.map(lambda img: img.clip(first.geometry()))
 
-    if not property_name:
-        property_name = 'diff_with_target_date'
+    tempname = 'a{}'.format(uuid4().hex)
 
-    # target date
-    date = ee.Date(target_date)
+    # add millis band (for compositing)
+    col = col.map(lambda img: img.addBands(
+        ee.Image.constant(img.date().millis()).rename(tempname).toInt()))
 
-    # order collection
-    new = collection.sort('system:time_start', True)
+    col = col.sort('system:time_start')
 
-    # add date band
-    def add_date(img):
-        date_band = tools.date.getDateBand(img)
-        return img.addBands(date_band)
-    new = new.map(add_date)
+    composite = col.qualityMosaic(tempname)
 
-    # assign difference to target date to each image and order the collection
-    # according
-    def set_diff_f(img):
-        d = ee.Image(img).date()
-        diff = d.difference(date, 'day').abs()
-        return img.set(property_name, ee.Number(diff))
+    return composite.select(bandnames)
 
-    set_diff = new.map(set_diff_f)
-    ordered = set_diff.sort(property_name).limit(limit)
-    ordered_list = ordered.toList(ordered.size())
 
-    # the first image is the closest to the target date
-    closest = ee.Image(ordered_list.get(0))
-    rest = ee.ImageCollection(ordered_list.slice(1))
-
-    footprint = closest.get('system:footprint')
-
-    def fill(img, ini):
-        ini = ee.Image(ini)
-        # mask both ini and img
-        mask_ini = get_mask(ini.select(mask_band))
-        masked_ini = ini.updateMask(mask_ini)
-
-        img = ee.Image(img)
-        mask_img = get_mask(img.select(mask_band))
-        masked_img = img.updateMask(mask_img)
-
-        # mask match pixels (in ini and img)
-        mask_ini_not = mask_ini.Not()
-        img_not = masked_img.updateMask(mask_ini_not)
-
-        # make masked values = 0
-        zero_ini = masked_ini.unmask()
-        zero_img = img_not.unmask()
-
-        # add images
-        added = zero_img.add(zero_ini)
-
-        # update mask
-        new_mask = mask_ini.add(img_not.mask())
-
-        # final result
-        if clip_to_first:
-            return added.updateMask(new_mask).clip(footprint)
-        else:
-            return added.updateMask(new_mask)
-
-    return ee.Image(rest.iterate(fill, closest))
+def compositeRegularIntervals(collection, interval=1, unit='month',
+                              date_range=(1, 1), date_range_unit='day',
+                              direction='backward',
+                              composite_function=None,
+                              composite_date=0.5):
+    """ Make a composite at regular intervals parsing a composite
+    function. This function MUST have as only argument the collection,
+    for example, the default function (if the argument is None) is
+    `lambda col: col.median()`.
+    """
+    if composite_function is None:
+        composite_function = lambda col: col.median()
+    sorted_list = collection.sort('system:time_start').toList(
+        collection.size())
+    start_date = ee.Image(sorted_list.get(0)).date()
+    end_date = ee.Image(sorted_list.get(-1)).date()
+    date_ranges = tools.date.regularIntervals(
+        start_date, end_date, interval, unit,
+        date_range, date_range_unit, direction)
+    def wrap(dr):
+        dr = ee.DateRange(dr)
+        filtered = collection.filterDate(dr.start(), dr.end())
+        comp = composite_function(filtered)
+        return comp.set(
+            'system:time_start', dr.start().advance(
+                composite_date, 'day').millis())
+    return ee.ImageCollection.fromImages(date_ranges.map(wrap))
