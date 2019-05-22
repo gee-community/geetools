@@ -1,8 +1,7 @@
 # coding=utf-8
 """ Dispatch methods for different EE Object types """
 import ee
-from ipywidgets import *
-from . import ipytools
+
 
 def belongToEE(eeobject):
     """ Determine if the parsed object belongs to the Earth Engine API """
@@ -15,38 +14,26 @@ def belongToEE(eeobject):
 
 
 # GENERAL DISPATCHER
-def dispatch(eeobject, notebook=False):
+def dispatch(eeobject):
     """ General dispatcher """
     if belongToEE(eeobject):
         # DISPATCH!!
         if isinstance(eeobject, (ee.Image,)):
-            return dispatchImage(eeobject, notebook)
+            return dispatchImage(eeobject)
         elif isinstance(eeobject, (ee.Date,)):
-            return dispatchDate(eeobject, notebook)
+            return dispatchDate(eeobject)
         elif isinstance(eeobject, (ee.DateRange,)):
-            return dispatchDaterange(eeobject, notebook)
+            return dispatchDaterange(eeobject)
         # ADD MORE ABOVE ME!
         else:
             info = eeobject.getInfo()
-
-            if notebook:
-                if isinstance(info, (dict,)):
-                    info = eeobjectDispatcher(eeobject)
-                    return ipytools.create_accordion(info)
-                else:
-                    info = eeobjectDispatcher(eeobject)
-                    return HTML(str(info)+'<br/>')
-
             return info
     else:
         info = str(eeobject)
-        if notebook:
-            return Label(info)
-        else:
-            return info
+        return info
 
 
-def dispatchImage(image, notebook=False):
+def dispatchImage(image):
     """ Dispatch a Widget for an Image Object """
     info = image.getInfo()
 
@@ -85,68 +72,25 @@ def dispatchImage(image, notebook=False):
             bmax = data.get('max')
             bands_max.append(bmax)
 
-    if not notebook:
-        return info
-    else:
-        # BANDS
-        new_band_names = []
-        zipped_data = zip(bands_names, bands_precision, bands_min, bands_max,
-                          bands_crs)
-        for name, ty, mn, mx, epsg in zipped_data:
-            value = '<li><b>{}</b> ({}) {} to {} - {}</li>'.format(name,ty,
-                                                                   mn,mx,epsg)
-            new_band_names.append(value)
-        bands_wid = HTML('<ul>'+''.join(new_band_names)+'</ul>')
+    bands = {}
+    for name, pres, crs, minval, maxval in zip(
+            bands_names, bands_precision, bands_crs, bands_min, bands_max):
+        bands[name] = dict(precision=pres, crs=crs, min=minval, max=maxval)
 
-        # PROPERTIES
-        if prop:
-            new_properties = []
-            for key, val in prop.items():
-                value = '<li><b>{}</b>: {}</li>'.format(key, val)
-                new_properties.append(value)
-            prop_wid = HTML('<ul>'+''.join(new_properties)+'</ul>')
-        else:
-            prop_wid = HTML('Image has no properties')
-
-        # ID
-        header = HTML('<b>Image id:</b> {id} </br>'.format(id=image_id))
-
-        acc = Accordion([bands_wid, prop_wid])
-        acc.set_title(0, 'Bands')
-        acc.set_title(1, 'Properties')
-        acc.selected_index = None # thisp will unselect all
-
-        return VBox([header, acc])
+    return dict(id=image_id, bands=bands, properties=prop)
 
 
-def dispatchDate(date, notebook=False):
+def dispatchDate(date):
     """ Dispatch a ee.Date """
     info = date.format().getInfo()
 
-    if not notebook:
-        return info
-    else:
-        return Label(info)
+    return info
 
 
-def dispatchDaterange(daterange, notebook=False):
+def dispatchDaterange(daterange):
     """ Dispatch a DateRange """
     start = daterange.start().format().getInfo()
     end = daterange.end().format().getInfo()
     value = '{} to {}'.format(start, end)
 
-    if not notebook:
-        return value
-    else:
-        return Label(value)
-
-
-# OBJECT DISPATCHER
-def eeobjectDispatcher(eeobject):
-    return dispatch(eeobject, False)
-
-
-# WIDGET DISPATCHER
-def widgetDispatcher(eeobject):
-    """ Dispatch a Widget regarding its type """
-    return dispatch(eeobject, True)
+    return value

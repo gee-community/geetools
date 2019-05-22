@@ -3,13 +3,8 @@
 import ee
 import threading
 import pprint
-from . import chart, imagestrip, ipymap, ipytools, maptool, dispatcher
+from . import dispatcher
 
-from IPython.display import display
-from ipywidgets import Output, HTML, VBox, Widget, Label, Accordion
-
-
-NOTEBOOK = False
 ASYNC = False
 
 
@@ -19,41 +14,20 @@ def eprint(*args, **kwargs):
 
     :param eeobject: object to print
     :type eeobject: ee.ComputedObject
-    :param notebook: if True, prints the object as an Accordion Widget for
-    the Jupyter Notebook
-    :type notebook: bool
     :param indent: indentation of the print output
     :type indent: int
     :param do_async: call getInfo() asynchronously
     :type do_async: bool
     """
     indent = kwargs.get('indent', 2)
-    notebook = kwargs.get('notebook', NOTEBOOK)
     do_async = kwargs.get('do_async', ASYNC)
     pp = pprint.PrettyPrinter(indent=indent)
-
-    # VERTICAL GRID WIDGET TO OUTPUT RESULTS
-    infowin = VBox([Output()]*len(args))
-
-    # HELPER
-    def setchildren(vbox, i, val):
-        children = list(vbox.children)
-        children[i] = val
-        vbox.children = children
-
-    if do_async and not notebook:
-        print('Cannot make async printing outside a Jupyter environment')
-        do_async = False
 
     info_return = [None]*len(args)
 
     def get_info(eeobject, index):
         """ Get Info """
-        if notebook:
-            widget = dispatcher.widgetDispatcher(eeobject)
-            setchildren(infowin, index, widget)
-        else:
-            info_return[index] = dispatcher.eeobjectDispatcher(eeobject)
+        info_return[index] = dispatcher.dispatch(eeobject)
 
     for i, eeobject in enumerate(args):
         # DO THE SAME FOR EVERY OBJECT
@@ -64,12 +38,8 @@ def eprint(*args, **kwargs):
         else:
             get_info(eeobject, i)
 
-    if notebook:
-        display(infowin)
-    else:
-        for result in info_return:
-            pp.pprint(result)
-            print('')
+    for result in info_return:
+        pp.pprint(result)
 
 
 def getInfo(eeobject):
@@ -101,9 +71,3 @@ def getInfo(eeobject):
         get_info(eeobject, False)
 
     return result
-
-try:
-    from .ipymap import Map
-    from .ipytools import TaskManager, AssetManager
-except ImportError:
-    pass

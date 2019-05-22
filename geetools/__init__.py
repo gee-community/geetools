@@ -16,8 +16,6 @@ __copyright__ = "2017 Rodrigo E. Principe"
 try:
     from . import tools, bitreader, cloud_mask, expressions, decision_tree,\
                   filters, indices
-
-    from .ui.ipymap import Map
     from .ui import eprint
     from . import algorithms
     from .tools.imagecollection import wrapper
