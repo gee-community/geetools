@@ -139,11 +139,18 @@ def compositeRegularIntervals(collection, interval=1, unit='month',
     date_ranges = tools.date.regularIntervals(
         start_date, end_date, interval, unit,
         date_range, date_range_unit, direction)
-    def wrap(dr):
+    def wrap(dr, l):
+        l = ee.List(l)
         dr = ee.DateRange(dr)
         filtered = collection.filterDate(dr.start(), dr.end())
-        comp = composite_function(filtered)
-        return comp.set(
-            'system:time_start', dr.start().advance(
-                composite_date, 'day').millis())
-    return ee.ImageCollection.fromImages(date_ranges.map(wrap))
+        def true(filt, ll):
+            comp = composite_function(filtered)
+            comp = comp.set(
+                'system:time_start', dr.start().advance(
+                    composite_date, 'day').millis())
+            return ll.add(comp)
+
+        return ee.Algorithms.If(filtered.size(), true(filtered, l), l)
+
+    return ee.ImageCollection.fromImages(
+        ee.List(date_ranges.iterate(wrap, ee.List([]))))
