@@ -167,9 +167,13 @@ def makeDateBand(image, format='YMMdd', bandname='date'):
     # catch string formats for month
     pattern = f.replace('(MMM+)', 'MM')
 
+    footprint = image.geometry()
+
     idate = image.date().format(pattern)
     idate_number = ee.Number.parse(idate)
-    return ee.Image.constant(idate_number).rename(bandname)
+    date_band = ee.Image.constant(idate_number).rename(bandname)
+    return ee.Image(ee.Algorithms.If(footprint.isUnbounded(), date_band,
+                                     date_band.clip(footprint)))
 
 
 def regularIntervals(start_date, end_date, interval=1, unit='month',
