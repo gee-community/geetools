@@ -117,7 +117,8 @@ def closestDate(col, clip_to_first=False):
 
     composite = col.qualityMosaic(tempname)
 
-    return composite.select(bandnames)
+    return composite.select(bandnames).set('system:time_start',
+                                           first.date().millis())
 
 
 def compositeRegularIntervals(collection, interval=1, unit='month',
