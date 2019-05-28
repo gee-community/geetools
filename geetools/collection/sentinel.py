@@ -21,9 +21,9 @@ class Sentinel2(Collection):
             raise ValueError(msg.format(process))
 
         if process == 'TOA':
-            self.id = 'COPERNICUS/S2'
+            self._id = 'COPERNICUS/S2'
         else:
-            self.id = 'COPERNICUS/S2_SR'
+            self._id = 'COPERNICUS/S2_SR'
 
         self.number = 2
         self.spacecraft = 'SENTINEL2'
@@ -40,7 +40,7 @@ class Sentinel2(Collection):
         if self.process == 'SR':
             self.algorithms['scl_masks'] = self.SclMasks
 
-        self.bands = self._make_bands()
+        self._bands = self._make_bands()
 
     def _make_bands(self):
         band = [None]*30

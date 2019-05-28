@@ -106,10 +106,10 @@ class Landsat(Collection):
         self.end_date = END[self.number]
 
         # ID
-        self.id = self._make_id()
+        self._id = self._make_id()
 
         # BANDS
-        self.bands = self._make_bands()
+        self._bands = self._make_bands()
 
     @staticmethod
     def fromId(id):

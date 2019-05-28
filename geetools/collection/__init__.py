@@ -106,6 +106,9 @@ def infoEE(collection):
 
 class Band(object):
     """ Bands """
+    accepted_precisions = ('float', 'double', 'int8', 'uint8', 'uint16',
+                           'int16', 'uint32', 'int32', 'int64', None)
+
     def __init__(self, id, name, precision=None, scale=None,
                  min=None, max=None, reference=None, bits=None):
         self.id = id
@@ -117,17 +120,37 @@ class Band(object):
         self.reference = reference # thermal, optical or quality
         self.bits = bits
 
+    @property
+    def precision(self):
+        return self._precision
+
+    @precision.setter
+    def precision(self, value):
+        if value in self.accepted_precisions:
+            self._precision = value
+        else:
+            msg = 'Presicion must be one of {}'
+            raise ValueError(msg.format(self.accepted_precisions))
+
 
 class Collection(object):
     """ Parent class for common operations """
     def __init__(self, **kwargs):
-        self.id = kwargs.get('id', None)
-        self.bands = kwargs.get('bands', None)
+        self._id = None
+        self._bands = None
         self.spacecraft = kwargs.get('spacecraft', None)
         self.start_date = kwargs.get('start_date', None)
         self.end_date = kwargs.get('end_date', None)
         self.cloud_cover = kwargs.get('cloud_cover', None)
         self.algorithms = kwargs.get('algorithms', {})
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def bands(self):
+        return self._bands
 
     @property
     def collection(self):
@@ -254,6 +277,20 @@ class Collection(object):
             band = ee.String(band)
             m = mask.select(band)
             return img.updateMask(m.Not())
+
+        return ee.Image(options.iterate(wrap, image))
+
+    def applyPositiveMask(self, image, mask_band, classes='all',
+                          renamed=False):
+        """ Apply a positive mask (for example: clear) """
+        mask = self.getMask(image, mask_band, classes, renamed)
+        options = mask.bandNames()
+
+        def wrap(band, img):
+            img = ee.Image(img)
+            band = ee.String(band)
+            m = mask.select(band)
+            return img.updateMask(m)
 
         return ee.Image(options.iterate(wrap, image))
 
@@ -468,18 +505,20 @@ class Collection(object):
 
 from .landsat import *
 from .sentinel import *
-from . import landsat, sentinel
+from . import landsat, sentinel, modis
 from .landsat import Landsat
 from .sentinel import Sentinel2
+from .modis import MODIS
 
-IDS = landsat.IDS + sentinel.IDS
+IDS = landsat.IDS + sentinel.IDS + modis.IDS
 
 
 def fromId(id):
     """ Create a collection from a parsed ID """
     functions = [
         landsat.Landsat.fromId,
-        sentinel.Sentinel2.fromId
+        sentinel.Sentinel2.fromId,
+        modis.MODIS.fromId
     ]
     for f in functions:
         try:
@@ -619,3 +658,7 @@ Landsat8SR = Landsat.Landsat8SR
 Landsat8TOA = Landsat.Landsat8TOA
 Sentinel2TOA = Sentinel2.Sentinel2TOA
 Sentinel2SR = Sentinel2.Sentienl2SR
+MOD09GQ = MODIS.MOD09GQ
+MYD09GQ = MODIS.MYD09GQ
+MOD09GA = MODIS.MOD09GA
+MYD09GA = MODIS.MYD09GA
