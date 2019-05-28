@@ -8,6 +8,7 @@ from . import date
 from . import image as image_module
 from . import collection as eecollection
 from ..utils import castImage
+from .. import composite
 
 
 def add(collection, image):
@@ -77,34 +78,19 @@ def fillWithLast(collection):
     :rtype: ee.ImageCollection
     """
 
-    new = collection.sort('system:time_start', True)
-    collist = new.toList(new.size())
-    first = ee.Image(collist.get(0)).unmask()
-    rest = collist.slice(1)
+    asc = collection.sort('system:time_start')
+    first_date = asc.first().date()
 
-    def wrap(img, ini):
-        ini = ee.List(ini)
+    def wrap(img):
         img = ee.Image(img)
-        last = ee.Image(ini.get(-1))
-        mask = img.mask().Not()
-        last_masked = last.updateMask(mask)
-        last2add = last_masked.unmask()
-        img2add = img.unmask()
-        added = img2add.add(last2add) \
-            .set('system:index', ee.String(img.id()))
+        d = img.date()
+        condition = d.difference(first_date, 'second')
+        def true(date):
+            newcol = collection.filterDate(first_date, date)
+            return composite.closestDate(newcol)
+        return ee.Image(ee.Algorithms.If(condition, true(d), img))
 
-        props = img.propertyNames()
-        condition = props.contains('system:time_start')
-
-        final = ee.Image(ee.Algorithms.If(condition,
-                                          added.set('system:time_start',
-                                                    img.date().millis()),
-                                          added))
-
-        return ini.add(final.copyProperties(img))
-
-    newcol = ee.List(rest.iterate(wrap, ee.List([first])))
-    return ee.ImageCollection.fromImages(newcol)
+    return collection.map(wrap)
 
 
 def mergeGeometries(collection):
