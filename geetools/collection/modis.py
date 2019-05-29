@@ -7,7 +7,7 @@ from functools import partial
 IDS = [
     'MODIS/006/MOD09GQ', 'MODIS/006/MYD09GQ',
     'MODIS/006/MOD09GA', 'MODIS/006/MYD09GA',
-    # 'MODIS/006/MOD13Q1', 'MODIS/006/MYD13Q1'
+    'MODIS/006/MOD13Q1', 'MODIS/006/MYD13Q1'
 ]
 
 START = {
@@ -15,8 +15,8 @@ START = {
     'MODIS/006/MYD09GQ': '2000-02-24',
     'MODIS/006/MOD09GA': '2000-02-24',
     'MODIS/006/MYD09GA': '2000-02-24',
-    # 'MODIS/006/MOD13Q1': '2000-02-18',
-    # 'MODIS/006/MYD13Q1': '2000-02-18',
+    'MODIS/006/MOD13Q1': '2000-02-18',
+    'MODIS/006/MYD13Q1': '2000-02-18',
 }
 
 END = {
@@ -24,8 +24,8 @@ END = {
     'MODIS/006/MYD09GQ': TODAY,
     'MODIS/006/MOD09GA': TODAY,
     'MODIS/006/MYD09GA': TODAY,
-    # 'MODIS/006/MOD13Q1': TODAY,
-    # 'MODIS/006/MYD13Q1': TODAY,
+    'MODIS/006/MOD13Q1': TODAY,
+    'MODIS/006/MYD13Q1': TODAY,
 }
 
 
@@ -85,11 +85,12 @@ class MODIS(Collection):
 
         state_1km = Band('state_1km', 'state_1km', 'uint16', 1000, 0, 57335,
                          'bits', bits={
-                            '0-1': {0:'clear', 1:'cloud', 2:'mix'},
-                            '2':   {1:'shadow'},
-                            '8-9': {1:'small_cirrus', 2:'average_cirrus', 3:'high_cirrus'},
-                            '13':  {1:'adjacent'},
-                            '15':  {1:'snow'}
+                            '0-1': {0: 'clear', 1:'cloud', 2:'mix'},
+                            '2':   {1: 'shadow'},
+                            '8-9': {1: 'small_cirrus', 2: 'average_cirrus',
+                                    3: 'high_cirrus'},
+                            '13':  {1: 'adjacent'},
+                            '15':  {1: 'snow'}
                         })
         sezenith = Band('SensorZenith', 'sensor_zenith', 'int16', 1000, 0,
                         18000, 'classification')
@@ -126,16 +127,45 @@ class MODIS(Collection):
 
         QC_500m = Band('QC_500m', 'QC_500m', 'uint32', 500, 0, 4294966019,
                        'bits', bits={
-                            '2-5': {0:'B1_highest_quality'},
-                            '6-9': {0:'B2_highest_quality'},
-                            '10-13': {0:'B3_highest_quality'},
-                            '14-17': {0:'B4_highest_quality'},
-                            '18-21': {0:'B5_highest_quality'},
-                            '22-25': {0:'B6_highest_quality'},
-                            '26-29': {0:'B7_highest_quality'},
+                            '2-5': {0: 'B1_highest_quality'},
+                            '6-9': {0: 'B2_highest_quality'},
+                            '10-13': {0: 'B3_highest_quality'},
+                            '14-17': {0: 'B4_highest_quality'},
+                            '18-21': {0: 'B5_highest_quality'},
+                            '22-25': {0: 'B6_highest_quality'},
+                            '26-29': {0: 'B7_highest_quality'},
                         })
 
         qscan = Band('q_scan', 'q_scan', 'uint8', 250, 0, 254, 'bits')
+
+        NDVI = Band('NDVI', 'ndvi', 'int16', 250, -2000, 10000, 'classification')
+
+        EVI = Band('EVI', 'evi', 'int16', 250, -2000, 10000, 'classification')
+
+        DetailedQA = Band('DetailedQA', 'detailed_qa', 'uint16', 250, 0, 65534,
+                          'bits', bits={
+                            '0-1': {0: 'good_qa'},
+                            '2-5': {0: 'highest_qa'},
+                            '8':   {1: 'adjacent'},
+                            '10':  {1: 'cloud'},
+                            '14':  {1: 'snow'},
+                            '15':  {1: 'shadow'}
+                          })
+
+        view_zenith = Band('ViewZenith', 'view_zenith', 'int16', 250, 0, 18000,
+                           'classification')
+
+        relative_azimuth = Band('RelativeAzimuth', 'relative_azimuth', 'int16',
+                                250, -18000, 18000, 'classification')
+
+        DayOfYear = Band('DayOfYear', 'day_of_year', 'int16', 250, 1, 366,
+                         'classification')
+
+        SummaryQA = Band('SummaryQA', 'summary_qa', 'int8', 250, 0, 3, 'bits',
+                         bits={
+                             '0-1': {0: 'clear', 1: 'marginal', 2: 'snow',
+                                     3: 'cloud'}
+                         })
 
         if self.product_id in ['MOD09GQ', 'MYD09GQ']:
             bands[0] = num_observations(id='num_observations',
@@ -175,6 +205,20 @@ class MODIS(Collection):
             bands[20] = iobs_res(scale=500)
             bands[21] = qscan
 
+        if self.product_id in ['MOD13Q1', 'MYD13Q1']:
+            bands[0] = NDVI
+            bands[1] = EVI
+            bands[2] = DetailedQA
+            bands[3] = sur_refl_b01(scale=250)
+            bands[4] = sur_refl_b02(scale=250)
+            bands[5] = sur_refl_b03(scale=250)
+            bands[6] = sur_refl_b07(scale=250)
+            bands[7] = view_zenith
+            bands[8] = sozenith
+            bands[9] = relative_azimuth
+            bands[10] = DayOfYear
+            bands[11] = SummaryQA
+
         return [b for b in bands if b]
 
     def _make_id(self):
@@ -209,3 +253,11 @@ class MODIS(Collection):
     @classmethod
     def MYD09GA(cls):
         return cls(product_id='MYD09GA')
+
+    @classmethod
+    def MOD13Q1(cls):
+        return cls(product_id='MOD13Q1')
+
+    @classmethod
+    def MYD13Q1(cls):
+        return cls(product_id='MYD13Q1')
