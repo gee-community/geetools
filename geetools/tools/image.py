@@ -6,7 +6,7 @@ from __future__ import absolute_import
 import ee
 import ee.data
 import math
-from . import ee_list
+from . import ee_list, date
 from ..utils import castImage
 
 
@@ -828,6 +828,29 @@ def linearFunction(image, band, range_min=None, range_max=None, mean=None,
          })
 
     return result.rename(name)
+
+
+def doyToDate(image, dateFormat='yyyyMMdd', year=None):
+    """ Make a date band from a day of year band """
+    if not year:
+        year = image.date().get('year')
+
+    doyband = image.select([0])
+    leap = date.isLeap(year)
+    limit = ee.Number(ee.Algorithms.If(leap, 366, 365))
+    alldoys = ee.List.sequence(1, limit)
+
+    def wrap(doy, i):
+        i = ee.Image(i)
+        doy = ee.Number(doy)
+        d = date.fromDOY(doy, year)
+        date_band = ee.Image.constant(ee.Number.parse(d.format(dateFormat)))
+        condition = i.eq(doy)
+        return i.where(condition, date_band)
+
+    datei = ee.Image(alldoys.iterate(wrap, doyband))
+
+    return datei.rename('date')
 
 
 class Mapping(object):

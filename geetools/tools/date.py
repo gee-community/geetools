@@ -233,3 +233,39 @@ def dateSinceEpoch(date, unit='day'):
     """
     epoch = ee.Date(EE_EPOCH.isoformat())
     return epoch.advance(date, unit)
+
+
+def fromDOY(doy, year):
+    """ Creat a ee.Date given a Day of Year and a Year """
+    def less10(doy):
+        doy = doy.toInt()
+        return ee.String('00').cat(ee.Number(doy).format())
+
+    def less100(doy):
+        doy = doy.toInt()
+        return ee.String('0').cat(ee.Number(doy).format())
+
+    doy = ee.Number(doy).toInt()
+    year_str = ee.Number(year).format()
+    doy_str = ee.Algorithms.If(doy.lt(10), less10(doy),
+                               ee.String(ee.Algorithms.If(doy.lt(100), less100(doy), doy.format())))
+    s = ee.String(doy_str).cat(year_str)
+
+    return ee.Date.parse('DDDyyyy', s)
+
+
+def isLeap(year):
+    """ Determine wheater a year is leap or not. Returns 1 if leap, 0 if not """
+    year = ee.Number(year)
+
+    divisible4 = year.mod(4).gt(0)
+    divisible100 = year.mod(100).gt(0)
+    divisible400 = year.mod(400).gt(0)
+
+    leap = ee.Algorithms.If(
+        divisible4, 0,
+        ee.Algorithms.If(
+            divisible100, 1,
+            ee.Algorithms.If(
+                divisible400, 0, 1)))
+    return ee.Number(leap)
