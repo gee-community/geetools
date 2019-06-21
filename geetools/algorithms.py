@@ -93,16 +93,16 @@ def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
     :rtype: ee.Image
     """
     # keep only first band
-    image = image.select(0)
-
-    if not scale:
-        scale = image.projection().nominalScale()
+    imageband = image.select(0)
 
     # get projection
-    projection = image.projection()
+    projection = imageband.projection()
+
+    if not scale:
+        scale = projection.nominalScale()
 
     # get band name
-    band = ee.String(image.bandNames().get(0))
+    band = ee.String(imageband.bandNames().get(0))
 
     # Make an image with all ones
     ones_i = ee.Image.constant(1).reproject(projection).rename(band)
@@ -130,7 +130,7 @@ def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
     ones = ee.Number(ones)
 
     # select first band, unmask and get the inverse
-    mask = image.mask()
+    mask = imageband.mask()
     mask_not = mask.Not()
     image_to_compute = mask.updateMask(mask_not)
 
