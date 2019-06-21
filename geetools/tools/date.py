@@ -245,7 +245,7 @@ def fromDOY(doy, year):
         doy = doy.toInt()
         return ee.String('0').cat(ee.Number(doy).format())
 
-    doy = ee.Number(doy).toInt()
+    doy = ee.Number(doy).add(1).toInt()
     year_str = ee.Number(year).format()
     doy_str = ee.Algorithms.If(doy.lt(10), less10(doy),
                                ee.String(ee.Algorithms.If(doy.lt(100), less100(doy), doy.format())))

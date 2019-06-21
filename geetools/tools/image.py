@@ -837,7 +837,7 @@ def doyToDate(image, dateFormat='yyyyMMdd', year=None):
 
     doyband = image.select([0])
     leap = date.isLeap(year)
-    limit = ee.Number(ee.Algorithms.If(leap, 366, 365))
+    limit = ee.Number(ee.Algorithms.If(leap, 365, 364))
     alldoys = ee.List.sequence(1, limit)
 
     def wrap(doy, i):
@@ -853,104 +853,10 @@ def doyToDate(image, dateFormat='yyyyMMdd', year=None):
     return datei.rename('date')
 
 
-class Mapping(object):
-    """ Mapping functions to map over ImageCollections """
-
-    # TODO: should be possible to make a general method to map any function
-    # that starts with an image
-
-    @staticmethod
-    def parametrize(range_from, range_to, bands=None):
-        """ Parametrize from a original known range to a fixed new range
-
-        :Parameters:
-        :param range_from: Original range. example: (0, 5000)
-        :type range_from: tuple
-        :param range_to: Fixed new range. example: (500, 1000)
-        :type range_to: tuple
-        :param bands: bands to parametrize. If *None* all bands will be
-        parametrized.
-        :type bands: list
-
-        :return: Function to use in map() or alone
-        :rtype: function
-        """
-        def wrap(img):
-            return parametrize(img, range_from, range_to, bands)
-        return wrap
-
-    @staticmethod
-    def renameDict(names):
-        """ Renames bands of images using a dict. Can be used in one image or
-            in a collection
-
-        :param names: matching names where key is original name and values the
-            new name
-        :type names: dict
-        :return: a function to rename images
-        :rtype: function
-
-        :EXAMPLE:
-
-        .. code:: python
-
-            p = ee.Geometry.Point(-71.72029495239258, -42.78997046797438)
-            collection = ee.ImageCollection("COPERNICUS/S2").filterBounds(p)
-            image = ee.Image(collection.first())
-
-            f = Image.Mapping.rename_bands({"B2":"BLUE", "B3":"GREEN"})
-            renamed = collection.map(f)
-            i = ee.Image(renamed.first())
-
-            print get_value(image, p)
-            print get_value(i, p)
-
-        >> {u'B1': 0.1009, u'B2': 0.078, u'B3': 0.057}
-        >> {u'BLUE': 0.1009, u'GREEN': 0.078, u'B3': 0.057}
-        """
-        def wrap(img):
-            return renameDict(img, names)
-        return wrap
-
-    @staticmethod
-    def sumBands(name="sum", bands=None):
-        """ Adds all *bands* values and puts the result on *name*.
-
-        .. code:: python
-
-            col = ee.ImageCollection("LANDSAT/LC8_L1T_TOA_FMASK")
-            fsum = Image.Mapping.sumBands("added_bands", ("B1", "B2", "B3"))
-            newcol = col.map(fsum)
-
-        :param name: name for the band that contains the added values of bands
-        :type name: str
-        :param bands: names of the bands to be added. If None (default) it sums
-            all bands
-        :type bands: tuple
-        :return: The function to use in ee.ImageCollection.map()
-        :rtype: function
-        """
-        def wrap(img):
-            return sumBands(img, name, bands)
-        return wrap
-
-    @staticmethod
-    def addConstantBands(value=None, *names, **pairs):
-        def apply(img):
-            return addConstantBands(img, value, *names, **pairs)
-        return apply
-
-    @staticmethod
-    def compute_bits(start, end, newName):
-        def wrap(img):
-            return img.compute_bits(img, start, end, newName)
-        return wrap
-
-    @staticmethod
-    def good_pix(retain=None, drop=None, name='good_pix'):
-        def wrap(img):
-            return goodPix(img, retain, drop, name)
-        return wrap
+def maskInside(image, geometry):
+    """ This is the opposite to ee.Image.clip(geometry) """
+    mask = ee.Image.constant(1).clip(geometry).mask().Not()
+    return image.updateMask(mask)
 
 
 class Classification(object):
