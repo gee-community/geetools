@@ -1,5 +1,5 @@
 # coding=utf-8
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from ._version import __version__
 
 __title__ = "geetools"
@@ -15,9 +15,10 @@ __copyright__ = "2017 Rodrigo E. Principe"
 
 try:
     from . import tools, bitreader, cloud_mask, expressions, decision_tree,\
-                  filters, indices
+                  filters, indices, batch, algorithms, composite,\
+                  manager, utils, collection
     from .ui import eprint
-    from . import algorithms
     from .tools.imagecollection import wrapper
+    from .batch import Export, Import, Convert, Download
 except ImportError:
     pass
