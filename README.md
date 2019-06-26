@@ -28,7 +28,7 @@ package called `ipygee` available [here](http://www.github.com/fitoprincipe/ipyg
 from geetools import batch
 
 col = ee.ImageCollection("your_ID")
-tasklist = batch.ImageCollection.toDrive(col)
+tasklist = batch.Export.imagecollection.toDrive(col)
 ```
 
 ## Examples
