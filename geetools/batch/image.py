@@ -78,8 +78,7 @@ def toLocal(image, name=None, path=None, scale=None, region=None,
 
 
 def toAsset(image, assetPath, name=None, to='Folder', scale=None,
-            region=None, create=True, dataType='float',
-            notebook=False, **kwargs):
+            region=None, create=True, dataType='float', **kwargs):
     """ This function can create folders and ImageCollections on the fly.
     The rest is the same to Export.image.toAsset. You can pass the same
     params as the original function
@@ -141,9 +140,6 @@ def toAsset(image, assetPath, name=None, to='Folder', scale=None,
                                          description=description,
                                          **kwargs)
     task.start()
-
-    if notebook:
-        pass
 
     return task
 

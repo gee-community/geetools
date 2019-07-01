@@ -288,3 +288,41 @@ def toLocal(collection, filename, filetype=None, selectors=None):
     url = collection.getDownloadURL(filetype, selectors, filename)
     thefile = utils.downloadFile(url, filename, filetype)
     return thefile
+
+
+def toAsset(table, assetPath, name=None, create=True, **kwargs):
+    """ This function can create folders and ImageCollections on the fly.
+    The rest is the same to Export.image.toAsset. You can pass the same
+    params as the original function
+
+    :param table: the feature collection to upload
+    :type table: ee.FeatureCollection
+    :param assetPath: path to upload the image (only PATH, without
+        filename)
+    :type assetPath: str
+    :param name: filename for the image (AssetID will be assetPath + name)
+    :type name: str
+    :return: the tasks
+    :rtype: ee.batch.Task
+    """
+
+    # Check if the user is specified in the asset path
+    is_user = (assetPath.split('/')[0] == 'users')
+    if not is_user:
+        user = ee.batch.data.getAssetRoots()[0]['id']
+        assetPath = "{}/{}".format(user, assetPath)
+
+    if create:
+        # Recrusive create path
+        path2create = assetPath #  '/'.join(assetPath.split('/')[:-1])
+        utils.createAssets([path2create], 'Folder', True)
+
+    # Asset ID (Path + name)
+    assetId = '/'.join([assetPath, name])
+    # Description
+    description = name.replace('/','_')
+    # Init task
+    task = ee.batch.Export.table.toAsset(table, assetId=assetId, description=description, **kwargs)
+    task.start()
+
+    return task

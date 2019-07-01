@@ -7,7 +7,7 @@ import ee
 
 class Export(ee.batch.Export):
     class table(ee.batch.Export.table):
-        pass
+        toAsset = featurecollection.toAsset
 
     class imagecollection(object):
         toDrive = imagecollection.toDrive
