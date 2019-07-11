@@ -1,5 +1,6 @@
 # coding=utf-8
 import ee
+import os
 
 GEOMETRY_TYPES = {
     'LineString': ee.geometry.Geometry.LineString,
@@ -187,21 +188,26 @@ def createAssets(asset_ids, asset_type, mk_parents):
         return ee.data.createAsset({'type': asset_type}, asset_id)
 
 
-def downloadFile(url, name, ext):
+def downloadFile(url, name, extension, path=None):
     """ Download a file from a given url
 
     :param url: full url
     :type url: str
     :param name: name for the file (can contain a path)
     :type name: str
-    :param ext: extension for the file
-    :type ext: str
+    :param extension: extension for the file
+    :type extension: str
     :return: the created file (closed)
     :rtype: file
     """
     import requests
     response = requests.get(url, stream=True)
     code = response.status_code
+
+    if path is None:
+        path = os.getcwd()
+
+    pathname = os.path.join(path, name)
 
     while code != 200:
         if code == 400:
@@ -211,7 +217,7 @@ def downloadFile(url, name, ext):
         size = response.headers.get('content-length',0)
         if size: print('size:', size)
 
-    with open(name + "." + ext, "wb") as handle:
+    with open('{}.{}'.format(pathname, extension), "wb") as handle:
         for data in response.iter_content():
             handle.write(data)
 

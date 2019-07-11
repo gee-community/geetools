@@ -272,7 +272,7 @@ def toCSV(collection, filename, split_at=4000):
         return thecsv
 
 
-def toLocal(collection, filename, filetype=None, selectors=None):
+def toLocal(collection, filename, filetype=None, selectors=None, path=None):
     """ Download a FeatureCollection to a local file a CSV or geoJSON file.
     This uses a different method than `toGeoJSON` and `toCSV`
 
@@ -286,7 +286,7 @@ def toLocal(collection, filename, filetype=None, selectors=None):
         filetype = 'CSV'
 
     url = collection.getDownloadURL(filetype, selectors, filename)
-    thefile = utils.downloadFile(url, filename, filetype)
+    thefile = utils.downloadFile(url, filename, filetype, path)
     return thefile
 
 
