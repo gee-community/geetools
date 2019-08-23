@@ -150,3 +150,15 @@ def dict2namedtuple(thedict, name='NamedDict'):
             setattr(thenametuple, key, newname)
 
     return thenametuple
+
+
+def formatVisParams(visParams):
+    """ format visualization parameters to match EE requirements at
+    ee.data.getMapId """
+    formatted = dict()
+    for param, value in visParams.items():
+        if param in ['bands', 'palette']:
+            formatted[param] = ','.join(value) if len(value) == 3 else str(value[0])
+        if param in ['min', 'max', 'gain', 'bias', 'gamma']:
+            formatted[param] = str(value) if isinstance(value, (int, str)) else ','.join(value)
+    return formatted
