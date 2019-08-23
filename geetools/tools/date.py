@@ -25,10 +25,9 @@ def millisToDatetime(millis):
 def daterangeList(start_date, end_date, interval=1, unit='month'):
     """ Divide a range that goes from start_date to end_date into many
         ee.DateRange, each one holding as many units as the interval.
-        For example, for a range from
 
     :param start_date: the start date. For the second DateRange and the
-        following, it'll be one second after the end of the previus DateRange
+        following, it'll be one second after the end of the previous DateRange
     :param end_date: the end date
     :param interval: range of the DateRange in units
     :param unit: can be 'year', 'month' 'week', 'day', 'hour', 'minute',
@@ -162,18 +161,25 @@ def makeDateBand(image, format='YMMdd', bandname='date'):
     m       minute of hour               number        30
     s       second of minute             number        55
     S       fraction of second           number        978
+
+    Use the image first band for setting the resulting band projection
     """
     f = ee.String(format)
     # catch string formats for month
     pattern = f.replace('(MMM+)', 'MM')
+
+    proj = image.select(0).projection()
 
     footprint = image.geometry()
 
     idate = image.date().format(pattern)
     idate_number = ee.Number.parse(idate)
     date_band = ee.Image.constant(idate_number).rename(bandname)
-    return ee.Image(ee.Algorithms.If(footprint.isUnbounded(), date_band,
-                                     date_band.clip(footprint)))
+    date_band = date_band.toInt()  # force to be an Integer
+    final = ee.Image(ee.Algorithms.If(footprint.isUnbounded(), date_band,
+                                      date_band.clip(footprint)))
+
+    return final.setDefaultProjection(proj)
 
 
 def regularIntervals(start_date, end_date, interval=1, unit='month',
@@ -269,3 +275,5 @@ def isLeap(year):
             ee.Algorithms.If(
                 divisible400, 0, 1)))
     return ee.Number(leap)
+
+
