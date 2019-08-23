@@ -35,6 +35,12 @@ def getId(collection):
     return collection.limit(0).getInfo()['id']
 
 
+def getImage(collection, index):
+    """ Get an Image using its collection index """
+    collist = collection.toList(collection.size())
+    return ee.Image(collist.get(index))
+
+
 def wrapper(f, *arg, **kwargs):
     """ Wrap a function and its arguments into a mapping function for
     ImageCollections. The first parameter of the functions must be an Image,
@@ -86,7 +92,7 @@ def fillWithLast(collection):
         d = img.date()
         condition = d.difference(first_date, 'second')
         def true(date):
-            newcol = collection.filterDate(first_date, date)
+            newcol = collection.filterDate(first_date, date.advance(1, 'day'))
             return composite.closestDate(newcol)
         return ee.Image(ee.Algorithms.If(condition, true(d), img))
 
