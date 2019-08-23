@@ -54,3 +54,14 @@ def enumerateProperty(col, name='enumeration'):
 
     featlist = enumerated.map(over_list)
     return ee.FeatureCollection(featlist)
+
+
+def listOptions(collection, propertyName):
+    """ List all available values of `propertyName` in a feature collection """
+    def wrap(feat, l):
+        l = ee.List(l)
+        return l.add(feat.get(propertyName))
+
+    options = collection.iterate(wrap, ee.List([]))
+
+    return ee.List(options).distinct()
