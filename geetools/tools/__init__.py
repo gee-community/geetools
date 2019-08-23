@@ -1,4 +1,5 @@
 """ subpackage holding modules with tools """
 
-from . import imagecollection, date, dictionary, image, number, \
-              segmentation, geometry, featurecollection, ee_list
+from . import collection, date, dictionary, ee_list, featurecollection, \
+              geometry, image, imagecollection, number, segmentation, \
+              string
