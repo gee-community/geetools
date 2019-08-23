@@ -155,3 +155,15 @@ def compositeRegularIntervals(collection, interval=1, unit='month',
 
     return ee.ImageCollection.fromImages(
         ee.List(date_ranges.iterate(wrap, ee.List([]))))
+
+
+def max(collection, band):
+    """ Make a max composite using the specified band """
+    band = ee.String(band)
+    first = collection.first()
+    originalbands = first.bandNames()
+    bands = originalbands.remove(band)
+    bands = bands.insert(0, band)
+    col = collection.map(lambda img: img.select(bands)) # change bands order
+    comp = col.reduce(ee.Reducer.max(originalbands.size()))
+    return comp.rename(bands).select(originalbands)
