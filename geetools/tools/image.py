@@ -103,6 +103,19 @@ def emptyBackground(image, value=0):
         source=image, properties=image.propertyNames()))
 
 
+def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False):
+    """ Make an empty copy of the given image """
+    footprint = image.geometry()
+    emp = empty(emptyValue, image.bandNames())
+    if copyProperties:
+        emp = emp.copyProperties(source=image, properties=copyProperties)
+    if keepMask:
+        emp = emp.updateMask(image.mask())
+
+    return ee.Image(ee.Algorithms.If(footprint.isUnbounded(),
+                                     emp, emp.clip(footprint)))
+
+
 def getValue(image, point, scale=None, side="server"):
     """ Return the value of all bands of the image in the specified point
 
