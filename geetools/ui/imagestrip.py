@@ -10,6 +10,19 @@ import ee
 import logging
 
 
+def split_at(alist, split):
+    """ split a list into 'split' items """
+    newlist = []
+    accum = []
+    for i, element in enumerate(alist):
+        accum.append(element)
+        if (len(accum) == split) or (i == len(alist)-1):
+            newlist.append(accum)
+            accum = []
+
+    return newlist
+
+
 def listEE2list(listEE, type='Image'):
     relation = {'Image': ee.Image,
                 'Number': ee.Number,
@@ -23,17 +36,108 @@ def listEE2list(listEE, type='Image'):
     return newlist
 
 
-class ImageStrip(object):
-    ''' Create an image strip '''
-    def __init__(self, name, ext="png", description="", **kwargs):
-        '''
-        :param name: File name
-        :type name: str
+class Block(object):
+    def __init__(self, **kwargs):
+        self.position = kwargs.get('position', (0,0))
+        self.separator = kwargs.get('separator', '_')
+        self.y_space = kwargs.get('y_space', 10)
 
+    def height(self):
+        return 0
+
+    def width(self):
+        return 0
+
+    def size(self):
+        return (self.width(), self.height())
+
+    def topleft(self):
+        return self.position
+
+    def topright(self):
+        x = self.position[0] + self.width()
+        return (x, self.position[1])
+
+    def bottomleft(self):
+        y = self.position[1] + self.height()
+        return (self.posision[0], y)
+
+    def bottomright(self):
+        x = self.position[0] + self.width()
+        y = self.position[1] + self.height()
+        return (x, y)
+
+
+class TextBlock(Block):
+    def __init__(self, text, font, **kwargs):
+        super(TextBlock, self).__init__(**kwargs)
+        self.text = text
+        self.font = font
+
+    def formatted(self):
+        """ Formatted text """
+        return self.text.replace(self.separator, "\n")
+
+    def height(self):
+        """ Calculate height for a multiline text """
+        alist = self.text.split(self.separator)
+        alt = 0
+        for line in alist:
+            alt += self.font.getsize(line)[1]
+        return alt + self.y_space
+
+    def width(self):
+        """ Calculate height for a multiline text """
+        alist = self.text.split(self.separator)
+        widths = []
+        for line in alist:
+            w = self.font.getsize(line)[0]
+            widths.append(w)
+        return max(*widths)
+
+
+class ImageBlock(Block):
+    def __init__(self, image, name, image_size, font_name,
+                 description=None, font_description=None, **kwargs):
+        super(ImageBlock, self).__init__(**kwargs)
+        self.image = image
+        self.name = name
+        self.image_size = image_size
+        self.font_name = font_name
+
+        self.description = description
+        self.font_description = font_description or font_name
+
+        self.name_textblock = TextBlock(name, font_name,
+                                        separator=self.separator, y_space=self.y_space)
+        if description:
+            self.description_textblock = TextBlock(description, font_description,
+                                                   separator=self.separator, y_space=self.y_space)
+        else:
+            self.description_textblock = None
+
+    def height(self):
+        heights = [self.image_size[1], self.name_textblock.height(), ]
+        if self.description:
+            heights.append(self.description_textblock.height())
+
+        return sum(heights)+(self.y_space*2)
+
+    def width(self):
+        widths = [self.image_size[0], self.name_textblock.width()]
+        if self.description:
+            widths.append(self.description_textblock.width())
+        return max(*widths)
+
+
+class ImageStrip(object):
+    """ Create an image strip """
+    def __init__(self, extension="png", **kwargs):
+        """
         :Opcionals:
 
-        :param ext: Extention. Default: png
-        :type ext: str
+        :param extension: Extension. Default: png
+        :type extension: str
         :param body_size: Body size. Defaults to 18
         :type body_size: int
         :param title_size: Title's font size. Defaults to 30
@@ -56,10 +160,8 @@ class ImageStrip(object):
         :type x_space: int
         :param description: Description that will go beneath the title
         :type description: str
-        '''
-        self.name = name
-        self.ext = ext
-        self.description = description
+        """
+        self.extension = extension
 
         self.body_size = kwargs.get("body_size", 18)
         self.title_size = kwargs.get("title_size", 30)
@@ -72,13 +174,20 @@ class ImageStrip(object):
         self.y_space = kwargs.get("y_space", 10)
         self.x_space = kwargs.get("x_space", 15)
 
+        self.body_font = ImageFont.truetype(self.font, self.body_size)
+        self.title_font = ImageFont.truetype(self.font, self.title_size)
+        self.description_font = ImageFont.truetype(self.font, self.title_size-4)
+
     @staticmethod
     def unpack(doublelist):
         return [y for x in doublelist for y in x]
 
-    def create(self, imlist, namelist, desclist=None):
+    def create(self, name, imlist, namelist, description=None, desclist=None,
+               show=False):
         """ Main method to create the actual strip
-        
+
+        :param name: name for the file
+        :type name: str
         :param imlist: PIL images, ej: [[img1, img2],[img3, img4]]
         :type imlist: list of lists
         :param namelist: Names for the images. Must match imlist size
@@ -88,7 +197,6 @@ class ImageStrip(object):
         :return:
         :rtype:
         """
-
         # SANITY CHECK
         err1 = "dimension of imlist must match dimension of namelist"
         err2 = "dimension of nested lists must be equal"
@@ -120,35 +228,34 @@ class ImageStrip(object):
                 alt += font.getsize(linea)[1]
             return alt + self.y_space
 
-        # FUENTES
+        # FONT
         font = ImageFont.truetype(self.font, self.body_size)
         fontit = ImageFont.truetype(self.font, self.title_size)
         font_desc = ImageFont.truetype(self.font, self.title_size - 4)
 
-        # TITULO
-        title = self.name
+        # TITLE
+        title = name
         title_height = line_height(title, fontit)
         
-        # DIMENSIONES DESCRIPCION
+        # DESCRIPTION
         description = self.description.replace("_", "\n")
         desc_height = line_height(description, font_desc)
-        desc_width = font_desc.getsize(description)[0]
+        # desc_width = font_desc.getsize(description)[0]
 
-        # ALTURA NOMBRES
+        # NAMES HEIGHT
         if desclist:
             all_names = [n.replace("_", "\n") for n in self.unpack(desclist)]
         else:
             all_names = [n.replace("_", "\n") for n in self.unpack(namelist)]
 
         all_height = [line_height(t, font) for t in all_names]
-        name_height = max(*all_height) #+ 2
-        # print alturatodos, alturanombres
+        name_height = max(*all_height)
 
-        # CALCULO EL ANCHO DE LA PLANTILLA
+        # SCREEN SIZE
         imgs_width = [[ii.size[0] + self.x_space for ii in i] for i in imlist]
         imgs_width_sum = [sum(i) for i in imgs_width]
 
-        # CALCULO EL MAXIMO ANCHO DE LA LISTA DE ANCHOS
+        # MAX WIDTH
         max_width = max(imgs_width_sum)
         strip_width = int(max_width)
 
@@ -190,19 +297,18 @@ class ImageStrip(object):
 
         # DIBUJA LAS FILAS
 
-        # logging.debug(("altura de la descripcion (calculada):", desc_height))
-        # logging.debug(("altura de la desc", font_desc.getsize(description)[1]))
+        logging.debug(("altura de la descripcion (calculada):", desc_height))
+        logging.debug(("altura de la desc", font_desc.getsize(description)[1]))
         y += desc_height + self.y_space # aumento y
 
         # DIBUJA LAS FILAS Y COLUMNAS
-
         if desclist:
             namelist = desclist
 
         for i, n, alto in zip(imlist, namelist, max_imgs_height):
             # RESETEO LA POSICION HORIZONTAL
             xn = x # hago esto porque en cada iteracion aumento solo xn y desp vuelvo a x
-            for image, name in zip(i, n):
+            for image, iname in zip(i, n):
                 # LA COLUMNA ES: (imagen, name, anchocolumna)
                 # print image, name
 
@@ -216,7 +322,7 @@ class ImageStrip(object):
 
                 # DIBUJO name
                 draw.text((xn, _y),
-                          name.replace("_", "\n"),
+                          iname.replace("_", "\n"),
                           font=font,
                           fill=self.body_color)
 
@@ -226,8 +332,9 @@ class ImageStrip(object):
             # AUMENTO x
             y += alto
 
-        strip.save(self.name + "." + self.ext)
-        strip.show()
+        strip.save('{}.{}'.format(name, self.extension))
+        if show:
+            strip.show()
 
         return strip
 
@@ -299,7 +406,7 @@ class ImageStrip(object):
                     os.mkdir(abscarp)
 
                 path = "{}/{}".format(folder, name)
-                fullpath = os.path.abspath(path)+"."+self.ext
+                fullpath = os.path.abspath(path)+"."+self.extension
                 exist = os.path.isfile(fullpath)
 
                 logging.debug(("existe {}?".format(fullpath), exist))
@@ -312,11 +419,11 @@ class ImageStrip(object):
                                            forceRgbOutput=True)
 
                     url = urlviz.getThumbURL({"region": region,
-                                              "format": self.ext,
+                                              "format": self.extension,
                                               "dimensions": general_width})
 
                     # archivo = funciones.downloadFile3(url, folder+"/"+name, self.ext)
-                    file = batch.downloadFile(url, path, self.ext)
+                    file = batch.downloadFile(url, path, self.extension)
 
                     im = ImPIL.open(file.name)
                     # listaimPIL.append(im)
