@@ -17,7 +17,7 @@ def format(string, replacement):
     s = ee.String(string)
     repl = ee.Dictionary(replacement)
     keys = repl.keys()
-    values = repl.values()
+    values = repl.values().map(lambda v: ee.Algorithms.String(v))
     z = keys.zip(values)
 
     def wrap(kv, ini):
