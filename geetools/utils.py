@@ -5,6 +5,7 @@ import pandas as pd
 from copy import deepcopy
 import ee
 import re
+from .tools import string
 
 
 def getReducerName(reducer):
@@ -101,28 +102,19 @@ def makeName(img, pattern, date_pattern=None):
     Pattern example (supposing each image has a property called `city`):
     'image from {city} on {system_date}'
     """
-    properties = re.findall(r'{(\w+)}', pattern)
-    to_replace = {}
-    for prop in properties:
-        if prop in ['system_date']:
-            if date_pattern is None:
-                date_pattern = 'yyyyMMdd'
-            condition = img.propertyNames().contains('system:time_start')
-            value = ee.String(ee.Algorithms.If(condition,
-                                               img.date().format(date_pattern),
-                                               'date'))
-            value = value.getInfo()
-        elif prop in ['id', 'ID']:
-            value = img.id().getInfo()
-            if value is None:
-                value = 'id'
-        else:
-            value = img.get(prop).getInfo()
-            if value is None:
-                value = prop
+    img = ee.Image(img)
+    props = img.toDictionary()
+    props = ee.Dictionary(ee.Algorithms.If(
+        img.id(),
+        props.set('id', img.id()).set('ID', img.id()),
+        props))
+    props = ee.Dictionary(ee.Algorithms.If(
+        img.propertyNames().contains('system:time_start'),
+        props.set('system_date', img.date().format(date_pattern)),
+        props))
+    name = string.format(pattern, props)
 
-        to_replace[prop] = value
-    return pattern.format(**to_replace)
+    return name
 
 
 def dict2namedtuple(thedict, name='NamedDict'):
@@ -157,6 +149,8 @@ def formatVisParams(visParams):
     ee.data.getMapId """
     formatted = dict()
     for param, value in visParams.items():
+        if isinstance(value, list):
+            value = [str(v) for v in value]
         if param in ['bands', 'palette']:
             formatted[param] = ','.join(value) if len(value) == 3 else str(value[0])
         if param in ['min', 'max', 'gain', 'bias', 'gamma']:
