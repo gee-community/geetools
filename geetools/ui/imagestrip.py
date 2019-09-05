@@ -1,5 +1,6 @@
 # coding=utf-8
-''' Creation of strip of images '''
+
+""" Creation of strip of images """
 
 from __future__ import print_function
 from .. import batch
@@ -8,9 +9,16 @@ from PIL import ImageDraw, ImageFont
 import os.path
 import ee
 import logging
+from copy import deepcopy
+from ..tools import geometry
+from .. import utils
+import requests
+from io import BytesIO
+import os
+import hashlib
 
 
-def split_at(alist, split):
+def split(alist, split):
     """ split a list into 'split' items """
     newlist = []
     accum = []
@@ -37,15 +45,21 @@ def listEE2list(listEE, type='Image'):
 
 
 class Block(object):
-    def __init__(self, **kwargs):
-        self.position = kwargs.get('position', (0,0))
-        self.separator = kwargs.get('separator', '_')
-        self.y_space = kwargs.get('y_space', 10)
+    def __init__(self, position=(0, 0), background_color=None):
+        self.position = position
+        self.background_color = background_color or "#00000000" # transparent
+
+    def image(self):
+        """ Overwrite this method """
+        im = ImPIL.new("RGBA", self.size(), self.background_color())
+        return im
 
     def height(self):
+        """ Overwrite this method """
         return 0
 
     def width(self):
+        """ Overwrite this method """
         return 0
 
     def size(self):
@@ -60,7 +74,7 @@ class Block(object):
 
     def bottomleft(self):
         y = self.position[1] + self.height()
-        return (self.posision[0], y)
+        return (self.position[0], y)
 
     def bottomright(self):
         x = self.position[0] + self.width()
@@ -69,65 +83,230 @@ class Block(object):
 
 
 class TextBlock(Block):
-    def __init__(self, text, font, **kwargs):
+    def __init__(self, text, font=None, color='white', font_size=12,
+                 y_space=10, **kwargs):
         super(TextBlock, self).__init__(**kwargs)
         self.text = text
-        self.font = font
+        self.color = color
+        self.font_size = font_size
+        self.y_space = y_space
+        if not isinstance(font, ImageFont.FreeTypeFont):
+            if font is None:
+                self.font = ImageFont.truetype("DejaVuSerif.ttf", self.font_size)
+            else:
+                self.font = ImageFont.truetype(font, self.font_size)
+        else:
+            self.font = font
 
-    def formatted(self):
-        """ Formatted text """
-        return self.text.replace(self.separator, "\n")
+    def image(self):
+        """ Return the PIL image """
+        image = ImPIL.new("RGBA", self.size(), self.background_color)
+        draw = ImageDraw.Draw(image)
+        draw.text(self.position, self.text,
+                  font=self.font, fill=self.color)
+        return image
 
     def height(self):
         """ Calculate height for a multiline text """
-        alist = self.text.split(self.separator)
+        alist = self.text.split("\n")
         alt = 0
         for line in alist:
             alt += self.font.getsize(line)[1]
-        return alt + self.y_space
+        return alt + self.y_space + self.position[1]
 
     def width(self):
         """ Calculate height for a multiline text """
-        alist = self.text.split(self.separator)
+        alist = self.text.split("\n")
         widths = []
         for line in alist:
             w = self.font.getsize(line)[0]
             widths.append(w)
-        return max(*widths)
+        return max(widths) + self.position[0]
+
+    def draw(self, image, position=(0,0)):
+        """ Draw the text image into another PIL image """
+        im = self.image()
+        newi = image.copy()
+        newi.paste(im, position, im)
+        return newi
 
 
 class ImageBlock(Block):
-    def __init__(self, image, name, image_size, font_name,
-                 description=None, font_description=None, **kwargs):
+    def __init__(self, source, **kwargs):
+        """ Image Block for PIL images """
         super(ImageBlock, self).__init__(**kwargs)
-        self.image = image
-        self.name = name
-        self.image_size = image_size
-        self.font_name = font_name
-
-        self.description = description
-        self.font_description = font_description or font_name
-
-        self.name_textblock = TextBlock(name, font_name,
-                                        separator=self.separator, y_space=self.y_space)
-        if description:
-            self.description_textblock = TextBlock(description, font_description,
-                                                   separator=self.separator, y_space=self.y_space)
-        else:
-            self.description_textblock = None
+        self.source = source
 
     def height(self):
-        heights = [self.image_size[1], self.name_textblock.height(), ]
-        if self.description:
-            heights.append(self.description_textblock.height())
-
-        return sum(heights)+(self.y_space*2)
+        return self.source.size[1] + self.position[1]
 
     def width(self):
-        widths = [self.image_size[0], self.name_textblock.width()]
-        if self.description:
-            widths.append(self.description_textblock.width())
-        return max(*widths)
+        return self.source.size[0] + self.position[0]
+
+    def image(self):
+        im = ImPIL.new("RGBA", self.size(), self.background_color)
+        im.paste(self.source, self.position)
+        return im
+
+
+class EeImageBlock(Block):
+    def __init__(self, source, visParams=None, region=None,
+                 download=False, check=True, path=None, name=None,
+                 extension=None, dimensions=(500, 500), **kwargs):
+        """ Image Block for Earth Engine images """
+        super(EeImageBlock, self).__init__(**kwargs)
+        self.source = ee.Image(source)
+        self.visParams = visParams or dict(min=0, max=1)
+        self.dimensions = dimensions
+        self.download = download
+        self.extension = extension or 'png'
+        self.check = check
+        self.visual = self.source.visualize(**self.visParams)
+        self.name = name
+
+        if region:
+            self.region = geometry.getRegion(region, True)
+        else:
+            self.region = geometry.getRegion(self.source, True)
+
+        if download:
+            self.path = path or os.getcwd()
+            h = hashlib.sha256()
+            tohash = self.visual.serialize()+str(self.dimensions)+str(self.region)
+            h.update(tohash.encode('utf-8'))
+            namehex = h.hexdigest()
+            if not name:
+                self.name = namehex
+            else:
+                self.name = '{}_{}'.format(self.name, namehex)
+        else:
+            self.path = path
+
+        self._pil_image = None
+        self._url = None
+
+    @property
+    def pil_image(self):
+        if not self._pil_image:
+            if not self.download:
+                raw = requests.get(self.url)
+                self._pil_image = ImPIL.open(BytesIO(raw.content))
+            else:
+                if not os.path.exists(self.path):
+                    os.mkdir(self.path)
+                filename = '{}.{}'.format(self.name, self.extension)
+                fullpath = os.path.join(self.path, filename)
+                exist = os.path.isfile(fullpath)
+                if self.check and exist:
+                    self._pil_image = ImPIL.open(fullpath)
+                else:
+                    file = batch.utils.downloadFile(self.url, self.name,
+                                                    self.extension, self.path)
+                    self._pil_image = ImPIL.open(file.name)
+
+        return self._pil_image
+
+    @staticmethod
+    def format_dimensions(dimensions):
+        return "x".join([str(d) for d in dimensions])
+
+    @property
+    def url(self):
+        if not self._url:
+            vis = utils.formatVisParams(self.visParams)
+            vis.update({'format':self.extension, 'region':self.region,
+                        'dimensions':self.format_dimensions(self.dimensions)})
+            url = self.source.getThumbURL(vis)
+            self._url = url
+
+        return self._url
+
+    def height(self):
+        return self.pil_image.size[1] + self.position[1]
+
+    def width(self):
+        return self.pil_image.size[0] + self.position[0]
+
+    def image(self):
+        im = ImPIL.new("RGBA", self.size(), self.background_color)
+        im.paste(self.pil_image, self.position)
+        return im
+
+
+class GridBlock(Block):
+    def __init__(self, blocklist, x_space=10, y_space=10, **kwargs):
+        """ """
+        super(GridBlock, self).__init__(**kwargs)
+        self.blocklist = self._format_blocklist(blocklist)
+        self.x_space = x_space
+        self.y_space = y_space
+
+    @staticmethod
+    def _format_blocklist(blocklist):
+        rows = len(blocklist)
+        cols = 0
+        for l in blocklist:
+            length = len(l)
+            cols = length if length > cols else cols
+
+        row = [None]*cols
+        empty = []
+        for i in range(rows):
+            empty.append(deepcopy(row))
+
+        for row_n, r in enumerate(blocklist):
+            for col_n, block in enumerate(r):
+                empty[row_n][col_n] = block
+
+        return empty
+
+    def get(self, x, y):
+        """ Get a block given it's coordinates on the grid """
+        return self.blocklist[x][y]
+
+    def row_height(self, row):
+        r = self.blocklist[row]
+        h = 0
+        for im in r:
+            imh = im.height() if im else 0
+            # update h if image height is bigger
+            h = imh if imh > h else h
+        return h
+
+    def height(self):
+        heightlist = []
+        for l in self.blocklist:
+            h = 0
+            for block in l:
+                bh = block.height() if block else 0
+                # update h if image height is bigger
+                h = bh if bh > h else h
+            heightlist.append(h)
+        return sum(heightlist) + ((len(heightlist)-1) * self.y_space)
+
+    def width(self):
+        widthlist = []
+        for l in self.blocklist:
+            w = 0
+            for block in l:
+                bw = block.width() if block else 0
+                w += bw
+            w = w + ((len(l)-1) * self.x_space)
+            widthlist.append(w)
+        return max(widthlist)
+
+    def image(self):
+        im = ImPIL.new("RGBA", self.size(), self.background_color)
+        nextpos = (0, 0)
+        for rown, blist in enumerate(self.blocklist):
+            for block in blist:
+                if block:
+                    i = block.image()
+                    im.paste(i, nextpos)
+                    nextwidth = nextpos[0] + block.width() + self.x_space
+                    nextpos = (nextwidth, nextpos[1])
+            nextpos = (0, nextpos[1] + self.row_height(rown) + self.y_space)
+        return im
 
 
 class ImageStrip(object):
@@ -163,12 +342,13 @@ class ImageStrip(object):
         """
         self.extension = extension
 
-        self.body_size = kwargs.get("body_size", 18)
+        self.body_size = kwargs.get("body_size", 20)
         self.title_size = kwargs.get("title_size", 30)
+        self.description_size = kwargs.get("title_size", 15)
         self.font = kwargs.get("font", "DejaVuSerif.ttf")
         self.background_color = kwargs.get("background_color", "white")
         self.title_color = kwargs.get("title_color", "black")
-        self.body_color = kwargs.get("body_color", "red")
+        self.body_color = kwargs.get("body_color", "black")
         self.general_width = kwargs.get("general_width", 0)
         self.general_height = kwargs.get("general_height", 0)
         self.y_space = kwargs.get("y_space", 10)
@@ -176,170 +356,16 @@ class ImageStrip(object):
 
         self.body_font = ImageFont.truetype(self.font, self.body_size)
         self.title_font = ImageFont.truetype(self.font, self.title_size)
-        self.description_font = ImageFont.truetype(self.font, self.title_size-4)
+        self.description_font = ImageFont.truetype(self.font, self.description_size)
 
     @staticmethod
     def unpack(doublelist):
         return [y for x in doublelist for y in x]
 
-    def create(self, name, imlist, namelist, description=None, desclist=None,
-               show=False):
-        """ Main method to create the actual strip
-
-        :param name: name for the file
-        :type name: str
-        :param imlist: PIL images, ej: [[img1, img2],[img3, img4]]
-        :type imlist: list of lists
-        :param namelist: Names for the images. Must match imlist size
-        :type namelist: list of lists
-        :param desclist: Descriptions for the images. Must match imlist size
-        :type desclist: list of lists
-        :return:
-        :rtype:
-        """
-        # SANITY CHECK
-        err1 = "dimension of imlist must match dimension of namelist"
-        err2 = "dimension of nested lists must be equal"
-
-        if len(imlist) != len(namelist):
-            raise ValueError(err1)
-        elif [len(l) for l in imlist] != [len(l) for l in namelist]:
-            raise ValueError(err2)
-
-        if desclist is not None:
-            if len(desclist) != len(imlist):
-                raise ValueError(err1)
-            elif [len(l) for l in imlist] != [len(l) for l in desclist]:
-                raise ValueError(err2)
-
-        def line_height(text, font):
-            """ Calculate height for a multiline text
-            
-            :param text: multiline text
-            :type text: str
-            :param font: utilized font
-            :type font: ImageFont
-            :return: text height
-            :rtype: float
-            """
-            lista = text.split("\n")
-            alt = 0
-            for linea in lista:
-                alt += font.getsize(linea)[1]
-            return alt + self.y_space
-
-        # FONT
-        font = ImageFont.truetype(self.font, self.body_size)
-        fontit = ImageFont.truetype(self.font, self.title_size)
-        font_desc = ImageFont.truetype(self.font, self.title_size - 4)
-
-        # TITLE
-        title = name
-        title_height = line_height(title, fontit)
-        
-        # DESCRIPTION
-        description = self.description.replace("_", "\n")
-        desc_height = line_height(description, font_desc)
-        # desc_width = font_desc.getsize(description)[0]
-
-        # NAMES HEIGHT
-        if desclist:
-            all_names = [n.replace("_", "\n") for n in self.unpack(desclist)]
-        else:
-            all_names = [n.replace("_", "\n") for n in self.unpack(namelist)]
-
-        all_height = [line_height(t, font) for t in all_names]
-        name_height = max(*all_height)
-
-        # SCREEN SIZE
-        imgs_width = [[ii.size[0] + self.x_space for ii in i] for i in imlist]
-        imgs_width_sum = [sum(i) for i in imgs_width]
-
-        # MAX WIDTH
-        max_width = max(imgs_width_sum)
-        strip_width = int(max_width)
-
-        # CALCULO EL ALTO MAX
-
-        # POR AHORA LO CALCULA CON EL ALTO DE LA 1ER COLUMNA
-        # PERO SE PODRIA CALCULAR CUAL ES LA IMG MAS ALTA Y CUAL
-        # ES EL TITULO MAS ALTO, Y COMBINAR AMBOS...
-
-        # Tener en cuenta que listaimgs es una lista de listas [[i1,i2], [i3,i4]]
-
-        # print "calculando general_height de la plantilla..."
-
-        imgs_height = [[ii.size[1] for ii in i] for i in imlist]
-        max_imgs_height = [max(*i) + name_height + self.y_space for i in imgs_height]
-        max_height = sum(max_imgs_height)
-
-        strip_height = int(sum((title_height, desc_height, max_height,
-                                    self.y_space * 3)))
-
-        strip = ImPIL.new("RGB", (strip_width, strip_height),
-                              self.background_color)
-
-        draw = ImageDraw.Draw(strip)
-
-        # DIBUJA LOS ELEMENTOS DENTRO DE LA PLANTILLA
-
-        # COORD INICIALES
-        x = 0
-        y = 0
-
-        # DIBUJA EL TITULO
-        draw.text((x, y), title, font=fontit, fill=self.title_color)
-
-        # DIBUJA LA DESCRIPCION
-        y += title_height + self.y_space # aumento y
-        # print "y de la descripcion:", y
-        draw.text((x, y), description, font=font_desc, fill=self.title_color)
-
-        # DIBUJA LAS FILAS
-
-        logging.debug(("altura de la descripcion (calculada):", desc_height))
-        logging.debug(("altura de la desc", font_desc.getsize(description)[1]))
-        y += desc_height + self.y_space # aumento y
-
-        # DIBUJA LAS FILAS Y COLUMNAS
-        if desclist:
-            namelist = desclist
-
-        for i, n, alto in zip(imlist, namelist, max_imgs_height):
-            # RESETEO LA POSICION HORIZONTAL
-            xn = x # hago esto porque en cada iteracion aumento solo xn y desp vuelvo a x
-            for image, iname in zip(i, n):
-                # LA COLUMNA ES: (imagen, name, anchocolumna)
-                # print image, name
-
-                ancho_i, alto_i = image.size
-
-                # DIBUJO imagen
-                strip.paste(image, (xn, y))
-
-                # aumento y para pegar el texto
-                _y = y + alto_i + self.y_space
-
-                # DIBUJO name
-                draw.text((xn, _y),
-                          iname.replace("_", "\n"),
-                          font=font,
-                          fill=self.body_color)
-
-                # AUMENTO y
-                xn += ancho_i + self.x_space
-
-            # AUMENTO x
-            y += alto
-
-        strip.save('{}.{}'.format(name, self.extension))
-        if show:
-            strip.show()
-
-        return strip
-
-    def fromList(self, imlist, namelist, viz_bands, min, max, region,
-                 folder, check=True, desclist=None, **kwargs):
+    def fromList(self, image_list, name=None, name_list=None, vis_params=None,
+                 region=None, split_at=4, image_size=(500, 500),
+                 description_list=None, images_folder=None, check=True,
+                 download_images=False, save=True, folder=None):
         """ Download every image and create the strip
 
         :param imlist: Satellite Images (not PIL!!!!!!)
@@ -373,252 +399,118 @@ class ImageStrip(object):
         :return: A file with the name passed to StripImage() in the folder
             passed to the method. Opens the generated file
         """
+        if isinstance(image_list, ee.List):
+            image_list = listEE2list(image_list, 'Image')
 
-        if isinstance(imlist, ee.List):
-            imlist = listEE2list(imlist, 'Image')
+        if region:
+            region = geometry.getRegion(region, True)
 
-        region = ee.Geometry.Polygon(region).bounds().getInfo()["coordinates"]
+        description_list = description_list or [None]*len(image_list)
+        name_list = name_list or [None]*len(image_list)
 
-        # TODO: modificar este metodo para que se pueda pasar listas de listas
-        general_width = kwargs.get("general_width", 500)
+        ilist = split(image_list, split_at)
+        nlist = split(name_list, split_at)
+        dlist = split(description_list, split_at)
 
-        draw_polygons = kwargs.get("draw_polygons", None)
-        draw_lines = kwargs.get("draw_lines", None)
-        draw_points = kwargs.get("draw_points", None)
+        final_list = []
 
-        # desclist = kwargs.get("desclist", None)
+        for imgs, names, descs in zip(ilist, nlist, dlist):
+            row_list = []
+            for image, iname, desc in zip(imgs, names, descs):
 
-        list_of_lists = []
-
-        # logging.debug(("verificar archivo?", check))
-
-        # for i in range(0, len(imlist)):
-        for img_list, nom_list in zip(imlist, namelist):
-            pil_img_list = []
-            for image, name in zip(img_list, nom_list):
-                # name = namelist[i]
-                # exist = os.path.exists(folder+"/"+name)
-                # path = "{0}/{1}.{2}".format(folder, name, self.ext)
-
-                # CHECK CARPETA
-                abscarp = os.path.abspath(folder)
-                if not os.path.exists(abscarp):
-                    os.mkdir(abscarp)
-
-                path = "{}/{}".format(folder, name)
-                fullpath = os.path.abspath(path)+"."+self.extension
-                exist = os.path.isfile(fullpath)
-
-                logging.debug(("existe {}?".format(fullpath), exist))
-
-                if check and exist:
-                    im = ImPIL.open(fullpath)
+                if download_images:
+                    if images_folder:
+                        path = os.path.join(os.getcwd(), images_folder)
+                    else:
+                        if name:
+                            path = os.path.join(os.getcwd(), name)
+                        else:
+                            path = os.getcwd()
+                    if not os.path.exists(path):
+                        os.mkdir(path)
                 else:
-                    img = ee.Image(image)
-                    urlviz = img.visualize(bands=viz_bands, min=min, max=max,
-                                           forceRgbOutput=True)
+                    path = None
 
-                    url = urlviz.getThumbURL({"region": region,
-                                              "format": self.extension,
-                                              "dimensions": general_width})
+                imgblock = EeImageBlock(image, vis_params, region, check=check, name=iname,
+                                        extension=self.extension, dimensions=image_size,
+                                        download=download_images, path=path)
+                blocklist = [[imgblock]]
 
-                    # archivo = funciones.downloadFile3(url, folder+"/"+name, self.ext)
-                    file = batch.downloadFile(url, path, self.extension)
+                # IMAGE NAME BLOCK
+                if iname:
+                    textblock = TextBlock(iname,
+                                          color=self.body_color,
+                                          background_color=self.background_color,
+                                          font=self.body_font,
+                                          )
 
-                    im = ImPIL.open(file.name)
-                    # listaimPIL.append(im)
+                    blocklist.append([textblock])
 
-                dr = ImageDraw.Draw(im)
+                # DESCRIPTION
+                if desc:
+                    descblock = TextBlock(desc,
+                                          color=self.body_color,
+                                          background_color=self.background_color,
+                                          font=self.description_font,
+                                          )
+                    blocklist.append([descblock])
 
-                general_width, general_height = im.size
-                # print "general_width:", general_width, "general_height:", general_height
+                # FINAL CELL BLOCK
+                block = GridBlock(blocklist,
+                                  background_color=self.background_color,
+                                  x_space=self.x_space,
+                                  y_space=self.y_space
+                                  )
 
-                # nivel de 'anidado' (nested)
-                def nested_level(l):
-                    n = 0
-                    while type(l[0]) is list:
-                        n += 1
-                        l = l[0]
-                    return n
+                row_list.append(block)
+            final_list.append(row_list)
 
-                region = region[0] if nested_level(region) == 2 else region
-                region = region[:-1] if len(region) == 5 else region
+        # TITLE
+        if name:
+            title_tb = TextBlock(name,
+                                 color=self.title_color,
+                                 background_color=self.background_color,
+                                 font=self.font,
+                                 font_size=self.title_size
+                                 )
 
-                p0 = region[0]
-                p1 = region[1]
-                p3 = region[3]
-                distX = abs(p0[0]-p1[0])
-                distY = abs(p0[1]-p3[1])
+            final_list.insert(0, [title_tb])
 
-                # FACTORES DE ESCALADO
-                width_ratio = float(general_width)/float(distX)
-                height_ratio = float(general_height)/float(distY)
+        grid = GridBlock(final_list,
+                         background_color=self.background_color,
+                         x_space=self.x_space,
+                         y_space=self.y_space
+                         )
 
-                if draw_polygons:
-                    for pol in draw_polygons:
-                        pol = [tuple(p) for p in pol]
+        i = grid.image()
 
-                        newpol = [(abs(x-p0[0])*width_ratio, abs(y-p0[1])*height_ratio) for x, y in pol]
-
-                        # logging.debug("nuevas coords {}".format(newpol))
-
-                        #print "\n\n", pol, "\n\n"
-                        dr.polygon(newpol, outline="red")
-
-                pil_img_list.append(im)
-            list_of_lists.append(pil_img_list)
-
-        if desclist:
-            return self.create(list_of_lists, namelist, desclist)
-        else:
-            return self.create(list_of_lists, namelist)
-
-    def fromCollection(self, collections, viz_param=None, region=None,
-                       name=None, folder=None, properties=None,
-                       drawRegion=False, zoom=0, description="", **kwargs):
-        ''' Create an image strip from a given ee.ImageCollection or ee.List
-
-        :param collections: contains the images (ee.Image)
-        :type collections: list of ee.ImageCollection or ee.List
-        :param viz_param: visualization parameters. If None will use data of
-            the first 3 bands.
-        :type viz_param: dict
-        :param region: region from where to create the image strip. If None,
-            the region of the first image is used
-        :type region: list of list
-        :param name: name for the folder. If None the name of the
-            collection will be used
-        :type name: str
-        :param folder: folder to save the file. If None, the name of the
-            collection will be used
-        :type folder: str
-        :param properties: properties to add as a description of every image
-        :type properties: list
-        :param drawRegion: draw a polygon in the given region
-        :type drawRegion: bool
-        :param zoom: doesn't match EE zoom, this strats from 0 (no zoom).
-        :type zoom: int
-        :param description: Paragraph that serves as a decription of the image
-            strip
-        :type description: str
-        :param kwargs: other parameters passed to the creation of the
-            ImageStrip object.
-        :type kwargs: dict
-        :return: A file with the name passed to StripImage() in the folder
-            passed to the method. Opens the generated file
-        '''
-        # SANITY CHECK
-        coltypes_imcol = [isinstance(col, ee.ImageCollection) for col in collections]
-        coltypes_imlist = [isinstance(col, ee.List) for col in collections]
-        if not min(coltypes_imcol) and not min(coltypes_imlist):
-            raise ValueError("'collection' parameter must be a list of " \
-                "ee.ImageCollection or a list of ee.List containing ee.Image")
-
-        if folder is None:
-            folder = name
-
-        # TOMA DATOS DE LA PRIMER IMAGEN POR SI NO SE ESPECIFICA LA REGION O LOS
-        # PARAMETROS PARA LA VISUALIZACION
-        first = ee.Image(collections[0].first())
-        first_info = first.getInfo()
-
-        # OBTENGO LA REGION, DE ESTE MODO SE PUEDE ESPECIFICAR UN AREA MAS CHICA
-        if not region:
-            region = first.geometry().bounds().getInfo()["coordinates"]
-
-        original_region = region
-
-        maxError = kwargs.get("maxError", 10)
-        if zoom > 0:
-            pol = ee.Geometry.Polygon(region)
-            center = pol.centroid()
-            b = center.buffer(zoom*100, maxError).bounds()
-            region = b.getInfo()["coordinates"]
-
-        if viz_param:
-            bands = viz_param.get("bands")
-            minV = viz_param.get("min")
-            maxV = viz_param.get("max")
-        else:
-            bandtype = first_info["bands"][0]["data_type"]["precision"]
-            bandmax = first_info["bands"][0]["data_type"]["max"]
-            b1 = first_info["bands"][0]["id"]
-            b2 = first_info["bands"][1]["id"]
-            b3 = first_info["bands"][2]["id"]
-            bands = [b1, b2, b3]
-            minV = 0
-            if bandtype == "int" and bandmax > 255:
-                maxV = 5000
-            elif bandtype == "float":
-                maxV = 0.5
-            elif bandtype == "int" and bandmax == 255:
-                maxV = 125
+        if save:
+            stripname = '{}.{}'.format(name, self.extension)
+            local = os.getcwd()
+            if not folder:
+                path = os.path.join(local, stripname)
             else:
-                maxV = 0.5
+                path = os.path.join(local, folder, stripname)
 
-        zoom_str = "z"+str(zoom)
-        region_str = "with_region" if drawRegion else "without_region"
-
-        name += "_" + "_".join((zoom_str, region_str))
-
-        pl = ImageStrip(name, description=description)
-
-        nested_imgs = []
-        nested_names = []
-        nested_desc = []
-
-        for col in collections:
-            # TRANSFORMO LA COLECCION EN UNA LISTA
-            lista = col.toList(5000)
-            listaPy = []
-            names = []
-            descriptions = [] # description para cada imagen
-            size = lista.size().getInfo()
-            # colID = funciones.execli(col.getInfo)()["id"].split("/")[-1]
-
-            for i in range(0, size):
-                img = ee.Image(lista.get(i))
-                listaPy.append(img)
-                date = img.date().format().getInfo()
-                imID = img.id().getInfo()
-                propname = ""
-                if properties:
-                    for prop in properties:
-                        value = img.get(prop).getInfo()
-                        value = str(value) if value else "no {} property".format(value)
-                        propname += "{}: {}_".format(prop, value)
-
-                # desc = "{fecha}".format(id=imID, fecha=date)
-                desc = "ID: {imID}_date: {date}_{propname}".format(**locals())
-                # nn = "_".join((colID, str(date), zoom_str, buff_str))
-                nn = "_".join((imID, str(date), zoom_str))
-
-                names.append(nn)
-                descriptions.append(desc)
-
-            # logging.debug(("descripciones", descripciones))
-            # logging.debug(("nombres", nombres))
-
-            nested_imgs.append(listaPy)
-            nested_names.append(names)
-            nested_desc.append(descriptions)
-
-        arguments = dict(
-            imlist=nested_imgs,
-            namelist=nested_names,
-            desclist=nested_desc,
-            viz_bands=bands,
-            min=minV,
-            max=maxV,
-            region=region,
-            folder=folder,
-            check=True)
-
-        if drawRegion:
-            arguments["draw_polygons"] = (original_region)
-
-        # print arguments["draw_polygons"]
-
-        i = pl.fromList(**arguments)
+            i.save(path)
 
         return i
+
+    def fromCollection(self, collection, title=None, name='{id}',
+                       description=None, date_pattern=None, **kwargs):
+        """ Create an image strip from a collection """
+        collist = collection.toList(collection.size())
+        # FILL NAME LIST
+        namelist = collist.map(lambda img: utils.makeName(
+            ee.Image(img), name, date_pattern))
+        namelist = namelist.getInfo()
+        params = dict(name=title, name_list=namelist)
+        # FILL DESCRIPTION
+        if description:
+            desclist = collist.map(lambda img: utils.makeName(
+                ee.Image(img), description, date_pattern))
+            desclist = desclist.getInfo()
+            params['description_list'] = desclist
+
+        kwargs.update(params)
+        return self.fromList(collist, **kwargs)
