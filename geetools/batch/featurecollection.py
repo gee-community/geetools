@@ -322,7 +322,8 @@ def toAsset(table, assetPath, name=None, create=True, **kwargs):
     # Description
     description = name.replace('/','_')
     # Init task
-    task = ee.batch.Export.table.toAsset(table, assetId=assetId, description=description, **kwargs)
+    task = ee.batch.Export.table.toAsset(table, assetId=assetId,
+                                         description=description, **kwargs)
     task.start()
 
     return task
