@@ -15,25 +15,37 @@ GEOMETRY_TYPES = {
 }
 
 
-def getProjection(filename):
-    """ Get EPSG from a shapefile using OGR
+def getProjection(filename, path=None):
+    """ Get EPSG from a shapefile using pycrs
 
     :param filename: an ESRI shapefile (.shp)
     :type filename: str
     """
     try:
-        from osgeo import ogr
-    except:
-        import ogr
+        import pycrs
+    except ModuleNotFoundError as e:
+        print('Install pycrs mode by `pip install pycrs`')
+        raise e
+    except Exception as e:
+        raise e
+    import requests
+    import os
 
-    driver = ogr.GetDriverByName('ESRI Shapefile')
-    dataset = driver.Open(filename)
+    if not path:
+        path = os.getcwd()
 
-    # from Layer
-    layer = dataset.GetLayer()
-    spatialRef = layer.GetSpatialRef()
-
-    return spatialRef.GetAttrValue("AUTHORITY", 1)
+    BASEURL = 'http://prj2epsg.org/search.json'
+    fname = filename.split('.')[0]
+    prjname = '{}.prj'.format(fname)
+    fpath = os.path.join(path, prjname)
+    if not os.path.exists(prjname):
+        raise ValueError('{} does not exist'.format(fpath))
+    crs = pycrs.load.from_file(fpath)
+    wkt = crs.to_ogc_wkt()
+    params = dict(mode='wkt', terms=wkt)
+    response = requests.get(BASEURL, params)
+    rjson = response.json()
+    return rjson['codes'][0]['code']
 
 
 def kmlToGeoJsonDict(kmlfile=None, data=None, encoding=None):
