@@ -894,8 +894,7 @@ def paint(image, featurecollection, vis_params=None, color='black', width=1,
         ))
     fcraster = filtered.style(color=color, width=width, fillColor=fillColor,
                               **kwargs)
-    mask = fcraster.reduce('sum').gt(0).rename('mask')
-
+    mask = fcraster.reduce('sum').gte(0).rename('mask')
     topaint = image.visualize(**vis_params)
     final = topaint.where(mask, fcraster)
     final = final.copyProperties(source=image)
