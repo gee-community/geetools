@@ -142,16 +142,33 @@ def mosaicSameDay(collection):
     col_list = collection.toList(collection.size())
     date_list = ee.List(col_list.iterate(make_date_list, ee.List([])))
 
+    first_img = ee.Image(collection.first())
+    bands = first_img.bandNames()
+
     def make_col(date):
         date = ee.Date(date)
         filtered = collection.filterDate(date, date.advance(1, 'day'))
-        first_img = ee.Image(collection.first())
 
         mosaic = filtered.mosaic()
         mosaic = mosaic.set('system:time_start', date.millis(),
                             'system:footprint', mergeGeometries(filtered))
 
-        return mosaic.rename(first_img.bandNames())
+        mosaic = mosaic.rename(bands)
+        def reproject(bname, mos):
+            mos = ee.Image(mos)
+            mos_bnames = mos.bandNames()
+            bname = ee.String(bname)
+            proj = first_img.select(bname).projection()
+
+            newmos = ee.Image(ee.Algorithms.If(
+                mos_bnames.contains(bname),
+                image_module.replace(mos, bname, mos.select(bname).setDefaultProjection(proj)),
+                mos))
+
+            return newmos
+
+        mosaic = ee.Image(bands.iterate(reproject, mosaic))
+        return mosaic
 
     new_col = ee.ImageCollection.fromImages(date_list.map(make_col))
     return new_col
