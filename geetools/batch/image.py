@@ -3,6 +3,7 @@ import ee
 import os
 from . import utils
 from .. import tools
+from ..utils import makeName
 
 
 def toLocal(image, name=None, path=None, scale=None, region=None,
@@ -225,3 +226,49 @@ def toDriveByFeature(image, collection, property, folder, name=None,
         tasklist.append(task)
 
     return tasklist
+
+
+def qgisCode(image, visParams=None, name=None, namePattern=None,
+             datePattern=None):
+    QGIS_IMG_CODE = """name = '{name}'
+url = '{url}'
+urlWithParams = "type=xyz&url={{}}".format(url)
+rlayer = QgsRasterLayer(urlWithParams, name, "wms")
+if rlayer.isValid():
+    QgsProject.instance().addMapLayer(rlayer)
+else:
+    print("invalid layer")
+"""
+    url = tools.image.getTileURL(image, visParams)
+    if namePattern:
+        name = makeName(image, namePattern, datePattern)
+    else:
+        name = name or 'no_name_img'
+    return QGIS_IMG_CODE.format(name=name, url=url)
+
+
+def toQGIS(image, visParams=None, name=None, filename=None, path=None,
+           replace=True, verbose=False):
+    """ Download a python file to import from QGIS """
+    code = qgisCode(image, visParams, name)
+    path = path or os.getcwd()
+    # Check extension
+    if filename:
+        ext = filename.split('.')[-1]
+        if ext != 'py':
+            filename += '.py'
+    else:
+        filename = 'qgis2ee'
+    # add _qgis_ to filename
+    splitted = filename.split('.')[:-1]
+    noext = '.'.join(splitted)
+    filename = '{}_qgis_'.format(noext)
+    # process
+    finalpath = os.path.join(path, filename)
+    finalpath = '{}.py'.format(finalpath)
+    if not os.path.exists(finalpath) or replace:
+        with open(finalpath, 'w+') as thefile:
+            thefile.write(code)
+        return thefile
+    else:
+        return None

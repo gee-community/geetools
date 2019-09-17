@@ -1,5 +1,6 @@
 # coding=utf-8
 import ee
+import os
 from . import utils
 from ..utils import makeName
 from .. import tools
@@ -129,3 +130,63 @@ def toAsset(col, assetPath, scale=30, region=None, create=True,
         tasklist.append(task)
 
     return tasklist
+
+
+def qgisCode(collection, visParams=None, name=None, datePattern=None,
+             verbose=False):
+    QGIS_COL_CODE = """names={names}
+urls={urls}
+for name, url in zip(names, urls):
+    urlWithParams = "type=xyz&url={{}}".format(url)
+    rlayer = QgsRasterLayer(urlWithParams, name, "wms")
+    if rlayer.isValid():
+        QgsProject.instance().addMapLayer(rlayer)
+    else:
+        print("invalid layer")
+"""
+    name = name or '{id}'
+    names = []
+    urls = []
+    i = 0
+    collist = collection.toList(collection.size())
+    while True:
+        try:
+            img = ee.Image(collist.get(i))
+            n = makeName(img, name, datePattern).getInfo()
+            if verbose:
+                print('processing {}'.format(n))
+            url = tools.image.getTileURL(img, visParams)
+            names.append(n)
+            urls.append(url)
+            i += 1
+        except Exception as e:
+            break
+
+    return QGIS_COL_CODE.format(names=names, urls=urls)
+
+
+def toQGIS(collection, visParams=None, name=None, filename=None, path=None,
+           datePattern=None, replace=True, verbose=False):
+    """ Download a python file to import from QGIS """
+    code = qgisCode(collection, visParams, name, datePattern, verbose)
+    path = path or os.getcwd()
+    # Check extension
+    if filename:
+        ext = filename.split('.')[-1]
+        if ext != 'py':
+            filename += '.py'
+    else:
+        filename = 'qgis2ee'
+    # add _qgis_ to filename
+    splitted = filename.split('.')[:-1]
+    noext = '.'.join(splitted)
+    filename = '{}_qgis_'.format(noext)
+    # process
+    finalpath = os.path.join(path, filename)
+    finalpath = '{}.py'.format(finalpath)
+    if not os.path.exists(finalpath) or replace:
+        with open(finalpath, 'w+') as thefile:
+            thefile.write(code)
+        return thefile
+    else:
+        return None

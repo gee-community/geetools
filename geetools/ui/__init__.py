@@ -3,7 +3,7 @@
 import ee
 import threading
 import pprint
-from . import dispatcher, imagestrip
+from . import dispatcher, imagestrip, map
 
 ASYNC = False
 

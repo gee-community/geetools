@@ -8,6 +8,7 @@ import ee.data
 import math
 from . import ee_list, date
 from ..utils import castImage
+from ..ui import map as mapui
 
 
 def _add_suffix_prefix(image, value, option, bands=None):
@@ -909,6 +910,18 @@ def paint(image, featurecollection, vis_params=None, color='black', width=1,
         final))
 
     return final
+
+
+def getTileURL(image, visParams=None):
+    """ Get the URL for the given image passing a normal visualization
+    parameters like `{'bands':['B4','B3','B2'], 'min':0, 'max':5000}` """
+    if visParams:
+        vis = mapui.formatVisParams(visParams)
+        image_info = image.getMapId(vis)
+    else:
+        image_info = image.getMapId()
+    fetcher = image_info['tile_fetcher']
+    return fetcher.url_format
 
 
 class Classification(object):

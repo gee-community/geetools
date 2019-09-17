@@ -22,7 +22,7 @@ def test_strip():
     viz_params = {'bands':["B4", "B5", "B3"], 'min':0, 'max':5000}
     region = pol_L8SR.bounds().getInfo()["coordinates"]
 
-    i = strip.fromCollection([col], viz_param=viz_params, region=region,
+    i = strip.fromCollection([col], vis_param=viz_params, region=region,
                              name="test", folder="files", drawRegion=True,
                              zoom=2, properties=["CLOUD_COVER",
                                                   "solar_zenith_angle"],

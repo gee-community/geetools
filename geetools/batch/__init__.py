@@ -25,10 +25,11 @@ class Download(object):
         toLocal = featurecollection.toLocal
 
     class imagecollection(object):
-        pass
+        toQGIS = imagecollection.toQGIS
 
     class image(object):
         toLocal = batchimage.toLocal
+        toQGIS = batchimage.toQGIS
 
 
 class Convert(object):
