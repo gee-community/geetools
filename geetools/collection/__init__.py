@@ -3,6 +3,7 @@
 import ee
 from .. import indices, bitreader
 from datetime import date
+from .. import tools
 
 TODAY = date.today().isoformat()
 
@@ -245,6 +246,13 @@ class Collection(object):
         """ Get a mask image """
         bandnames = self.bandNames(renamed=renamed)
 
+        # SCL Mask
+        if self.id == 'COPERNICUS/S2_SR' and mask_band == 'SCL':
+            if classes == 'all':
+                classes = ['dark','shadow', 'vegetation','bare_soil', 'water',
+                'cloud_low', 'cloud_medium', 'cloud_high', 'cirrus', 'snow']
+            return ee.Image(self.SclMasks(image)).select(classes)
+
         # CHECKS
         if mask_band not in bandnames:
             msg = 'band {} not present in bands {}'
@@ -269,16 +277,20 @@ class Collection(object):
 
     def applyMask(self, image, mask_band, classes='all', renamed=False):
         """ Apply a mask """
-        mask = self.getMask(image, mask_band, classes, renamed)
-        options = mask.bandNames()
+        # SCL Mask
+        if classes == 'all':
+            if self.id == 'COPERNICUS/S2_SR' and mask_band == 'SCL':
+                bands = ['dark','shadow', 'cloud_low', 'cloud_medium',
+                         'cloud_high', 'cirrus', 'snow']
+            else:
+                bands = None
+        else:
+            bands = classes
 
-        def wrap(band, img):
-            img = ee.Image(img)
-            band = ee.String(band)
-            m = mask.select(band)
-            return img.updateMask(m.Not())
+        if isinstance(mask_band, str):
+            mask_band = self.getMask(image, mask_band, classes, renamed)
 
-        return ee.Image(options.iterate(wrap, image))
+        return tools.image.applyMask(image, mask_band, bands)
 
     def applyPositiveMask(self, image, mask_band, classes='all',
                           renamed=False):

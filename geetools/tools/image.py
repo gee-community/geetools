@@ -924,6 +924,20 @@ def getTileURL(image, visParams=None):
     return fetcher.url_format
 
 
+def applyMask(image, mask, bands=None, negative=True):
+    """ Apply a passed positive mask """
+    bands = bands or mask.bandNames()
+    bands = ee.List(bands)
+    def wrap(band, img):
+        img = ee.Image(img)
+        band = ee.String(band)
+        m = mask.select(band)
+        toapply = m.Not() if negative else m
+        return img.updateMask(toapply)
+
+    return ee.Image(bands.iterate(wrap, image))
+
+
 class Classification(object):
     """ Class holding (static) methods for classified images. """
     @staticmethod
