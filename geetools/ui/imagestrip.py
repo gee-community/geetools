@@ -368,14 +368,14 @@ class ImageStrip(object):
                  download_images=False, save=True, folder=None):
         """ Download every image and create the strip
 
-        :param imlist: Satellite Images (not PIL!!!!!!)
-        :type imlist: list of ee.Image
-        :param namelist: Names for the images. Must match imlist
-        :type namelist: list of str
-        :param desclist: list of descriptions for every image. Optional
-        :type desclist: list of str
-        :param viz_bands: Visualization bands. ej: ["NIR","SWIR","RED"]
-        :type viz_bands: list of str
+        :param image_list: Satellite Images (not PIL!!!!!!)
+        :type image_list: list of ee.Image
+        :param name_list: Names for the images. Must match imlist
+        :type name_list: list of str
+        :param description_list: list of descriptions for every image. Optional
+        :type description_list: list of str
+        :param vis_params: Visualization parameters
+        :type vis_params: dict
         :param min: min value for visualization
         :type min: int
         :param max: max value for visualization
