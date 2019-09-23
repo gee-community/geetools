@@ -330,6 +330,46 @@ def getValues(collection, geometry, scale=None, reducer=None,
         raise ValueError("side parameter must be 'server' or 'client'")
 
 
+def outliers(collection, bands, sigma=2, updateMask=False):
+    """ Compute outliers by:
+
+    outlier > mean+(sigma*stddev)
+    outlier < mean+(sigma*stddev)
+
+    if `updateMask` is False return the passed collection in which each image
+    have new bands (a mask) corresponding to the passed dict and a suffix '_outlier'
+    else return the passed collection with the passed bands masked if are
+    outliers (the outlier band is not returned).
+
+    idea from: https://www.kdnuggets.com/2017/02/removing-outliers-standard-deviation-python.html
+    """
+    bands = bands or ee.Image(collection.first()).bandNames()
+    bands = ee.List(bands)
+    forstats = collection.select(bands)
+    mean = forstats.mean()
+    stddev = forstats.reduce(ee.Reducer.stdDev())
+    imin = mean.subtract(stddev.multiply(sigma))
+    imax = mean.add(stddev.multiply(sigma))
+
+    def getOutlier(im, imin, imax):
+        ismin = im.lt(imin)
+        ismax = im.gt(imax)
+        outlier = ismin.Or(ismax)
+        return outlier
+
+    def overcol(im):
+        outs = getOutlier(im.select(bands), imin, imax)
+        if updateMask:
+            ibands = im.select(bands)
+            ibands = ibands.updateMask(outs.Not())
+        else:
+            ibands = image_module.addSuffix(outs, '_outlier')
+
+        return im.addBands(ibands, overwrite=True)
+
+    return collection.map(overcol)
+
+
 def data2pandas(data):
     """
     Convert data coming from tools.imagecollection.get_values to a
