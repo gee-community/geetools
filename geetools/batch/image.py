@@ -145,7 +145,7 @@ def toAsset(image, assetPath, name=None, to='Folder', scale=None,
     return task
 
 
-def toDriveByFeature(image, collection, property, folder, name=None,
+def toDriveByFeature(image, collection, folder, name, datePattern=None,
                      scale=1000, dataType="float", **kwargs):
     """ Export an image clipped by features (Polygons). You can use the
     same arguments as the original function ee.batch.export.image.toDrive
@@ -155,13 +155,13 @@ def toDriveByFeature(image, collection, property, folder, name=None,
     :type image: ee.Image
     :param collection: feature collection
     :type collection: ee.FeatureCollection
-    :param property: name of the property of the features to paste in
-    the image
-    :type property: str
     :param folder: same as ee.Export
     :type folder: str
-    :param name: name (suffix) of the resulting image
+    :param name: a name pattern using image and/or feature properties between
+        brakets. Example: '{ID} {a_feat_prop} {an_image_prop}'
     :type name: str
+    :param datePattern: a date pattern to use for {system_date} pattern in name
+    :type datePattern: str
     :param scale: same as ee.Export. Default to 1000
     :type scale: int
     :param dataType: as downloaded images **must** have the same data
@@ -174,58 +174,47 @@ def toDriveByFeature(image, collection, property, folder, name=None,
     :return: a list of all tasks (for further processing/checking)
     :rtype: list
     """
-    featlist = collection.getInfo()["features"]
-    if not name:
-        iid = image.id().getInfo()
-        if iid:
-            name = iid.split("/")[-1]
-        else:
-            name = 'unknown_image'
-
-    # convert data type
-    image = utils.convertDataType(dataType)(image)
-
-    def unpack(thelist):
-        unpacked = []
-        for i in thelist:
-            unpacked.append(i[0])
-            unpacked.append(i[1])
-        return unpacked
-
+    verbose = kwargs.get('verbose', False)
+    collist = collection.toList(collection.size())
     tasklist = []
+    i = 0
+    while True:
+        try:
+            feat = ee.Feature(collist.get(i))
+            props = feat.toDictionary()
 
-    for f in featlist:
-        geomlist = unpack(f["geometry"]["coordinates"][0])
-        geom = ee.Geometry.Polygon(geomlist)
+            n = makeName(image, name, datePattern)
+            n = tools.string.format(n, props)
+            n = n.getInfo()
+            n = n.replace('{','').replace('}','')
 
-        feat = ee.Feature(geom)
-        dis = f["properties"][property]
+            # convert data type
+            image = utils.convertDataType(dataType)(image)
 
-        if type(dis) is float:
-            disS = str(int(dis))
-        elif type(dis) is int:
-            disS = str(dis)
-        elif type(dis) is str:
-            disS = dis
-        else:
-            print("unknown property's type")
-            break
+            region = tools.geometry.getRegion(feat)
 
-        finalname = "{0}_{1}_{2}".format(name, property, disS)
+            desc = n.replace('/', '_').replace(' ', '_').replace('{','').replace('}','')
 
-        task = ee.batch.Export.image.toDrive(
-            image=image,
-            description=finalname,
-            folder=folder,
-            fileNamePrefix=finalname,
-            region=feat.geometry().bounds().getInfo()["coordinates"],
-            scale=scale, **kwargs)
+            task = ee.batch.Export.image.toDrive(
+                image=image,
+                description=desc,
+                folder=folder,
+                fileNamePrefix=n,
+                region=region,
+                scale=scale, **kwargs)
 
-        task.start()
-        print("exporting", finalname)
-        tasklist.append(task)
+            task.start()
+            if verbose:
+                print("exporting '{}'".format(n))
+            tasklist.append(task)
 
-    return tasklist
+            i += 1
+        except Exception as e:
+            error = str(e).split(':')
+            if error[0] == 'List.get':
+                break
+            else:
+                raise e
 
 
 def qgisCode(image, visParams=None, name=None, namePattern=None,
