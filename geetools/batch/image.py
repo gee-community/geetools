@@ -110,7 +110,7 @@ def toAsset(image, assetPath, name=None, to='Folder', scale=None,
     :rtype: ee.batch.Task
     """
     # Convert data type
-    image = utils.convertDataType(dataType)(image)
+    # image = utils.convertDataType(dataType)(image)
 
     # Check if the user is specified in the asset path
     is_user = (assetPath.split('/')[0] == 'users')

@@ -1,6 +1,7 @@
 # coding=utf-8
 """ Group of collections """
 from . import getCommonBands, rescale
+from datetime import date
 
 class CollectionGroup(object):
     def __init__(self, *args):
@@ -28,3 +29,13 @@ class CollectionGroup(object):
                             'max': max(band_scales)}
 
         return scales
+
+    def start_date(self):
+        """ Get the absolute start date for the group """
+        starts = [date.fromisoformat(c.start_date) for c in self.collections]
+        return min(starts).isoformat()
+
+    def end_date(self):
+        """ Get the absolute end date for the group """
+        starts = [date.fromisoformat(c.end_date) for c in self.collections]
+        return max(starts).isoformat()
