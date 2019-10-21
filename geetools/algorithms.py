@@ -294,6 +294,33 @@ def pansharpenIhsFusion(image, pan=None, rgb=None):
 class Landsat(object):
 
     @staticmethod
+    def unmask_slc_off(image, optical_bands='B.+'):
+        """ Unmask pixels that were affected by scl-off  error in Landsat 7
+
+        Expects a Landsat 7 image and it is meant to be used before any other
+        masking, otherwise this could affect the previous mask.
+
+        The parameter `optical_bands` must be used if band were renamed. By
+        default it is `B.+` which means that optical bands are those starting
+        with B: B1 (blue), B2 (green), B3 (red), B4 (nir), B5 (swir),
+        B6 (thermal), B7 (swir2).
+        """
+        idate = image.date()
+        slcoff = ee.Date('2003-05-31')
+        condition = idate.difference(slcoff, 'days').gte(0)
+
+        def compute(i):
+            mask = i.mask()
+            reduced = mask.select(optical_bands).reduce('sum')
+            slc_off = reduced.eq(0)
+            unmasked = i.unmask()
+            newmask = mask.where(slc_off, 1)
+            return unmasked.updateMask(newmask)
+
+        return ee.Image(ee.Algorithms.If(condition, compute(image), image))
+
+
+    @staticmethod
     def _rescale(image, bands=None, thermal_bands=None, original='TOA',
                  to='SR', number='all'):
         """ Rescaling logic """
