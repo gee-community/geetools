@@ -12,8 +12,4 @@ def trimDecimals(number, places=2):
     """
     factor = ee.Number(10).pow(ee.Number(places).toInt())
 
-    floor = number.floor()
-    decimals = number.subtract(floor)
-    take = decimals.multiply(factor).toInt()
-    newdecimals = take.toFloat().divide(factor)
-    return floor.add(newdecimals).toFloat()
+    return number.multiply(factor).toInt().divide(factor)
