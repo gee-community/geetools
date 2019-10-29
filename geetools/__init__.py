@@ -20,5 +20,6 @@ try:
     from .ui import eprint
     from .tools.imagecollection import wrapper
     from .batch import Export, Import, Convert, Download
+    from .utils import authenticate
 except ImportError:
     pass

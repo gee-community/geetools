@@ -4,7 +4,6 @@
 import pandas as pd
 from copy import deepcopy
 import ee
-import re
 from .tools import string
 
 
@@ -156,3 +155,28 @@ def formatVisParams(visParams):
         if param in ['min', 'max', 'gain', 'bias', 'gamma']:
             formatted[param] = str(value) if isinstance(value, (int, str)) else ','.join(value)
     return formatted
+
+
+def authenticate(credential_path):
+    """ Authenticate to GEE with the specified credentials """
+    from google.oauth2.credentials import Credentials
+    import json
+    def get_credentials():
+        try:
+            tokens = json.load(open(credential_path))
+            refresh_token = tokens['refresh_token']
+            return Credentials(
+                None,
+                refresh_token=refresh_token,
+                token_uri=ee.oauth.TOKEN_URI,
+                client_id=ee.oauth.CLIENT_ID,
+                client_secret=ee.oauth.CLIENT_SECRET,
+                scopes=ee.oauth.SCOPES)
+        except IOError:
+            raise ee.EEException(
+                'Please authorize access to your Earth Engine account by '
+                'running\n\nearthengine authenticate\n\nin your command line, and then '
+                'retry.')
+
+    credentials = get_credentials()
+    ee.Initialize(credentials)
