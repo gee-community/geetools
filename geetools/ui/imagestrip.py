@@ -208,7 +208,11 @@ class EeImageBlock(Block):
 
     @staticmethod
     def format_dimensions(dimensions):
-        return "x".join([str(d) for d in dimensions])
+        x = dimensions[0]
+        y = dimensions[1]
+        if x and y: return "x".join([str(d) for d in dimensions])
+        elif x: return str(x)
+        else: return str(y)
 
     @property
     def url(self):
