@@ -39,8 +39,30 @@ class Sentinel2(Collection):
 
         if self.process == 'SR':
             self.algorithms['scl_masks'] = self.SclMasks
+            self.common_masks = [self.scl, self.qa60]
+        elif self.process == 'TOA':
+            self.common_masks = [self.qa60]
 
         self._bands = self._make_bands()
+
+    def scl(self, image, classes=('saturated', 'dark', 'shadow', 'cloud_low',
+                              'cloud_medium', 'cloud_high', 'cirrus', 'snow'),
+            renamed=False):
+        for cls in classes:
+            mask = ee.Image(self.SclMasks(image, renamed)).select(cls)
+            if cls in ['saturated', 'dark', 'shadow', 'cloud_low',
+                       'cloud_medium', 'cloud_high', 'cirrus', 'snow']:
+                mask = mask.Not()
+            image = image.updateMask(mask)
+        return image
+
+    def qa60(self, image, classes=('cloud', 'cirrus'), renamed=False):
+        if renamed:
+            band = 'qa60'
+        else:
+            band = 'QA60'
+
+        return self.applyMask(image, band, classes, renamed)
 
     def _make_bands(self):
         band = [None]*30
@@ -89,10 +111,13 @@ class Sentinel2(Collection):
 
         return [b for b in band if b]
 
-    def SclMasks(self, image):
+    def SclMasks(self, image, renamed=False):
         """ Decodify the SCL bands and create a mask for each category """
         if self.process == 'SR':
-            scl = image.select('SCL')
+            if renamed:
+                scl = image.select('scene_classification_map')
+            else:
+                scl = image.select('SCL')
 
             data = ee.Dictionary(self.SclData)
 

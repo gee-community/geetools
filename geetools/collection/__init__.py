@@ -144,6 +144,7 @@ class Collection(object):
         self.end_date = kwargs.get('end_date', None)
         self.cloud_cover = kwargs.get('cloud_cover', None)
         self.algorithms = kwargs.get('algorithms', {})
+        self.common_masks = [lambda i: i]
 
     @property
     def id(self):
