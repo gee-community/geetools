@@ -111,6 +111,20 @@ class Landsat(Collection):
         # BANDS
         self._bands = self._make_bands()
 
+        # COMMON MASKS
+        if self.sensor == 'MSS':
+            self.common_masks = [self.bqa_mss]
+        if self.number in [4,5,7]:
+            if self.process == 'SR':
+                self.common_masks = [self.pixel_qa, self.sr_cloud_qa]
+            elif self.process in ['RAW', 'TOA']:
+                self.common_masks = [self.bqa]
+        if self.number == 8:
+            if self.process == 'SR':
+                self.common_masks = [self.pixel_qa]
+            elif self.process in ['TOA', 'RAW']:
+                self.common_masks = [self.bqa]
+
     @staticmethod
     def fromId(id):
         """ Create a Landsat class from a GEE ID """
@@ -356,6 +370,37 @@ class Landsat(Collection):
                 band[11] = bqa
 
         return [b for b in band if b]
+
+    def bqa_mss(self, image, classes=('cloud',), renamed=False):
+        if renamed:
+            band = 'bqa'
+        else:
+            band = 'BQA'
+
+        return self.applyMask(image, band, classes, renamed)
+
+    def sr_cloud_qa(self, image, classes=('cloud', 'shadow', 'snow'), renamed=False):
+        if renamed:
+            band = 'cloud_qa'
+        else:
+            band = 'sr_cloud_qa'
+
+        return self.applyMask(image, band, classes, renamed)
+
+    def pixel_qa(self, image, classes=('shadow', 'cloud', 'snow'), renamed=False):
+        for clas in classes:
+            if clas in ['clear', 'water']:
+                image = self.applyPositiveMask(image, 'pixel_qa', [clas], renamed)
+            else:
+                image = self.applyMask(image, 'pixel_qa', [clas], renamed)
+        return image
+
+    def bqa(self, image, classes=('cloud', 'shadow', 'snow'), renamed=False):
+        if renamed:
+            band = 'bqa'
+        else:
+            band = 'BQA'
+        return self.applyMask(image, band, classes, renamed)
 
     def harmonize(self, image, renamed=False):
         """ HARMONIZATION """
