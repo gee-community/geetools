@@ -14,6 +14,11 @@ IDS = [
 
 class Sentinel2(Collection):
     """ Sentinel 2 Collection """
+    SHORTS = {
+        'COPERNICUS/S2': 'S2TOA',
+        'COPERNICUS/S2_SR': 'S2SR'
+    }
+
     def __init__(self, process='TOA'):
         super(Sentinel2, self).__init__()
         if process not in PROCESSES:
@@ -44,19 +49,20 @@ class Sentinel2(Collection):
             self.common_masks = [self.qa60]
 
         self._bands = self._make_bands()
+        self.short_name = self.SHORTS.get(self._id)
 
     def scl(self, image, classes=('saturated', 'dark', 'shadow', 'cloud_low',
-                              'cloud_medium', 'cloud_high', 'cirrus', 'snow'),
+                        'cloud_medium', 'cloud_high', 'cirrus_cloud', 'snow'),
             renamed=False):
         for cls in classes:
             mask = ee.Image(self.SclMasks(image, renamed)).select(cls)
             if cls in ['saturated', 'dark', 'shadow', 'cloud_low',
-                       'cloud_medium', 'cloud_high', 'cirrus', 'snow']:
+                       'cloud_medium', 'cloud_high', 'cirrus_cloud', 'snow']:
                 mask = mask.Not()
             image = image.updateMask(mask)
         return image
 
-    def qa60(self, image, classes=('cloud', 'cirrus'), renamed=False):
+    def qa60(self, image, classes=('cloud', 'cirrus_cloud'), renamed=False):
         if renamed:
             band = 'qa60'
         else:
@@ -85,7 +91,7 @@ class Sentinel2(Collection):
         qa20 = Band('QA20', 'qa20', scale=20, reference='bits',
                     precision='uint32')
         qa60 = Band('QA60', 'qa60', scale=60, reference='bits',
-                    bits={'10':{1:'cloud'}, '11':{1:'cirrus'}},
+                    bits={'10':{1:'cloud'}, '11':{1:'cirrus_cloud'}},
                     precision='uint16')
 
         if self.process in ['TOA']:
@@ -151,7 +157,7 @@ class Sentinel2(Collection):
                 7: 'cloud_low',
                 8: 'cloud_medium',
                 9: 'cloud_high',
-                10: 'cirrus',
+                10: 'cirrus_cloud',
                 11: 'snow'
             }
         return data

@@ -136,6 +136,8 @@ class Band(object):
 
 class Collection(object):
     """ Parent class for common operations """
+    SHORTS = {}
+
     def __init__(self, **kwargs):
         self._id = None
         self._bands = None
@@ -145,6 +147,20 @@ class Collection(object):
         self.cloud_cover = kwargs.get('cloud_cover', None)
         self.algorithms = kwargs.get('algorithms', {})
         self.common_masks = [lambda i: i]
+        self.short_name = self.SHORTS.get(self._id)
+
+    @staticmethod
+    def fromId(id):
+        return None
+
+    @classmethod
+    def fromShortName(cls, short_name):
+        inverse = {v: k for k, v in cls.SHORTS.items()}
+        if short_name not in inverse:
+            raise ValueError("{} not recognized as a valid short name".format(short_name))
+        else:
+            cid = inverse[short_name]
+            return cls.fromId(cid)
 
     @property
     def id(self):
@@ -251,7 +267,8 @@ class Collection(object):
         if self.id == 'COPERNICUS/S2_SR' and mask_band == 'SCL':
             if classes == 'all':
                 classes = ['dark','shadow', 'vegetation','bare_soil', 'water',
-                'cloud_low', 'cloud_medium', 'cloud_high', 'cirrus', 'snow']
+                'cloud_low', 'cloud_medium', 'cloud_high', 'cirrus_cloud',
+                'snow']
             return ee.Image(self.SclMasks(image)).select(classes)
 
         # CHECKS
@@ -282,7 +299,7 @@ class Collection(object):
         if classes == 'all':
             if self.id == 'COPERNICUS/S2_SR' and mask_band == 'SCL':
                 bands = ['dark','shadow', 'cloud_low', 'cloud_medium',
-                         'cloud_high', 'cirrus', 'snow']
+                         'cloud_high', 'cirrus_cloud', 'snow']
             else:
                 bands = None
         else:
@@ -543,6 +560,25 @@ def fromId(id):
 
     # tried all collections and did not find it
     raise ValueError('{} not recognized as a valid ID'.format(id))
+
+
+def fromShortName(short_name):
+    """ Create a collection from a short name """
+    functions = [
+        landsat.Landsat.fromShortName,
+        sentinel.Sentinel2.fromShortName,
+        modis.MODIS.fromShortName
+    ]
+    for f in functions:
+        try:
+            col = f(short_name)
+        except:
+            continue
+        else:
+            return col
+
+    # tried all collections and did not find it
+    raise ValueError('{} not recognized as a valid short name'.format(short_name))
 
 
 def getCommonBands(*collections, reference='all', match='id'):
