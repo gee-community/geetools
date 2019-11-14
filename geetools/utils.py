@@ -90,7 +90,7 @@ def castImage(value):
         return ee.Image.constant(value)
 
 
-def makeName(img, pattern, date_pattern=None):
+def makeName(img, pattern, date_pattern=None, extra=None):
     """ Make a name with the given pattern. The pattern must contain the
     propeties to replace between curly braces. There are 2 special words:
 
@@ -100,6 +100,8 @@ def makeName(img, pattern, date_pattern=None):
 
     Pattern example (supposing each image has a property called `city`):
     'image from {city} on {system_date}'
+
+    You can add extra parameters using keyword `extra`
     """
     img = ee.Image(img)
     props = img.toDictionary()
@@ -111,6 +113,9 @@ def makeName(img, pattern, date_pattern=None):
         img.propertyNames().contains('system:time_start'),
         props.set('system_date', img.date().format(date_pattern)),
         props))
+    if extra:
+        extra = ee.Dictionary(extra)
+        props = props.combine(extra)
     name = string.format(pattern, props)
 
     return name
