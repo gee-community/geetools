@@ -50,6 +50,7 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
             img = ee.Image(img_list.get(n))
 
             name = makeName(img, namePattern, datePattern)
+            name = name.getInfo()
 
             # convert data type
             img = utils.convertDataType(dataType)(img)
