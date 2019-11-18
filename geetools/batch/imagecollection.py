@@ -72,46 +72,35 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
                 raise e
 
 
-""" modified from toDrive at https://github.com/gee-community/gee_tools/blob/master/geetools/batch/imagecollection.py"""
-def toCloudStorage(collection, bucket, folder='', namePattern='{id}', scale=30,
-            dataType="float", region=None, datePattern=None, **kwargs):
-    """ Upload all images from one collection to Google Drive. You can use
+def toCloudStorage(collection, bucket, folder='', namePattern='{id}', region=None, scale=30,
+            dataType="float", datePattern=None, **kwargs):
+    """ Upload all images from one collection to Google Cloud Storage. You can use
     the same arguments as the original function
-    ee.batch.export.image.toDrive
+    ee.batch.export.image.toCloudStorage
 
-    config: A dictionary that will be copied and used as parameters
-    for the task:
-    - region: The lon,lat coordinates for a LinearRing or Polygon
-      specifying the region to export. Can be specified as a nested
-      lists of numbers or a serialized string. Defaults to the image's
-      region.
-    - scale: The resolution in meters per pixel.
-      Defaults to the native resolution of the image assset unless
-      a crs_transform is specified.
-    - maxPixels: The maximum allowed number of pixels in the exported
-      image. The task will fail if the exported region covers
-      more pixels in the specified projection. Defaults to 100,000,000.
-    - crs: The coordinate reference system of the exported image's
-      projection. Defaults to the image's default projection.
-    - crs_transform: A comma-separated string of 6 numbers describing
-      the affine transform of the coordinate reference system of the
-      exported image's projection, in the order: xScale, xShearing,
-      xTranslation, yShearing, yScale and yTranslation. Defaults to
-      the image's native CRS transform.
-    - dimensions: The dimensions of the exported image. Takes either a
-      single positive integer as the maximum dimension or
-      "WIDTHxHEIGHT" where WIDTH and HEIGHT are each positive integers.
-    - skipEmptyTiles: If true, skip writing empty (i.e. fully-masked)
-      image tiles. Defaults to false.
-    If exporting to Google Drive (default):
-    - driveFolder: The name of a unique folder in your Drive account to
-      export into. Defaults to the root of the drive.
-    - driveFileNamePrefix: The Google Drive filename for the export.
-      Defaults to the name of the task.
-    If exporting to Google Cloud Storage:
-    - outputBucket: The name of a Cloud Storage bucket for the export.
-    - outputPrefix: Cloud Storage object name prefix for the export.
-
+    :param collection: Collection to upload
+    :type collection: ee.ImageCollection
+    :param bucket: Google Cloud Storage bucket name
+    :type folder: str
+    :param folder: Google Cloud Storage prefix to export the images to
+    :type folder: str
+    :param namePattern: pattern for the name. See make_name function
+    :type namePattern: str
+    :param region: area to upload. Defualt to the footprint of the first
+        image in the collection
+    :type region: ee.Geometry.Rectangle or ee.Feature
+    :param scale: scale of the image (side of one pixel). Defults to 30
+        (Landsat resolution)
+    :type scale: int
+    :param dataType: as downloaded images **must** have the same data type
+        in all bands, you have to set it here. Can be one of: "float",
+        "double", "int", "Uint8", "Int8" or a casting function like
+        *ee.Image.toFloat*
+    :type dataType: str
+    :param datePattern: pattern for date if specified in namePattern.
+        Defaults to 'yyyyMMdd'
+    :type datePattern: str
+    
     """
     # empty tasks list
     tasklist = []
