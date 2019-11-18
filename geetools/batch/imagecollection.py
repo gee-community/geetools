@@ -72,6 +72,88 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
                 raise e
 
 
+""" modified from toDrive at https://github.com/gee-community/gee_tools/blob/master/geetools/batch/imagecollection.py"""
+def toCloudStorage(collection, bucket, folder='', namePattern='{id}', scale=30,
+            dataType="float", region=None, datePattern=None, **kwargs):
+    """ Upload all images from one collection to Google Drive. You can use
+    the same arguments as the original function
+    ee.batch.export.image.toDrive
+
+    config: A dictionary that will be copied and used as parameters
+    for the task:
+    - region: The lon,lat coordinates for a LinearRing or Polygon
+      specifying the region to export. Can be specified as a nested
+      lists of numbers or a serialized string. Defaults to the image's
+      region.
+    - scale: The resolution in meters per pixel.
+      Defaults to the native resolution of the image assset unless
+      a crs_transform is specified.
+    - maxPixels: The maximum allowed number of pixels in the exported
+      image. The task will fail if the exported region covers
+      more pixels in the specified projection. Defaults to 100,000,000.
+    - crs: The coordinate reference system of the exported image's
+      projection. Defaults to the image's default projection.
+    - crs_transform: A comma-separated string of 6 numbers describing
+      the affine transform of the coordinate reference system of the
+      exported image's projection, in the order: xScale, xShearing,
+      xTranslation, yShearing, yScale and yTranslation. Defaults to
+      the image's native CRS transform.
+    - dimensions: The dimensions of the exported image. Takes either a
+      single positive integer as the maximum dimension or
+      "WIDTHxHEIGHT" where WIDTH and HEIGHT are each positive integers.
+    - skipEmptyTiles: If true, skip writing empty (i.e. fully-masked)
+      image tiles. Defaults to false.
+    If exporting to Google Drive (default):
+    - driveFolder: The name of a unique folder in your Drive account to
+      export into. Defaults to the root of the drive.
+    - driveFileNamePrefix: The Google Drive filename for the export.
+      Defaults to the name of the task.
+    If exporting to Google Cloud Storage:
+    - outputBucket: The name of a Cloud Storage bucket for the export.
+    - outputPrefix: Cloud Storage object name prefix for the export.
+
+    """
+    # empty tasks list
+    tasklist = []
+    # get region
+    region = tools.geometry.getRegion(region)
+    # Make a list of images
+    img_list = collection.toList(collection.size())
+
+    n = 0
+    while True:
+        try:
+            img = ee.Image(img_list.get(n))
+
+            name = makeName(img, namePattern, datePattern)
+            name = name.getInfo()
+
+            # convert data type
+            img = utils.convertDataType(dataType)(img)
+
+            path = folder + "/" + name
+
+            task = ee.batch.Export.image.toCloudStorage(image=img,
+                                                 description=name,
+                                                 bucket=bucket,
+                                                 path=path,
+                                                 region=region,
+                                                 scale=scale,
+                                                 maxPixels=int(1e12), **kwargs)
+            task.start()
+            tasklist.append(task)
+            print("adding task {} to list".format(name))
+
+            n += 1
+
+        except Exception as e:
+            error = str(e).split(':')
+            if error[0] == 'List.get':
+                break
+            else:
+                raise e
+
+
 def toAsset(col, assetPath, scale=30, region=None, create=True,
             verbose=False, **kwargs):
     """ Upload all images from one collection to a Earth Engine Asset.
