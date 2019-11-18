@@ -72,7 +72,7 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
                 raise e
 
 
-def toCloudStorage(collection, bucket, folder='', namePattern='{id}', region=None, scale=30,
+def toCloudStorage(collection, bucket, folder=None, namePattern='{id}', region=None, scale=30,
             dataType="float", datePattern=None, **kwargs):
     """ Upload all images from one collection to Google Cloud Storage. You can use
     the same arguments as the original function
@@ -100,7 +100,6 @@ def toCloudStorage(collection, bucket, folder='', namePattern='{id}', region=Non
     :param datePattern: pattern for date if specified in namePattern.
         Defaults to 'yyyyMMdd'
     :type datePattern: str
-    
     """
     # empty tasks list
     tasklist = []
@@ -120,7 +119,10 @@ def toCloudStorage(collection, bucket, folder='', namePattern='{id}', region=Non
             # convert data type
             img = utils.convertDataType(dataType)(img)
 
-            path = folder + "/" + name
+            if folder is not None:
+                path = folder + "/" + name
+            else:
+                path = name
 
             task = ee.batch.Export.image.toCloudStorage(image=img,
                                                  description=name,
