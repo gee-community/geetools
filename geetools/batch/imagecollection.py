@@ -73,7 +73,7 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
 
 
 def toCloudStorage(collection, bucket, folder=None, namePattern='{id}', region=None, scale=30,
-            dataType="float", datePattern=None, **kwargs):
+            dataType="float", datePattern=None, verbose=False, **kwargs):
     """ Upload all images from one collection to Google Cloud Storage. You can use
     the same arguments as the original function
     ee.batch.export.image.toCloudStorage
@@ -130,11 +130,11 @@ def toCloudStorage(collection, bucket, folder=None, namePattern='{id}', region=N
                                                  path=path,
                                                  region=region,
                                                  scale=scale,
-                                                 maxPixels=int(1e12), **kwargs)
+                                                 **kwargs)
             task.start()
             tasklist.append(task)
-            print("adding task {} to list".format(name))
-
+            if verbose:
+                print("adding task {} to list".format(name))
             n += 1
 
         except Exception as e:
