@@ -72,6 +72,79 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
                 raise e
 
 
+def toCloudStorage(collection, bucket, folder=None, namePattern='{id}', region=None, scale=30,
+            dataType="float", datePattern=None, verbose=False, **kwargs):
+    """ Upload all images from one collection to Google Cloud Storage. You can use
+    the same arguments as the original function
+    ee.batch.export.image.toCloudStorage
+
+    :param collection: Collection to upload
+    :type collection: ee.ImageCollection
+    :param bucket: Google Cloud Storage bucket name
+    :type folder: str
+    :param folder: Google Cloud Storage prefix to export the images to
+    :type folder: str
+    :param namePattern: pattern for the name. See make_name function
+    :type namePattern: str
+    :param region: area to upload. Defualt to the footprint of the first
+        image in the collection
+    :type region: ee.Geometry.Rectangle or ee.Feature
+    :param scale: scale of the image (side of one pixel). Defults to 30
+        (Landsat resolution)
+    :type scale: int
+    :param dataType: as downloaded images **must** have the same data type
+        in all bands, you have to set it here. Can be one of: "float",
+        "double", "int", "Uint8", "Int8" or a casting function like
+        *ee.Image.toFloat*
+    :type dataType: str
+    :param datePattern: pattern for date if specified in namePattern.
+        Defaults to 'yyyyMMdd'
+    :type datePattern: str
+    """
+    # empty tasks list
+    tasklist = []
+    # get region
+    region = tools.geometry.getRegion(region)
+    # Make a list of images
+    img_list = collection.toList(collection.size())
+
+    n = 0
+    while True:
+        try:
+            img = ee.Image(img_list.get(n))
+
+            name = makeName(img, namePattern, datePattern)
+            name = name.getInfo()
+
+            # convert data type
+            img = utils.convertDataType(dataType)(img)
+
+            if folder is not None:
+                path = folder + "/" + name
+            else:
+                path = name
+
+            task = ee.batch.Export.image.toCloudStorage(image=img,
+                                                 description=name,
+                                                 bucket=bucket,
+                                                 path=path,
+                                                 region=region,
+                                                 scale=scale,
+                                                 **kwargs)
+            task.start()
+            tasklist.append(task)
+            if verbose:
+                print("adding task {} to list".format(name))
+            n += 1
+
+        except Exception as e:
+            error = str(e).split(':')
+            if error[0] == 'List.get':
+                break
+            else:
+                raise e
+
+
 def toAsset(col, assetPath, scale=30, region=None, create=True,
             verbose=False, **kwargs):
     """ Upload all images from one collection to a Earth Engine Asset.
