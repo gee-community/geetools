@@ -320,7 +320,7 @@ def toAsset(table, assetPath, name=None, create=True, **kwargs):
     # Asset ID (Path + name)
     assetId = '/'.join([assetPath, name])
     # Description
-    description = name.replace('/','_')
+    description = utils.matchDescription(name)
     # Init task
     task = ee.batch.Export.table.toAsset(table, assetId=assetId,
                                          description=description, **kwargs)

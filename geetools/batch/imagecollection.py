@@ -7,7 +7,8 @@ from .. import tools
 
 
 def toDrive(collection, folder, namePattern='{id}', scale=30,
-            dataType="float", region=None, datePattern=None, **kwargs):
+            dataType="float", region=None, datePattern=None,
+            extra=None, **kwargs):
     """ Upload all images from one collection to Google Drive. You can use
     the same arguments as the original function
     ee.batch.export.image.toDrive
@@ -49,14 +50,15 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
         try:
             img = ee.Image(img_list.get(n))
 
-            name = makeName(img, namePattern, datePattern)
+            name = makeName(img, namePattern, datePattern, extra)
             name = name.getInfo()
+            description = utils.matchDescription(name)
 
             # convert data type
             img = utils.convertDataType(dataType)(img)
 
             task = ee.batch.Export.image.toDrive(image=img,
-                                                 description=name,
+                                                 description=description,
                                                  folder=folder,
                                                  fileNamePrefix=name,
                                                  region=region,
@@ -72,10 +74,11 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
                 raise e
 
 
-def toCloudStorage(collection, bucket, folder=None, namePattern='{id}', region=None, scale=30,
-            dataType="float", datePattern=None, verbose=False, **kwargs):
-    """ Upload all images from one collection to Google Cloud Storage. You can use
-    the same arguments as the original function
+def toCloudStorage(collection, bucket, folder=None, namePattern='{id}',
+                   region=None, scale=30, dataType="float", datePattern=None,
+                   verbose=False, extra=None, **kwargs):
+    """ Upload all images from one collection to Google Cloud Storage. You can
+    use the same arguments as the original function
     ee.batch.export.image.toCloudStorage
 
     :param collection: Collection to upload
@@ -113,8 +116,9 @@ def toCloudStorage(collection, bucket, folder=None, namePattern='{id}', region=N
         try:
             img = ee.Image(img_list.get(n))
 
-            name = makeName(img, namePattern, datePattern)
+            name = makeName(img, namePattern, datePattern, extra)
             name = name.getInfo()
+            description = utils.matchDescription(name)
 
             # convert data type
             img = utils.convertDataType(dataType)(img)
@@ -125,7 +129,7 @@ def toCloudStorage(collection, bucket, folder=None, namePattern='{id}', region=N
                 path = name
 
             task = ee.batch.Export.image.toCloudStorage(image=img,
-                                                 description=name,
+                                                 description=description,
                                                  bucket=bucket,
                                                  path=path,
                                                  region=region,
@@ -188,12 +192,13 @@ def toAsset(col, assetPath, scale=30, region=None, create=True,
         img = alist.get(idx)
         img = ee.Image(img)
         name = img.id().getInfo().split("/")[-1]
+        description = utils.matchDescription(name)
 
         assetId = assetPath+"/"+name
 
         task = ee.batch.Export.image.toAsset(image=img,
                                              assetId=assetId,
-                                             description=name,
+                                             description=description,
                                              region=region,
                                              scale=scale, **kwargs)
         task.start()

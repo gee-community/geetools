@@ -234,3 +234,65 @@ def downloadFile(url, name, extension, path=None):
             handle.write(data)
 
     return handle
+
+
+def matchDescription(name, custom=None):
+    """ Format a name to be accepted as a desciption.
+    The rule is:
+
+    The description must contain only the following characters: a..z, A..Z,
+    0..9, ".", ",", ":", ";", "_" or "-". The description must be at most 100
+    characters long.
+    """
+    letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+               'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+    upper = [s.capitalize() for s in letters]
+    chars = ['.', ',', ':', ';', '_', '-']
+    allchars  = letters+upper+chars
+
+    replacements = [
+        [' ', [' ']],
+        ['-', ['/']],
+        ['.', ['?', '!', '¿', '*']],
+        [':', ['(', ')','[', ']', '{', '}']],
+        ['a', ['á', 'ä', 'à', 'æ']],
+        ['e', ['é', 'ë', 'è']],
+        ['i', ['í', 'ï', 'ì']],
+        ['o', ['ó', 'ö', 'ò', 'ø']],
+        ['u', ['ú', 'ü', 'ù']],
+        ['c', ['¢', 'ç']],
+        ['n', ['ñ']]
+    ]
+
+    replacementupper = []
+    for r in replacements:
+        row = []
+        row.append(r[0].capitalize())
+        row2 = []
+        for alt in r[1]:
+            row2.append(alt.capitalize())
+        row.append(row2)
+        replacementupper.append(row)
+
+    replacements_dict = dict()
+    for replacement in replacements+replacementupper:
+        letter = replacement[0]
+        repl = replacement[1]
+        for char in repl:
+            replacements_dict[char] = letter
+
+    # user custom mapping
+    if custom:
+        replacements_dict.update(custom)
+
+    description = ''
+    for letter in name:
+        if letter not in allchars:
+            if letter in replacements_dict:
+                description += replacements_dict[letter]
+            else:
+                description += ''
+        else:
+            description += letter
+
+    return description[0:100]

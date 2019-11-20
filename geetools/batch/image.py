@@ -134,7 +134,7 @@ def toAsset(image, assetPath, name=None, to='Folder', scale=None,
     # Asset ID (Path + name)
     assetId = '/'.join([assetPath, name])
     # Description
-    description = name.replace('/','_')
+    description = utils.matchDescription(name)
     # Init task
     task = ee.batch.Export.image.toAsset(image, assetId=assetId,
                                          region=region, scale=scale,
@@ -187,13 +187,12 @@ def toDriveByFeature(image, collection, folder, name, datePattern=None,
             n = tools.string.format(n, props)
             n = n.getInfo()
             n = n.replace('{','').replace('}','')
+            desc = utils.matchDescription(n)
 
             # convert data type
             image = utils.convertDataType(dataType)(image)
 
             region = tools.geometry.getRegion(feat)
-
-            desc = n.replace('/', '_').replace(' ', '_').replace('{','').replace('}','')
 
             task = ee.batch.Export.image.toDrive(
                 image=image,
