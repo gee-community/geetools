@@ -8,7 +8,7 @@ from .. import tools
 
 def toDrive(collection, folder, namePattern='{id}', scale=30,
             dataType="float", region=None, datePattern=None,
-            extra=None, **kwargs):
+            extra=None, verbose=False, **kwargs):
     """ Upload all images from one collection to Google Drive. You can use
     the same arguments as the original function
     ee.batch.export.image.toDrive
@@ -64,6 +64,9 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
                                                  region=region,
                                                  scale=scale, **kwargs)
             task.start()
+            if verbose:
+                print("exporting {} to folder '{}' in GDrive".format(name, folder))
+
             tasklist.append(task)
             n += 1
         except Exception as e:

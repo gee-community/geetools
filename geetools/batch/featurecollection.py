@@ -290,7 +290,7 @@ def toLocal(collection, filename, filetype=None, selectors=None, path=None):
     return thefile
 
 
-def toAsset(table, assetPath, name=None, create=True, **kwargs):
+def toAsset(table, assetPath, name=None, create=True, verbose=False, **kwargs):
     """ This function can create folders and ImageCollections on the fly.
     The rest is the same to Export.image.toAsset. You can pass the same
     params as the original function
@@ -325,5 +325,7 @@ def toAsset(table, assetPath, name=None, create=True, **kwargs):
     task = ee.batch.Export.table.toAsset(table, assetId=assetId,
                                          description=description, **kwargs)
     task.start()
+    if verbose:
+        print('Exporting {} to {}'.format(name, assetPath))
 
     return task

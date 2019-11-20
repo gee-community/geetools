@@ -79,7 +79,7 @@ def toLocal(image, name=None, path=None, scale=None, region=None,
 
 
 def toAsset(image, assetPath, name=None, to='Folder', scale=None,
-            region=None, create=True, dataType='float', **kwargs):
+            region=None, create=True, verbose=False, **kwargs):
     """ This function can create folders and ImageCollections on the fly.
     The rest is the same to Export.image.toAsset. You can pass the same
     params as the original function
@@ -141,12 +141,14 @@ def toAsset(image, assetPath, name=None, to='Folder', scale=None,
                                          description=description,
                                          **kwargs)
     task.start()
+    if verbose:
+        print('Exporting {} to {}'.format(name, assetPath))
 
     return task
 
 
 def toDriveByFeature(image, collection, folder, name, datePattern=None,
-                     scale=1000, dataType="float", **kwargs):
+                     scale=1000, dataType="float", verbose=False, **kwargs):
     """ Export an image clipped by features (Polygons). You can use the
     same arguments as the original function ee.batch.export.image.toDrive
 
@@ -174,7 +176,6 @@ def toDriveByFeature(image, collection, folder, name, datePattern=None,
     :return: a list of all tasks (for further processing/checking)
     :rtype: list
     """
-    verbose = kwargs.get('verbose', False)
     collist = collection.toList(collection.size())
     tasklist = []
     i = 0
@@ -204,7 +205,7 @@ def toDriveByFeature(image, collection, folder, name, datePattern=None,
 
             task.start()
             if verbose:
-                print("exporting '{}'".format(n))
+                print("exporting '{}' to '{}' folder in GDrive".format(n, folder))
             tasklist.append(task)
 
             i += 1
