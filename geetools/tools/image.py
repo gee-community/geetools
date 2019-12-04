@@ -912,6 +912,67 @@ def paint(image, featurecollection, vis_params=None, color='black', width=1,
     return final
 
 
+def repeatBand(image, times=None, names=None, properties=None):
+    """ Repeat one band. If the image parsed has more than one band, the first
+    will be used """
+    band = ee.Image(image.select([0]))
+    if times is not None:
+        times = ee.Number(times)
+        proxylist = ee.List.repeat(0, times.subtract(1))
+        def add(band, i):
+            band = ee.Image(band)
+            i = ee.Image(i)
+            return i.addBands(band)
+        proxyImg = proxylist.map(lambda n: band)
+        repeated = ee.Image(proxyImg.iterate(add, band))
+    else:
+        newNames = ee.List(names)
+        firstName = ee.String(newNames.get(0))
+        rest = ee.List(newNames.slice(1))
+        def add(name, i):
+            name = ee.String(name)
+            i = ee.Image(i)
+            return i.addBands(band.rename(name))
+        first = band.rename(firstName)
+        repeated = ee.Image(rest.iterate(add, first))
+
+    if properties:
+        repeated = repeated.setMulti(properties)
+
+    return ee.Image(repeated)
+
+
+def arrayNonZeros(image):
+    """
+    Return an image array without zeros
+
+    :param image:
+    :return:
+    """
+    def wrap(arr):
+        binarr = arr.divide(arr)
+        n = binarr.arrayReduce(ee.Reducer.sum(), [0]).multiply(-1)
+        nimg = n.arrayProject([0]).arrayFlatten([['n']]).toInt()
+        sorted = arr.arraySort()
+        sliced = sorted.arraySlice(0, nimg)
+        return sliced
+
+    bands = image.bandNames()
+    first = wrap(image.select([bands.get(0)]))
+    rest = bands.slice(1)
+
+    def overBands(band, i):
+        band = ee.String(band)
+        i = ee.Image(i)
+        array = wrap(image.select([band]))
+        return i.addBands(array)
+
+    result1 = ee.Image(rest.iterate(overBands, first))
+    result2 = ee.Image(wrap(image))
+
+    return ee.Image(ee.Algorithms.If(bands.size(), result1, result2))
+
+
 def getTileURL(image, visParams=None):
     """ Get the URL for the given image passing a normal visualization
     parameters like `{'bands':['B4','B3','B2'], 'min':0, 'max':5000}` """
