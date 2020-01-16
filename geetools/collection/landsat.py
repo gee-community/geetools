@@ -127,8 +127,7 @@ class Landsat(Collection):
         # BANDS
         self._bands = self._make_bands()
 
-        # SHORT NAME
-        self.short_name = self.SHORTS.get(self._id)
+        self.short_name = self.SHORTS.get(self.id)
 
         # COMMON MASKS
         if self.sensor == 'MSS':

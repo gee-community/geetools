@@ -31,6 +31,16 @@ END = {
 
 class MODIS(Collection):
     """ MODIS Collections """
+
+    SHORTS = {
+        'MODIS/006/MOD09GQ': 'TERRA_SR_250_DAILY',
+        'MODIS/006/MYD09GQ': 'AQUA_SR_250_DAILY',
+        'MODIS/006/MOD09GA': 'TERRA_SR_1KM_DAILY',
+        'MODIS/006/MYD09GA': 'AQUA_SR_1KM_DAILY',
+        'MODIS/006/MOD13Q1': 'TERRA_IND_250_16DAYS',
+        'MODIS/006/MYD13Q1': 'AQUA_IND_250_16DAYS'
+    }
+
     def __init__(self, product_id):
         """ Initialize a MODIS collection with it's product id """
         super(MODIS, self).__init__()
@@ -45,6 +55,34 @@ class MODIS(Collection):
         self.spacecraft = 'MODIS'
 
         self.cloud_cover = None
+
+        self.short_name = self.SHORTS.get(self.id)
+
+        if self._id in ['MODIS/006/MOD09GQ', 'MODIS/006/MYD09GQ']:
+            self.common_masks = [self.qc250]
+        if self._id in ['MODIS/006/MOD09GA', 'MODIS/006/MYD09GA']:
+            self.common_masks = [self.state_1km]
+        if self._id in ['MODIS/006/MOD13Q1', 'MODIS/006/MYD13Q1']:
+            self.common_masks = [self.detailed_qa]
+
+    def state_1km(self, image, classes=('cloud', 'shadow', 'snow',
+                                        'average_cirrus', 'high_cirrus'), renamed=False):
+
+        return self.applyMask(image, 'state_1km', classes, renamed)
+
+    def qc250(self, image, classes=('B1_highest_quality', 'B2_highest_quality'),
+              renamed=False):
+
+        return self.applyPositiveMask(image, 'QC_250m', classes, renamed)
+
+    def detailed_qa(self, image, classes=('cloud', 'shadow', 'snow'),
+                    renamed=False):
+        if renamed:
+            band ='DetailedQA'
+        else:
+            band = 'detailed_qa'
+
+        return self.applyMask(image, band, classes, renamed)
 
     def _make_bands(self):
         bands = [None]*30

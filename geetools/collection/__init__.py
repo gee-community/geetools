@@ -147,7 +147,7 @@ class Collection(object):
         self.cloud_cover = kwargs.get('cloud_cover', None)
         self.algorithms = kwargs.get('algorithms', {})
         self.common_masks = [lambda i: i]
-        self.short_name = self.SHORTS.get(self._id)
+        self.short_name = self.SHORTS.get(self.id)
 
     @staticmethod
     def fromId(id):
