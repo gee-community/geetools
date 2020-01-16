@@ -52,6 +52,16 @@ def isUnbounded(geometry):
     else:
         return False
 
+
+def unpack(iterable):
+    """ Helper function to unpack an iterable """
+    unpacked = []
+    for tt in iterable:
+        for t in tt:
+            unpacked.append(t)
+    return unpacked
+
+
 def getRegion(eeobject, bounds=False, error=1):
     """ Gets the region of a given geometry to use in exporting tasks. The
     argument can be a Geometry, Feature or Image
@@ -72,6 +82,9 @@ def getRegion(eeobject, bounds=False, error=1):
                 this_type = geom['type']
                 if this_type in ['Polygon', 'MultiPolygon', 'Rectangle']:
                     region.append(geom['coordinates'])
+        elif geomtype == 'MultiPolygon':
+            subregion = info['coordinates']
+            region = unpack(subregion)
         else:
             region = info['coordinates']
 
