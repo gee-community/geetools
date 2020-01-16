@@ -121,6 +121,23 @@ def makeName(img, pattern, date_pattern=None, extra=None):
     return name
 
 
+def maskIslands(mask, limit, pixels_limit=1000):
+    """ returns a new mask where connected pixels with less than the 'limit'
+    of area are turned to 0 """
+    area = ee.Image.pixelArea().rename('area')
+
+    conn = mask.connectedPixelCount(pixels_limit).rename('connected')
+    finalarea = area.multiply(conn)
+
+    # get holes and islands
+    island = mask.eq(1).And(finalarea.lte(limit))
+
+    # get rid island
+    no_island = mask.where(island, 0)
+
+    return no_island
+
+
 def dict2namedtuple(thedict, name='NamedDict'):
     """ Create a namedtuple from a dict object. It handles nested dicts. If
     you want to scape this behaviour the dict must be placed into a list as its
