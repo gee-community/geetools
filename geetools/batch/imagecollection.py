@@ -248,7 +248,7 @@ for name, url in zip(names, urls):
 
 
 def toQGIS(collection, visParams=None, name=None, filename=None, path=None,
-           datePattern=None, replace=True, verbose=False):
+           datePattern=None, replace=True, verbose=True):
     """ Download a python file to import from QGIS """
     code = qgisCode(collection, visParams, name, datePattern, verbose)
     path = path or os.getcwd()
