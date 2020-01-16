@@ -170,7 +170,8 @@ def mosaicSameDay(collection):
         mosaic = mosaic.set('system:time_start', date.millis(),
                             'system:footprint', mergeGeometries(filtered))
 
-        mosaic = mosaic.rename(bands)
+        # mosaic = mosaic.rename(bands)
+        mosaic = mosaic.select(bands)
         def reproject(bname, mos):
             mos = ee.Image(mos)
             mos_bnames = mos.bandNames()
