@@ -110,11 +110,11 @@ def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
     if not geometry:
         geometry = image.geometry()
 
-    unbounded = geometry.isUnbounded()
-
     # manage geometry types
     if isinstance(geometry, (ee.Feature, ee.FeatureCollection)):
         geometry = geometry.geometry()
+
+    unbounded = geometry.isUnbounded()
 
     # Get total number of pixels
     ones = ones_i.reduceRegion(
