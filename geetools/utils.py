@@ -179,13 +179,25 @@ def formatVisParams(visParams):
     return formatted
 
 
-def authenticate(credential_path):
-    """ Authenticate to GEE with the specified credentials """
+def authenticate(filename, credential_path='default'):
+    """
+    Authenticate to GEE with the specified credentials
+
+    If credential_path is set to 'defualt', it searches for the 'filename' in
+    the same folder in which credentials are stored locally
+    """
     from google.oauth2.credentials import Credentials
     import json
+    import os
+
+    if credential_path == 'default':
+        credential_path = os.path.split(ee.oauth.get_credentials_path())[0]
+
+    path = os.path.join(credential_path, filename)
+
     def get_credentials():
         try:
-            tokens = json.load(open(credential_path))
+            tokens = json.load(open(path))
             refresh_token = tokens['refresh_token']
             return Credentials(
                 None,
