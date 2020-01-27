@@ -80,8 +80,12 @@ def getRegion(eeobject, bounds=False, error=1):
             region = []
             for geom in geometries:
                 this_type = geom['type']
-                if this_type in ['Polygon', 'MultiPolygon', 'Rectangle']:
-                    region.append(geom['coordinates'])
+                if this_type in ['Polygon', 'Rectangle']:
+                    region.append(geom['coordinates'][0])
+                elif this_type in ['MultiPolygon']:
+                    geometries2 = geom['coordinates']
+                    region.append(unpack(geometries2))
+
         elif geomtype == 'MultiPolygon':
             subregion = info['coordinates']
             region = unpack(subregion)
