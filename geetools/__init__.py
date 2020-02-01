@@ -16,10 +16,10 @@ __copyright__ = "2017 Rodrigo E. Principe"
 try:
     from . import tools, bitreader, cloud_mask, expressions, decision_tree,\
                   filters, indices, batch, algorithms, composite,\
-                  manager, utils, collection
+                  manager, utils, collection, oauth
     from .ui import eprint
     from .tools.imagecollection import wrapper
     from .batch import Export, Import, Convert, Download
-    from .utils import authenticate
+    from .oauth import Initialize
 except ImportError:
     pass
