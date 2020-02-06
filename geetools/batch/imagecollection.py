@@ -76,6 +76,8 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
             else:
                 raise e
 
+    return tasklist
+
 
 def toCloudStorage(collection, bucket, folder=None, namePattern='{id}',
                    region=None, scale=30, dataType="float", datePattern=None,
