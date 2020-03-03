@@ -234,6 +234,11 @@ class Collection(object):
         return ranges_dict
 
     def scales(self, reference='all', renamed=False):
+        """ Get scales. Return a dictionary with name of bands and value
+
+        :param reference: it can be 'all', 'optical', 'thermal', etc
+        :type reference: str
+        """
         scales_dict = {}
         for band in self.bands:
             if reference != 'all' and reference != band.reference:
