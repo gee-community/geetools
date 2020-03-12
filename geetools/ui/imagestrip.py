@@ -1,20 +1,25 @@
 # coding=utf-8
 
-""" Creation of strip of images """
+""" Visualizing images and metadata in a local image object using blocks
 
+- The main 'block' is `EeImageBlock` that can create a block from an ee.Image
+- Each block has a settable attribute called `position` that indicates the
+position of the block when using a `GridBlock` which is like a block layout.
+When the block is used outside a layout, the attribute makes no changes
+"""
 from __future__ import print_function
 from .. import batch
 from PIL import Image as ImPIL
 from PIL import ImageDraw, ImageFont
 import os.path
 import ee
-import logging
 from copy import deepcopy
 from .. import utils, tools
 import requests
 from io import BytesIO
 import os
 import hashlib
+import json
 
 
 def split(alist, split):
@@ -151,7 +156,8 @@ class ImageBlock(Block):
 class EeImageBlock(Block):
     def __init__(self, source, visParams=None, geometry=None,
                  download=False, check=True, path=None, name=None,
-                 extension=None, dimensions=(500, 500), **kwargs):
+                 extension=None, dimensions=500, overlay=None,
+                 overlay_style=None, **kwargs):
         """ Image Block for Earth Engine images
 
         :param source: the Image
@@ -160,6 +166,11 @@ class EeImageBlock(Block):
         :type visParams: dict
         :param geometry: the region
         :type geometry: ee.Geometry
+        :param overlay: an overlay to paint over the image
+        :type overlay: ee.FeatureCollection or ee.Feature or ee.Geometry
+        :param overlay_style: a dictionary for styling the overlay
+            (same as ee.FeatureCollection.style)
+        :type overlay_style: dict
         """
         super(EeImageBlock, self).__init__(**kwargs)
         self.source = ee.Image(source)
@@ -168,9 +179,25 @@ class EeImageBlock(Block):
         self.download = download
         self.extension = extension or 'png'
         self.check = check
-        self.visual = self.source.visualize(**self.visParams)
         self.name = name
         self.geometry = geometry or self.source.geometry()
+
+        if isinstance(overlay, ee.Geometry):
+            overlay = ee.FeatureCollection([ee.Feature(overlay)])
+        elif isinstance(overlay, ee.Feature):
+            overlay = ee.FeatureCollection([overlay])
+
+        self.overlay = overlay
+        default_style = {
+            'color': 'black',
+            'fillColor': '#FFFFFF00',
+            'width': 1
+        }
+        self.overlay_style = default_style
+        self.overlay_style.update(overlay_style)
+
+        if overlay and not overlay_style:
+            self.overlay_style = defualt
 
         if geometry:
             self.region = tools.geometry.getRegion(geometry, True)
@@ -192,6 +219,21 @@ class EeImageBlock(Block):
 
         self._pil_image = None
         self._url = None
+
+    @property
+    def visual(self):
+        i = self.source.visualize(**self.visParams)
+        if not self.overlay_image:
+            return i
+
+        return i.blend(self.overlay_image)
+
+    @property
+    def overlay_image(self):
+        if not self.overlay:
+            return None
+
+        return self.overlay.style(**self.overlay_style)
 
     @property
     def pil_image(self):
@@ -235,10 +277,10 @@ class EeImageBlock(Block):
     @property
     def url(self):
         if not self._url:
-            vis = utils.formatVisParams(self.visParams)
+            vis = dict(bands=['vis-red', 'vis-green', 'vis-blue'], min=0, max=255)
             vis.update({'format':self.extension, 'region':self.geometry,
                         'dimensions':self.format_dimensions(self.dimensions)})
-            url = self.source.getThumbURL(vis)
+            url = self.visual.getThumbURL(vis)
             self._url = url
 
         return self._url
