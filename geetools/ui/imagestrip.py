@@ -10,8 +10,7 @@ import os.path
 import ee
 import logging
 from copy import deepcopy
-from ..tools import geometry
-from .. import utils
+from .. import utils, tools
 import requests
 from io import BytesIO
 import os
@@ -150,10 +149,18 @@ class ImageBlock(Block):
 
 
 class EeImageBlock(Block):
-    def __init__(self, source, visParams=None, region=None,
+    def __init__(self, source, visParams=None, geometry=None,
                  download=False, check=True, path=None, name=None,
                  extension=None, dimensions=(500, 500), **kwargs):
-        """ Image Block for Earth Engine images """
+        """ Image Block for Earth Engine images
+
+        :param source: the Image
+        :type source: ee.Image
+        :param visParams: visualization parameters
+        :type visParams: dict
+        :param geometry: the region
+        :type geometry: ee.Geometry
+        """
         super(EeImageBlock, self).__init__(**kwargs)
         self.source = ee.Image(source)
         self.visParams = visParams or dict(min=0, max=1)
@@ -163,11 +170,12 @@ class EeImageBlock(Block):
         self.check = check
         self.visual = self.source.visualize(**self.visParams)
         self.name = name
+        self.geometry = geometry or self.source.geometry()
 
-        if region:
-            self.region = geometry.getRegion(region, True)
+        if geometry:
+            self.region = tools.geometry.getRegion(geometry, True)
         else:
-            self.region = geometry.getRegion(self.source, True)
+            self.region = tools.geometry.getRegion(self.source, True)
 
         if download:
             self.path = path or os.getcwd()
@@ -190,7 +198,14 @@ class EeImageBlock(Block):
         if not self._pil_image:
             if not self.download:
                 raw = requests.get(self.url)
-                self._pil_image = ImPIL.open(BytesIO(raw.content))
+                if raw.status_code == 200:
+                    self._pil_image = ImPIL.open(BytesIO(raw.content))
+                else:
+                    error = json.loads(raw.content.decode()).get('error')
+                    if error:
+                        raise requests.exceptions.RequestException(error['message'])
+                    else:
+                        self._pil_image = None
             else:
                 if not os.path.exists(self.path):
                     os.mkdir(self.path)
@@ -208,17 +223,20 @@ class EeImageBlock(Block):
 
     @staticmethod
     def format_dimensions(dimensions):
-        x = dimensions[0]
-        y = dimensions[1]
-        if x and y: return "x".join([str(d) for d in dimensions])
-        elif x: return str(x)
-        else: return str(y)
+        if isinstance(dimensions, list):
+            x = dimensions[0]
+            y = dimensions[1]
+            if x and y: return "x".join([str(d) for d in dimensions])
+            elif x: return str(x)
+            else: return str(y)
+        else:
+            return str(dimensions)
 
     @property
     def url(self):
         if not self._url:
             vis = utils.formatVisParams(self.visParams)
-            vis.update({'format':self.extension, 'region':self.region,
+            vis.update({'format':self.extension, 'region':self.geometry,
                         'dimensions':self.format_dimensions(self.dimensions)})
             url = self.source.getThumbURL(vis)
             self._url = url
