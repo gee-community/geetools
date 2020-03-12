@@ -385,7 +385,7 @@ class ImageStrip(object):
         return [y for x in doublelist for y in x]
 
     def fromList(self, image_list, name=None, name_list=None, vis_params=None,
-                 region=None, split_at=4, image_size=(500, 500),
+                 geometry=None, split_at=4, image_size=500,
                  description_list=None, images_folder=None, check=True,
                  download_images=False, save=True, folder=None):
         """ Download every image and create the strip
@@ -402,30 +402,18 @@ class ImageStrip(object):
         :type min: int
         :param max: max value for visualization
         :type max: int
-        :param region: coordinate list. Optional
-        :type region: list
+        :param geometry: geometry to plot
+        :type geometry: ee.Geometry
         :param folder: folder to downlaod files. Do not use '/' at the end
         :type folder: str
         :param check: Check if file exists, and if it does, omits the downlaod
         :type check: bool
-        :param draw_polygons: Polygons to draw over the image. Must be a list of list of
-            coordinates. Optional
-        :type draw_polygons: list of list
-        :param draw_lines: Lines to draw over the image
-        :type draw_lines: list of list
-        :param draw_points: Points to draw over the image
-        :type draw_points: list of list
-        :param general_width: Images width
-        :type general_width: int
 
         :return: A file with the name passed to StripImage() in the folder
             passed to the method. Opens the generated file
         """
         if isinstance(image_list, ee.List):
             image_list = listEE2list(image_list, 'Image')
-
-        if region:
-            region = geometry.getRegion(region, True)
 
         description_list = description_list or [None]*len(image_list)
         name_list = name_list or [None]*len(image_list)
@@ -453,7 +441,7 @@ class ImageStrip(object):
                 else:
                     path = None
 
-                imgblock = EeImageBlock(image, vis_params, region, check=check, name=iname,
+                imgblock = EeImageBlock(image, vis_params, geometry, check=check, name=iname,
                                         extension=self.extension, dimensions=image_size,
                                         download=download_images, path=path)
                 blocklist = [[imgblock]]
