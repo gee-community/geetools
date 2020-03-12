@@ -395,7 +395,7 @@ class Landsat(object):
 
     @staticmethod
     def harmonization(image, blue='B2', green='B3', red='B4', nir='B5',
-                      swir='B6', swir2='B7', max_value=None):
+                      swir='B6', swir2='B7', max_value=None, resample=None):
         """ Harmonization of Landsat 8 images to be consistant with
         Landsat 7 images
 
@@ -410,6 +410,8 @@ class Landsat(object):
         :param max_value: the maximum value for the optical bands. For float
             bands it is 1 (TOA), for int16 it is 10000 (SR) and for int8 it is
             255 (RAW). It default to 1 (TOA)
+        :param resample: can be None for not resampling and 'bicubic' for
+            bicubic resampling
         :return:
         """
         bands = ee.List([blue, green, red, nir, swir, swir2])
@@ -424,7 +426,10 @@ class Landsat(object):
                                   -0.0021, -0.0030, 0.0029])
 
         only_bands = image.select(bands)
-        resampled = only_bands.resample('bicubic')
+        if resample is None:
+            resampled = only_bands
+        elif resample == 'bicubic':
+            resampled = only_bands.resample('bicubic')
 
         harmonized = resampled.subtract(itcp.multiply(max_value)).divide(slopes)
 
