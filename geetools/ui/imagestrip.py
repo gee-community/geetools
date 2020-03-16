@@ -20,6 +20,7 @@ from io import BytesIO
 import os
 import hashlib
 import json
+import time
 
 
 def split(alist, split):
@@ -194,10 +195,8 @@ class EeImageBlock(Block):
             'width': 1
         }
         self.overlay_style = default_style
-        self.overlay_style.update(overlay_style)
-
-        if overlay and not overlay_style:
-            self.overlay_style = defualt
+        if overlay_style:
+            self.overlay_style.update(overlay_style)
 
         if geometry:
             self.region = tools.geometry.getRegion(geometry, True)
@@ -429,7 +428,8 @@ class ImageStrip(object):
     def fromList(self, image_list, name=None, name_list=None, vis_params=None,
                  geometry=None, split_at=4, image_size=500,
                  description_list=None, images_folder=None, check=True,
-                 download_images=False, save=True, folder=None):
+                 download_images=False, save=True, folder=None,
+                 overlay=None, overlay_style=None, wait=None):
         """ Download every image and create the strip
 
         :param image_list: Satellite Images (not PIL!!!!!!)
@@ -450,6 +450,8 @@ class ImageStrip(object):
         :type folder: str
         :param check: Check if file exists, and if it does, omits the downlaod
         :type check: bool
+        :param wait: waiting time to avoid crushing EE (seconds)
+        :type wait: int
 
         :return: A file with the name passed to StripImage() in the folder
             passed to the method. Opens the generated file
@@ -483,9 +485,13 @@ class ImageStrip(object):
                 else:
                     path = None
 
-                imgblock = EeImageBlock(image, vis_params, geometry, check=check, name=iname,
-                                        extension=self.extension, dimensions=image_size,
-                                        download=download_images, path=path)
+                imgblock = EeImageBlock(image, vis_params, geometry,
+                                        check=check, name=iname,
+                                        extension=self.extension,
+                                        dimensions=image_size,
+                                        download=download_images,
+                                        path=path, overlay=overlay,
+                                        overlay_style=overlay_style)
                 blocklist = [[imgblock]]
 
                 # IMAGE NAME BLOCK
@@ -515,6 +521,10 @@ class ImageStrip(object):
                                   )
 
                 row_list.append(block)
+                # Wait some time to avoid crushing EE
+                if wait:
+                    time.sleep(wait)
+
             final_list.append(row_list)
 
         # TITLE
