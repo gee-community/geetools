@@ -60,6 +60,13 @@ def addPrefix(image, prefix, bands=None):
     return _add_suffix_prefix(image, prefix, 'prefix', bands)
 
 
+def bufferMask(image, radius=1.5, kernelType='circle', units='pixels'):
+    """ Make a buffer around the masked pixels """
+    masked = image.mask().Not()
+    buffer = masked.focal_mode(radius, kernelType, units)
+    return image.updateMask(buffer.Not())
+
+
 def empty(value=0, names=None, from_dict=None):
     """ Create a constant image with the given band names and value, and/or
     from a dictionary of {name: value}
