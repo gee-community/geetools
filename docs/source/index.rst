@@ -30,12 +30,10 @@ Basic Usage
 
     from geetools import tools
 
-    image = ee.Image(0).select([0], ["aband"])
+    image = ee.Image([1,3,5,7]).rename(['b1', 'b2', 'b3', 'b4'])
     point = ee.Geometry.Point([0, 0])
-    scale = 30
-    value = tools.get_value(image, point, scale)
-
-    print(value["aband"])
+    values = tools.image.getValue(image, point, scale=30, side='client')
+    print(values)
 
 More in the :doc:`Documentation`
 
