@@ -60,10 +60,10 @@ def addPrefix(image, prefix, bands=None):
     return _add_suffix_prefix(image, prefix, 'prefix', bands)
 
 
-def bufferMask(image, radius=1.5, kernelType='circle', units='pixels'):
+def bufferMask(image, radius=1.5, kernelType='square', units='pixels'):
     """ Make a buffer around the masked pixels """
     masked = image.mask().Not()
-    buffer = masked.focal_mode(radius, kernelType, units)
+    buffer = masked.focal_max(radius, kernelType, units)
     return image.updateMask(buffer.Not())
 
 
