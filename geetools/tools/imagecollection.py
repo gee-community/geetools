@@ -133,12 +133,12 @@ def mergeGeometries(collection):
     return ee.Geometry(rest.iterate(wrap, first.geometry()))
 
 
-def mosaicSameDay(collection):
+def mosaicSameDay(collection, qualityBand=None):
     """ Return a collection where images from the same day are mosaicked
 
-    :param reducer: the reducer to use for merging images from the same day.
-        Defaults to 'first'
-    :type reducer: ee.Reducer
+    :param qualityBand: the band that holds the quality score for mosaiking.
+        If None it will use the simplier mosaic() function
+    :type qualityBand: str
     :return: a new image collection with 1 image per day. The only property
         kept is `system:time_start`
     :rtype: ee.ImageCollection
@@ -166,7 +166,11 @@ def mosaicSameDay(collection):
         date = ee.Date(date)
         filtered = collection.filterDate(date, date.advance(1, 'day'))
 
-        mosaic = filtered.mosaic()
+        if qualityBand:
+            mosaic = filtered.qualityMosaic(qualityBand)
+        else:
+            mosaic = filtered.mosaic()
+
         mosaic = mosaic.set('system:time_start', date.millis(),
                             'system:footprint', mergeGeometries(filtered))
 
