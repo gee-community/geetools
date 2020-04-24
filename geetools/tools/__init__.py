@@ -2,4 +2,4 @@
 
 from . import collection, date, dictionary, ee_list, featurecollection, \
               geometry, image, imagecollection, number, segmentation, \
-              string
+              string, array
