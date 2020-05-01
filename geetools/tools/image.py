@@ -1006,6 +1006,80 @@ def applyMask(image, mask, bands=None, negative=True):
     return ee.Image(bands.iterate(wrap, image))
 
 
+def regionCover(image, region, bands=None, scale=None, operator='OR',
+                property_name='REGION_COVER', crs=None, crsTransform=None,
+                bestEffort=False, maxPixels=1e13, tileScale=1):
+    """ Compute the percentage of values greater than 1 in a region. If more
+     than one band is specified, it applies the specified operator """
+    operators = ['OR', 'AND']
+    if operator not in operators:
+        raise ValueError('operator must be one of {}'.format(operators))
+
+    if not bands:
+        bands = ee.List([image.bandNames().get(0)])
+
+    if operator == 'AND':
+        reducer = ee.Reducer.bitwiseAnd()
+    else:
+        reducer = ee.Reducer.bitwiseOr()
+
+    bandname = 'regionCover'
+    mask = image.select(bands).reduce(reducer).rename(bandname)
+
+    # get projection
+    projection = mask.projection()
+
+    if not scale:
+        scale = projection.nominalScale()
+
+    # Make an image with all ones
+    ones_i = ee.Image.constant(1).reproject(projection).rename(bandname)
+
+    # manage geometry types
+    if isinstance(region, (ee.Feature, ee.FeatureCollection)):
+        region = region.geometry()
+
+    unbounded = region.isUnbounded()
+
+    # Get total number of pixels
+    ones = ones_i.reduceRegion(
+        reducer= ee.Reducer.count(),
+        geometry= region,
+        scale= scale,
+        maxPixels= maxPixels,
+        crs=crs,
+        crsTransform=crsTransform,
+        bestEffort=bestEffort,
+        tileScale=tileScale,
+    ).get(bandname)
+    ones = ee.Number(ones)
+
+    # select first band, unmask and get the inverse
+    image_to_compute = mask.selfMask()
+
+    # Get number of zeros in the given image
+    zeros_in_mask =  image_to_compute.reduceRegion(
+        reducer= ee.Reducer.count(),
+        geometry= region,
+        scale= scale,
+        maxPixels= maxPixels,
+        crs=crs,
+        crsTransform=crsTransform,
+        bestEffort=bestEffort,
+        tileScale=tileScale
+    ).get(bandname)
+    zeros_in_mask = ee.Number(zeros_in_mask)
+
+    percentage = zeros_in_mask.divide(ones)
+
+    # Multiply by 100
+    cover = percentage.multiply(100)
+
+    # Return None if geometry is unbounded
+    final = ee.Number(ee.Algorithms.If(unbounded, 0, cover))
+    return image.set(property_name, final)
+
+
 class Classification(object):
     """ Class holding (static) methods for classified images. """
     @staticmethod
