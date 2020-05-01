@@ -430,6 +430,17 @@ def minscale(image):
     return ee.Number(bands.slice(1).iterate(wrap, ini))
 
 
+def mixBands(imgs):
+    """ Mix all bands into a single image """
+    if isinstance(imgs, (list, tuple)):
+        imgs = ee.List(imgs)
+
+    first = ee.Image(imgs.get(0))
+    rest = imgs.slice(1)
+
+    return ee.Image(rest.iterate(lambda i, f: ee.Image(f).addBands(i), first))
+
+
 def computeBits(image, start, end, newName):
     """ Compute the bits of an image
 
