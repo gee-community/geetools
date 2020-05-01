@@ -355,8 +355,16 @@ def getValues(collection, geometry, scale=None, reducer=None,
 def outliers(collection, bands, sigma=2, updateMask=False):
     """ Compute outliers by:
 
-    outlier > mean+(sigma*stddev)
-    outlier < mean+(sigma*stddev)
+    outlier = value > mean+(sigma*stddev)
+    outlier = value < mean-(sigma*stddev)
+
+    Example (sigma = 1):
+        - values = [1, 5, 6, 4, 7, 10]
+        - mean = 5.5
+        - std dev = 3
+        - mean + (sigma*stddev) = 8.5
+        - mean - (sigma*stddev) = 2.5
+        - outliers = values between 2.5 and 8.5 = [1, 10]
 
     if `updateMask` is False return the passed collection in which each image
     have new bands (a mask) corresponding to the passed dict and a suffix '_outlier'
