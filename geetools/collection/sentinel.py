@@ -137,10 +137,7 @@ class Sentinel2(Collection):
             bandslist = tools.dictionary.extractList(newbands,
                                             [str(i) for i in range(1, 12)])
 
-            image = tools.image.addMultiBands(ee.Image(bandslist.get(0)),
-                                              ee.List(bandslist.slice(1)))
-
-
+            image = tools.image.addMultiBands(bandslist)
         return image
 
     @property
