@@ -158,38 +158,26 @@ def getValue(image, point, scale=None, side="server"):
         raise ValueError("side parameter must be 'server' or 'client'")
 
 
-def _addMultiBands(img, *imgs):
+def addMultiBands(imagesList):
     """ Image.addBands for many images. All bands from all images will be
     put together, so if there is one band with the same name in different
     images, the first occurrence will keep the name and the rest will have a
     number suffix ({band}_1, {band}_2, etc)
 
-    :param imgs: images to add bands
-    :type imgs: tuple
+    :param imagesList: a list of images
+    :type imagesList: list or ee.List
     :rtype: ee.Image
     """
-    for i in imgs:
-        img = img.addBands(i)
-    return img
+    imagesList = ee.List(imagesList)
+    first = ee.Image(imagesList.get(0))
+    rest = imagesList.slice(1)
 
-
-def addMultiBands(image, imageList):
-    """ Image.addBands for many images. All bands from all images will be
-    put together, so if there is one band with the same name in different
-    images, the first occurrence will keep the name and the rest will have a
-    number suffix ({band}_1, {band}_2, etc)
-
-    :param image: images to add bands
-    :param imageList: a list of images
-    :type imageList: list or ee.List
-    :rtype: ee.Image
-    """
     def iteration(img, ini):
         ini = ee.Image(ini)
         img = ee.Image(img)
         return ini.addBands(img)
 
-    return ee.List(imageList).iterate(iteration, image)
+    return ee.Image(rest.iterate(iteration, first))
 
 
 def renameDict(image, names):
@@ -1004,6 +992,90 @@ def applyMask(image, mask, bands=None, negative=True):
         return img.updateMask(toapply)
 
     return ee.Image(bands.iterate(wrap, image))
+
+
+def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
+              crs=None, crsTransform=None, bestEffort=False,
+              maxPixels=1e13, tileScale=1):
+    """ Percentage of masked pixels (masked/total * 100) as an Image property
+
+    :param image: ee.Image holding the mask. If the image has more than
+        one band, the first one will be used
+    :type image: ee.Image
+    :param geometry: the value will be computed inside this geometry. If None,
+        will use image boundaries. If unbounded the result will be 0
+    :type geometry: ee.Geometry or ee.Feature
+    :param scale: the scale of the mask
+    :type scale: int
+    :param property_name: the name of the resulting property
+    :type property_name: str
+    :return: The same parsed image with a new property holding the mask cover
+        percentage
+    :rtype: ee.Image
+    """
+    # keep only first band
+    imageband = image.select(0)
+
+    # get projection
+    projection = imageband.projection()
+
+    if not scale:
+        scale = projection.nominalScale()
+
+    # get band name
+    band = ee.String(imageband.bandNames().get(0))
+
+    # Make an image with all ones
+    ones_i = ee.Image.constant(1).reproject(projection).rename(band)
+
+    if not geometry:
+        geometry = image.geometry()
+
+    # manage geometry types
+    if isinstance(geometry, (ee.Feature, ee.FeatureCollection)):
+        geometry = geometry.geometry()
+
+    unbounded = geometry.isUnbounded()
+
+    # Get total number of pixels
+    ones = ones_i.reduceRegion(
+        reducer= ee.Reducer.count(),
+        geometry= geometry,
+        scale= scale,
+        maxPixels= maxPixels,
+        crs=crs,
+        crsTransform=crsTransform,
+        bestEffort=bestEffort,
+        tileScale=tileScale,
+    ).get(band)
+    ones = ee.Number(ones)
+
+    # select first band, unmask and get the inverse
+    mask = imageband.mask()
+    mask_not = mask.Not()
+    image_to_compute = mask.updateMask(mask_not)
+
+    # Get number of zeros in the given image
+    zeros_in_mask =  image_to_compute.reduceRegion(
+        reducer= ee.Reducer.count(),
+        geometry= geometry,
+        scale= scale,
+        maxPixels= maxPixels,
+        crs=crs,
+        crsTransform=crsTransform,
+        bestEffort=bestEffort,
+        tileScale=tileScale
+    ).get(band)
+    zeros_in_mask = ee.Number(zeros_in_mask)
+
+    percentage = zeros_in_mask.divide(ones)
+    # Multiply by 100
+    cover = percentage.multiply(100)
+
+    # Return None if geometry is unbounded
+    final = ee.Number(ee.Algorithms.If(unbounded, 0, cover))
+
+    return image.set(property_name, final)
 
 
 def regionCover(image, region, bands=None, scale=None, operator='OR',
