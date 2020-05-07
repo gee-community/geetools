@@ -23,6 +23,52 @@ def add(collection, image):
     return ee.ImageCollection.fromImages(append)
 
 
+def containsAllBands(collection, bands):
+    """ Filter a collection with images cotaining all bands specified in
+    parameter `bands` """
+    bands = ee.List(bands)
+    # add bands as metadata
+    collection = collection.map(
+        lambda i: ee.Image(i).set('_BANDS_', ee.Image(i).bandNames()))
+
+    band0 = ee.String(bands.get(0))
+    rest = ee.List(bands.slice(1))
+    filt0 = ee.Filter.listContains(leftField='_BANDS_', rightValue=band0)
+
+    # Get filter
+    def wrap(band, filt):
+        band = ee.String(band)
+        filt = ee.Filter(filt)
+        newfilt = ee.Filter.listContains(leftField='_BANDS_', rightValue=band)
+        return ee.Filter.And(filt, newfilt)
+
+    filt = ee.Filter(rest.iterate(wrap, filt0))
+    return collection.filter(filt)
+
+
+def containsAnyBand(collection, bands):
+    """ Filter a collection with images cotaining any of the bands specified in
+    parameter `bands` """
+    bands = ee.List(bands)
+    # add bands as metadata
+    collection = collection.map(
+        lambda i: ee.Image(i).set('_BANDS_', ee.Image(i).bandNames()))
+
+    band0 = ee.String(bands.get(0))
+    rest = ee.List(bands.slice(1))
+    filt0 = ee.Filter.listContains(leftField='_BANDS_', rightValue=band0)
+
+    # Get filter
+    def wrap(band, filt):
+        band = ee.String(band)
+        filt = ee.Filter(filt)
+        newfilt = ee.Filter.listContains(leftField='_BANDS_', rightValue=band)
+        return ee.Filter.Or(filt, newfilt)
+
+    filt = ee.Filter(rest.iterate(wrap, filt0))
+    return collection.filter(filt)
+
+
 def getId(collection):
     """ Get the ImageCollection id.
 
@@ -79,7 +125,6 @@ def enumerateSimple(collection, name='ENUM'):
     """ Simple enumeration of features inside a collection. Each feature stores
      its enumeration, so if the order of features changes over time, the numbers
      will not be in order """
-
     size = collection.size()
     collist = collection.toList(size)
     seq = ee.List.sequence(0, size.subtract(1))
