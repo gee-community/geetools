@@ -1,6 +1,10 @@
 # coding=utf-8
 import ee
 import os
+import time
+import random
+from googleapiclient.errors import HttpError
+from ee.ee_exception import EEException
 from . import utils
 from ..utils import makeName
 from .. import tools
@@ -8,7 +12,7 @@ from .. import tools
 
 def toDrive(collection, folder, namePattern='{id}', scale=30,
             dataType="float", region=None, datePattern=None,
-            extra=None, verbose=False, **kwargs):
+            extra=None, verbose=False, retry_backoff=False, **kwargs):
     """ Upload all images from one collection to Google Drive. You can use
     the same arguments as the original function
     ee.batch.export.image.toDrive
@@ -35,6 +39,9 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
     :param datePattern: pattern for date if specified in namePattern.
         Defaults to 'yyyyMMdd'
     :type datePattern: str
+    :param retry_backoff: Retry on timeouts and HTTP errors with an
+        exponential backoff
+    :type retry_backoff: bool
     :return: list of tasks
     :rtype: list
     """
@@ -47,6 +54,7 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
 
     n = 0
     while True:
+        backoff_count = 0
         try:
             img = ee.Image(img_list.get(n))
 
@@ -69,10 +77,15 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
 
             tasklist.append(task)
             n += 1
-        except Exception as e:
+        except (HttpError, EEException) as e:
             error = str(e).split(':')
             if error[0] == 'List.get':
                 break
+            elif retry_backoff and "queue" in error[0]:
+                backoff_count += 1
+                dur = 300 * ((2 ** backoff_count) + (random.randint(0, 1000) / 1000))
+                print(error[0], "Backing off", int(dur / 60), "minutes")
+                time.sleep(dur)
             else:
                 raise e
 
