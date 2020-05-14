@@ -13,6 +13,9 @@ methods related to Google Earth Engine exclusively, so you can use this module
 in any python environment you like. For working in Jupyter I have made another
 package called `ipygee` available [here](http://www.github.com/fitoprincipe/ipygee) 
 
+#### New version 0.5.0
+I have splitted this package in two (again). Now the functions to make a strip
+of images using Pillow is available as a different package called [`geepillow`](https://github.com/fitoprincipe/geepillow)
 
 ## Installation
 
@@ -24,14 +27,63 @@ package called `ipygee` available [here](http://www.github.com/fitoprincipe/ipyg
 
 ## Basic Usage
 
-``` python
-from geetools import batch
+```python
+import ee
+ee.Initialize()
+import geetools
 
-col = ee.ImageCollection("your_ID")
-tasklist = batch.Export.imagecollection.toDrive(col)
+# ## Define an ImageCollection
+site = ee.Geometry.Point([-72, -42]).buffer(1000)
+collection = ee.ImageCollection("LANDSAT/LC08/C01/T1_SR").filterBounds(site).limit(5)
+
+# ## Set parameters
+bands = ['B2', 'B3', 'B4']
+scale = 30
+name_pattern = '{sat}_{system_date}_{WRS_PATH:%d}-{WRS_ROW:%d}'
+date_pattern = 'ddMMMy' # dd: day, MMM: month (JAN), y: year
+folder = 'MYFOLDER'
+data_type = 'uint32'
+extra = dict(sat='L8SR')
+region = site
+
+# ## Export
+tasks = geetools.batch.Export.imagecollection.toDrive(
+            collection=collection,
+            folder=folder,
+            region=site,
+            namePattern=name_pattern,
+            scale=scale,
+            dataType=data_type,
+            datePattern=date_pattern,
+            extra=extra,
+            verbose=True,
+            maxPixels=int(1e13)
+        )
 ```
 
-## Examples
+## Some useful functions
+
+### batch exporting
+- Export every image in an ImageCollection to Google Drive, GEE Asset or Cloud Storage [examples](https://github.com/gee-community/gee_tools/tree/master/notebooks/batch)
+- Clip an image using a FeatureCollection and export the image inside every Feature [example](https://github.com/gee-community/gee_tools/tree/master/notebooks/batch)
+
+### Image processing
+- Pansharp [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/algorithms/pansharpen.ipynb)
+- Mask pixels around masked pixels (buffer around a mask) [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/image/bufferMask.ipynb)
+- Get the percentage of masked pixels inside a geometry [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/algorithms/mask_cover.ipynb)
+- Cloud masking functions [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/cloud_mask/cloud_masking.ipynb)
+
+### Compositing
+- Closest date composite: replace masked pixels with the "last available not masked pixel" [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/composite/closest_date.ipynb)
+- Medoid composite [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/composite/medoid.ipynb)
+
+### Image Collections
+- Mosaic same day [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/imagecollection/mosaicSameDay.ipynb)
+
+### Visualization
+- Get visualization parameters using a stretching function [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/visualization/stretching.ipynb)
+
+## All example Jupyter Notebooks
 
 Jupyter Notebooks avilables [here](https://github.com/gee-community/gee_tools/tree/master/notebooks)
 
