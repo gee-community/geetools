@@ -11,7 +11,6 @@ idna==2.6
 ipaddress==1.0.18
 oauth2client==4.1.2
 olefile==0.44
-Pillow==6.2.0
 # pkg-resources==0.0.0
 pyasn1==0.3.7
 pyasn1-modules==0.1.5

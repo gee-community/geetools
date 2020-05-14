@@ -5,6 +5,32 @@ import ee.data
 from collections import OrderedDict
 
 
+def extractList(dict, list):
+    """ Extract values from a list of keys """
+    empty = ee.List([])
+    list = ee.List(list)
+    dict = ee.Dictionary(dict)
+    def iteration(el, first):
+        f = ee.List(first)
+        cond = dict.contains(el)
+        return ee.Algorithms.If(cond, f.add(dict.get(el)), f)
+    values = ee.List(list.iterate(iteration, empty))
+    return values
+
+
+def fromList(alist):
+    """ Create a ee.Dictionary from a list of [[key, val], [key2, val2]...] """
+    l = ee.List(alist)
+    empty = ee.Dictionary({})
+    def overList(ll, e):
+        e = ee.Dictionary(e)
+        ll = ee.List(ll)
+        key = ll.get(0)
+        val = ll.get(1)
+        return e.set(key, val)
+    return ee.Dictionary(l.iterate(overList, empty))
+
+
 def sort(dictionary):
     """ Sort a dictionary. Can be a `dict` or a `ee.Dictionary`
 
@@ -31,16 +57,3 @@ def sort(dictionary):
         return ee.Dictionary(ordered.iterate(iteration, ee.Dictionary()))
     else:
         return dictionary
-
-
-def extractList(dict, list):
-    """ Extract values from a list of keys """
-    empty = ee.List([])
-    list = ee.List(list)
-    dict = ee.Dictionary(dict)
-    def iteration(el, first):
-        f = ee.List(first)
-        cond = dict.contains(el)
-        return ee.Algorithms.If(cond, f.add(dict.get(el)), f)
-    values = ee.List(list.iterate(iteration, empty))
-    return values

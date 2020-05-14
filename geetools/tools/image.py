@@ -6,7 +6,7 @@ from __future__ import absolute_import
 import ee
 import ee.data
 import math
-from . import ee_list, date
+from . import ee_list, date, string
 from ..utils import castImage
 from ..ui import map as mapui
 
@@ -715,6 +715,37 @@ def gaussFunction(image, band, range_min=None, range_max=None, mean=0,
              'min': output_min
              })
         return parametrized.rename(name)
+
+
+def makeName(img, pattern, date_pattern=None, extra=None):
+    """ Make a name with the given pattern. The pattern must contain the
+    propeties to replace between curly braces. There are 2 special words:
+
+    * 'system_date': replace with the date of the image formatted with
+      `date_pattern`, which defaults to 'yyyyMMdd'
+    * 'id' or 'ID': the image id. If None, it'll be replaced with 'id'
+
+    Pattern example (supposing each image has a property called `city`):
+    'image from {city} on {system_date}'
+
+    You can add extra parameters using keyword `extra`
+    """
+    img = ee.Image(img)
+    props = img.toDictionary()
+    props = ee.Dictionary(ee.Algorithms.If(
+        img.id(),
+        props.set('id', img.id()).set('ID', img.id()),
+        props))
+    props = ee.Dictionary(ee.Algorithms.If(
+        img.propertyNames().contains('system:time_start'),
+        props.set('system_date', img.date().format(date_pattern)),
+        props))
+    if extra:
+        extra = ee.Dictionary(extra)
+        props = props.combine(extra)
+    name = string.format(pattern, props)
+
+    return name
 
 
 def normalDistribution(image, band, mean=None, std=None, region=None,

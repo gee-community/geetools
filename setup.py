@@ -30,7 +30,6 @@ setup(
     packages=find_packages(exclude=('docs', 'js')),
     include_package_data=True,
     install_requires=['requests',
-                      'Pillow',
                       'pyshp',
                       'pandas'],
     extras_require={

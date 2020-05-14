@@ -144,16 +144,17 @@ def convertDataType(newtype):
     :return: a function to map over a collection
     :rtype: function
     """
+    newtype = newtype.lower()
     def wrap(image):
         TYPES = {'float': image.toFloat,
                  'int': image.toInt,
                  'byte': image.toByte,
                  'double': image.toDouble,
-                 'Uint8': image.toUint8,
+                 'uint8': image.toUint8,
                  'int8': image.toInt8,
-                 'Uint16': image.toUint16,
+                 'uint16': image.toUint16,
                  'int16': image.toInt16,
-                 'Uint32': image.toUint32,
+                 'uint32': image.toUint32,
                  'int32': image.toInt32}
         return TYPES[newtype]()
     return wrap

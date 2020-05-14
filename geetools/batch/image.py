@@ -147,7 +147,7 @@ def toAsset(image, assetPath, name=None, to='Folder', scale=None,
     return task
 
 
-def toDriveByFeature(image, collection, folder, name, datePattern=None,
+def toDriveByFeature(image, collection, folder, namePattern, datePattern=None,
                      scale=1000, dataType="float", verbose=False, **kwargs):
     """ Export an image clipped by features (Polygons). You can use the
     same arguments as the original function ee.batch.export.image.toDrive
@@ -159,9 +159,9 @@ def toDriveByFeature(image, collection, folder, name, datePattern=None,
     :type collection: ee.FeatureCollection
     :param folder: same as ee.Export
     :type folder: str
-    :param name: a name pattern using image and/or feature properties between
+    :param namePattern: a name pattern using image and/or feature properties between
         brakets. Example: '{ID} {a_feat_prop} {an_image_prop}'
-    :type name: str
+    :type namePattern: str
     :param datePattern: a date pattern to use for {system_date} pattern in name
     :type datePattern: str
     :param scale: same as ee.Export. Default to 1000
@@ -184,7 +184,7 @@ def toDriveByFeature(image, collection, folder, name, datePattern=None,
             feat = ee.Feature(collist.get(i))
             props = feat.toDictionary()
 
-            n = makeName(image, name, datePattern)
+            n = makeName(image, namePattern, datePattern)
             n = tools.string.format(n, props)
             n = n.getInfo()
             n = n.replace('{','').replace('}','')

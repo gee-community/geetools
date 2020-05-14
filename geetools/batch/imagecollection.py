@@ -17,24 +17,28 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
     :type collection: ee.ImageCollection
     :param folder: Google Drive folder to export the images to
     :type folder: str
-    :param namePattern: pattern for the name. See make_name function
+    :param namePattern: pattern for the name.
+        See geetools.tools.image.make_name function and also
+        geetools.tools.string.format function
     :type namePattern: str
-    :param region: area to upload. Defualt to the footprint of the first
-        image in the collection
-    :type region: ee.Geometry.Rectangle or ee.Feature
     :param scale: scale of the image (side of one pixel). Defults to 30
         (Landsat resolution)
     :type scale: int
-    :param maxImgs: maximum number of images inside the collection
-    :type maxImgs: int
     :param dataType: as downloaded images **must** have the same data type
         in all bands, you have to set it here. Can be one of: "float",
         "double", "int", "Uint8", "Int8" or a casting function like
         *ee.Image.toFloat*
     :type dataType: str
+    :param region: area to upload. Default to the footprint of the first
+        image in the collection
+    :type region: ee.Geometry.Rectangle or ee.Feature
     :param datePattern: pattern for date if specified in namePattern.
-        Defaults to 'yyyyMMdd'
+        Defaults to 'yyyyMMdd'. See ee.Date.format for more details
     :type datePattern: str
+    :param extra: extra parameters to parse to the name formatter
+    :type extra: str
+    :param verbose: print name of each exporting task
+    :type verbose: bool
     :return: list of tasks
     :rtype: list
     """
