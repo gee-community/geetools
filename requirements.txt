@@ -16,7 +16,7 @@ pyasn1==0.3.7
 pyasn1-modules==0.1.5
 pycparser==2.18
 pyOpenSSL==17.3.0
-requests==2.18.4
+requests==2.20.0
 rsa==3.4.2
 six==1.11.0
 uritemplate==3.0.0
