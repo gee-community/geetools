@@ -26,6 +26,7 @@ of images using Pillow is available as a different package called [`geepillow`](
     pip install --upgrade geetools
 
 ## Basic Usage
+### Export every image in a ImageCollection
 
 ```python
 import ee
@@ -36,10 +37,15 @@ import geetools
 site = ee.Geometry.Point([-72, -42]).buffer(1000)
 collection = ee.ImageCollection("LANDSAT/LC08/C01/T1_SR").filterBounds(site).limit(5)
 
-# ## Set parameters
+# Set parameters
 bands = ['B2', 'B3', 'B4']
 scale = 30
 name_pattern = '{sat}_{system_date}_{WRS_PATH:%d}-{WRS_ROW:%d}'
+## the keywords between curly brackets can be {system_date} for the date of the
+## image (formatted using `date_pattern` arg), {id} for the id of the image
+## and/or any image property. You can also pass extra keywords using the `extra`
+## argument. Also, numeric values can be formatted using a format string (as
+## shown in {WRS_PATH:%d} (%d means it will be converted to integer)
 date_pattern = 'ddMMMy' # dd: day, MMM: month (JAN), y: year
 folder = 'MYFOLDER'
 data_type = 'uint32'
