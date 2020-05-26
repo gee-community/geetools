@@ -90,15 +90,22 @@ def isPoint(pointlist):
     else:
         return False
 
+def hasZ(pointlist):
+    """ determine if points inside coordinates have Z values """
+    points = pointlist[0]
+    first = points[0]
+    if len(first) == 3:
+        return True
+    else:
+        return False
 
-def removeZ(pointlist):
-    """ Remove Z value of points if needed """
-    for p in pointlist:
-        if isPoint(p):
-            if len(p) == 3:
-                p.pop(2)
-        else:
-            removeZ(p)
+
+def removeZ(coords):
+    """ Remove Z values from coordinates """
+    newcoords = coords.copy()
+    for p in newcoords[0]:
+        p.pop(2)
+    return newcoords
 
 
 def recrusiveDeleteAsset(assetId):

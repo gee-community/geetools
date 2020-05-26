@@ -120,6 +120,8 @@ def fromGeoJSON(filename=None, data=None, crs=None):
         if ty == 'GeometryCollection':
             ee_geom = utils.GEOMETRY_TYPES.get(ty)(geom, opt_proj=crs)
         else:
+            if ty == 'Polygon':
+                coords = utils.removeZ(coords) if utils.hasZ(coords) else coords
             ee_geom = utils.GEOMETRY_TYPES.get(ty)(coords, proj=ee.Projection(crs))
         ee_feat = ee.feature.Feature(ee_geom, properties)
         features.append(ee_feat)
