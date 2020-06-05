@@ -6,7 +6,7 @@ import csv
 from .. import tools
 
 
-def fromShapefile(filename, start=None, end=None):
+def fromShapefile(filename, crs=None, start=None, end=None):
     """ Convert an ESRI file (.shp and .dbf must be present) to a
     ee.FeatureCollection
 
@@ -31,7 +31,8 @@ def fromShapefile(filename, start=None, end=None):
     types = dict(zip(field_names, field_types))
     features = []
 
-    projection = utils.getProjection(filename)
+    projection = utils.getProjection(filename) if not crs else crs
+    projection = str(projection)
 
     # filter records with start and end
     start = start if start else 0
