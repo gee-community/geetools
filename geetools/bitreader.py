@@ -2,7 +2,6 @@
 """ Bit Reader module """
 import ee
 import ee.data
-
 from . import tools
 
 
@@ -45,7 +44,7 @@ class BitReader(object):
     """
     @staticmethod
     def getBin(bit, nbits=None, shift=0):
-        ''' from https://stackoverflow.com/questions/699866/python-int-to-binary '''
+        """ from https://stackoverflow.com/questions/699866/python-int-to-binary """
         pure = bin(bit)[2:]
 
         if not nbits:
@@ -71,7 +70,7 @@ class BitReader(object):
 
     @staticmethod
     def decodeKey(key):
-        ''' decodes an option's key into a list '''
+        """ decodes an option's key into a list """
         if isinstance(key, (str,)):
             bits = key.split('-')
 
@@ -277,7 +276,7 @@ class BitReader(object):
             qa_mask = mask.select([0], [cat])
 
             return ini.addBands(qa_mask)
-        return ee.Image(categories.iterate(eachcat, image))
+        return ee.Image(categories.iterate(eachcat, image)).select(categories)
 
     def match(self, value, category):
         """ given a value and a category return True if the value includes
