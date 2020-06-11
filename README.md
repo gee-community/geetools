@@ -13,9 +13,13 @@ methods related to Google Earth Engine exclusively, so you can use this module
 in any python environment you like. For working in Jupyter I have made another
 package called `ipygee` available [here](http://www.github.com/fitoprincipe/ipygee) 
 
-#### New version 0.5.0
+#### New version 0.5.0 (breaking changes)
 I have splitted this package in two (again). Now the functions to make a strip
 of images using Pillow is available as a different package called [`geepillow`](https://github.com/fitoprincipe/geepillow)
+
+#### New version 0.6.0 (breaking changes)
+I have splitted this package in two (again x2). The module `geetools.collection`
+in an independent package called [geedataset](https://github.com/fitoprincipe/geedatasets)
 
 ## Installation
 
