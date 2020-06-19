@@ -145,20 +145,19 @@ def fillWithLast(collection):
     :type collection: ee.ImageCollection
     :rtype: ee.ImageCollection
     """
+    collector = ee.List([])
+    def overcol(i, collect):
+        collect = ee.List(collect)
+        def true():
+            last = ee.Image(collect.get(-1))
+            mask = i.mask().Not()
+            return collect.add(ee.Image(i.unmask().where(mask, last)))
+        def false():
+            return collect.add(i)
 
-    asc = collection.sort('system:time_start')
-    first_date = asc.first().date()
+        return ee.List(ee.Algorithms.If(collect.size(), true(), false()))
 
-    def wrap(img):
-        img = ee.Image(img)
-        d = img.date()
-        condition = d.difference(first_date, 'second')
-        def true(date):
-            newcol = collection.filterDate(first_date, date.advance(1, 'day'))
-            return composite.closestDate(newcol)
-        return ee.Image(ee.Algorithms.If(condition, true(d), img))
-
-    return collection.map(wrap)
+    return ee.ImageCollection.fromImages(collection.iterate(overcol, collector))
 
 
 def mergeGeometries(collection):
@@ -188,22 +187,18 @@ def mosaicSameDay(collection, qualityBand=None):
         kept is `system:time_start`
     :rtype: ee.ImageCollection
     """
-    def make_date_list(img, l):
+    all_dates = collection.aggregate_array('system:time_start')
+    def overdates(d, l):
         l = ee.List(l)
-        img = ee.Image(img)
-        date = img.date()
-        # make clean date
+        date = ee.Date(d)
         day = date.get('day')
         month = date.get('month')
         year = date.get('year')
         clean_date = ee.Date.fromYMD(year, month, day)
         condition = l.contains(clean_date)
-
         return ee.Algorithms.If(condition, l, l.add(clean_date))
 
-    col_list = collection.toList(collection.size())
-    date_list = ee.List(col_list.iterate(make_date_list, ee.List([])))
-
+    date_list = ee.List(all_dates.iterate(overdates, ee.List([])))
     first_img = ee.Image(collection.first())
     bands = first_img.bandNames()
 
