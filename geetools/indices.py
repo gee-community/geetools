@@ -1,9 +1,5 @@
 # coding=utf-8
 """ Functions for calculation indices """
-from __future__ import print_function
-import ee
-
-
 FORMULAS = {
     'NDVI': '(NIR-RED)/(NIR+RED)',
     'EVI': 'G*((NIR-RED)/(NIR+(C1*RED)-(C2*BLUE)+L))',
