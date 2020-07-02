@@ -198,7 +198,7 @@ def toDict(collection, split_at=4000):
     content = col.getInfo()
     feats = content['features']
 
-    for i in range(0, collections_size):
+    for i in range(1, collections_size):
         c = ee.FeatureCollection(collections.get(i))
         content_c = c.getInfo()
         feats_c = content_c['features']
