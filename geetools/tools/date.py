@@ -96,6 +96,48 @@ def daterangeIntervals(start_date, end_date, interval=1, unit='month',
     return dates.map(lambda d: make_drange(d))
 
 
+def dayRangeIntervals(start, end, interval=30, reverse=False, buffer='second'):
+    """ Divide a date range into many DateRange objects. Return a list of DateRange
+
+    :param start: the start date
+    :param end: the end date
+    :param interval: range of the DateRange in units
+    :return: a list holding ee.DateRange
+    :rtype: list
+    """
+    unit = 'day'
+    start_date = ee.Date(start)
+    end_date = ee.Date(end)
+    begin_date = end_date if reverse else start_date
+
+    diff = end_date.difference(start_date, unit)
+    complete_intervals = diff.divide(interval).toInt()
+
+    start_i_list = ee.List.sequence(0, complete_intervals)\
+                          .map(lambda i: ee.Number(i).multiply(interval))
+    end_i_list = ee.List.sequence(1, complete_intervals)\
+                        .map(lambda i: ee.Number(i).multiply(interval)).add(diff)
+
+    if reverse:
+        start_i_list = start_i_list.map(lambda i: ee.Number(i).multiply(-1))
+        end_i_list = end_i_list.map(lambda i: ee.Number(i).multiply(-1))
+
+    start_end_i_list = start_i_list.zip(end_i_list)
+
+    def wrap(z):
+        z = ee.List(z)
+        si = ee.Number(z.get(1 if reverse else 0))
+        ei = ee.Number(z.get(0 if reverse else 1))
+        start = begin_date.advance(si, unit)
+        end = begin_date.advance(ei, unit)
+        # apply buffer
+        end = end.advance(1, buffer)
+        return ee.DateRange(start, end)
+
+    final = start_end_i_list.map(wrap)
+    return final.reverse() if reverse else final
+
+
 def unitSinceEpoch(date, unit='day'):
     """ Return the number of units since the epoch (1970-1-1)
 
