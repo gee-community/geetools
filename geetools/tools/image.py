@@ -1194,6 +1194,33 @@ def regionCover(image, region, bands=None, scale=None, operator='OR',
     return image.set(property_name, final)
 
 
+def proxy(values=(0,), names=('constant',), types=('int8',)):
+    """ Create a proxy image with the given values, names and types
+
+    :param values: list of values for every band of the resulting image
+    :type values: list
+    :param names: list of names
+    :type names: list
+    :param types: list of band types. Options are  'int8', 'int16', 'int32',
+    'int64', 'uint8', 'uint16', 'uint32', 'byte', 'short', 'int', 'long',
+    'float' and 'double'
+    :type types: list
+    :rtype: ee.Image
+    """
+    values = list(values)
+    names = list(names)
+    types = list(types)
+    tps = dict(zip(names, types))
+    im = ee.Image(values).rename(names).cast(tps)
+    # update mask
+    for v, n in zip(values, names):
+        if v is None:
+            band = im.select(n)
+            masked = band.selfMask()
+            im = im.addBands(masked, overwrite=True)
+    return im
+
+
 class Classification(object):
     """ Class holding (static) methods for classified images. """
     @staticmethod
