@@ -137,12 +137,14 @@ def enumerateSimple(collection, name='ENUM'):
     return ee.ImageCollection(fc.copyProperties(source=collection))
 
 
-def fillWithLast(collection):
+def fillWithLast(collection, unmask_first=False):
     """ Fill masked values of each image pixel with the last available
     value
 
     :param collection: the collection that holds the images that will be filled
     :type collection: ee.ImageCollection
+    :param unmask_first: unmask first image?
+    :type unmask_first: bool
     :rtype: ee.ImageCollection
     """
     collector = ee.List([])
@@ -153,10 +155,8 @@ def fillWithLast(collection):
             mask = i.mask().Not()
             return collect.add(ee.Image(i.unmask().where(mask, last)))
         def false():
-            return collect.add(i)
-
+            return collect.add(i.unmask() if unmask_first else i)
         return ee.List(ee.Algorithms.If(collect.size(), true(), false()))
-
     return ee.ImageCollection.fromImages(collection.iterate(overcol, collector))
 
 
@@ -327,6 +327,43 @@ def makeEqualInterval(collection, interval=1, unit='month'):
     imlist = ee.List(ranges.iterate(over_ranges, ee.List([])))
 
     return imlist
+
+
+def makeDayIntervals(collection, interval=30, reverse=False, buffer='second'):
+    """ Make day intervals """
+    interval = int(interval)
+    collection = collection.sort('system:time_start', True)
+    start = collection.first().date()
+    end = collection.sort('system:time_start', False).first().date()
+    ranges = date.dayRangeIntervals(start, end, interval, reverse, buffer)
+
+    def over_ranges(drange, ini):
+        ini = ee.List(ini)
+        drange = ee.DateRange(drange)
+        start = drange.start()
+        end = drange.end()
+        filtered = collection.filterDate(start, end)
+        condition = ee.Number(filtered.size()).gt(0)
+        return ee.List(ee.Algorithms.If(condition, ini.add(filtered), ini))
+
+    imlist = ee.List(ranges.iterate(over_ranges, ee.List([])))
+
+    return imlist
+
+
+def reduceDayIntervals(collection, reducer, interval=30, reverse=False,
+                       buffer='second'):
+    """ Reduce Day Intervals
+
+    :param reducer: a function that takes as only argument a collection
+        and returns an image
+    :type reducer: function
+    :return: an image collection
+    :rtype: ee.ImageCollection
+    """
+    intervals = makeDayIntervals(collection, interval, reverse, buffer)
+    reduced = intervals.map(reducer)
+    return ee.ImageCollection.fromImages(reduced)
 
 
 def getValues(collection, geometry, scale=None, reducer=None,
