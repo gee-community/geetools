@@ -158,8 +158,9 @@ def toCloudStorage(collection, bucket, folder=None, namePattern='{id}',
                 raise e
 
 
-def toAsset(col, assetPath, scale=30, region=None, create=True,
-            verbose=False, **kwargs):
+def toAsset(col, assetPath, namePattern=None, scale=30, region=None,
+            create=True, verbose=False, datePattern='yyyyMMdd',
+            extra=None, **kwargs):
     """ Upload all images from one collection to a Earth Engine Asset.
     You can use the same arguments as the original function
     ee.batch.export.image.toDrive
@@ -168,24 +169,21 @@ def toAsset(col, assetPath, scale=30, region=None, create=True,
     :type col: ee.ImageCollection
     :param assetPath: path of the asset where images will go
     :type assetPath: str
+    :param namePattern: pattern for the name. If None, it uses the posion
+        of the image in the image collection as the name. Otherwise see
+        geetools.tools.image.make_name function and also
+        geetools.tools.string.format function
+    :type namePattern: str
     :param region: area to upload. Defualt to the footprint of the first
         image in the collection
     :type region: ee.Geometry.Rectangle or ee.Feature
     :param scale: scale of the image (side of one pixel). Defults to 30
         (Landsat resolution)
     :type scale: int
-    :param maxImgs: maximum number of images inside the collection
-    :type maxImgs: int
-    :param dataType: as downloaded images **must** have the same data type
-        in all bands, you have to set it here. Can be one of: "float",
-        "double", "int", "Uint8", "Int8" or a casting function like
-        *ee.Image.toFloat*
-    :type dataType: str
     :return: list of tasks
     :rtype: list
     """
-    size = col.size().getInfo()
-    alist = col.toList(size)
+    alist = col.toList(col.size())
     tasklist = []
 
     if create:
@@ -197,25 +195,38 @@ def toAsset(col, assetPath, scale=30, region=None, create=True,
     else:
         region = tools.geometry.getRegion(region)
 
-    for idx in range(0, size):
-        img = alist.get(idx)
-        img = ee.Image(img)
-        name = img.id().getInfo().split("/")[-1]
-        description = utils.matchDescription(name)
+    idx = 0
+    while True:
+        try:
+            img = alist.get(idx)
+            img = ee.Image(img)
+            if namePattern:
+                name = makeName(img, namePattern, datePattern, extra)
+                name = name.getInfo()
+            else:
+                name = str(idx)
+            description = utils.matchDescription(name)
 
-        assetId = assetPath+"/"+name
+            assetId = assetPath+"/"+name
 
-        task = ee.batch.Export.image.toAsset(image=img,
-                                             assetId=assetId,
-                                             description=description,
-                                             region=region,
-                                             scale=scale, **kwargs)
-        task.start()
+            task = ee.batch.Export.image.toAsset(image=img,
+                                                 assetId=assetId,
+                                                 description=description,
+                                                 region=region,
+                                                 scale=scale, **kwargs)
+            task.start()
 
-        if verbose:
-            print('Exporting {} to {}'.format(name, assetId))
+            if verbose:
+                print('Exporting {} to {}'.format(name, assetId))
 
-        tasklist.append(task)
+            tasklist.append(task)
+            idx += 1
+        except Exception as e:
+            error = str(e).split(':')
+            if error[0] == 'List.get':
+                break
+            else:
+                raise e
 
     return tasklist
 
