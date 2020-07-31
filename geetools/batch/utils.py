@@ -167,6 +167,33 @@ def convertDataType(newtype):
     return wrap
 
 
+def create_asset(asset_id, asset_type, mk_parents=True):
+    """ Create an Asset """
+    types = {
+        'ImageCollection': 'IMAGE_COLLECTION',
+        'Folder': 'FOLDER'
+    }
+
+    already = ee.data.getInfo(asset_id)
+    if already:
+        ty = already['type']
+        if ty != types[asset_type]:
+            raise ValueError("{} is a {}. Can't create asset".format(asset_id, ty))
+        else:
+            return None
+
+    if mk_parents:
+        parts = asset_id.split('/')
+        root = "/".join(parts[:2])
+        root += "/"
+        for part in parts[2:-1]:
+            root += part
+            if ee.data.getInfo(root) is None:
+                ee.data.createAsset({'type': 'Folder'}, root)
+            root += '/'
+    return ee.data.createAsset({'type': asset_type}, asset_id)
+
+
 def createAssets(asset_ids, asset_type, mk_parents):
     """Creates the specified assets if they do not exist.
     This is a fork of the original function in 'ee.data' module with the
