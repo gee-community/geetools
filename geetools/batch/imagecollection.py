@@ -45,7 +45,9 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
     # empty tasks list
     tasklist = []
     # get region
-    region = tools.geometry.getRegion(region)
+    if region:
+        region = tools.geometry.getRegion(region)
+
     # Make a list of images
     img_list = collection.toList(collection.size())
 
@@ -60,6 +62,9 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
 
             # convert data type
             img = utils.convertDataType(dataType)(img)
+
+            if region is None:
+                region = tools.geometry.getRegion(img)
 
             task = ee.batch.Export.image.toDrive(image=img,
                                                  description=description,
@@ -158,15 +163,15 @@ def toCloudStorage(collection, bucket, folder=None, namePattern='{id}',
                 raise e
 
 
-def toAsset(col, assetPath, namePattern=None, scale=30, region=None,
+def toAsset(collection, assetPath, namePattern=None, scale=30, region=None,
             create=True, verbose=False, datePattern='yyyyMMdd',
             extra=None, **kwargs):
     """ Upload all images from one collection to a Earth Engine Asset.
     You can use the same arguments as the original function
     ee.batch.export.image.toDrive
 
-    :param col: Collection to upload
-    :type col: ee.ImageCollection
+    :param collection: Collection to upload
+    :type collection: ee.ImageCollection
     :param assetPath: path of the asset where images will go
     :type assetPath: str
     :param namePattern: pattern for the name. If None, it uses the posion
@@ -183,31 +188,60 @@ def toAsset(col, assetPath, namePattern=None, scale=30, region=None,
     :return: list of tasks
     :rtype: list
     """
-    alist = col.toList(col.size())
     tasklist = []
 
     if create:
         utils.createAssets([assetPath], 'ImageCollection', True)
 
-    if region is None:
-        first_img = ee.Image(alist.get(0))
-        region = tools.geometry.getRegion(first_img)
-    else:
+    if region:
         region = tools.geometry.getRegion(region)
 
-    idx = 0
-    while True:
-        try:
-            img = alist.get(idx)
-            img = ee.Image(img)
-            if namePattern:
+    if namePattern:
+        imlist = collection.toList(collection.size())
+        idx = 0
+        while True:
+            try:
+                img = imlist.get(idx)
+                img = ee.Image(img)
                 name = makeName(img, namePattern, datePattern, extra)
                 name = name.getInfo()
-            else:
-                name = str(idx)
-            description = utils.matchDescription(name)
+                description = utils.matchDescription(name)
+                assetId = assetPath+"/"+name
 
+                if region is None:
+                    region = tools.geometry.getRegion(img)
+
+                task = ee.batch.Export.image.toAsset(image=img,
+                                                     assetId=assetId,
+                                                     description=description,
+                                                     region=region,
+                                                     scale=scale, **kwargs)
+                task.start()
+
+                if verbose:
+                    print('Exporting {} to {}'.format(name, assetId))
+
+                tasklist.append(task)
+                idx += 1
+            except Exception as e:
+                error = str(e).split(':')
+                if error[0] == 'List.get':
+                    break
+                else:
+                    raise e
+
+    else:
+        size = collection.size().getInfo()
+        imlist = collection.toList(size)
+        for idx in range(0, size+1):
+            img = imlist.get(idx)
+            img = ee.Image(img)
+            name = str(idx)
+            description = name
             assetId = assetPath+"/"+name
+
+            if region is None:
+                region = tools.geometry.getRegion(img)
 
             task = ee.batch.Export.image.toAsset(image=img,
                                                  assetId=assetId,
@@ -220,13 +254,6 @@ def toAsset(col, assetPath, namePattern=None, scale=30, region=None,
                 print('Exporting {} to {}'.format(name, assetId))
 
             tasklist.append(task)
-            idx += 1
-        except Exception as e:
-            error = str(e).split(':')
-            if error[0] == 'List.get':
-                break
-            else:
-                raise e
 
     return tasklist
 
@@ -248,6 +275,7 @@ for name, url in zip(names, urls):
     urls = []
     i = 0
     collist = collection.toList(collection.size())
+    catch = 'List.get: List index must be between'
     while True:
         try:
             img = ee.Image(collist.get(i))
@@ -259,7 +287,10 @@ for name, url in zip(names, urls):
             urls.append(url)
             i += 1
         except Exception as e:
-            break
+            if catch in str(e):
+                break
+            else:
+                raise e
 
     return QGIS_COL_CODE.format(names=names, urls=urls)
 
