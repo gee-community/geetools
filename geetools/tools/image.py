@@ -1221,6 +1221,20 @@ def proxy(values=(0,), names=('constant',), types=('int8',)):
     return im
 
 
+def clipToCollection(image, featureCollection, keepFeatureProperties=True):
+    """ Clip an image using each feature of a collection and return an
+    ImageCollection with one image per feature """
+    def overFC(feat):
+        geom = feat.geometry()
+        clipped = image.clip(geom)
+        if keepFeatureProperties:
+            clipped = clipped.copyProperties(feat)
+        return clipped
+
+    ic = ee.ImageCollection(featureCollection.map(overFC))
+    return ic
+
+
 class Classification(object):
     """ Class holding (static) methods for classified images. """
     @staticmethod
