@@ -34,7 +34,7 @@ def enumerate(collection):
     return list
 
 
-def joinByProperty(primary, secondary, propertyField):
+def joinByProperty(primary, secondary, propertyField, outer=False):
     """ Join 2 collections by a given property field.
     It assumes ids are unique so uses ee.Join.saveFirst.
     It drops non matching features.
@@ -51,7 +51,7 @@ def joinByProperty(primary, secondary, propertyField):
     """
     Filter = ee.Filter.equals(leftField=propertyField,
                               rightField=propertyField)
-    join = ee.Join.saveFirst(matchKey='match', outer=False)
+    join = ee.Join.saveFirst(matchKey='match', outer=outer)
     joined = join.apply(primary, secondary, Filter)
     def overJoined(feat):
         properties = feat.propertyNames()
