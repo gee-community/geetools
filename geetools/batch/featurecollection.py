@@ -32,7 +32,11 @@ def fromShapefile(filename, crs=None, start=None, end=None):
     features = []
 
     projection = utils.getProjection(filename) if not crs else crs
-    projection = str(projection)
+    # catch a string with format "EPSG:XXX"
+    if isinstance(projection, str):
+        if 'EPSG:' in projection:
+            projection = projection.split(':')[1]
+    projection = 'EPSG:{}'.format(projection)
 
     # filter records with start and end
     start = start if start else 0
@@ -61,7 +65,7 @@ def fromShapefile(filename, crs=None, start=None, end=None):
             atr[fld] = value
         geom = sr.shape.__geo_interface__
         if projection is not None:
-            geometry = ee.Geometry(geom, 'EPSG:' + projection) \
+            geometry = ee.Geometry(geom, projection) \
                 .transform(wgs84, 1)
         else:
             geometry = ee.Geometry(geom)
