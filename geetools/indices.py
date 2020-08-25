@@ -4,7 +4,8 @@ FORMULAS = {
     'NDVI': '(NIR-RED)/(NIR+RED)',
     'EVI': 'G*((NIR-RED)/(NIR+(C1*RED)-(C2*BLUE)+L))',
     'NBR': '(NIR-SWIR2)/(NIR+SWIR2)',
-    'NBR2': '(SWIR-SWIR2)/(SWIR+SWIR2)'
+    'NBR2': '(SWIR-SWIR2)/(SWIR+SWIR2)',
+    'NDWI': '(NIR-SWIR)/(NIR+SWIR)'
 }
 
 AVAILABLE = FORMULAS.keys()
