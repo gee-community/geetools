@@ -72,7 +72,7 @@ def medoidScore(collection, bands=None, discard_zeros=False,
 
 
 def medoid(collection, bands=None, discard_zeros=False):
-    """ Medoid Composite
+    """ Medoid Composite. Adapted from https://www.mdpi.com/2072-4292/5/12/6481
 
     :param collection: the collection to composite
     :type collection: ee.ImageCollection
