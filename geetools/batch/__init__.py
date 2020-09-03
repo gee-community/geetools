@@ -12,6 +12,7 @@ class Export(ee.batch.Export):
     class imagecollection(object):
         toDrive = imagecollection.toDrive
         toAsset = imagecollection.toAsset
+        toCloudStorage = imagecollection.toCloudStorage
 
     class image(ee.batch.Export.image):
         toAsset = batchimage.toAsset  # overwrite original
