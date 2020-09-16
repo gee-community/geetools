@@ -86,3 +86,30 @@ def format(string, replacement):
 
     newstr = z.iterate(wrap, s)
     return ee.String(newstr)
+
+
+def _zip(l1, l2):
+    l1 = ee_list.toString(l1)
+    l2 = ee_list.toString(l2)
+    def wrap(el):
+        el = ee.String(el)
+        return l2.map(lambda e: el.cat(ee.String(e)))
+    return l1.map(wrap).flatten()
+
+
+def mix(strings):
+    """ Mix a list of lists. For example:
+
+    [[1,2,3], ['a', '1', 4]] -> ['1a', '11', '14', '2a', '21', '24', '3a', '31', '34']
+    """
+    strings = ee.List(strings)
+    first = ee.List([ee.List(strings.get(0))])
+    rest = ee.List(strings.slice(1))
+
+    def wrap(eelist, aggregate):
+        aggregate = ee.List(aggregate)
+        last = ee.List(aggregate.get(-1))
+        return ee.List([_zip(last, eelist)])
+
+    return ee.List(rest.iterate(wrap, first)).flatten()
+
