@@ -2,7 +2,7 @@
 """ Tools for Earth Engine ee.List objects """
 
 import ee
-from . import element
+from . import computedobject
 
 
 def difference(eelist, to_compare):
@@ -167,11 +167,11 @@ def toString(eelist):
     def wrap(el):
         def false(el):
             otype = ee.Algorithms.ObjectType(el)
-            return ee.String(ee.Algorithms.If(element.isNumber(el),
+            return ee.String(ee.Algorithms.If(computedobject.isNumber(el),
                                               ee.Number(el).format(),
                                               otype))
 
-        return ee.String(ee.Algorithms.If(element.isString(el), el, false(el)))
+        return ee.String(ee.Algorithms.If(computedobject.isString(el), el, false(el)))
 
     return eelist.map(wrap)
 
