@@ -16,6 +16,18 @@ def binaryRasterAccuracy(truth, classified, region=None):
         1: change
 
         source: https://en.wikipedia.org/wiki/Evaluation_of_binary_classifiers
+
+        For both `truth` and `classified` image input, it only uses the first
+        band, therefore there is no need to specify a band.
+
+        :param truth: binary image with ground truth. Only the first band will
+            be used
+        :type truth: ee.Image
+        :param classified: classified binary image. Only the first band will
+            be used
+        :type classified: ee.Image
+        :param region: region for clipping the truth and classified images
+        :type region: ee.Geometry
         """
     # convert to int
     truth = truth.select([0]).toInt().unmask()
@@ -39,7 +51,7 @@ def binaryMetrics(truth, classified, scale, region=None):
 
     names from: https://en.wikipedia.org/wiki/Evaluation_of_binary_classifiers
 
-    :param truth: the truth raster. Only the first band will be used
+    :param truth: binary truth image. Only the first band will be used
     :type truth: ee.Image
     :param classified: the classification results. Only the first band will be
         used
