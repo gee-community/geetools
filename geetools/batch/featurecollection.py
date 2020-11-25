@@ -55,6 +55,9 @@ def fromShapefile(filename, crs=None, start=None, end=None):
         sr = reader.shapeRecord(i)
         atr = {}
         for fld, rec in zip(field_names, sr.record):
+            if rec is None:
+                atr[fld] = None
+                continue
             fld_type = types[fld]
             if fld_type == 'D':
                 value = ee.Date(rec.isoformat()).millis().getInfo()
