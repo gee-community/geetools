@@ -27,11 +27,11 @@ def formatVisParams(visParams):
 
     for k in ['min', 'max', 'bias', 'gain', 'gamma']:
         if k in copy:
-            if isinstance(copy[k], list):
-                copy[k] = list2str(copy[k])
+            value = copy[k]
+            if isinstance(value, list):
+                copy[k] = list2str(value)
             else:
-                value = float(copy[k])
-                copy[k] = [value, value, value]
+                copy[k] = list2str([value])
 
     return copy
 
