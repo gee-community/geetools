@@ -111,9 +111,13 @@ def emptyBackground(image, value=0):
         source=image, properties=image.propertyNames()))
 
 
-def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False):
+def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False,
+              region=None):
     """ Make an empty copy of the given image """
-    footprint = image.geometry()
+    if not region:
+        footprint = image.geometry()
+    else:
+        footprint = region
     emp = empty(emptyValue, image.bandNames())
     if copyProperties:
         emp = emp.copyProperties(source=image, properties=copyProperties)
