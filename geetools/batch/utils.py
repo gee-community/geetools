@@ -3,6 +3,7 @@ import ee
 import os
 
 GEOMETRY_TYPES = {
+    'BBox': ee.geometry.Geometry.BBox,
     'LineString': ee.geometry.Geometry.LineString,
     'LineRing': ee.geometry.Geometry.LinearRing,
     'MultiLineString': ee.geometry.Geometry.MultiLineString,

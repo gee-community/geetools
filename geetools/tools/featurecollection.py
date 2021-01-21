@@ -2,6 +2,7 @@
 """ Module holding tools for ee.FeatueCollections """
 import ee
 from . import collection as eecollection
+from . import geometry as geometry_module
 
 
 def addId(collection, name='id', start=1):
@@ -34,6 +35,21 @@ def addId(collection, name='id', start=1):
         return last.add(feat.set('id', last_id.add(1)))
 
     return ee.FeatureCollection(ee.List(rest.iterate(over_col, first)))
+
+
+def clean(collection):
+    """ Convert Features that have a Geometry of type `GeometryCollection`
+    into the inner geometries """
+    withType = collection.map(lambda feat: feat.set('GTYPE', ee.String(feat.geometry().type())))
+    geomcol = withType.filter(ee.Filter.eq('GTYPE', 'GeometryCollection'))
+    notgeomcol = withType.filter(ee.Filter.neq('GTYPE', 'GeometryCollection'))
+    def wrap(feat, fc):
+        feat = ee.Feature(feat)
+        fc = ee.FeatureCollection(fc)
+        newfc = geometry_module.GeometryCollection_to_FeatureCollection(feat)
+        return fc.merge(newfc)
+    newfc = ee.FeatureCollection(geomcol.iterate(wrap, ee.FeatureCollection([])))
+    return notgeomcol.merge(newfc)
 
 
 def enumerateProperty(col, name='enumeration'):

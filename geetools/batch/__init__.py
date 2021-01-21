@@ -8,6 +8,7 @@ import ee
 class Export(ee.batch.Export):
     class table(ee.batch.Export.table):
         toAsset = featurecollection.toAsset
+        toDriveShapefile = featurecollection.toDriveShapefile
 
     class imagecollection(object):
         toDrive = imagecollection.toDrive

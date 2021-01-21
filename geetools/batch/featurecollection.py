@@ -339,3 +339,79 @@ def toAsset(table, assetPath, name=None, create=True, verbose=False, **kwargs):
         print('Exporting {} to {}'.format(name, assetPath))
 
     return task
+
+
+def _toDriveShapefile(collection, description='myExportTableTask', folder=None,
+                      fileNamePrefix=None, selectors=None, types=None,
+                      verbose=True, **kwargs):
+    """ Export a FeatureCollection to a SHP in Google Drive. The advantage of
+    this over the one provided by GEE is that this function takes care of the
+    geometries and exports one shapefile per geometry, so at the end you could
+    get many shapefiles """
+    gtypes = utils.GEOMETRY_TYPES
+    types = types or list(gtypes.keys())
+    for gtype, _ in gtypes.items():
+        if gtype not in types or gtype == 'GeometryCollection':
+            continue
+        collection = collection.map(
+            lambda feat: feat.set('GTYPE', feat.geometry().type()))
+        onlytype = collection.filter(ee.Filter.eq('GTYPE', gtype))
+        size = onlytype.size().getInfo()
+        if size == 0:
+            continue
+        name = '{}_{}'.format(fileNamePrefix, gtype)
+        desc = '{}_{}'.format(description, gtype)
+        task = ee.batch.Export.table.toDrive(onlytype, desc, folder, name,
+                                             'SHP', selectors, **kwargs)
+        if verbose:
+            print('Exporting {} to {}'.format(name, folder))
+        task.start()
+
+
+def _toDriveShapefileGeomCol(collection, description='myExportTableTask',
+                             folder=None, fileNamePrefix=None, selectors=None,
+                             types=None, verbose=True, **kwargs):
+    """ Export a FeatureCollection to a SHP in Google Drive. The advantage of
+    this over the one provided by GEE is that this function takes care of the
+    geometries and exports one shapefile per geometry, so at the end you could
+    get many shapefiles """
+    ids = collection.aggregate_array('system:index').getInfo()
+    multipol = ee.FeatureCollection([])
+    multils = ee.FeatureCollection([])
+    multip = ee.FeatureCollection([])
+    for iid in ids:
+        feat = ee.Feature(collection.filter(ee.Filter.eq('system:index', iid)).first())
+        fc = tools.feature.GeometryCollection_to_FeatureCollection(feat)
+        fc = fc.map(lambda feat: feat.set('GTYPE', feat.geometry().type()))
+        multipol = multipol.merge(
+            fc.filter(ee.Filter.eq('GTYPE', 'MultiPolygon')))
+        multils = multils.merge(
+            fc.filter(ee.Filter.eq('GTYPE', 'MultiLineString]')))
+        multip = multip.merge(
+            fc.filter(ee.Filter.eq('GTYPE', 'MultiPoint')))
+
+    name = '{}_GC'.format(fileNamePrefix)
+    _toDriveShapefile(multipol, description, folder, name, selectors,
+                      types, verbose, **kwargs)
+    _toDriveShapefile(multils, description, folder, name, selectors,
+                      types, verbose, **kwargs)
+    _toDriveShapefile(multip, description, folder, name, selectors,
+                      types, verbose, **kwargs)
+
+
+def toDriveShapefile(collection, description='myExportTableTask', folder=None,
+                     fileNamePrefix=None, selectors=None, types=None,
+                     verbose=True, **kwargs):
+    """ Export a FeatureCollection to a SHP in Google Drive. The advantage of
+    this over the one provided by GEE is that this function takes care of the
+    geometries and exports one shapefile per geometry, so at the end you could
+    get many shapefiles """
+    collection = collection.map(
+        lambda feat: feat.set('GTYPE', feat.geometry().type()))
+    notGeomCol = collection.filter(ee.Filter.neq('GTYPE', 'GeometryCollection'))
+    GeomCol = collection.filter(ee.Filter.eq('GTYPE', 'GeometryCollection'))
+    _toDriveShapefile(notGeomCol, description, folder, fileNamePrefix,
+                      selectors, types, verbose, **kwargs)
+    _toDriveShapefileGeomCol(GeomCol, description, folder, fileNamePrefix,
+                             selectors, types, verbose, **kwargs)
+
