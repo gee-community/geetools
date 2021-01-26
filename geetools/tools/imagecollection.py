@@ -137,27 +137,43 @@ def enumerateSimple(collection, name='ENUM'):
     return ee.ImageCollection(fc.copyProperties(source=collection))
 
 
-def fillWithLast(collection, unmask_first=False):
-    """ Fill masked values of each image pixel with the last available
-    value
+def fillWithLast(collection, reverse=False, date_property='system:time_start'):
+    """ Fill each masked pixels with the last available not masked pixel. If reverse, it goes backwards.
+    Images must contain a valid date (system:time_start property by default) """
 
-    :param collection: the collection that holds the images that will be filled
-    :type collection: ee.ImageCollection
-    :param unmask_first: unmask first image?
-    :type unmask_first: bool
-    :rtype: ee.ImageCollection
-    """
-    collector = ee.List([])
+    def makereverse(col):
+        dates = ee.List(col.aggregate_array(date_property)).reverse()
+        col = ee.ImageCollection.fromImages(ee.List(dates.map(
+            lambda d: ee.Image(
+                col.filter(ee.Filter.eq(date_property, d)).first()))))
+        return col
+
+    if reverse:
+        collection = makereverse(collection)
+
     def overcol(i, collect):
+        i = ee.Image(i)
         collect = ee.List(collect)
+
         def true():
             last = ee.Image(collect.get(-1))
-            mask = i.mask().Not()
-            return collect.add(ee.Image(i.unmask().where(mask, last)))
+            idate = ee.Number(i.get(date_property))
+            blended = i.unmask().where(i.mask().Not(), last)
+            return collect.add(blended)
+
         def false():
-            return collect.add(i.unmask() if unmask_first else i)
-        return ee.List(ee.Algorithms.If(collect.size(), true(), false()))
-    return ee.ImageCollection.fromImages(collection.iterate(overcol, collector))
+            return collect.add(i)
+
+        condition = collect.size()
+        return ee.List(ee.Algorithms.If(condition, true(), false()))
+
+    result = ee.ImageCollection.fromImages(
+        ee.List(collection.iterate(overcol, ee.List([]))))
+
+    if reverse:
+        result = makereverse(result)
+
+    return result
 
 
 def mergeGeometries(collection):
@@ -674,6 +690,61 @@ def linearFunctionProperty(collection, property, range_min=None,
     collection = collection.map(to_map)
 
     return collection
+
+
+def linearInterpolation(collection, date_property='system:time_start'):
+    def _addTime(collection, name='tmpTime', mask=False):
+        def wrap(i):
+            sec = ee.Number(i.get(date_property))
+            isec = ee.Image.constant(sec).toFloat().rename(name)
+            if mask:
+                m = i.select([0]).mask()
+                isec = isec.updateMask(m)
+            return i.addBands(isec)
+
+        return collection.map(wrap)
+
+    bands = collection.first().bandNames()
+    collection = _addTime(collection, 'maskedTime', True)
+    collection = _addTime(collection, 'tmpTime', False)
+
+    filled = fillWithLast(collection, False, date_property=date_property)
+    filled_back = fillWithLast(collection, True, date_property=date_property)
+
+    condition = ee.Filter.equals(leftField='system:index',
+                                 rightField='system:index')
+
+    match1 = ee.Join.saveFirst('filled').apply(
+        primary=collection,
+        secondary=filled,
+        condition=condition
+    )
+
+    match2 = ee.Join.saveFirst('filled_back').apply(
+        primary=match1,
+        secondary=filled_back,
+        condition=condition
+    )
+
+    def wrap(image):
+        o = ee.Image(image)
+        masked = o.mask().Not()
+        f = ee.Image(image.get('filled')).unmask()
+        fb = ee.Image(image.get('filled_back')).unmask()
+
+        dy = ee.Image(fb.subtract(f)).unmask()
+        dx = dy.select('maskedTime')
+        slope = dy.divide(dx).unmask()
+
+        t = o.select('tmpTime').subtract(f.select('maskedTime'))
+        fill = f.add(slope.multiply(t)).unmask()
+        final = o.unmask().where(masked, fill).select(bands)
+        final = final.copyProperties(o)\
+                     .set(date_property, o.get(date_property))\
+                     .set('system:index', o.get('system:index'))
+        return final
+
+    return ee.ImageCollection(match2.map(wrap))
 
 
 def gaussFunctionBand(collection, band, range_min=None, range_max=None,
