@@ -693,20 +693,21 @@ def linearFunctionProperty(collection, property, range_min=None,
 
 
 def linearInterpolation(collection, date_property='system:time_start'):
-    def _addTime(collection, name='tmpTime', mask=False):
+    def _addTime(collection):
         def wrap(i):
             sec = ee.Number(i.get(date_property))
-            isec = ee.Image.constant(sec).toFloat().rename(name)
-            if mask:
-                m = i.select([0]).mask()
-                isec = isec.updateMask(m)
-            return i.addBands(isec)
+            isec = geetools.tools.image.empty(sec, i.bandNames())
+            isec_suffix = geetools.tools.image.addSuffix(isec, '_tmpTime')
+            m = i.mask()
+            isec_masked = isec.updateMask(m)
+            isec_masked_suffix = geetools.tools.image.addSuffix(isec_masked,
+                                                                '_maskedTime')
+            return i.addBands(isec_suffix).addBands(isec_masked_suffix)
 
         return collection.map(wrap)
 
     bands = collection.first().bandNames()
-    collection = _addTime(collection, 'maskedTime', True)
-    collection = _addTime(collection, 'tmpTime', False)
+    collection = _addTime(collection)
 
     filled = fillWithLast(collection, False, date_property=date_property)
     filled_back = fillWithLast(collection, True, date_property=date_property)
@@ -728,20 +729,52 @@ def linearInterpolation(collection, date_property='system:time_start'):
 
     def wrap(image):
         o = ee.Image(image)
+        bands = o.bandNames()
+
         masked = o.mask().Not()
         f = ee.Image(image.get('filled')).unmask()
         fb = ee.Image(image.get('filled_back')).unmask()
 
+        # get all deltas (including delta x)
         dy = ee.Image(fb.subtract(f)).unmask()
-        dx = dy.select('maskedTime')
-        slope = dy.divide(dx).unmask()
+        dx_bands = bands.filter(ee.Filter.stringContains('item', 'maskedTime'))
 
-        t = o.select('tmpTime').subtract(f.select('maskedTime'))
-        fill = f.add(slope.multiply(t)).unmask()
-        final = o.unmask().where(masked, fill).select(bands)
-        final = final.copyProperties(o)\
-                     .set(date_property, o.get(date_property))\
-                     .set('system:index', o.get('system:index'))
+        # select only delta x for each band
+        dx = dy.select(dx_bands)
+
+        # get original bands
+        filter1 = ee.Filter.stringContains('item', 'maskedTime').Not()
+        filter2 = ee.Filter.stringContains('item', 'tmpTime').Not()
+        original_bands = bands.filter(filter1).filter(filter2)
+
+        # get delta for original bands
+        delta = dy.select(original_bands)
+
+        # now that we have delta x and delta for the original bands
+        # get the slope
+        slope = delta.divide(dx).unmask()
+
+        # filled original bands
+        fo = f.select(original_bands)
+
+        # filled back original bands
+        fob = fb.select(original_bands)
+
+        # original bands
+        oo = o.select(original_bands)
+
+        # masked original bands
+        mo = masked.select(original_bands)
+
+        t = o.select('.+_tmpTime').subtract(f.select('.+_maskedTime'))
+        fill = fo.add(slope.multiply(t)).unmask()
+        fill2 = fob.where(fill, fill)
+        fill3 = fo.where(fill2, fill2)
+        final = oo.unmask().where(mo, fill3)
+        final = final.select(original_bands) \
+            .copyProperties(o) \
+            .set(date_property, o.get(date_property)) \
+            .set('system:index', o.get('system:index'))
         return final
 
     return ee.ImageCollection(match2.map(wrap))
