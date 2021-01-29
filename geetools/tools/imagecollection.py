@@ -696,12 +696,12 @@ def linearInterpolation(collection, date_property='system:time_start'):
     def _addTime(collection):
         def wrap(i):
             sec = ee.Number(i.get(date_property))
-            isec = geetools.tools.image.empty(sec, i.bandNames())
-            isec_suffix = geetools.tools.image.addSuffix(isec, '_tmpTime')
+            isec = image_module.empty(sec, i.bandNames())
+            isec_suffix = image_module.addSuffix(isec, '_tmpTime')
             m = i.mask()
             isec_masked = isec.updateMask(m)
-            isec_masked_suffix = geetools.tools.image.addSuffix(isec_masked,
-                                                                '_maskedTime')
+            isec_masked_suffix = image_module.addSuffix(isec_masked,
+                                                        '_maskedTime')
             return i.addBands(isec_suffix).addBands(isec_masked_suffix)
 
         return collection.map(wrap)
@@ -735,16 +735,19 @@ def linearInterpolation(collection, date_property='system:time_start'):
         f = ee.Image(image.get('filled')).unmask()
         fb = ee.Image(image.get('filled_back')).unmask()
 
+        # filters
+        filter0 = ee.Filter.stringContains('item', 'maskedTime')
+        filter1 = ee.Filter.stringContains('item', 'maskedTime').Not()
+        filter2 = ee.Filter.stringContains('item', 'tmpTime').Not()
+
         # get all deltas (including delta x)
         dy = ee.Image(fb.subtract(f)).unmask()
-        dx_bands = bands.filter(ee.Filter.stringContains('item', 'maskedTime'))
+        dx_bands = bands.filter(filter0)
 
         # select only delta x for each band
         dx = dy.select(dx_bands)
 
         # get original bands
-        filter1 = ee.Filter.stringContains('item', 'maskedTime').Not()
-        filter2 = ee.Filter.stringContains('item', 'tmpTime').Not()
         original_bands = bands.filter(filter1).filter(filter2)
 
         # get delta for original bands
