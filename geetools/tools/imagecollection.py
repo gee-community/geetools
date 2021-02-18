@@ -23,8 +23,16 @@ def add(collection, image):
     return ee.ImageCollection.fromImages(append)
 
 
+def allMasked(collection):
+    """ Get a mask which indicates pixels that are masked in all images (0) and
+    pixels that have a valid pixel in at least one image (1) """
+    masks = collection.map(lambda i: i.mask())
+    masksum = ee.Image(masks.sum())
+    return ee.Image(masksum.gt(0))
+
+
 def containsAllBands(collection, bands):
-    """ Filter a collection with images cotaining all bands specified in
+    """ Filter a collection with images containing all bands specified in
     parameter `bands` """
     bands = ee.List(bands)
     # add bands as metadata
@@ -706,7 +714,10 @@ def linearInterpolation(collection, date_property='system:time_start'):
 
         return collection.map(wrap)
 
-    bands = collection.first().bandNames()
+    # get the mask for the final result
+    finalmask = allMasked(collection)
+
+    # add time bands
     collection = _addTime(collection)
 
     filled = fillWithLast(collection, False, date_property=date_property)
@@ -774,11 +785,12 @@ def linearInterpolation(collection, date_property='system:time_start'):
         fill2 = fob.where(fill, fill)
         fill3 = fo.where(fill2, fill2)
         final = oo.unmask().where(mo, fill3)
+        final = image_module.deleteProperties(final)
         final = final.select(original_bands) \
-            .copyProperties(o) \
+            .copyProperties(o, exclude=['filled', 'filled_back']) \
             .set(date_property, o.get(date_property)) \
             .set('system:index', o.get('system:index'))
-        return final
+        return ee.Image(final).updateMask(finalmask)
 
     return ee.ImageCollection(match2.map(wrap))
 
