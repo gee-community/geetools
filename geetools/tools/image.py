@@ -67,6 +67,21 @@ def bufferMask(image, radius=1.5, kernelType='square', units='pixels'):
     return image.updateMask(buffer.Not())
 
 
+def deleteProperties(image, delete=None, keep=None, proxy_name='proxy'):
+    """ Workaround for deleting properties of an Image. You can set
+    `proxy_name` in case the original image already has that band. If `delete`
+    is None it will delete all properties, otherwise it can be a list of
+    properties to delete """
+    bands = image.bandNames()
+    proxy = ee.Image().rename(proxy_name)
+    deleted = proxy.addBands(image).select(bands)
+    if delete:
+        deleted = deleted.copyProperies(image, exclude=delete)
+    elif keep:
+        deleted = deleted.copyProperies(image, properties=keep)
+    return deleted
+
+
 def empty(value=0, names=None, from_dict=None):
     """ Create a constant image with the given band names and value, and/or
     from a dictionary of {name: value}
@@ -91,10 +106,8 @@ def empty(value=0, names=None, from_dict=None):
             .select(bandnames)
 
     if from_dict:
-        bandnames = bandnames.cat(ee.List(from_dict.keys()))
-        for name, value in from_dict.items():
-            i = ee.Image(value).select([0], [name])
-            image = image.addBands(i).select(bandnames)
+        from_dict = ee.Dictionary(from_dict)
+        image = ee.Image(from_dict.toImage())
 
     if not from_dict and not names:
         image = ee.Image.constant(value)
