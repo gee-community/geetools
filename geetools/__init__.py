@@ -22,5 +22,6 @@ try:
     from .ui import eprint
     from .batch import Export, Import, Convert, Download
     from .oauth import Initialize
+    from .utils import evaluate
 except ImportError:
     pass

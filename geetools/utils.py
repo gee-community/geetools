@@ -5,6 +5,7 @@ import pandas as pd
 from copy import deepcopy
 import ee
 from .tools import string
+import threading
 
 
 def getReducerName(reducer):
@@ -178,3 +179,17 @@ def formatVisParams(visParams):
             formatted[param] = str(value) if isinstance(value, (int, str)) else ','.join(value)
     return formatted
 
+
+def _retrieve(f):
+    def wrap(obj, *args):
+        f(obj.getInfo(), *args)
+    return wrap
+
+
+def evaluate(obj, callback, args):
+    """ Retrieve eeobject value asynchronously. First argument of callback
+    must always be the object itself """
+    args.insert(0, obj)
+    callback = _retrieve(callback)
+    thd = threading.Thread(target=callback, args=args)
+    thd.start()
