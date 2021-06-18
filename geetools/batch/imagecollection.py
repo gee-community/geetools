@@ -162,6 +162,8 @@ def toCloudStorage(collection, bucket, folder=None, namePattern='{id}',
             else:
                 raise e
 
+    return tasklist
+
 
 def toAsset(collection, assetPath, namePattern=None, scale=30, region=None,
             create=True, verbose=False, datePattern='yyyyMMdd',
