@@ -1038,18 +1038,21 @@ def area_under_curve(collection, band, x_property=None, name='area_under'):
     return ee.Image(final_ic.reduce(ee.Reducer.sum()))
 
 
-def moving_average(collection, back=5, reducer=ee.Reducer.mean(),
+def moving_average(collection, back=5, reducer=None,
                    use_original=True):
     """ Compute the moving average over a time series
 
     :param back: number of images back to use for computing the stats
     :type back: int
-    :param reducer: the reducer to apply
+    :param reducer: the reducer to apply. Default is ee.Reducer.mean()
     :type reducer: ee.Reducer
     :param use_original: if True, computes the stats over the last original
         values, otherwise, computes the stats over the last computed values
     :type use_original: bool
     """
+    if reducer is None:
+        reducer = ee.Reducer.mean()
+
     def wrap(i, d):
         d = ee.Dictionary(d)
         i = ee.Image(i)
