@@ -196,6 +196,7 @@ def toAsset(collection, assetPath, namePattern=None, scale=30, region=None,
     if region:
         region = tools.geometry.getRegion(region)
 
+    added = False
     if namePattern:
         imlist = collection.toList(collection.size())
         idx = 0
@@ -203,19 +204,31 @@ def toAsset(collection, assetPath, namePattern=None, scale=30, region=None,
             try:
                 img = imlist.get(idx)
                 img = ee.Image(img)
+                if isinstance(extra, dict):
+                    if added:
+                        extra.pop('position')
+                    if 'position' not in extra:
+                        extra['position'] = idx
+                else:
+                    extra = dict(position=idx)
+                    added = True
                 name = makeName(img, namePattern, datePattern, extra)
                 name = name.getInfo()
                 description = utils.matchDescription(name)
                 assetId = assetPath+"/"+name
 
-                if region is None:
-                    region = tools.geometry.getRegion(img)
+                params = dict(
+                    image=img,
+                    assetId=assetId,
+                    description=description,
+                    scale=scale
+                )
+                if region:
+                    params['region'] = region
+                if kwargs:
+                    params.update(kwargs)
 
-                task = ee.batch.Export.image.toAsset(image=img,
-                                                     assetId=assetId,
-                                                     description=description,
-                                                     region=region,
-                                                     scale=scale, **kwargs)
+                task = ee.batch.Export.image.toAsset(**params)
                 task.start()
 
                 if verbose:
