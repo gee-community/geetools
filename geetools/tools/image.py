@@ -119,9 +119,10 @@ def emptyBackground(image, value=0):
     """ Make all background pixels (not only masked, but all over the world)
     take the parsed value """
     bnames = image.bandNames()
-    emp = empty(value, bnames)
-    return ee.Image(emp.where(image, image).copyProperties(
-        source=image, properties=image.propertyNames()))
+    emp = empty(value, bnames).toFloat()
+    prop = image.propertyNames()
+    props = image.toDictionary(prop)
+    return ee.Image(emp.blend(image)).setMulti(props)
 
 
 def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False,
