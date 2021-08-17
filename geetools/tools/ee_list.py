@@ -192,3 +192,27 @@ def zip(eelist):
         accum = ee.List(accum)
         return accum.zip(l).map(lambda l: ee.List(l).flatten())
     return ee.List(rest.iterate(wrap, first))
+
+
+def transpose(eelist):
+    """ Transpose a list of lists. Similar to ee.Array.transpose but using
+    ee.List. All inner lists must have the same size """
+    first = ee.List(eelist.get(0))
+    size = first.size()
+    result = ee.List.repeat(ee.List([]), size)
+    indices = ee.List.sequence(0, size.subtract(1))
+
+    def wrap(i, acc):
+        i = ee.Number(i)
+        acc = ee.List(acc)
+
+        def wrap2(ll, accum):
+            ll = ee.List(ll)
+            accum = ee.List(accum)
+            val = ll.get(i)
+            toset = ee.List(accum.get(i))
+            return accum.set(i, toset.add(val))
+
+        return ee.List(eelist.iterate(wrap2, acc))
+
+    return ee.List(indices.iterate(wrap, result))
