@@ -4,7 +4,7 @@ import ee
 import ee.data
 import pandas as pd
 import math
-from . import date
+from . import date, ee_list
 from . import image as image_module
 from . import collection as eecollection
 from ..utils import castImage
@@ -1067,8 +1067,7 @@ def moving_average(collection, back=5, reducer=None,
             tempcol = ee.ImageCollection.fromImages(tocompute.slice(back * -1))
             stats = tempcol.reduce(reducer)
             stats = stats.rename(im.bandNames())
-            stats = stats.copyProperties(im).set('system:time_start',
-                                                 im.date().millis())
+            stats = ee.Image(stats.copyProperties(im, properties=im.propertyNames()))
             return ee.Dictionary({
                 'original': original_true,
                 'stats': stats_true.add(stats)
@@ -1083,13 +1082,11 @@ def moving_average(collection, back=5, reducer=None,
                 original_true2 = ee.List(dic.get('original'))
                 original_true2 = original_true2.add(ima)
                 stats_true2 = ee.List(dic.get('stats'))
-                tocompute = original_true2 if use_original else stats_true2.add(
-                    im)
+                tocompute = original_true2 if use_original else stats_true2.add(ima)
                 tempcol2 = ee.ImageCollection.fromImages(tocompute)
                 stats2 = tempcol2.reduce(reducer)
                 stats2 = stats2.rename(ima.bandNames())
-                stats2 = stats2.copyProperties(ima).set('system:time_start',
-                                                        ima.date().millis())
+                stats2 = ee.Image(stats2.copyProperties(ima, properties=ima.propertyNames()))
                 return ee.Dictionary({
                     'original': original_true2,
                     'stats': stats_true2.add(stats2)
@@ -1114,3 +1111,11 @@ def moving_average(collection, back=5, reducer=None,
     final = ee.Dictionary(
         collection.iterate(wrap, ee.Dictionary({'original': [], 'stats': []})))
     return ee.ImageCollection.fromImages(ee.List(final.get('stats')))
+
+
+def aggregate_array_all(collection):
+    """ Aggregate array in all images and return a list of dicts """
+    props = collection.first().propertyNames()
+    allprops = props.map(lambda p: collection.aggregate_array(p))
+    transposed = ee_list.transpose(allprops)
+    return transposed.map(lambda ps: ee.Dictionary.fromLists(props, ps))
