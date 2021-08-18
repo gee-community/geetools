@@ -145,42 +145,57 @@ def enumerateSimple(collection, name='ENUM'):
     return ee.ImageCollection(fc.copyProperties(source=collection))
 
 
-def fillWithLast(collection, reverse=False, date_property='system:time_start'):
+def fillWithLast(collection, reverse=False, proxy=-999):
     """ Fill each masked pixels with the last available not masked pixel. If reverse, it goes backwards.
     Images must contain a valid date (system:time_start property by default) """
+    axis = 0
+    def shift(array):
+        if reverse:
+            rigth = array.arraySlice(axis, 1)
+            last = array.arraySlice(axis, -1)
+            return rigth.arrayCat(last, axis)
+        else:
+            left = array.arraySlice(axis, 0, -1)
+            first = array.arraySlice(axis, 0, 1)
+            return first.arrayCat(left, axis)
 
-    def makereverse(col):
-        dates = ee.List(col.aggregate_array(date_property)).reverse()
-        col = ee.ImageCollection.fromImages(ee.List(dates.map(
-            lambda d: ee.Image(
-                col.filter(ee.Filter.eq(date_property, d)).first()))))
-        return col
+    def move(array):
+        shifted = shift(array)
+        masked = array.neq(proxy)
+        maskednot = array.eq(proxy)
+        t1 = array.multiply(masked)
+        t2 = shifted.multiply(maskednot)
+        final = t1.add(t2)
+        return final
 
-    if reverse:
-        collection = makereverse(collection)
+    def fill(array, size):
+        size = ee.Number(size)
+        indices = ee.List.sequence(0, size.subtract(1))
+        def wrap(i, a):
+            a = ee.Image(a)
+            return move(a)
+        return ee.Image(indices.iterate(wrap, array))
 
-    def overcol(i, collect):
-        i = ee.Image(i)
-        collect = ee.List(collect)
+    collection = collection.map(
+        lambda i: image_module.emptyBackground(i, proxy).copyProperties(
+            source=i, properties=i.propertyNames()))
+    bands = ee.Image(collection.first()).bandNames()
+    size = collection.size()
+    array = collection.toArray()
+    fill_array = fill(array, size)
 
-        def true():
-            last = ee.Image(collect.get(-1))
-            blended = i.unmask().where(i.mask().Not(), last)
-            return collect.add(blended)
+    props = aggregate_array_all(collection)
+    indices = ee.List.sequence(0, size.subtract(1))
 
-        def false():
-            return collect.add(i)
+    def wrap(index):
+        index = ee.Number(index).toInt()
+        sliced = fill_array.arraySlice(axis, index, index.add(1))
+        im = sliced.arrayProject([1]).arrayFlatten([bands])
+        prop = ee.Dictionary(props.get(index))
+        im = ee.Image(im.setMulti(prop))
+        return im.updateMask(im.neq(proxy))
 
-        condition = collect.size()
-        return ee.List(ee.Algorithms.If(condition, true(), false()))
-
-    result = ee.ImageCollection.fromImages(
-        ee.List(collection.iterate(overcol, ee.List([]))))
-
-    if reverse:
-        result = makereverse(result)
-
-    return result
+    return ee.ImageCollection.fromImages(indices.map(wrap))
 
 
 def mergeGeometries(collection):
@@ -716,11 +731,14 @@ def linearInterpolation(collection, date_property='system:time_start'):
     # get the mask for the final result
     finalmask = allMasked(collection)
 
+    if date_property != 'system:time_start':
+        collection = collection.sort(date_property)
+
     # add time bands
     collection = _addTime(collection)
 
-    filled = fillWithLast(collection, False, date_property=date_property)
-    filled_back = fillWithLast(collection, True, date_property=date_property)
+    filled = fillWithLast(collection, False)
+    filled_back = fillWithLast(collection, True)
 
     condition = ee.Filter.equals(leftField='system:index',
                                  rightField='system:index')
