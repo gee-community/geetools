@@ -406,7 +406,7 @@ def reduceDayIntervals(collection, reducer, interval=30, reverse=False,
 
 def getValues(collection, geometry, scale=None, reducer=None,
               id='system:index', properties=None, side='server',
-              maxPixels=1e9):
+              maxPixels=1e7, bestEffort=False, tileScale=1):
     """ Return all values of all bands of an image collection in the
         specified geometry
 
@@ -439,8 +439,10 @@ def getValues(collection, geometry, scale=None, reducer=None,
 
     def listval(img, it):
         theid = ee.Algorithms.String(img.get(id))
-        values = img.reduceRegion(reducer, geometry, scale,
-                                  maxPixels=maxPixels)
+        values = img.reduceRegion(
+            reducer, geometry, scale, maxPixels=maxPixels,
+            bestEffort=bestEffort, tileScale=tileScale
+        )
         values = ee.Dictionary(values)
         img_props = img.propertyNames()
 
