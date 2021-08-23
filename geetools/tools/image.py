@@ -1279,3 +1279,55 @@ class Classification(object):
             'scale': 30,
             'maxPixels':1e13,
             'labelProperty': label})
+
+
+# Create a lookup table to make sourceHist match targetHist.
+def _lookup(sourceHist, targetHist):
+    # Split the histograms by column and normalize the counts.
+    sourceValues = sourceHist.slice(1, 0, 1).project([0])
+    sourceCounts = sourceHist.slice(1, 1, 2).project([0])
+    sourceCounts = sourceCounts.divide(sourceCounts.get([-1]))
+
+    targetValues = targetHist.slice(1, 0, 1).project([0])
+    targetCounts = targetHist.slice(1, 1, 2).project([0])
+    targetCounts = targetCounts.divide(targetCounts.get([-1]))
+
+    # Find first position in target where targetCount >= srcCount[i], for each i.
+    lookup = sourceCounts.toList().map(lambda n: targetValues.get(targetCounts.gte(n).argmax()))
+    return ee.Dictionary({'x': sourceValues.toList(), 'y': lookup})
+
+
+def histogramMatch(sourceImg, targetImg, geometry=None, scale=None, tiles=4,
+                   bestEffort=True):
+    """ Histogram Matching. From https://medium.com/google-earth/histogram-matching-c7153c85066d """
+    if not geometry:
+        geometry = sourceImg.geometry()
+
+    bands = sourceImg.bandNames()
+
+    args = dict(
+        reducer= ee.Reducer.autoHistogram(maxBuckets= 256, cumulative= True),
+        geometry= geometry,
+        scale= scale or 30, # Need to specify a scale, but it doesn't matter what it is because bestEffort is true.
+        maxPixels= 65536 * tiles - 1,
+        bestEffort= bestEffort
+    )
+
+    # Only use pixels in target that have a value in source
+    # (inside the footprint and unmasked).
+    source = sourceImg.reduceRegion(**args)
+    target = targetImg.updateMask(sourceImg.mask()).reduceRegion(**args)
+
+    def interpolation(band):
+        look = _lookup(source.getArray(band), target.getArray(band))
+        x = ee.List(look.get('x'))
+        y = ee.List(look.get('y'))
+        return sourceImg.select([band]).interpolate(x, y)
+
+    def iteration(band, i):
+        interpolated = interpolation(band)
+        return ee.Image.cat(i, interpolated)
+
+    proxy = ee.Image()
+    result = ee.Image(bands.iterate(iteration, proxy))
+    return result.select(bands)
