@@ -262,8 +262,8 @@ def pansharpenKernel(image, pan, rgb=None, kernel=None):
     gain = mean_values.select('mean_mean').divide(
         mean_values.select('{}_mean'.format(pan)))
     sharpen = bgr.divide(bgr_mean).multiply(pani).multiply(gain)
-    return ee.Image(sharpen.copyProperties(source=image).set(
-        'system:time_start', image.date().millis()))
+    return ee.Image(sharpen.copyProperties(
+        source=image, properties=image.propertyNames()))
 
 
 def pansharpenIhsFusion(image, pan=None, rgb=None):
