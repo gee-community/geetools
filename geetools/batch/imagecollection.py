@@ -117,6 +117,8 @@ def toCloudStorage(collection, bucket, folder=None, namePattern='{id}',
     :param datePattern: pattern for date if specified in namePattern.
         Defaults to 'yyyyMMdd'
     :type datePattern: str
+        :return: list of tasks
+    :rtype: list
     """
     # empty tasks list
     tasklist = []
@@ -161,6 +163,8 @@ def toCloudStorage(collection, bucket, folder=None, namePattern='{id}',
                 break
             else:
                 raise e
+
+    return tasklist
 
 
 def toAsset(collection, assetPath, namePattern=None, scale=30, region=None,
