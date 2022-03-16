@@ -14,6 +14,15 @@ def list_users(credential_path=DEFAULT_PATH):
     return os.listdir(credential_path)
 
 
+def delete_local_user(user=None, credential_path=DEFAULT_PATH):
+    """ Delete a user's file """
+    if not user:
+        path = ee.oauth.get_credentials_path()
+    else:
+        path = os.path.join(credential_path, user)
+    os.remove(path)
+
+
 def rename_current_user(name, credential_path=DEFAULT_PATH):
     """ Rename the current user. If you run `ee.Initialize()` after this
     you will be ask to initialize.
