@@ -2,7 +2,6 @@
 """ Module holding tools for ee.ImageCollections """
 import ee
 import ee.data
-import pandas as pd
 import math
 from . import date, ee_list
 from . import image as image_module
@@ -515,38 +514,6 @@ def outliers(collection, bands, sigma=2, updateMask=False):
         return im.addBands(ibands, overwrite=True)
 
     return collection.map(overcol)
-
-
-def data2pandas(data):
-    """
-    Convert data coming from tools.imagecollection.get_values to a
-    pandas DataFrame
-
-    :type data: dict
-    :rtype: pandas.DataFrame
-    """
-    # Indices
-    # header
-    allbands = [val.keys() for bands, val in data.items()]
-    header = []
-    for bandlist in allbands:
-        for band in bandlist:
-            if band not in header:
-                header.append(band)
-
-    data_dict = {}
-    indices = []
-    for i, head in enumerate(header):
-        band_data = []
-        for iid, val in data.items():
-            if i == 0:
-                indices.append(iid)
-            band_data.append(val[head])
-        data_dict[head] = band_data
-
-    df = pd.DataFrame(data=data_dict, index=indices)
-
-    return df
 
 
 def parametrizeProperty(collection, property, range_from, range_to,

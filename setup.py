@@ -29,9 +29,7 @@ setup(
     keywords='google earth engine raster image processing gis satelite',
     packages=find_packages(exclude=('docs', 'js')),
     include_package_data=True,
-    install_requires=['requests',
-                      'pyshp',
-                      'pandas'],
+    install_requires=['requests', 'pyshp'],
     extras_require={
     'dev': [],
     'docs': [],
