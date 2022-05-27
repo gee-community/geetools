@@ -16,7 +16,8 @@ __copyright__ = "2017 Rodrigo E. Principe"
 try:
     from . import tools, bitreader, cloud_mask, expressions, decision_tree,\
                   filters, indices, batch, algorithms, composite,\
-                  manager, utils, collection, oauth, visualization
+                  manager, utils, collection, oauth, visualization, \
+                  classification
     from .tools import array, date, dictionary, ee_list, featurecollection, \
                        geometry, image, imagecollection, number, string
     from .ui import eprint

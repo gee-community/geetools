@@ -60,7 +60,19 @@ def binaryMetrics(truth, classified, scale, region=None):
     :type scale: int
     :param region: the region for the analysis.
     :type region: ee.Geometry
-    :return: a confusion matrix
+    :return: a dictionary with the following
+    TPR = True Positive Rate, recall or sensitivity
+    TNR = True Negative Rate, selectivity or specificity
+    PPV = Positive Predictive Value or precision
+    NPV = Negative Predictive Value
+    FNR = False Negative Rate or miss rate
+    FPR = False Positive Rate or fall-out
+    FDR = False Discovery Rate
+    FOR = False Omission Rate
+    TS = Threat score
+    ACC = Accuracy
+    BA = Balanced Accuracy
+    F1 = F1 score
     :rtype: ee.ConfusionMatrix
     """
     class_list = ee.List(['0', '1', '2', '3'])
