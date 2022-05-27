@@ -1,6 +1,7 @@
 # coding=utf-8
 import ee
 import os
+import time
 
 GEOMETRY_TYPES = {
     'BBox': ee.geometry.Geometry.BBox,
@@ -14,6 +15,7 @@ GEOMETRY_TYPES = {
     'Rectangle': ee.geometry.Geometry.Rectangle,
     'GeometryCollection': ee.geometry.Geometry,
 }
+TASKS_LIMIT = 3000
 
 
 def getProjection(filename, path=None):
@@ -333,3 +335,33 @@ def matchDescription(name, custom=None):
             description += letter
 
     return description[0:100]
+
+
+def n_queue():
+    """ get total size of tasks in queue """
+    tasks = ee.data.getTaskList()
+    queue = [t for t in tasks if t['state'] in ['PENDING', 'READY', 'RUNNING']]
+    return len(queue)
+
+
+def export(export_function, secure_limit, check_time, **params):
+    """ Dinamically check if the tasks go over the limit (3000) """
+    tasklist = []
+    i = n_queue()
+    n = 0
+    secure = TASKS_LIMIT - secure_limit
+    while True:
+        if i < secure:
+            task = export_function(n, **params)
+            if task:
+                tasklist.append(task)
+                n += 1
+                i += 1
+            else:
+                break
+        else:
+            print(f'There are {i} tasks in queue and the limit is {secure}. '
+                  f'Waiting {check_time} s')
+            time.sleep(check_time)
+            i = n_queue()
+    return tasklist

@@ -1,16 +1,16 @@
 # coding=utf-8
-import time
-
 import ee
 import os
 from . import utils
 from ..utils import makeName
 from .. import tools
 
+TASKS_LIMIT = 3000
+
 
 def toDrive(collection, folder, namePattern='{id}', scale=30,
             dataType="float", region=None, datePattern=None,
-            extra=None, verbose=False, check_time=60, secure_limit=50,
+            extra=None, verbose=False, check_time=60, secure_limit=5,
             **kwargs):
     """ Upload all images from one collection to Google Drive. You can use
     the same arguments as the original function
@@ -49,38 +49,20 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
     :return: list of tasks
     :rtype: list
     """
-    # empty tasks list
-    tasklist = []
-    # get region
-    region = tools.geometry.getRegion(region) if region else None
-
-    # Make a list of images
-    img_list = collection.toList(collection.size())
-
-    # get total size of tasks in queue
-    def n_queue():
-        tasks = ee.data.getTaskList()
-        queue = [t for t in tasks if t['state'] in ['PENDING', 'READY', 'RUNNING']]
-        return len(queue)
-    limit = 3000
-    secure = limit - secure_limit
-
-    def export(n, region):
+    def export(n):
+        reg = tools.geometry.getRegion(region) if region else None
+        # Make a list of images
+        img_list = collection.toList(collection.size())
         try:
             img = ee.Image(img_list.get(n))
-
             name = makeName(img, namePattern, datePattern, extra)
             name = name.getInfo()
             description = utils.matchDescription(name)
-
             # convert data type
             img = utils.convertDataType(dataType)(img)
-
-            region = tools.geometry.getRegion(img) if region else None
-
             task = ee.batch.Export.image.toDrive(
                 image=img, description=description, folder=folder,
-                fileNamePrefix=name, region=region, scale=scale, **kwargs)
+                fileNamePrefix=name, region=reg, scale=scale, **kwargs)
             task.start()
             if verbose:
                 print(f"exporting {name} to folder '{folder}' in GDrive")
@@ -89,27 +71,11 @@ def toDrive(collection, folder, namePattern='{id}', scale=30,
         except Exception as e:
             error = str(e).split(':')
             if error[0] == 'List.get':
-                # break
                 return None
             else:
                 raise e
 
-    i = n_queue()
-    n = 0
-    while True:
-        if i+n <= secure:
-            task = export(n, region)
-            if task:
-                tasklist.append(task)
-                n += 1
-                i += 1
-            else:
-                break
-        else:
-            print(f'There are {i} tasks in queue and the limit is {secure}. '
-                  f'Waiting {check_time} s')
-            time.sleep(check_time)
-            i = n_queue()
+    tasklist = utils.export(export, secure_limit, check_time)
     return tasklist
 
 
