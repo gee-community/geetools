@@ -592,10 +592,10 @@ def landsatSR_C2(options=('cloud', 'shadow', 'adjacent', 'snow'), name='sr_mask'
     :rtype: function
     """
     sr = {'bits': ee.Dictionary({'cloud': 1, 'shadow': 2, 'adjacent': 3, 'snow': 4}),
-          'band': 'sr_cloud_qa'}
+          'band': 'SR_CLOUD_QA'}
 
     pix = {'bits': ee.Dictionary({'cloud': 3, 'shadow': 4, 'snow': 5}),
-           'band': 'pixel_qa'}
+           'band': 'QA_PIXEL'}
 
     # Parameters
     options = ee.List(options)
