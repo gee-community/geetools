@@ -79,6 +79,22 @@ BITS_LANDSAT_BQA_L8 = {
     '11-12': {3:'cirrus'}
 }
 
+# USGS SURFACE REFLECTANCE L8 COLLECTION 2
+BITS_LANDSAT_PIXEL_QA_L8_C2 = {
+    '0': {0:'image', 1:'fill'},
+    '1': {1:'cloud_dilation'},
+    '2': {1:'cirrus'},
+    '3': {1:'cloud'},
+    '4': {1:'shadow'},
+    '5': {1:'snow'},
+    '6': {1:'clear'},
+    '7': {1:'water'},
+    '8-9':{3:'high_confidence_cloud'},
+    '10-11':{3:'high_confidence_shadow'},
+    '12-13': {3:'high_confidence_snow'},
+    '14-15': {3:'high_confidence_cirrus'}
+}
+
 # SENTINEL 2
 BITS_SENTINEL2 = {
     '10':{1:'cloud'},
@@ -539,6 +555,54 @@ def landsatSR(options=('cloud', 'shadow', 'adjacent', 'snow'), name='sr_mask',
     def wrap(image):
         bands = image.bandNames()
         contains_sr = bands.contains('sr_cloud_qa')
+        good_pix = ee.Image(ee.Algorithms.If(contains_sr,
+                   compute(image, sr['band'], sr['bits'], options, name_all=name),
+                   compute(image, pix['band'], pix['bits'], options, name_all=name)))
+
+        mask = good_pix.select([name]).Not()
+
+        if addBands and updateMask:
+            return image.updateMask(mask).addBands(good_pix)
+        elif addBands:
+            return image.addBands(good_pix)
+        elif updateMask:
+            return image.updateMask(mask)
+        else:
+            return image
+
+    return wrap
+
+
+def landsatSR_C2(options=('cloud', 'shadow', 'adjacent', 'snow'), name='sr_mask',
+              addBands=False, updateMask=True):
+    """ Function to use in Landsat Surface Reflectance Collections:
+    LANDSAT/LT04/C02/T1_SR, LANDSAT/LT05/C02/T1_SR, LANDSAT/LE07/C02/T1_SR,
+    LANDSAT/LC08/C02/T1_SR
+
+    :param options: masks to apply. Options: 'cloud', 'shadow', 'adjacent',
+        'snow'
+    :type options: list
+    :param name: name of the band that will hold the final mask. Default: 'toa_mask'
+    :type name: str
+    :param addBands: add all bands to the image. Default: False
+    :type addBands: bool
+    :param updateMask: update the mask of the Image. Default: True
+    :type updateMask: bool
+    :return: a function for applying the mask
+    :rtype: function
+    """
+    sr = {'bits': ee.Dictionary({'cloud': 1, 'shadow': 2, 'adjacent': 3, 'snow': 4}),
+          'band': 'sr_cloud_qa'}
+
+    pix = {'bits': ee.Dictionary({'cloud': 3, 'shadow': 4, 'snow': 5}),
+           'band': 'pixel_qa'}
+
+    # Parameters
+    options = ee.List(options)
+
+    def wrap(image):
+        bands = image.bandNames()
+        contains_sr = bands.contains('SR_CLOUD_QA')
         good_pix = ee.Image(ee.Algorithms.If(contains_sr,
                    compute(image, sr['band'], sr['bits'], options, name_all=name),
                    compute(image, pix['band'], pix['bits'], options, name_all=name)))
