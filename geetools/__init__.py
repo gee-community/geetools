@@ -1,5 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import
+
+from .deprecated import number
 from ._version import __version__
 
 __title__ = "geetools"
@@ -19,10 +21,12 @@ try:
                   manager, utils, collection, oauth, visualization, \
                   classification
     from .tools import array, date, dictionary, ee_list, featurecollection, \
-                       geometry, image, imagecollection, number, string
+                       geometry, image, imagecollection, string
     from .ui import eprint
     from .batch import Export, Import, Convert, Download
     from .oauth import Initialize
     from .utils import evaluate
 except ImportError:
     pass
+
+from .numbers import Number

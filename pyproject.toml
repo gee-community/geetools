@@ -23,6 +23,7 @@ dependencies = [
     "requests",
     "pandas",
     "geopandas",
+    "deprecated",
 ]
 
 [[project.authors]]

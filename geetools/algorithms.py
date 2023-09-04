@@ -147,7 +147,7 @@ def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
     ).get(band)
     zeros_in_mask = ee.Number(zeros_in_mask)
 
-    percentage = tools.number.trimDecimals(zeros_in_mask.divide(ones), 4)
+    percentage = geetools.deprecated.number.trimDecimals(zeros_in_mask.divide(ones), 4)
 
     # Multiply by 100
     cover = percentage.multiply(100)
@@ -208,10 +208,10 @@ def sumDistance(image, collection, bands=None, discard_zeros=False,
                 name='sumdist'):
     """ Compute de sum of all distances between the given image and the
     collection passed
-    
-    :param image: 
+
+    :param image:
     :param collection:
-    :return: 
+    :return:
     """
     condition = isinstance(collection, ee.ImageCollection)
 
