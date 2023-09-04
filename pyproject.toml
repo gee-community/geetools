@@ -40,7 +40,7 @@ content-type = "text/markdown"
 github = "https://github.com/gee-community/gee_tools"
 
 [project.optional-dependencies]
-"dev" = []
+"dev" = ["pre-commit"]
 "test" = []
 "doc" = []
 
