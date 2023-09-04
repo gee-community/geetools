@@ -5,7 +5,7 @@ import ee.data
 
 
 def trimDecimals(number, places=2):
-    """ Decrease the number of decimals in a ee.Number
+    """Decrease the number of decimals in a ee.Number
 
     :param places: number of decimal places to leave
     :return: a function to map over a list

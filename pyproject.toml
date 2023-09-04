@@ -48,3 +48,6 @@ github = "https://github.com/gee-community/gee_tools"
 include-package-data = true
 packages = ["geetools"]
 license-files = ["LICENSE"]
+
+[tool.licensecheck]
+using = "PEP631:test;dev;doc"

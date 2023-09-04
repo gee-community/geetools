@@ -3,32 +3,32 @@ import ee
 
 
 def binaryRasterAccuracy(truth, classified, region=None):
-    """ Get a class raster with the following classes:
+    """Get a class raster with the following classes:
 
-        band "classes":
-        0: no change detected and no real change (true negative)
-        1: no change detected but real change (false negative)
-        2: change detected but not real change (false positive)
-        3: change detected and real change (true positive)
+    band "classes":
+    0: no change detected and no real change (true negative)
+    1: no change detected but real change (false negative)
+    2: change detected but not real change (false positive)
+    3: change detected and real change (true positive)
 
-        band "truth":
-        0: no change
-        1: change
+    band "truth":
+    0: no change
+    1: change
 
-        source: https://en.wikipedia.org/wiki/Evaluation_of_binary_classifiers
+    source: https://en.wikipedia.org/wiki/Evaluation_of_binary_classifiers
 
-        For both `truth` and `classified` image input, it only uses the first
-        band, therefore there is no need to specify a band.
+    For both `truth` and `classified` image input, it only uses the first
+    band, therefore there is no need to specify a band.
 
-        :param truth: binary image with ground truth. Only the first band will
-            be used
-        :type truth: ee.Image
-        :param classified: classified binary image. Only the first band will
-            be used
-        :type classified: ee.Image
-        :param region: region for clipping the truth and classified images
-        :type region: ee.Geometry
-        """
+    :param truth: binary image with ground truth. Only the first band will
+        be used
+    :type truth: ee.Image
+    :param classified: classified binary image. Only the first band will
+        be used
+    :type classified: ee.Image
+    :param region: region for clipping the truth and classified images
+    :type region: ee.Geometry
+    """
     # convert to int
     truth = truth.select([0]).toInt().unmask()
     classified = classified.select([0]).toInt().unmask()
@@ -37,17 +37,24 @@ def binaryRasterAccuracy(truth, classified, region=None):
         truth = truth.clip(region)
         classified = classified.clip(region)
 
-    final = ee.Image().expression("""
+    final = (
+        ee.Image()
+        .expression(
+            """
         t == 1 && c == 1 ? 3 :
         t == 0 && c == 1 ? 2 :
         t == 1 && c == 0 ? 1 : 0
-        """, dict(t=truth, c=classified)).rename('classes')
+        """,
+            dict(t=truth, c=classified),
+        )
+        .rename("classes")
+    )
 
     return final
 
 
 def binaryMetrics(truth, classified, scale, region=None):
-    """ get accuracy from a truth image and a classified image
+    """get accuracy from a truth image and a classified image
 
     names from: https://en.wikipedia.org/wiki/Evaluation_of_binary_classifiers
 
@@ -75,8 +82,8 @@ def binaryMetrics(truth, classified, scale, region=None):
     F1 = F1 score
     :rtype: ee.ConfusionMatrix
     """
-    class_list = ee.List(['0', '1', '2', '3'])
-    names_list = ee.List(['TN', 'FN', 'FP', 'TP'])
+    class_list = ee.List(["0", "1", "2", "3"])
+    names_list = ee.List(["TN", "FN", "FP", "TP"])
 
     scale = int(scale)
 
@@ -86,14 +93,14 @@ def binaryMetrics(truth, classified, scale, region=None):
         reducer=ee.Reducer.frequencyHistogram(),
         scale=scale,
         maxPixels=int(1e13),
-        tileScale=4
+        tileScale=4,
     )
     if region:
-        params['geometry'] = region
+        params["geometry"] = region
 
     # get frecuency histogram (classes)
     matrix = classes.reduceRegion(**params)
-    matrix = ee.Dictionary(matrix.get('classes'))  # cast
+    matrix = ee.Dictionary(matrix.get("classes"))  # cast
 
     def fillDict(clas, d):
         d = ee.Dictionary(d)
@@ -101,13 +108,14 @@ def binaryMetrics(truth, classified, scale, region=None):
         cond = d.contains(clas)
         return ee.Dictionary(ee.Algorithms.If(cond, d, d.set(clas, 0)))
 
-    class_dict = ee.Dictionary(
-        class_list.iterate(fillDict, matrix)).rename(class_list, names_list)
+    class_dict = ee.Dictionary(class_list.iterate(fillDict, matrix)).rename(
+        class_list, names_list
+    )
 
-    TP = ee.Number(class_dict.get('TP'))
-    TN = ee.Number(class_dict.get('TN'))
-    FP = ee.Number(class_dict.get('FP'))
-    FN = ee.Number(class_dict.get('FN'))
+    TP = ee.Number(class_dict.get("TP"))
+    TN = ee.Number(class_dict.get("TN"))
+    FP = ee.Number(class_dict.get("FP"))
+    FN = ee.Number(class_dict.get("FN"))
 
     ALL = dict(TP=TP, TN=TN, FP=FP, FN=FN)
 
@@ -125,10 +133,21 @@ def binaryMetrics(truth, classified, scale, region=None):
     BA = ee.Number.expression("(TPR+TNR)/2", dict(TPR=TPR, TNR=TNR))
     F1 = ee.Number.expression("(2*TP)/(2*TP+FP+FN)", ALL)
 
-    metrics = ee.Dictionary(dict(
-        TPR=TPR, TNR=TNR, PPV=PPV, NPV=NPV, FNR=FNR,
-        FPR=FPR, FDR=FDR, FOR=FOR, TS=TS, ACC=ACC,
-        BA=BA, F1=F1
-    ))
+    metrics = ee.Dictionary(
+        dict(
+            TPR=TPR,
+            TNR=TNR,
+            PPV=PPV,
+            NPV=NPV,
+            FNR=FNR,
+            FPR=FPR,
+            FDR=FDR,
+            FOR=FOR,
+            TS=TS,
+            ACC=ACC,
+            BA=BA,
+            F1=F1,
+        )
+    )
 
     return class_dict.combine(metrics)

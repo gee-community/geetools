@@ -1,17 +1,17 @@
 """ EE Computed Object """
 import ee
 
-STRING = 'String'
-INTEGER = 'Integer'
-FLOAT = 'Float'
-IMAGE = 'Image'
-IMAGECOLLECTION = 'ImageCollection'
-FEATURE = 'Feature'
-GEOMETRY = 'Geometry'
+STRING = "String"
+INTEGER = "Integer"
+FLOAT = "Float"
+IMAGE = "Image"
+IMAGECOLLECTION = "ImageCollection"
+FEATURE = "Feature"
+GEOMETRY = "Geometry"
 
 
 def _isType(ComputedObject, checktype):
-    """ Return 1 if the element is the passed type or 0 if not """
+    """Return 1 if the element is the passed type or 0 if not"""
     otype = ee.Algorithms.ObjectType(ComputedObject)
     return otype.compareTo(checktype).eq(0)
 

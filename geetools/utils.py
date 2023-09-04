@@ -15,24 +15,24 @@ def getReducerName(reducer):
     WARNING: This function makes a request to EE Servers (getInfo). Do not use
     in server side functions (example: inside a mapping function)
     """
-    reducer_type = reducer.getInfo()['type']
+    reducer_type = reducer.getInfo()["type"]
 
     relations = dict(
-        mean=['Reducer.mean', 'Reducer.intervalMean'],
-        median=['Reducer.median'],
-        mode=['Reducer.mode'],
-        first=['Reducer.first', 'Reducer.firstNonNull'],
-        last=['Reducer.last', 'Reducer.lastNonNull'],
-        stdDev=['Reducer.stdDev', 'Reducer.sampleStdDev'],
-        all=['Reducer.allNoneZero'],
-        any=['Reducer.anyNoneZero'],
-        count=['Reducer.count', 'Reducer.countDistinct'],
-        max=['Reducer.max'],
-        min=['Reducer.min'],
-        product=['Reducer.product'],
-        variance=['Reducer.sampleVariance', 'Reducer.variance'],
-        skew=['Reducer.skew'],
-        sum=['Reducer.sum']
+        mean=["Reducer.mean", "Reducer.intervalMean"],
+        median=["Reducer.median"],
+        mode=["Reducer.mode"],
+        first=["Reducer.first", "Reducer.firstNonNull"],
+        last=["Reducer.last", "Reducer.lastNonNull"],
+        stdDev=["Reducer.stdDev", "Reducer.sampleStdDev"],
+        all=["Reducer.allNoneZero"],
+        any=["Reducer.anyNoneZero"],
+        count=["Reducer.count", "Reducer.countDistinct"],
+        max=["Reducer.max"],
+        min=["Reducer.min"],
+        product=["Reducer.product"],
+        variance=["Reducer.sampleVariance", "Reducer.variance"],
+        skew=["Reducer.skew"],
+        sum=["Reducer.sum"],
     )
 
     for name, options in relations.items():
@@ -40,9 +40,10 @@ def getReducerName(reducer):
             return name
 
 
-def reduceRegionsPandas(data, index='system:index', add_coordinates=False,
-                        duplicate_index=False):
-    """ Transform data coming from Image.reduceRegions to a pandas dataframe
+def reduceRegionsPandas(
+    data, index="system:index", add_coordinates=False, duplicate_index=False
+):
+    """Transform data coming from Image.reduceRegions to a pandas dataframe
 
     :param data: data coming from Image.reduceRegions
     :type data: ee.Dictionary or dict
@@ -54,37 +55,43 @@ def reduceRegionsPandas(data, index='system:index', add_coordinates=False,
     """
     if not isinstance(data, dict):
         if add_coordinates:
+
             def addCentroid(feat):
                 feat = ee.Feature(feat)
                 centroid = feat.centroid().geometry()
                 coords = ee.List(centroid.coordinates())
-                return feat.set('longitude', ee.Number(coords.get(0)),
-                                'latitude', ee.Number(coords.get(1)))
+                return feat.set(
+                    "longitude",
+                    ee.Number(coords.get(0)),
+                    "latitude",
+                    ee.Number(coords.get(1)),
+                )
+
             data = data.map(addCentroid)
 
         data = data.getInfo()
 
-    features = data['features']
+    features = data["features"]
 
     d, indexes = [], []
     for feature in features:
         nf = deepcopy(feature)
-        props = nf['properties']
+        props = nf["properties"]
 
         if not duplicate_index:
             props.pop(index) if index in props else props
 
         d.append(props)
-        if index == 'system:index':
-            indexes.append(feature['id'])
+        if index == "system:index":
+            indexes.append(feature["id"])
         else:
-            indexes.append(feature['properties'][index])
+            indexes.append(feature["properties"][index])
 
     return pd.DataFrame(d, indexes)
 
 
 def castImage(value):
-    """ Cast a value into an ee.Image if it is not already """
+    """Cast a value into an ee.Image if it is not already"""
     if isinstance(value, ee.Image) or value is None:
         return value
     else:
@@ -92,7 +99,7 @@ def castImage(value):
 
 
 def makeName(img, pattern, date_pattern=None, extra=None):
-    """ Make a name with the given pattern. The pattern must contain the
+    """Make a name with the given pattern. The pattern must contain the
     propeties to replace between curly braces. There are 2 special words:
 
     * 'system_date': replace with the date of the image formatted with
@@ -106,14 +113,16 @@ def makeName(img, pattern, date_pattern=None, extra=None):
     """
     img = ee.Image(img)
     props = img.toDictionary()
-    props = ee.Dictionary(ee.Algorithms.If(
-        img.id(),
-        props.set('id', img.id()).set('ID', img.id()),
-        props))
-    props = ee.Dictionary(ee.Algorithms.If(
-        img.propertyNames().contains('system:time_start'),
-        props.set('system_date', img.date().format(date_pattern)),
-        props))
+    props = ee.Dictionary(
+        ee.Algorithms.If(img.id(), props.set("id", img.id()).set("ID", img.id()), props)
+    )
+    props = ee.Dictionary(
+        ee.Algorithms.If(
+            img.propertyNames().contains("system:time_start"),
+            props.set("system_date", img.date().format(date_pattern)),
+            props,
+        )
+    )
     if extra:
         extra = ee.Dictionary(extra)
         props = props.combine(extra)
@@ -123,11 +132,11 @@ def makeName(img, pattern, date_pattern=None, extra=None):
 
 
 def maskIslands(mask, limit, pixels_limit=1000):
-    """ returns a new mask where connected pixels with less than the 'limit'
-    of area are turned to 0 """
-    area = ee.Image.pixelArea().rename('area')
+    """returns a new mask where connected pixels with less than the 'limit'
+    of area are turned to 0"""
+    area = ee.Image.pixelArea().rename("area")
 
-    conn = mask.connectedPixelCount(pixels_limit).rename('connected')
+    conn = mask.connectedPixelCount(pixels_limit).rename("connected")
     finalarea = area.multiply(conn)
 
     # get holes and islands
@@ -139,17 +148,17 @@ def maskIslands(mask, limit, pixels_limit=1000):
     return no_island
 
 
-def dict2namedtuple(thedict, name='NamedDict'):
-    """ Create a namedtuple from a dict object. It handles nested dicts. If
+def dict2namedtuple(thedict, name="NamedDict"):
+    """Create a namedtuple from a dict object. It handles nested dicts. If
     you want to scape this behaviour the dict must be placed into a list as its
-    unique element """
+    unique element"""
     from collections import namedtuple
 
     thenametuple = namedtuple(name, [])
 
     for key, val in thedict.items():
         if not isinstance(key, str):
-            msg = 'dict keys must be strings not {}'
+            msg = "dict keys must be strings not {}"
             raise ValueError(msg.format(key.__class__))
 
         if not isinstance(val, dict):
@@ -167,28 +176,31 @@ def dict2namedtuple(thedict, name='NamedDict'):
 
 
 def formatVisParams(visParams):
-    """ format visualization parameters to match EE requirements at
-    ee.data.getMapId """
+    """format visualization parameters to match EE requirements at
+    ee.data.getMapId"""
     formatted = dict()
     for param, value in visParams.items():
         if isinstance(value, list):
             value = [str(v) for v in value]
-        if param in ['bands', 'palette']:
-            formatted[param] = ','.join(value) if len(value) == 3 else str(value[0])
-        if param in ['min', 'max', 'gain', 'bias', 'gamma']:
-            formatted[param] = str(value) if isinstance(value, (int, str)) else ','.join(value)
+        if param in ["bands", "palette"]:
+            formatted[param] = ",".join(value) if len(value) == 3 else str(value[0])
+        if param in ["min", "max", "gain", "bias", "gamma"]:
+            formatted[param] = (
+                str(value) if isinstance(value, (int, str)) else ",".join(value)
+            )
     return formatted
 
 
 def _retrieve(f):
     def wrap(obj, *args):
         f(obj.getInfo(), *args)
+
     return wrap
 
 
 def evaluate(obj, callback, args):
-    """ Retrieve eeobject value asynchronously. First argument of callback
-    must always be the object itself """
+    """Retrieve eeobject value asynchronously. First argument of callback
+    must always be the object itself"""
     args.insert(0, obj)
     callback = _retrieve(callback)
     thd = threading.Thread(target=callback, args=args)

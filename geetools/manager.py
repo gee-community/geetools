@@ -8,30 +8,30 @@ import json
 
 
 def esave(eeobject, filename, path=None):
-    """ Saves any EE object to a file with extension .gee
+    """Saves any EE object to a file with extension .gee
 
-        The file has to be opened with `eopen`
+    The file has to be opened with `eopen`
     """
     obj = ee.serializer.encode(eeobject)
 
     path = path if path else os.getcwd()
 
-    with open(os.path.join(path, filename+'.gee'), 'w') as js:
+    with open(os.path.join(path, filename + ".gee"), "w") as js:
         json.dump(obj, js)
 
 
 def eopen(file, path=None):
-    """ Opens a files saved with `esave` method
+    """Opens a files saved with `esave` method
 
-    :return: the EE object """
+    :return: the EE object"""
 
     path = path if path else os.getcwd()
 
     try:
-        with open(os.path.join(path, file), 'r') as gee:
+        with open(os.path.join(path, file), "r") as gee:
             thefile = json.load(gee)
     except IOError:
-        with open(os.path.join(path, file+'.gee'), 'r') as gee:
+        with open(os.path.join(path, file + ".gee"), "r") as gee:
             thefile = json.load(gee)
 
     return ee.deserializer.decode(thefile)

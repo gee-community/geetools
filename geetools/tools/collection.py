@@ -4,7 +4,7 @@ import ee
 
 
 def enumerate(collection):
-    """ Create a list of lists in which each element of the list is:
+    """Create a list of lists in which each element of the list is:
     [index, element]. For example, if you parse a FeatureCollection with 3
     Features you'll get: [[0, feat0], [1, feat1], [2, feat2]]
 
@@ -35,7 +35,7 @@ def enumerate(collection):
 
 
 def joinByProperty(primary, secondary, propertyField, outer=False):
-    """ Join 2 collections by a given property field.
+    """Join 2 collections by a given property field.
     It assumes ids are unique so uses ee.Join.saveFirst.
     It drops non matching features.
 
@@ -49,14 +49,14 @@ def joinByProperty(primary, secondary, propertyField, outer=False):
     print(joined.getInfo())
 
     """
-    Filter = ee.Filter.equals(leftField=propertyField,
-                              rightField=propertyField)
-    join = ee.Join.saveFirst(matchKey='match', outer=outer)
+    Filter = ee.Filter.equals(leftField=propertyField, rightField=propertyField)
+    join = ee.Join.saveFirst(matchKey="match", outer=outer)
     joined = join.apply(primary, secondary, Filter)
+
     def overJoined(feat):
         properties = feat.propertyNames()
-        retain = properties.remove('match')
-        match = ee.Feature(feat.get('match'))
+        retain = properties.remove("match")
+        match = ee.Feature(feat.get("match"))
         matchprop = match.toDictionary()
         return feat.select(retain).setMulti(matchprop)
 

@@ -12,7 +12,7 @@ from .. import composite
 
 
 def add(collection, image):
-    """ Add an Image to the Collection
+    """Add an Image to the Collection
 
     **SERVER SIDE**
 
@@ -24,30 +24,31 @@ def add(collection, image):
 
 
 def allMasked(collection):
-    """ Get a mask which indicates pixels that are masked in all images (0) and
-    pixels that have a valid pixel in at least one image (1) """
+    """Get a mask which indicates pixels that are masked in all images (0) and
+    pixels that have a valid pixel in at least one image (1)"""
     masks = collection.map(lambda i: i.mask())
     masksum = ee.Image(masks.sum())
     return ee.Image(masksum.gt(0))
 
 
 def containsAllBands(collection, bands):
-    """ Filter a collection with images containing all bands specified in
-    parameter `bands` """
+    """Filter a collection with images containing all bands specified in
+    parameter `bands`"""
     bands = ee.List(bands)
     # add bands as metadata
     collection = collection.map(
-        lambda i: ee.Image(i).set('_BANDS_', ee.Image(i).bandNames()))
+        lambda i: ee.Image(i).set("_BANDS_", ee.Image(i).bandNames())
+    )
 
     band0 = ee.String(bands.get(0))
     rest = ee.List(bands.slice(1))
-    filt0 = ee.Filter.listContains(leftField='_BANDS_', rightValue=band0)
+    filt0 = ee.Filter.listContains(leftField="_BANDS_", rightValue=band0)
 
     # Get filter
     def wrap(band, filt):
         band = ee.String(band)
         filt = ee.Filter(filt)
-        newfilt = ee.Filter.listContains(leftField='_BANDS_', rightValue=band)
+        newfilt = ee.Filter.listContains(leftField="_BANDS_", rightValue=band)
         return ee.Filter.And(filt, newfilt)
 
     filt = ee.Filter(rest.iterate(wrap, filt0))
@@ -55,22 +56,23 @@ def containsAllBands(collection, bands):
 
 
 def containsAnyBand(collection, bands):
-    """ Filter a collection with images cotaining any of the bands specified in
-    parameter `bands` """
+    """Filter a collection with images cotaining any of the bands specified in
+    parameter `bands`"""
     bands = ee.List(bands)
     # add bands as metadata
     collection = collection.map(
-        lambda i: ee.Image(i).set('_BANDS_', ee.Image(i).bandNames()))
+        lambda i: ee.Image(i).set("_BANDS_", ee.Image(i).bandNames())
+    )
 
     band0 = ee.String(bands.get(0))
     rest = ee.List(bands.slice(1))
-    filt0 = ee.Filter.listContains(leftField='_BANDS_', rightValue=band0)
+    filt0 = ee.Filter.listContains(leftField="_BANDS_", rightValue=band0)
 
     # Get filter
     def wrap(band, filt):
         band = ee.String(band)
         filt = ee.Filter(filt)
-        newfilt = ee.Filter.listContains(leftField='_BANDS_', rightValue=band)
+        newfilt = ee.Filter.listContains(leftField="_BANDS_", rightValue=band)
         return ee.Filter.Or(filt, newfilt)
 
     filt = ee.Filter(rest.iterate(wrap, filt0))
@@ -78,7 +80,7 @@ def containsAnyBand(collection, bands):
 
 
 def getId(collection):
-    """ Get the ImageCollection id.
+    """Get the ImageCollection id.
 
     **CLIENT SIDE**
 
@@ -86,17 +88,17 @@ def getId(collection):
     :return: the collection's id
     :rtype: str
     """
-    return collection.limit(0).getInfo()['id']
+    return collection.limit(0).getInfo()["id"]
 
 
 def getImage(collection, index):
-    """ Get an Image using its collection index """
+    """Get an Image using its collection index"""
     collist = collection.toList(collection.size())
     return ee.Image(collist.get(index))
 
 
 def wrapper(f, *arg, **kwargs):
-    """ Wrap a function and its arguments into a mapping function for
+    """Wrap a function and its arguments into a mapping function for
     ImageCollections. The first parameter of the functions must be an Image,
     and it must return an Image.
 
@@ -105,12 +107,14 @@ def wrapper(f, *arg, **kwargs):
     :return: a function to use in ee.ImageCollection.map
     :rtype: function
     """
+
     def wrap(img):
         return f(img, *arg, **kwargs)
+
     return wrap
 
 
-def enumerateProperty(collection, name='enumeration'):
+def enumerateProperty(collection, name="enumeration"):
     """
 
     :param collection:
@@ -129,26 +133,29 @@ def enumerateProperty(collection, name='enumeration'):
     return ee.ImageCollection(imlist)
 
 
-def enumerateSimple(collection, name='ENUM'):
-    """ Simple enumeration of features inside a collection. Each feature stores
-     its enumeration, so if the order of features changes over time, the numbers
-     will not be in order """
+def enumerateSimple(collection, name="ENUM"):
+    """Simple enumeration of features inside a collection. Each feature stores
+    its enumeration, so if the order of features changes over time, the numbers
+    will not be in order"""
     size = collection.size()
     collist = collection.toList(size)
     seq = ee.List.sequence(0, size.subtract(1))
+
     def wrap(n):
         n = ee.Number(n).toInt()
         feat = collist.get(n)
         return ee.Image(feat).set(name, n)
+
     fc = ee.ImageCollection.fromImages(seq.map(wrap))
 
     return ee.ImageCollection(fc.copyProperties(source=collection))
 
 
 def fillWithLast(collection, reverse=False, proxy=-999):
-    """ Fill each masked pixels with the last available not masked pixel. If reverse, it goes backwards.
-    Images must contain a valid date (system:time_start property by default) """
+    """Fill each masked pixels with the last available not masked pixel. If reverse, it goes backwards.
+    Images must contain a valid date (system:time_start property by default)"""
     axis = 0
+
     def shift(array):
         if reverse:
             rigth = array.arraySlice(axis, 1)
@@ -171,14 +178,18 @@ def fillWithLast(collection, reverse=False, proxy=-999):
     def fill(array, size):
         size = ee.Number(size)
         indices = ee.List.sequence(0, size.subtract(1))
+
         def wrap(i, a):
             a = ee.Image(a)
             return move(a)
+
         return ee.Image(indices.iterate(wrap, array))
 
     collection = collection.map(
         lambda i: image_module.emptyBackground(i, proxy).copyProperties(
-            source=i, properties=i.propertyNames()))
+            source=i, properties=i.propertyNames()
+        )
+    )
     bands = ee.Image(collection.first()).bandNames()
     size = collection.size()
     array = collection.toArray()
@@ -199,7 +210,7 @@ def fillWithLast(collection, reverse=False, proxy=-999):
 
 
 def mergeGeometries(collection):
-    """ Merge the geometries of many images. Return ee.Geometry """
+    """Merge the geometries of many images. Return ee.Geometry"""
     imlist = collection.toList(collection.size())
 
     first = ee.Image(imlist.get(0))
@@ -216,7 +227,7 @@ def mergeGeometries(collection):
 
 
 def mosaicSameDay(collection, qualityBand=None):
-    """ Return a collection where images from the same day are mosaicked
+    """Return a collection where images from the same day are mosaicked
 
     :param qualityBand: the band that holds the quality score for mosaiking.
         If None it will use the simplier mosaic() function
@@ -225,13 +236,14 @@ def mosaicSameDay(collection, qualityBand=None):
         kept is `system:time_start`
     :rtype: ee.ImageCollection
     """
-    all_dates = collection.aggregate_array('system:time_start')
+    all_dates = collection.aggregate_array("system:time_start")
+
     def overdates(d, l):
         l = ee.List(l)
         date = ee.Date(d)
-        day = date.get('day')
-        month = date.get('month')
-        year = date.get('year')
+        day = date.get("day")
+        month = date.get("month")
+        year = date.get("year")
         clean_date = ee.Date.fromYMD(year, month, day)
         condition = l.contains(clean_date)
         return ee.Algorithms.If(condition, l, l.add(clean_date))
@@ -242,28 +254,38 @@ def mosaicSameDay(collection, qualityBand=None):
 
     def make_col(date):
         date = ee.Date(date)
-        filtered = collection.filterDate(date, date.advance(1, 'day'))
+        filtered = collection.filterDate(date, date.advance(1, "day"))
 
         if qualityBand:
             mosaic = filtered.qualityMosaic(qualityBand)
         else:
             mosaic = filtered.mosaic()
 
-        mosaic = mosaic.set('system:time_start', date.millis(),
-                            'system:footprint', mergeGeometries(filtered))
+        mosaic = mosaic.set(
+            "system:time_start",
+            date.millis(),
+            "system:footprint",
+            mergeGeometries(filtered),
+        )
 
         # mosaic = mosaic.rename(bands)
         mosaic = mosaic.select(bands)
+
         def reproject(bname, mos):
             mos = ee.Image(mos)
             mos_bnames = mos.bandNames()
             bname = ee.String(bname)
             proj = first_img.select(bname).projection()
 
-            newmos = ee.Image(ee.Algorithms.If(
-                mos_bnames.contains(bname),
-                image_module.replace(mos, bname, mos.select(bname).setDefaultProjection(proj)),
-                mos))
+            newmos = ee.Image(
+                ee.Algorithms.If(
+                    mos_bnames.contains(bname),
+                    image_module.replace(
+                        mos, bname, mos.select(bname).setDefaultProjection(proj)
+                    ),
+                    mos,
+                )
+            )
 
             return newmos
 
@@ -274,9 +296,10 @@ def mosaicSameDay(collection, qualityBand=None):
     return new_col
 
 
-def reduceEqualInterval(collection, interval=30, unit='day', reducer=None,
-                        start_date=None, end_date=None):
-    """ Reduce an ImageCollection into a new one that has one image per
+def reduceEqualInterval(
+    collection, interval=30, unit="day", reducer=None, start_date=None, end_date=None
+):
+    """Reduce an ImageCollection into a new one that has one image per
         reduced interval, for example, one image per month.
 
     :param collection: the collection
@@ -296,13 +319,13 @@ def reduceEqualInterval(collection, interval=30, unit='day', reducer=None,
     :return:
     """
     interval = int(interval)  # force to int
-    first = ee.Image(collection.sort('system:time_start').first())
+    first = ee.Image(collection.sort("system:time_start").first())
     bands = first.bandNames()
 
     if not start_date:
         start_date = first.date()
     if not end_date:
-        last = ee.Image(collection.sort('system:time_start', False).first())
+        last = ee.Image(collection.sort("system:time_start", False).first())
         end_date = last.date()
     if not reducer:
         reducer = ee.Reducer.median()
@@ -319,15 +342,19 @@ def reduceEqualInterval(collection, interval=30, unit='day', reducer=None,
         end = drange.end()
         filtered = collection.filterDate(start, end)
         condition = ee.Number(filtered.size()).gt(0)
+
         def true():
-            image = apply_reducer(reducer, filtered)\
-                    .set('system:time_start', end.millis())\
-                    .set('reduced_from', start.format())\
-                    .set('reduced_to', end.format())
+            image = (
+                apply_reducer(reducer, filtered)
+                .set("system:time_start", end.millis())
+                .set("reduced_from", start.format())
+                .set("reduced_to", end.format())
+            )
             # rename to original names
             image = image.select(image.bandNames(), bands)
             result = ini.add(image)
             return result
+
         return ee.List(ee.Algorithms.If(condition, true(), ini))
 
     imlist = ee.List(ranges.iterate(over_ranges, ee.List([])))
@@ -335,8 +362,8 @@ def reduceEqualInterval(collection, interval=30, unit='day', reducer=None,
     return ee.ImageCollection.fromImages(imlist)
 
 
-def makeEqualInterval(collection, interval=1, unit='month'):
-    """ Make a list of image collections filtered by the given interval,
+def makeEqualInterval(collection, interval=1, unit="month"):
+    """Make a list of image collections filtered by the given interval,
     for example, one month. Starts from the end of the parsed collection
 
     :param collection: the collection
@@ -347,7 +374,7 @@ def makeEqualInterval(collection, interval=1, unit='month'):
     :rtype: ee.List
     """
     interval = int(interval)  # force to int
-    collist = collection.sort('system:time_start').toList(collection.size())
+    collist = collection.sort("system:time_start").toList(collection.size())
     start_date = ee.Image(collist.get(0)).date()
     end_date = ee.Image(collist.get(-1)).date()
 
@@ -367,12 +394,12 @@ def makeEqualInterval(collection, interval=1, unit='month'):
     return imlist
 
 
-def makeDayIntervals(collection, interval=30, reverse=False, buffer='second'):
-    """ Make day intervals """
+def makeDayIntervals(collection, interval=30, reverse=False, buffer="second"):
+    """Make day intervals"""
     interval = int(interval)
-    collection = collection.sort('system:time_start', True)
+    collection = collection.sort("system:time_start", True)
     start = collection.first().date()
-    end = collection.sort('system:time_start', False).first().date()
+    end = collection.sort("system:time_start", False).first().date()
     ranges = date.dayRangeIntervals(start, end, interval, reverse, buffer)
 
     def over_ranges(drange, ini):
@@ -389,9 +416,10 @@ def makeDayIntervals(collection, interval=30, reverse=False, buffer='second'):
     return imlist
 
 
-def reduceDayIntervals(collection, reducer, interval=30, reverse=False,
-                       buffer='second'):
-    """ Reduce Day Intervals
+def reduceDayIntervals(
+    collection, reducer, interval=30, reverse=False, buffer="second"
+):
+    """Reduce Day Intervals
 
     :param reducer: a function that takes as only argument a collection
         and returns an image
@@ -404,10 +432,19 @@ def reduceDayIntervals(collection, reducer, interval=30, reverse=False,
     return ee.ImageCollection.fromImages(reduced)
 
 
-def getValues(collection, geometry, scale=None, reducer=None,
-              id='system:index', properties=None, side='server',
-              maxPixels=1e7, bestEffort=False, tileScale=1):
-    """ Return all values of all bands of an image collection in the
+def getValues(
+    collection,
+    geometry,
+    scale=None,
+    reducer=None,
+    id="system:index",
+    properties=None,
+    side="server",
+    maxPixels=1e7,
+    bestEffort=False,
+    tileScale=1,
+):
+    """Return all values of all bands of an image collection in the
         specified geometry
 
     :param geometry: Point from where to get the info
@@ -440,8 +477,12 @@ def getValues(collection, geometry, scale=None, reducer=None,
     def listval(img, it):
         theid = ee.Algorithms.String(img.get(id))
         values = img.reduceRegion(
-            reducer, geometry, scale, maxPixels=maxPixels,
-            bestEffort=bestEffort, tileScale=tileScale
+            reducer,
+            geometry,
+            scale,
+            maxPixels=maxPixels,
+            bestEffort=bestEffort,
+            tileScale=tileScale,
         )
         values = ee.Dictionary(values)
         img_props = img.propertyNames()
@@ -449,28 +490,29 @@ def getValues(collection, geometry, scale=None, reducer=None,
         def add_properties(prop, ini):
             ini = ee.Dictionary(ini)
             condition = img_props.contains(prop)
+
             def true():
                 value = img.get(prop)
                 return ini.set(prop, value)
+
             return ee.Algorithms.If(condition, true(), ini)
 
         with_prop = ee.Dictionary(properties.iterate(add_properties, values))
         return ee.Dictionary(it).set(theid, with_prop)
 
     result = collection.iterate(listval, ee.Dictionary({}))
-    result = ee.Dictionary(ee.Algorithms.If(collection.size().neq(0),
-                                            result, {}))
+    result = ee.Dictionary(ee.Algorithms.If(collection.size().neq(0), result, {}))
 
-    if side == 'server':
+    if side == "server":
         return result
-    elif side == 'client':
+    elif side == "client":
         return result.getInfo()
     else:
         raise ValueError("side parameter must be 'server' or 'client'")
 
 
 def outliers(collection, bands, sigma=2, updateMask=False):
-    """ Compute outliers by:
+    """Compute outliers by:
 
     outlier = value > mean+(sigma*stddev)
     outlier = value < mean-(sigma*stddev)
@@ -510,7 +552,7 @@ def outliers(collection, bands, sigma=2, updateMask=False):
             ibands = im.select(bands)
             ibands = ibands.updateMask(outs.Not())
         else:
-            ibands = image_module.addSuffix(outs, '_outlier')
+            ibands = image_module.addSuffix(outs, "_outlier")
 
         return im.addBands(ibands, overwrite=True)
 
@@ -549,9 +591,10 @@ def data2pandas(data):
     return df
 
 
-def parametrizeProperty(collection, property, range_from, range_to,
-                        pattern='{property}_PARAMETRIZED'):
-    """ Parametrize a property
+def parametrizeProperty(
+    collection, property, range_from, range_to, pattern="{property}_PARAMETRIZED"
+):
+    """Parametrize a property
 
     :param collection: the ImageCollection
     :param range_from: the original property range
@@ -562,13 +605,13 @@ def parametrizeProperty(collection, property, range_from, range_to,
     :return: the parsed collection in which every image has a new
         parametrized property
     """
-    name = pattern.replace('{property}', property)
+    name = pattern.replace("{property}", property)
 
-    original_range = range_from if isinstance(range_from, ee.List) \
-        else ee.List(range_from)
+    original_range = (
+        range_from if isinstance(range_from, ee.List) else ee.List(range_from)
+    )
 
-    final_range = range_to if isinstance(range_to, ee.List) \
-        else ee.List(range_to)
+    final_range = range_to if isinstance(range_to, ee.List) else ee.List(range_to)
 
     # original min and max
     min0 = ee.Number(original_range.get(0))
@@ -592,10 +635,17 @@ def parametrizeProperty(collection, property, range_from, range_to,
     return collection.map(wrap)
 
 
-def linearFunctionBand(collection, band, range_min=None, range_max=None,
-                       mean=None, output_min=None, output_max=None,
-                       name='linear_function'):
-    """ Apply a linear function over the bands across every image of the
+def linearFunctionBand(
+    collection,
+    band,
+    range_min=None,
+    range_max=None,
+    mean=None,
+    output_min=None,
+    output_max=None,
+    name="linear_function",
+):
+    """Apply a linear function over the bands across every image of the
     ImageCollection using the following formula:
 
     - a = abs(val-mean)
@@ -622,19 +672,19 @@ def linearFunctionBand(collection, band, range_min=None, range_max=None,
     :rtype: ee.ImageCollection
     """
     if range_min is None:
-        range_min = ee.Image(collection.select(band).min()).rename('imin')
+        range_min = ee.Image(collection.select(band).min()).rename("imin")
     else:
         range_min = castImage(range_min)
 
     if range_max is None:
-        range_max = ee.Image(collection.select(band).max()).rename('imax')
+        range_max = ee.Image(collection.select(band).max()).rename("imax")
     else:
         range_max = castImage(range_max)
 
     def to_map(img):
-        result = image_module.linearFunction(img, band, range_min, range_max,
-                                             mean, output_min, output_max,
-                                             name)
+        result = image_module.linearFunction(
+            img, band, range_min, range_max, mean, output_min, output_max, name
+        )
         return img.addBands(result.rename(name))
 
     collection = collection.map(to_map)
@@ -642,10 +692,17 @@ def linearFunctionBand(collection, band, range_min=None, range_max=None,
     return collection
 
 
-def linearFunctionProperty(collection, property, range_min=None,
-                           range_max=None, mean=None, output_min=None,
-                           output_max=None, name='LINEAR_FUNCTION'):
-    """ Apply a linear function over the properties across every image of the
+def linearFunctionProperty(
+    collection,
+    property,
+    range_min=None,
+    range_max=None,
+    mean=None,
+    output_min=None,
+    output_max=None,
+    name="LINEAR_FUNCTION",
+):
+    """Apply a linear function over the properties across every image of the
     ImageCollection using the following formula:
 
     - a = abs(val-mean)
@@ -716,16 +773,15 @@ def linearFunctionProperty(collection, property, range_min=None,
     return collection
 
 
-def linearInterpolation(collection, date_property='system:time_start'):
+def linearInterpolation(collection, date_property="system:time_start"):
     def _addTime(collection):
         def wrap(i):
             sec = ee.Number(i.get(date_property))
             isec = image_module.empty(sec, i.bandNames())
-            isec_suffix = image_module.addSuffix(isec, '_tmpTime')
+            isec_suffix = image_module.addSuffix(isec, "_tmpTime")
             m = i.mask()
             isec_masked = isec.updateMask(m)
-            isec_masked_suffix = image_module.addSuffix(isec_masked,
-                                                        '_maskedTime')
+            isec_masked_suffix = image_module.addSuffix(isec_masked, "_maskedTime")
             return i.addBands(isec_suffix).addBands(isec_masked_suffix)
 
         return collection.map(wrap)
@@ -733,7 +789,7 @@ def linearInterpolation(collection, date_property='system:time_start'):
     # get the mask for the final result
     finalmask = allMasked(collection)
 
-    if date_property != 'system:time_start':
+    if date_property != "system:time_start":
         collection = collection.sort(date_property)
 
     # add time bands
@@ -742,19 +798,14 @@ def linearInterpolation(collection, date_property='system:time_start'):
     filled = fillWithLast(collection, False)
     filled_back = fillWithLast(collection, True)
 
-    condition = ee.Filter.equals(leftField='system:index',
-                                 rightField='system:index')
+    condition = ee.Filter.equals(leftField="system:index", rightField="system:index")
 
-    match1 = ee.Join.saveFirst('filled').apply(
-        primary=collection,
-        secondary=filled,
-        condition=condition
+    match1 = ee.Join.saveFirst("filled").apply(
+        primary=collection, secondary=filled, condition=condition
     )
 
-    match2 = ee.Join.saveFirst('filled_back').apply(
-        primary=match1,
-        secondary=filled_back,
-        condition=condition
+    match2 = ee.Join.saveFirst("filled_back").apply(
+        primary=match1, secondary=filled_back, condition=condition
     )
 
     def wrap(image):
@@ -762,13 +813,13 @@ def linearInterpolation(collection, date_property='system:time_start'):
         bands = o.bandNames()
 
         masked = o.mask().Not()
-        f = ee.Image(image.get('filled')).unmask()
-        fb = ee.Image(image.get('filled_back')).unmask()
+        f = ee.Image(image.get("filled")).unmask()
+        fb = ee.Image(image.get("filled_back")).unmask()
 
         # filters
-        filter0 = ee.Filter.stringContains('item', 'maskedTime')
-        filter1 = ee.Filter.stringContains('item', 'maskedTime').Not()
-        filter2 = ee.Filter.stringContains('item', 'tmpTime').Not()
+        filter0 = ee.Filter.stringContains("item", "maskedTime")
+        filter1 = ee.Filter.stringContains("item", "maskedTime").Not()
+        filter2 = ee.Filter.stringContains("item", "tmpTime").Not()
 
         # get all deltas (including delta x)
         dy = ee.Image(fb.subtract(f)).unmask()
@@ -799,25 +850,36 @@ def linearInterpolation(collection, date_property='system:time_start'):
         # masked original bands
         mo = masked.select(original_bands)
 
-        t = o.select('.+_tmpTime').subtract(f.select('.+_maskedTime'))
+        t = o.select(".+_tmpTime").subtract(f.select(".+_maskedTime"))
         fill = fo.add(slope.multiply(t)).unmask()
         fill2 = fob.where(fill, fill)
         fill3 = fo.where(fill2, fill2)
         final = oo.unmask().where(mo, fill3)
         final = image_module.deleteProperties(final)
-        final = final.select(original_bands) \
-            .copyProperties(o, exclude=['filled', 'filled_back']) \
-            .set(date_property, o.get(date_property)) \
-            .set('system:index', o.get('system:index'))
+        final = (
+            final.select(original_bands)
+            .copyProperties(o, exclude=["filled", "filled_back"])
+            .set(date_property, o.get(date_property))
+            .set("system:index", o.get("system:index"))
+        )
         return ee.Image(final).updateMask(finalmask)
 
     return ee.ImageCollection(match2.map(wrap))
 
 
-def gaussFunctionBand(collection, band, range_min=None, range_max=None,
-                      mean=0, output_min=None, output_max=1, std=None,
-                      stretch=1, name='gauss'):
-    """ Compute a Guass function using a specified band over an
+def gaussFunctionBand(
+    collection,
+    band,
+    range_min=None,
+    range_max=None,
+    mean=0,
+    output_min=None,
+    output_max=1,
+    std=None,
+    stretch=1,
+    name="gauss",
+):
+    """Compute a Guass function using a specified band over an
         ImageCollection. See: https://en.wikipedia.org/wiki/Gaussian_function
 
     :param band: the name of the band to use
@@ -854,14 +916,18 @@ def gaussFunctionBand(collection, band, range_min=None, range_max=None,
 
     def to_map(img):
 
-        result = image_module.gaussFunction(img, band,
-                                            range_min=range_min,
-                                            range_max=range_max,
-                                            mean=mean, std=std,
-                                            output_min=output_min,
-                                            output_max=output_max,
-                                            stretch=stretch,
-                                            name=name)
+        result = image_module.gaussFunction(
+            img,
+            band,
+            range_min=range_min,
+            range_max=range_max,
+            mean=mean,
+            std=std,
+            output_min=output_min,
+            output_max=output_max,
+            stretch=stretch,
+            name=name,
+        )
         return img.addBands(result)
 
     collection = collection.map(to_map)
@@ -869,11 +935,19 @@ def gaussFunctionBand(collection, band, range_min=None, range_max=None,
     return collection
 
 
-def gaussFunctionProperty(collection, property, range_min=None,
-                          range_max=None, mean=0, output_min=None,
-                          output_max=1, std=None, stretch=1,
-                          name='GAUSS'):
-    """ Compute a Guass function using a specified property over an
+def gaussFunctionProperty(
+    collection,
+    property,
+    range_min=None,
+    range_max=None,
+    mean=0,
+    output_min=None,
+    output_max=1,
+    std=None,
+    stretch=1,
+    name="GAUSS",
+):
+    """Compute a Guass function using a specified property over an
         ImageCollection. See: https://en.wikipedia.org/wiki/Gaussian_function
 
     :param collection:
@@ -945,9 +1019,10 @@ def gaussFunctionProperty(collection, property, range_min=None,
     return collection
 
 
-def normalDistributionProperty(collection, property, mean=None, std=None,
-                               name='NORMAL_DISTRIBUTION'):
-    """ Compute a normal distribution using a specified property, over an
+def normalDistributionProperty(
+    collection, property, mean=None, std=None, name="NORMAL_DISTRIBUTION"
+):
+    """Compute a normal distribution using a specified property, over an
     ImageCollection. For more see:
     https://en.wikipedia.org/wiki/Normal_distribution
 
@@ -970,16 +1045,17 @@ def normalDistributionProperty(collection, property, mean=None, std=None,
     else:
         istd = ee.Number(std)
 
-    imax = ee.Number(1)\
-             .divide(istd.multiply(ee.Number(2).multiply(math.pi).sqrt()))
+    imax = ee.Number(1).divide(istd.multiply(ee.Number(2).multiply(math.pi).sqrt()))
 
-    return gaussFunctionProperty(collection, property, mean=imean,
-                                 output_max=imax, std=istd, name=name)
+    return gaussFunctionProperty(
+        collection, property, mean=imean, output_max=imax, std=istd, name=name
+    )
 
 
-def normalDistributionBand(collection, band, mean=None, std=None,
-                           name='normal_distribution'):
-    """ Compute a normal distribution using a specified band, over an
+def normalDistributionBand(
+    collection, band, mean=None, std=None, name="normal_distribution"
+):
+    """Compute a normal distribution using a specified band, over an
     ImageCollection. For more see:
     https://en.wikipedia.org/wiki/Normal_distribution
 
@@ -1004,29 +1080,31 @@ def normalDistributionBand(collection, band, mean=None, std=None,
 
     ipi = ee.Image.constant(math.pi)
 
-    imax = ee.Image(1) \
-             .divide(istd.multiply(ee.Image.constant(2).multiply(ipi).sqrt()))
+    imax = ee.Image(1).divide(istd.multiply(ee.Image.constant(2).multiply(ipi).sqrt()))
 
-    return gaussFunctionBand(collection, band, mean=imean,
-                             output_max=imax, std=istd, name=name)
+    return gaussFunctionBand(
+        collection, band, mean=imean, output_max=imax, std=istd, name=name
+    )
 
 
 def maskedSize(collection):
-    """ return an image with the percentage of masked pixels. 100% means all
-    pixels are masked """
+    """return an image with the percentage of masked pixels. 100% means all
+    pixels are masked"""
     mask = collection.map(lambda i: i.mask().Not())
+
     def wrap(i):
         onemore = i.add(1)
         return onemore.divide(onemore)
+
     total = mask.map(wrap)
     masksum = mask.sum()
     totalsum = total.sum()
     return masksum.divide(totalsum).multiply(100).toInt()
 
 
-def area_under_curve(collection, band, x_property=None, name='area_under'):
-    """ Compute the area under the curve taking the x axis from an image
-    property. If not specified, it'll use `system:time_start` """
+def area_under_curve(collection, band, x_property=None, name="area_under"):
+    """Compute the area under the curve taking the x axis from an image
+    property. If not specified, it'll use `system:time_start`"""
     x_property = x_property or "system:time_start"
     max_x = collection.aggregate_max(x_property)
     min_x = collection.aggregate_min(x_property)
@@ -1039,28 +1117,30 @@ def area_under_curve(collection, band, x_property=None, name='area_under'):
             c = ee.List(c)
             last = ee.Image(c.get(-1))
             lapsed = ee.Number(image.get(x_property)).subtract(
-                ee.Number(last.get(x_property)))
+                ee.Number(last.get(x_property))
+            )
             lapsed_percent = lapsed.divide(total_lapsed)
             rise = i.select(band).subtract(last.select(band)).divide(2)
-            toadd = i.select(band).add(rise).multiply(lapsed_percent).rename(
-                name).toFloat()
+            toadd = (
+                i.select(band).add(rise).multiply(lapsed_percent).rename(name).toFloat()
+            )
             return c.add(i.addBands(toadd))
 
         def false(i, c):
             toadd = i.addBands(ee.Image(0).rename(name).toFloat())
             return c.add(toadd)
 
-        return ee.List(ee.Algorithms.If(cumm.size(), true(image, cumm),
-                                        false(image, cumm)))
+        return ee.List(
+            ee.Algorithms.If(cumm.size(), true(image, cumm), false(image, cumm))
+        )
 
     final = ee.List(collection.iterate(cummulative, ee.List([])))
     final_ic = ee.ImageCollection.fromImages(final).select(name)
     return ee.Image(final_ic.reduce(ee.Reducer.sum()))
 
 
-def moving_average(collection, back=5, reducer=None,
-                   use_original=True):
-    """ Compute the moving average over a time series
+def moving_average(collection, back=5, reducer=None, use_original=True):
+    """Compute the moving average over a time series
 
     :param back: number of images back to use for computing the stats
     :type back: int
@@ -1076,65 +1156,68 @@ def moving_average(collection, back=5, reducer=None,
     def wrap(i, d):
         d = ee.Dictionary(d)
         i = ee.Image(i)
-        original = ee.List(d.get('original'))
-        stats = ee.List(d.get('stats'))
+        original = ee.List(d.get("original"))
+        stats = ee.List(d.get("stats"))
 
         def true(im, di):
-            original_true = ee.List(di.get('original'))
-            stats_true = ee.List(di.get('stats'))
+            original_true = ee.List(di.get("original"))
+            stats_true = ee.List(di.get("stats"))
             original_true = original_true.add(im)
             tocompute = original_true if use_original else stats_true.add(im)
             tempcol = ee.ImageCollection.fromImages(tocompute.slice(back * -1))
             stats = tempcol.reduce(reducer)
             stats = stats.rename(im.bandNames())
             stats = ee.Image(stats.copyProperties(im, properties=im.propertyNames()))
-            return ee.Dictionary({
-                'original': original_true,
-                'stats': stats_true.add(stats)
-            })
+            return ee.Dictionary(
+                {"original": original_true, "stats": stats_true.add(stats)}
+            )
 
         def false(im, di):
-            original2 = ee.List(di.get('original'))
-            stats2 = ee.List(di.get('stats'))
+            original2 = ee.List(di.get("original"))
+            stats2 = ee.List(di.get("stats"))
             condition2 = original2.size().gt(0)
 
             def true2(ima, dic):
-                original_true2 = ee.List(dic.get('original'))
+                original_true2 = ee.List(dic.get("original"))
                 original_true2 = original_true2.add(ima)
-                stats_true2 = ee.List(dic.get('stats'))
+                stats_true2 = ee.List(dic.get("stats"))
                 tocompute = original_true2 if use_original else stats_true2.add(ima)
                 tempcol2 = ee.ImageCollection.fromImages(tocompute)
                 stats2 = tempcol2.reduce(reducer)
                 stats2 = stats2.rename(ima.bandNames())
-                stats2 = ee.Image(stats2.copyProperties(ima, properties=ima.propertyNames()))
-                return ee.Dictionary({
-                    'original': original_true2,
-                    'stats': stats_true2.add(stats2)
-                })
+                stats2 = ee.Image(
+                    stats2.copyProperties(ima, properties=ima.propertyNames())
+                )
+                return ee.Dictionary(
+                    {"original": original_true2, "stats": stats_true2.add(stats2)}
+                )
 
             def false2(ima, dic):
                 # first element
-                original_false2 = ee.List(dic.get('original'))
-                stats_false2 = ee.List(dic.get('stats'))
-                return ee.Dictionary({
-                    'original': original_false2.add(ima),
-                    'stats': stats_false2.add(ima)
-                })
+                original_false2 = ee.List(dic.get("original"))
+                stats_false2 = ee.List(dic.get("stats"))
+                return ee.Dictionary(
+                    {
+                        "original": original_false2.add(ima),
+                        "stats": stats_false2.add(ima),
+                    }
+                )
 
             return ee.Dictionary(
-                ee.Algorithms.If(condition2, true2(im, di), false2(im, di)))
+                ee.Algorithms.If(condition2, true2(im, di), false2(im, di))
+            )
 
         condition = original.size().gte(back)
-        return ee.Dictionary(
-            ee.Algorithms.If(condition, true(i, d), false(i, d)))
+        return ee.Dictionary(ee.Algorithms.If(condition, true(i, d), false(i, d)))
 
     final = ee.Dictionary(
-        collection.iterate(wrap, ee.Dictionary({'original': [], 'stats': []})))
-    return ee.ImageCollection.fromImages(ee.List(final.get('stats')))
+        collection.iterate(wrap, ee.Dictionary({"original": [], "stats": []}))
+    )
+    return ee.ImageCollection.fromImages(ee.List(final.get("stats")))
 
 
 def aggregate_array_all(collection):
-    """ Aggregate array in all images and return a list of dicts """
+    """Aggregate array in all images and return a list of dicts"""
     props = collection.first().propertyNames()
     allprops = props.map(lambda p: collection.aggregate_array(p))
     transposed = ee_list.transpose(allprops)
@@ -1142,11 +1225,13 @@ def aggregate_array_all(collection):
 
 
 def toBands(collection):
-    """ Convert an ImageCollection into an Image. The bands of the images
+    """Convert an ImageCollection into an Image. The bands of the images
     inside the collection MUST be renamed. Similar to
-    ee.ImageCollection.toBands but it does not add a suffix """
+    ee.ImageCollection.toBands but it does not add a suffix"""
+
     def wrap(image, accum):
         accum = ee.List(accum)
+
         def true():
             last = ee.Image(accum.get(-1))
             return accum.add(last.addBands(image)).slice(-1)
@@ -1156,4 +1241,5 @@ def toBands(collection):
 
         condition = accum.size()
         return ee.List(ee.Algorithms.If(condition, true(), false()))
+
     return ee.Image(ee.List(collection.iterate(wrap, ee.List([]))).get(-1))

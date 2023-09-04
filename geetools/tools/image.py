@@ -12,7 +12,7 @@ from ..ui import map as mapui
 
 
 def _add_suffix_prefix(image, value, option, bands=None):
-    """ Internal function to handle addPrefix and addSuffix """
+    """Internal function to handle addPrefix and addSuffix"""
     if bands:
         bands = ee.List(bands)
 
@@ -23,10 +23,9 @@ def _add_suffix_prefix(image, value, option, bands=None):
 
     def over_bands(band, first):
         all = ee.List(first)
-        options = ee.Dictionary({
-            'suffix': ee.String(band).cat(addon),
-            'prefix': addon.cat(ee.String(band))
-        })
+        options = ee.Dictionary(
+            {"suffix": ee.String(band).cat(addon), "prefix": addon.cat(ee.String(band))}
+        )
         return all.replace(band, ee.String(options.get(option)))
 
     newbands = bands_.iterate(over_bands, allbands)
@@ -35,7 +34,7 @@ def _add_suffix_prefix(image, value, option, bands=None):
 
 
 def addSuffix(image, suffix, bands=None):
-    """ Add a suffix to the specified bands
+    """Add a suffix to the specified bands
 
     :param suffix: the value to add as a suffix
     :type suffix: str
@@ -44,11 +43,11 @@ def addSuffix(image, suffix, bands=None):
     :type bands: list
     :rtype: ee.Image
     """
-    return _add_suffix_prefix(image, suffix, 'suffix', bands)
+    return _add_suffix_prefix(image, suffix, "suffix", bands)
 
 
 def addPrefix(image, prefix, bands=None):
-    """ Add a prefix to the specified bands
+    """Add a prefix to the specified bands
 
     :param prefix: the value to add as a prefix
     :type prefix: str
@@ -57,21 +56,21 @@ def addPrefix(image, prefix, bands=None):
     :type bands: list
     :rtype: ee.Image
     """
-    return _add_suffix_prefix(image, prefix, 'prefix', bands)
+    return _add_suffix_prefix(image, prefix, "prefix", bands)
 
 
-def bufferMask(image, radius=1.5, kernelType='square', units='pixels'):
-    """ Make a buffer around the masked pixels """
+def bufferMask(image, radius=1.5, kernelType="square", units="pixels"):
+    """Make a buffer around the masked pixels"""
     masked = image.mask().Not()
     buffer = masked.focal_max(radius, kernelType, units)
     return image.updateMask(buffer.Not())
 
 
-def deleteProperties(image, delete=None, keep=None, proxy_name='proxy'):
-    """ Workaround for deleting properties of an Image. You can set
+def deleteProperties(image, delete=None, keep=None, proxy_name="proxy"):
+    """Workaround for deleting properties of an Image. You can set
     `proxy_name` in case the original image already has that band. If `delete`
     is None it will delete all properties, otherwise it can be a list of
-    properties to delete """
+    properties to delete"""
     bands = image.bandNames()
     proxy = ee.Image().rename(proxy_name)
     deleted = proxy.addBands(image).select(bands)
@@ -83,7 +82,7 @@ def deleteProperties(image, delete=None, keep=None, proxy_name='proxy'):
 
 
 def empty(value=0, names=None, from_dict=None):
-    """ Create a constant image with the given band names and value, and/or
+    """Create a constant image with the given band names and value, and/or
     from a dictionary of {name: value}
 
     :param names: list of names
@@ -98,12 +97,13 @@ def empty(value=0, names=None, from_dict=None):
     bandnames = ee.List([])
     if names:
         bandnames = names if isinstance(names, ee.List) else ee.List(names)
+
         def bn(name, img):
             img = ee.Image(img)
             newi = ee.Image(value).select([0], [name])
             return img.addBands(newi)
-        image = ee.Image(bandnames.iterate(bn, image)) \
-            .select(bandnames)
+
+        image = ee.Image(bandnames.iterate(bn, image)).select(bandnames)
 
     if from_dict:
         from_dict = ee.Dictionary(from_dict)
@@ -116,8 +116,8 @@ def empty(value=0, names=None, from_dict=None):
 
 
 def emptyBackground(image, value=0):
-    """ Make all background pixels (not only masked, but all over the world)
-    take the parsed value """
+    """Make all background pixels (not only masked, but all over the world)
+    take the parsed value"""
     bnames = image.bandNames()
     emp = empty(value, bnames).toFloat()
     prop = image.propertyNames()
@@ -125,9 +125,8 @@ def emptyBackground(image, value=0):
     return ee.Image(emp.blend(image)).setMulti(props)
 
 
-def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False,
-              region=None):
-    """ Make an empty copy of the given image """
+def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False, region=None):
+    """Make an empty copy of the given image"""
     if not region:
         footprint = image.geometry()
     else:
@@ -138,12 +137,11 @@ def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False,
     if keepMask:
         emp = emp.updateMask(image.mask())
 
-    return ee.Image(ee.Algorithms.If(footprint.isUnbounded(),
-                                     emp, emp.clip(footprint)))
+    return ee.Image(ee.Algorithms.If(footprint.isUnbounded(), emp, emp.clip(footprint)))
 
 
 def getValue(image, point, scale=None, side="server"):
-    """ Return the value of all bands of the image in the specified point
+    """Return the value of all bands of the image in the specified point
 
     :param img: Image to get the info from
     :type img: ee.Image
@@ -168,16 +166,16 @@ def getValue(image, point, scale=None, side="server"):
 
     result = image.reduceRegion(ee.Reducer.first(), point, scale)
 
-    if side == 'server':
+    if side == "server":
         return result
-    elif side == 'client':
+    elif side == "client":
         return result.getInfo()
     else:
         raise ValueError("side parameter must be 'server' or 'client'")
 
 
 def addMultiBands(imagesList):
-    """ Image.addBands for many images. All bands from all images will be
+    """Image.addBands for many images. All bands from all images will be
     put together, so if there is one band with the same name in different
     images, the first occurrence will keep the name and the rest will have a
     number suffix ({band}_1, {band}_2, etc)
@@ -199,7 +197,7 @@ def addMultiBands(imagesList):
 
 
 def renameDict(image, names):
-    """ Renames bands of images using a dict
+    """Renames bands of images using a dict
 
     :param names: matching names where key is original name and values the
         new name
@@ -227,7 +225,7 @@ def renameDict(image, names):
 
 
 def removeBands(image, bands):
-    """ Remove the specified bands from an image """
+    """Remove the specified bands from an image"""
     bnames = image.bandNames()
     bands = ee.List(bands)
     inter = ee_list.intersection(bnames, bands)
@@ -236,7 +234,7 @@ def removeBands(image, bands):
 
 
 def parametrize(image, range_from, range_to, bands=None, drop=False):
-    """ Parametrize from a original **known** range to a fixed new range
+    """Parametrize from a original **known** range to a fixed new range
 
     :param range_from: Original range. example: (0, 5000)
     :type range_from: tuple
@@ -251,11 +249,11 @@ def parametrize(image, range_from, range_to, bands=None, drop=False):
     :return: the parsed image with the parsed bands parametrized
     :rtype: ee.Image
     """
-    original_range = range_from if isinstance(range_from, ee.List) \
-        else ee.List(range_from)
+    original_range = (
+        range_from if isinstance(range_from, ee.List) else ee.List(range_from)
+    )
 
-    final_range = range_to if isinstance(range_to, ee.List) \
-        else ee.List(range_to)
+    final_range = range_to if isinstance(range_to, ee.List) else ee.List(range_to)
 
     # original min and max
     min0 = ee.Image.constant(original_range.get(0))
@@ -302,7 +300,7 @@ def parametrize(image, range_from, range_to, bands=None, drop=False):
 
 
 def sumBands(image, name="sum", bands=None):
-    """ Adds all *bands* values and puts the result on *name*.
+    """Adds all *bands* values and puts the result on *name*.
 
     There are 2 ways to use it:
 
@@ -330,9 +328,9 @@ def sumBands(image, name="sum", bands=None):
     # TODO: check if passed band names are in band names # DONE
     def sum_bands(n, ini):
         condition = ee.List(band_names).contains(n)
-        return ee.Algorithms.If(condition,
-                                ee.Image(ini).add(image.select([n])),
-                                ee.Image(ini))
+        return ee.Algorithms.If(
+            condition, ee.Image(ini).add(image.select([n])), ee.Image(ini)
+        )
 
     newimg = ee.Image(bn.iterate(sum_bands, nim))
 
@@ -340,7 +338,7 @@ def sumBands(image, name="sum", bands=None):
 
 
 def replace(image, to_replace, to_add):
-    """ Replace one band of the image with a provided band
+    """Replace one band of the image with a provided band
 
     :param to_replace: name of the band to replace. If the image hasn't got
         that band, it will be added to the image.
@@ -361,7 +359,7 @@ def replace(image, to_replace, to_add):
 
 
 def addConstantBands(image, value=None, *names, **pairs):
-    """ Adds bands with a constant value
+    """Adds bands with a constant value
 
     :param names: final names for the additional bands
     :type names: str
@@ -405,8 +403,9 @@ def addConstantBands(image, value=None, *names, **pairs):
         list1 = []
 
     if pairs:
-        list2 = [ee.Image.constant(val).select([0], [key]) for key, val \
-                 in pairs.items()]
+        list2 = [
+            ee.Image.constant(val).select([0], [key]) for key, val in pairs.items()
+        ]
     else:
         list2 = []
 
@@ -423,7 +422,7 @@ def addConstantBands(image, value=None, *names, **pairs):
 
 
 def minscale(image):
-    """ Get the minimal scale of an Image, looking at all Image's bands.
+    """Get the minimal scale of an Image, looking at all Image's bands.
     For example if:
         B1 = 30
         B2 = 60
@@ -449,7 +448,7 @@ def minscale(image):
 
 
 def mixBands(imgs):
-    """ Mix all bands into a single image """
+    """Mix all bands into a single image"""
     if isinstance(imgs, (list, tuple)):
         imgs = ee.List(imgs)
 
@@ -460,7 +459,7 @@ def mixBands(imgs):
 
 
 def computeBits(image, start, end, newName):
-    """ Compute the bits of an image
+    """Compute the bits of an image
 
     :param start: start bit
     :type start: int
@@ -488,13 +487,12 @@ def computeBits(image, start, end, newName):
 
     patt = ee.Number(patt).toInt()
 
-    good_pix = image.select([0], [newName]).toInt() \
-        .bitwiseAnd(patt).rightShift(start)
+    good_pix = image.select([0], [newName]).toInt().bitwiseAnd(patt).rightShift(start)
     return good_pix.toInt()
 
 
 def passProperty(image, to, properties):
-    """ Pass properties from one image to another
+    """Pass properties from one image to another
 
     :param img_with: image that has the properties to tranpass
     :type img_with: ee.Image
@@ -511,8 +509,8 @@ def passProperty(image, to, properties):
     return to
 
 
-def goodPix(image, retain=None, drop=None, name='good_pix'):
-    """ Get a 'good pixels' bands from the image's bands that retain the good
+def goodPix(image, retain=None, drop=None, name="good_pix"):
+    """Get a 'good pixels' bands from the image's bands that retain the good
     pixels and drop the bad pixels. It will first retain the retainable bands
     and then drop the droppable ones
 
@@ -548,7 +546,7 @@ def goodPix(image, retain=None, drop=None, name='good_pix'):
 
 
 def toGrid(image, size=1, band=None, geometry=None):
-    """ Create a grid from pixels in an image. Results may depend on the image
+    """Create a grid from pixels in an image. Results may depend on the image
     projection. Work fine in Landsat imagery.
 
     IMPORTANT: This grid is not perfect, it can be misplaced and have some
@@ -581,23 +579,22 @@ def toGrid(image, size=1, band=None, geometry=None):
 
     projection = iband.projection()
     scale = projection.nominalScale()
-    scale = scale.multiply((int(size)*2)-1)
+    scale = scale.multiply((int(size) * 2) - 1)
     buffer = scale.divide(2)
 
     # get coordinates image
     latlon = ee.Image.pixelLonLat().reproject(projection)
 
     # put each lon lat in a list
-    coords = latlon.select(['longitude', 'latitude'])
+    coords = latlon.select(["longitude", "latitude"])
 
     coords = coords.reduceRegion(
-        reducer= ee.Reducer.toList(),
-        geometry= geometry.buffer(scale),
-        scale= scale)
+        reducer=ee.Reducer.toList(), geometry=geometry.buffer(scale), scale=scale
+    )
 
     # get lat & lon
-    lat = ee.List(coords.get('latitude'))
-    lon = ee.List(coords.get('longitude'))
+    lat = ee.List(coords.get("latitude"))
+    lon = ee.List(coords.get("longitude"))
 
     # zip them. Example: zip([1, 3],[2, 4]) --> [[1, 2], [3,4]]
     point_list = lon.zip(lat)
@@ -614,7 +611,7 @@ def toGrid(image, size=1, band=None, geometry=None):
 
 
 def renamePattern(image, pattern, bands=None):
-    """ Rename the bands of the parsed image with the given pattern
+    """Rename the bands of the parsed image with the given pattern
 
     :param image:
     :param pattern: the special keyword `{band}` will be replaced with the
@@ -628,30 +625,44 @@ def renamePattern(image, pattern, bands=None):
     pattern = ee.String(pattern)
     selected = image.select(bands) if bands else image
 
-    pattern = pattern.trim().split(' ').join('_')
+    pattern = pattern.trim().split(" ").join("_")
 
     bands_to_replace = selected.bandNames()
 
     def wrap(name):
-        condition = pattern.index('{band}').gt(0)
+        condition = pattern.index("{band}").gt(0)
 
-        return ee.String(ee.Algorithms.If(
-            condition,
-            pattern.replace('{band}', ee.String(name)),
-            ee.String(name)))
+        return ee.String(
+            ee.Algorithms.If(
+                condition, pattern.replace("{band}", ee.String(name)), ee.String(name)
+            )
+        )
 
     newbands = bands_to_replace.map(wrap)
 
     new_allbands = ee_list.replaceDict(
-        allbands, ee.Dictionary.fromLists(bands_to_replace, newbands))
+        allbands, ee.Dictionary.fromLists(bands_to_replace, newbands)
+    )
 
     return image.select(allbands, new_allbands)
 
 
-def gaussFunction(image, band, range_min=None, range_max=None, mean=0,
-                  std=None, output_min=None, output_max=1, stretch=1,
-                  region=None, scale=None, name='gauss', **kwargs):
-    """ Apply the Guassian function to an Image.
+def gaussFunction(
+    image,
+    band,
+    range_min=None,
+    range_max=None,
+    mean=0,
+    std=None,
+    output_min=None,
+    output_max=1,
+    stretch=1,
+    region=None,
+    scale=None,
+    name="gauss",
+    **kwargs
+):
+    """Apply the Guassian function to an Image.
     https://en.wikipedia.org/wiki/Gaussian_function
 
     :param band: the name of the band to use
@@ -682,23 +693,26 @@ def gaussFunction(image, band, range_min=None, range_max=None, mean=0,
         scale = image.projection().nominalScale()
 
     if range_min is None and range_max is None:
-        minmax = image.reduceRegion(reducer=ee.Reducer.minMax(),
-                                    geometry=region, scale=scale, **kwargs)
-        minname = '{}_min'.format(band)
-        maxname = '{}_max'.format(band)
+        minmax = image.reduceRegion(
+            reducer=ee.Reducer.minMax(), geometry=region, scale=scale, **kwargs
+        )
+        minname = "{}_min".format(band)
+        maxname = "{}_max".format(band)
 
         range_min = ee.Image.constant(minmax.get(minname))
         range_max = ee.Image.constant(minmax.get(maxname))
 
     elif range_min is None:
-        minmax = image.reduceRegion(reducer=ee.Reducer.min(),
-                                    geometry=region, scale=scale, **kwargs)
+        minmax = image.reduceRegion(
+            reducer=ee.Reducer.min(), geometry=region, scale=scale, **kwargs
+        )
         range_min = ee.Image.constant(minmax.get(band))
         range_max = castImage(range_max)
 
     elif range_max is None:
-        minmax = image.reduceRegion(reducer=ee.Reducer.max(),
-                                    geometry=region, scale=scale, **kwargs)
+        minmax = image.reduceRegion(
+            reducer=ee.Reducer.max(), geometry=region, scale=scale, **kwargs
+        )
         range_max = ee.Image.constant(minmax.get(band))
         range_min = castImage(range_min)
     else:
@@ -718,13 +732,15 @@ def gaussFunction(image, band, range_min=None, range_max=None, mean=0,
 
     def compute_gauss(img):
         result = ee.Image().expression(
-            'exp(((val-mean)**2)/(-2*(std**2))*(abs(stretch)))*max',
-            {'val': img,
-             'mean': mean,
-             'std': std,
-             'max': output_max,
-             'stretch': stretch
-             })
+            "exp(((val-mean)**2)/(-2*(std**2))*(abs(stretch)))*max",
+            {
+                "val": img,
+                "mean": mean,
+                "std": std,
+                "max": output_max,
+                "stretch": stretch,
+            },
+        )
         return result
 
     no_parametrized = compute_gauss(image)
@@ -737,17 +753,19 @@ def gaussFunction(image, band, range_min=None, range_max=None, mean=0,
         min_result_final = min_result.min(max_result)
 
         parametrized = ee.Image().expression(
-            '(value-min_result)/(max-min_result)*(max-min)+min',
-            {'value': no_parametrized,
-             'min_result': min_result_final,
-             'max': output_max,
-             'min': output_min
-             })
+            "(value-min_result)/(max-min_result)*(max-min)+min",
+            {
+                "value": no_parametrized,
+                "min_result": min_result_final,
+                "max": output_max,
+                "min": output_min,
+            },
+        )
         return parametrized.rename(name)
 
 
 def makeName(img, pattern, date_pattern=None, extra=None):
-    """ Make a name with the given pattern. The pattern must contain the
+    """Make a name with the given pattern. The pattern must contain the
     propeties to replace between curly braces. There are 2 special words:
 
     * 'system_date': replace with the date of the image formatted with
@@ -761,14 +779,16 @@ def makeName(img, pattern, date_pattern=None, extra=None):
     """
     img = ee.Image(img)
     props = img.toDictionary()
-    props = ee.Dictionary(ee.Algorithms.If(
-        img.id(),
-        props.set('id', img.id()).set('ID', img.id()),
-        props))
-    props = ee.Dictionary(ee.Algorithms.If(
-        img.propertyNames().contains('system:time_start'),
-        props.set('system_date', img.date().format(date_pattern)),
-        props))
+    props = ee.Dictionary(
+        ee.Algorithms.If(img.id(), props.set("id", img.id()).set("ID", img.id()), props)
+    )
+    props = ee.Dictionary(
+        ee.Algorithms.If(
+            img.propertyNames().contains("system:time_start"),
+            props.set("system_date", img.date().format(date_pattern)),
+            props,
+        )
+    )
     if extra:
         extra = ee.Dictionary(extra)
         props = props.combine(extra)
@@ -777,38 +797,58 @@ def makeName(img, pattern, date_pattern=None, extra=None):
     return name
 
 
-def normalDistribution(image, band, mean=None, std=None, region=None,
-                       scale=None, name='normal_distribution', **kwargs):
-    """ Compute a Normal Distribution using the Gaussian Function """
+def normalDistribution(
+    image,
+    band,
+    mean=None,
+    std=None,
+    region=None,
+    scale=None,
+    name="normal_distribution",
+    **kwargs
+):
+    """Compute a Normal Distribution using the Gaussian Function"""
     pi = ee.Number(math.pi)
 
     image = image.select(band)
 
     if mean is None:
-        mean = image.reduceRegion(reducer=ee.Reducer.mean(),
-                                  geometry=region, scale=scale, **kwargs)
+        mean = image.reduceRegion(
+            reducer=ee.Reducer.mean(), geometry=region, scale=scale, **kwargs
+        )
         mean = ee.Image.constant(mean.get(band))
     else:
         mean = castImage(mean)
 
     if std is None:
-        std = image.reduceRegion(reducer=ee.Reducer.stdDev(),
-                                 geometry=region, scale=scale, **kwargs)
+        std = image.reduceRegion(
+            reducer=ee.Reducer.stdDev(), geometry=region, scale=scale, **kwargs
+        )
         std = ee.Image.constant(std.get(band))
     else:
         std = castImage(std)
 
-    output_max = ee.Image(1)\
-                   .divide(std.multiply(ee.Image(2).multiply(pi).sqrt()))
+    output_max = ee.Image(1).divide(std.multiply(ee.Image(2).multiply(pi).sqrt()))
 
-    return gaussFunction(image, band, mean=mean, std=std,
-                         output_max=output_max, name=name, **kwargs)
+    return gaussFunction(
+        image, band, mean=mean, std=std, output_max=output_max, name=name, **kwargs
+    )
 
 
-def linearFunction(image, band, range_min=None, range_max=None, mean=None,
-                   output_min=None, output_max=None, name='linear_function',
-                   region=None, scale=None, **kwargs):
-    """ Apply a linear function over one image band using the following
+def linearFunction(
+    image,
+    band,
+    range_min=None,
+    range_max=None,
+    mean=None,
+    output_min=None,
+    output_max=None,
+    name="linear_function",
+    region=None,
+    scale=None,
+    **kwargs
+):
+    """Apply a linear function over one image band using the following
     formula:
 
     - a = abs(val-mean)
@@ -848,23 +888,26 @@ def linearFunction(image, band, range_min=None, range_max=None, mean=None,
         scale = image.projection().nominalScale()
 
     if range_min is None and range_max is None:
-        minmax = image.reduceRegion(reducer=ee.Reducer.minMax(),
-                                    geometry=region, scale=scale, **kwargs)
-        minname = '{}_min'.format(band)
-        maxname = '{}_max'.format(band)
+        minmax = image.reduceRegion(
+            reducer=ee.Reducer.minMax(), geometry=region, scale=scale, **kwargs
+        )
+        minname = "{}_min".format(band)
+        maxname = "{}_max".format(band)
 
         imin = ee.Image.constant(minmax.get(minname))
         imax = ee.Image.constant(minmax.get(maxname))
 
     elif range_min is None:
-        minmax = image.reduceRegion(reducer=ee.Reducer.min(),
-                                    geometry=region, scale=scale, **kwargs)
+        minmax = image.reduceRegion(
+            reducer=ee.Reducer.min(), geometry=region, scale=scale, **kwargs
+        )
         imin = ee.Image.constant(minmax.get(band))
         imax = castImage(range_max)
 
     elif range_max is None:
-        minmax = image.reduceRegion(reducer=ee.Reducer.max(),
-                                    geometry=region, scale=scale, **kwargs)
+        minmax = image.reduceRegion(
+            reducer=ee.Reducer.max(), geometry=region, scale=scale, **kwargs
+        )
         imax = ee.Image.constant(minmax.get(band))
         imin = castImage(range_min)
     else:
@@ -887,22 +930,24 @@ def linearFunction(image, band, range_min=None, range_max=None, mean=None,
     t = a.max(b)
 
     result = ee.Image().expression(
-        'abs(val-mean)*(-1)*((max-min)/t)+max',
-        {'val': image,
-         'mean': imean,
-         't': t,
-         'imin': imin,
-         'max': output_max,
-         'min': output_min
-         })
+        "abs(val-mean)*(-1)*((max-min)/t)+max",
+        {
+            "val": image,
+            "mean": imean,
+            "t": t,
+            "imin": imin,
+            "max": output_max,
+            "min": output_min,
+        },
+    )
 
     return result.rename(name)
 
 
-def doyToDate(image, dateFormat='yyyyMMdd', year=None):
-    """ Make a date band from a day of year band """
+def doyToDate(image, dateFormat="yyyyMMdd", year=None):
+    """Make a date band from a day of year band"""
     if not year:
-        year = image.date().get('year')
+        year = image.date().get("year")
 
     doyband = image.select([0])
     leap = date.isLeap(year)
@@ -919,18 +964,25 @@ def doyToDate(image, dateFormat='yyyyMMdd', year=None):
 
     datei = ee.Image(alldoys.iterate(wrap, doyband))
 
-    return datei.rename('date')
+    return datei.rename("date")
 
 
 def maskInside(image, geometry):
-    """ This is the opposite to ee.Image.clip(geometry) """
+    """This is the opposite to ee.Image.clip(geometry)"""
     mask = ee.Image.constant(1).clip(geometry).mask().Not()
     return image.updateMask(mask)
 
 
-def paint(image, featurecollection, vis_params=None, color='black', width=1,
-          fillColor=None, **kwargs):
-    """ Paint a FeatureCollection onto an Image. Returns an Image with three
+def paint(
+    image,
+    featurecollection,
+    vis_params=None,
+    color="black",
+    width=1,
+    fillColor=None,
+    **kwargs
+):
+    """Paint a FeatureCollection onto an Image. Returns an Image with three
     bands: vis-blue, vis-geen, vis-red (uint8)
 
     It admits the same parameters as ee.FeatureCollection.style
@@ -939,55 +991,64 @@ def paint(image, featurecollection, vis_params=None, color='black', width=1,
         fillColor = "#00000000"
     if not vis_params:
         firstband = ee.String(image.bandNames().get(0))
-        vis_params = dict(bands=[firstband, firstband, firstband], min=0,
-                          max=1)
+        vis_params = dict(bands=[firstband, firstband, firstband], min=0, max=1)
     region = image.geometry()
     filtered = ee.FeatureCollection(
         ee.Algorithms.If(
             region.isUnbounded(),
             featurecollection,
-            featurecollection.filterBounds(region)
-        ))
-    fcraster = filtered.style(color=color, width=width, fillColor=fillColor,
-                              **kwargs)
-    mask = fcraster.reduce('sum').gte(0).rename('mask')
+            featurecollection.filterBounds(region),
+        )
+    )
+    fcraster = filtered.style(color=color, width=width, fillColor=fillColor, **kwargs)
+    mask = fcraster.reduce("sum").gte(0).rename("mask")
     topaint = image.visualize(**vis_params)
     final = topaint.where(mask, fcraster)
     final = final.copyProperties(source=image)
     properties = image.propertyNames()
-    final = ee.Image(ee.Algorithms.If(
-        properties.contains('system:time_start'),
-        final.set('system:time_start', image.date().millis()),
-        final))
-    final = ee.Image(ee.Algorithms.If(
-        properties.contains('system:time_end'),
-        final.set('system:time_end', ee.Number(image.get('system:time_end'))),
-        final))
+    final = ee.Image(
+        ee.Algorithms.If(
+            properties.contains("system:time_start"),
+            final.set("system:time_start", image.date().millis()),
+            final,
+        )
+    )
+    final = ee.Image(
+        ee.Algorithms.If(
+            properties.contains("system:time_end"),
+            final.set("system:time_end", ee.Number(image.get("system:time_end"))),
+            final,
+        )
+    )
 
     return final
 
 
 def repeatBand(image, times=None, names=None, properties=None):
-    """ Repeat one band. If the image parsed has more than one band, the first
-    will be used """
+    """Repeat one band. If the image parsed has more than one band, the first
+    will be used"""
     band = ee.Image(image.select([0]))
     if times is not None:
         times = ee.Number(times)
         proxylist = ee.List.repeat(0, times.subtract(1))
+
         def add(band, i):
             band = ee.Image(band)
             i = ee.Image(i)
             return i.addBands(band)
+
         proxyImg = proxylist.map(lambda n: band)
         repeated = ee.Image(proxyImg.iterate(add, band))
     else:
         newNames = ee.List(names)
         firstName = ee.String(newNames.get(0))
         rest = ee.List(newNames.slice(1))
+
         def add(name, i):
             name = ee.String(name)
             i = ee.Image(i)
             return i.addBands(band.rename(name))
+
         first = band.rename(firstName)
         repeated = ee.Image(rest.iterate(add, first))
 
@@ -1004,10 +1065,11 @@ def arrayNonZeros(image):
     :param image:
     :return:
     """
+
     def wrap(arr):
         binarr = arr.divide(arr)
         n = binarr.arrayReduce(ee.Reducer.sum(), [0]).multiply(-1)
-        nimg = n.arrayProject([0]).arrayFlatten([['n']]).toInt()
+        nimg = n.arrayProject([0]).arrayFlatten([["n"]]).toInt()
         sorted = arr.arraySort()
         sliced = sorted.arraySlice(0, nimg)
         return sliced
@@ -1029,21 +1091,22 @@ def arrayNonZeros(image):
 
 
 def getTileURL(image, visParams=None):
-    """ Get the URL for the given image passing a normal visualization
-    parameters like `{'bands':['B4','B3','B2'], 'min':0, 'max':5000}` """
+    """Get the URL for the given image passing a normal visualization
+    parameters like `{'bands':['B4','B3','B2'], 'min':0, 'max':5000}`"""
     if visParams:
         vis = mapui.formatVisParams(visParams)
         image_info = image.getMapId(vis)
     else:
         image_info = image.getMapId()
-    fetcher = image_info['tile_fetcher']
+    fetcher = image_info["tile_fetcher"]
     return fetcher.url_format
 
 
 def applyMask(image, mask, bands=None, negative=True):
-    """ Apply a passed positive mask """
+    """Apply a passed positive mask"""
     bands = bands or mask.bandNames()
     bands = ee.List(bands)
+
     def wrap(band, img):
         img = ee.Image(img)
         band = ee.String(band)
@@ -1054,10 +1117,18 @@ def applyMask(image, mask, bands=None, negative=True):
     return ee.Image(bands.iterate(wrap, image))
 
 
-def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
-              crs=None, crsTransform=None, bestEffort=False,
-              maxPixels=1e13, tileScale=1):
-    """ Percentage of masked pixels (masked/total * 100) as an Image property
+def maskCover(
+    image,
+    geometry=None,
+    scale=None,
+    property_name="MASK_COVER",
+    crs=None,
+    crsTransform=None,
+    bestEffort=False,
+    maxPixels=1e13,
+    tileScale=1,
+):
+    """Percentage of masked pixels (masked/total * 100) as an Image property
 
     :param image: ee.Image holding the mask. If the image has more than
         one band, the first one will be used
@@ -1099,10 +1170,10 @@ def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
 
     # Get total number of pixels
     ones = ones_i.reduceRegion(
-        reducer= ee.Reducer.count(),
-        geometry= geometry,
-        scale= scale,
-        maxPixels= maxPixels,
+        reducer=ee.Reducer.count(),
+        geometry=geometry,
+        scale=scale,
+        maxPixels=maxPixels,
         crs=crs,
         crsTransform=crsTransform,
         bestEffort=bestEffort,
@@ -1116,15 +1187,15 @@ def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
     image_to_compute = mask.updateMask(mask_not)
 
     # Get number of zeros in the given image
-    zeros_in_mask =  image_to_compute.reduceRegion(
-        reducer= ee.Reducer.count(),
-        geometry= geometry,
-        scale= scale,
-        maxPixels= maxPixels,
+    zeros_in_mask = image_to_compute.reduceRegion(
+        reducer=ee.Reducer.count(),
+        geometry=geometry,
+        scale=scale,
+        maxPixels=maxPixels,
         crs=crs,
         crsTransform=crsTransform,
         bestEffort=bestEffort,
-        tileScale=tileScale
+        tileScale=tileScale,
     ).get(band)
     zeros_in_mask = ee.Number(zeros_in_mask)
 
@@ -1138,24 +1209,34 @@ def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
     return image.set(property_name, final)
 
 
-def regionCover(image, region, bands=None, scale=None, operator='OR',
-                property_name='REGION_COVER', crs=None, crsTransform=None,
-                bestEffort=False, maxPixels=1e13, tileScale=1):
-    """ Compute the percentage of values greater than 1 in a region. If more
-     than one band is specified, it applies the specified operator """
-    operators = ['OR', 'AND']
+def regionCover(
+    image,
+    region,
+    bands=None,
+    scale=None,
+    operator="OR",
+    property_name="REGION_COVER",
+    crs=None,
+    crsTransform=None,
+    bestEffort=False,
+    maxPixels=1e13,
+    tileScale=1,
+):
+    """Compute the percentage of values greater than 1 in a region. If more
+    than one band is specified, it applies the specified operator"""
+    operators = ["OR", "AND"]
     if operator not in operators:
-        raise ValueError('operator must be one of {}'.format(operators))
+        raise ValueError("operator must be one of {}".format(operators))
 
     if not bands:
         bands = ee.List([image.bandNames().get(0)])
 
-    if operator == 'AND':
+    if operator == "AND":
         reducer = ee.Reducer.bitwiseAnd()
     else:
         reducer = ee.Reducer.bitwiseOr()
 
-    bandname = 'regionCover'
+    bandname = "regionCover"
     mask = image.select(bands).reduce(reducer).rename(bandname)
 
     # get projection
@@ -1175,10 +1256,10 @@ def regionCover(image, region, bands=None, scale=None, operator='OR',
 
     # Get total number of pixels
     ones = ones_i.reduceRegion(
-        reducer= ee.Reducer.count(),
-        geometry= region,
-        scale= scale,
-        maxPixels= maxPixels,
+        reducer=ee.Reducer.count(),
+        geometry=region,
+        scale=scale,
+        maxPixels=maxPixels,
         crs=crs,
         crsTransform=crsTransform,
         bestEffort=bestEffort,
@@ -1190,15 +1271,15 @@ def regionCover(image, region, bands=None, scale=None, operator='OR',
     image_to_compute = mask.selfMask()
 
     # Get number of zeros in the given image
-    zeros_in_mask =  image_to_compute.reduceRegion(
-        reducer= ee.Reducer.count(),
-        geometry= region,
-        scale= scale,
-        maxPixels= maxPixels,
+    zeros_in_mask = image_to_compute.reduceRegion(
+        reducer=ee.Reducer.count(),
+        geometry=region,
+        scale=scale,
+        maxPixels=maxPixels,
         crs=crs,
         crsTransform=crsTransform,
         bestEffort=bestEffort,
-        tileScale=tileScale
+        tileScale=tileScale,
     ).get(bandname)
     zeros_in_mask = ee.Number(zeros_in_mask)
 
@@ -1212,8 +1293,8 @@ def regionCover(image, region, bands=None, scale=None, operator='OR',
     return image.set(property_name, final)
 
 
-def proxy(values=(0,), names=('constant',), types=('int8',)):
-    """ Create a proxy image with the given values, names and types
+def proxy(values=(0,), names=("constant",), types=("int8",)):
+    """Create a proxy image with the given values, names and types
 
     :param values: list of values for every band of the resulting image
     :type values: list
@@ -1240,8 +1321,9 @@ def proxy(values=(0,), names=('constant',), types=('int8',)):
 
 
 def clipToCollection(image, featureCollection, keepFeatureProperties=True):
-    """ Clip an image using each feature of a collection and return an
-    ImageCollection with one image per feature """
+    """Clip an image using each feature of a collection and return an
+    ImageCollection with one image per feature"""
+
     def overFC(feat):
         geom = feat.geometry()
         clipped = image.clip(geom)
@@ -1254,31 +1336,30 @@ def clipToCollection(image, featureCollection, keepFeatureProperties=True):
 
 
 class Classification(object):
-    """ Class holding (static) methods for classified images. """
+    """Class holding (static) methods for classified images."""
+
     @staticmethod
-    def vectorize(image, categories, label='label'):
-        """ Reduce to vectors the selected classes fro a classified image
+    def vectorize(image, categories, label="label"):
+        """Reduce to vectors the selected classes fro a classified image
 
         :param categories: the categories to vectorize
         :type categories: list
 
         """
+
         def over_cat(cat, ini):
             cat = ee.Number(cat)
             ini = ee.Image(ini)
             return ini.add(image.eq(cat).multiply(cat))
 
-        filtered = ee.Image(
-            ee.List(categories).iterate(over_cat,
-                                        empty(0, [label])))
+        filtered = ee.Image(ee.List(categories).iterate(over_cat, empty(0, [label])))
 
         out = filtered.neq(0)
         filtered = filtered.updateMask(out)
 
-        return filtered.reduceToVectors(**{
-            'scale': 30,
-            'maxPixels':1e13,
-            'labelProperty': label})
+        return filtered.reduceToVectors(
+            **{"scale": 30, "maxPixels": 1e13, "labelProperty": label}
+        )
 
 
 # Create a lookup table to make sourceHist match targetHist.
@@ -1293,24 +1374,28 @@ def _lookup(sourceHist, targetHist):
     targetCounts = targetCounts.divide(targetCounts.get([-1]))
 
     # Find first position in target where targetCount >= srcCount[i], for each i.
-    lookup = sourceCounts.toList().map(lambda n: targetValues.get(targetCounts.gte(n).argmax()))
-    return ee.Dictionary({'x': sourceValues.toList(), 'y': lookup})
+    lookup = sourceCounts.toList().map(
+        lambda n: targetValues.get(targetCounts.gte(n).argmax())
+    )
+    return ee.Dictionary({"x": sourceValues.toList(), "y": lookup})
 
 
-def histogramMatch(sourceImg, targetImg, geometry=None, scale=None, tiles=4,
-                   bestEffort=True):
-    """ Histogram Matching. From https://medium.com/google-earth/histogram-matching-c7153c85066d """
+def histogramMatch(
+    sourceImg, targetImg, geometry=None, scale=None, tiles=4, bestEffort=True
+):
+    """Histogram Matching. From https://medium.com/google-earth/histogram-matching-c7153c85066d"""
     if not geometry:
         geometry = sourceImg.geometry()
 
     bands = sourceImg.bandNames()
 
     args = dict(
-        reducer= ee.Reducer.autoHistogram(maxBuckets= 256, cumulative= True),
-        geometry= geometry,
-        scale= scale or 30, # Need to specify a scale, but it doesn't matter what it is because bestEffort is true.
-        maxPixels= 65536 * tiles - 1,
-        bestEffort= bestEffort
+        reducer=ee.Reducer.autoHistogram(maxBuckets=256, cumulative=True),
+        geometry=geometry,
+        scale=scale
+        or 30,  # Need to specify a scale, but it doesn't matter what it is because bestEffort is true.
+        maxPixels=65536 * tiles - 1,
+        bestEffort=bestEffort,
     )
 
     # Only use pixels in target that have a value in source
@@ -1320,8 +1405,8 @@ def histogramMatch(sourceImg, targetImg, geometry=None, scale=None, tiles=4,
 
     def interpolation(band):
         look = _lookup(source.getArray(band), target.getArray(band))
-        x = ee.List(look.get('x'))
-        y = ee.List(look.get('y'))
+        x = ee.List(look.get("x"))
+        y = ee.List(look.get("y"))
         return sourceImg.select([band]).interpolate(x, y)
 
     def iteration(band, i):
