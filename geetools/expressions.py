@@ -9,7 +9,7 @@ class Expression(object):
 
     @staticmethod
     def max(a, b):
-        """ Generates the expression for max(a, b)
+        """Generates the expression for max(a, b)
 
         :param a: one value. Can be a number or a variable
         :type a: str
@@ -18,11 +18,11 @@ class Expression(object):
         :return: max number
         :rtype: str
         """
-        return "({a}>{b})?{a}:{b}".format(a= a, b= b)
+        return "({a}>{b})?{a}:{b}".format(a=a, b=b)
 
     @staticmethod
     def min(a, b):
-        """ Generates the expression for min(a, b)
+        """Generates the expression for min(a, b)
 
         :param a: one value. Can be a number or a variable
         :type a: str
@@ -31,4 +31,4 @@ class Expression(object):
         :return: max number
         :rtype: str
         """
-        return "({a}>{b})?{b}:{a}".format(a= a, b= b)
+        return "({a}>{b})?{b}:{a}".format(a=a, b=b)

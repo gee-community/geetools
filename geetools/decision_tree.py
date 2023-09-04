@@ -4,19 +4,21 @@ from __future__ import print_function
 from . import tools
 import ee
 
-def binary(conditions, classes, mask_name='dt_mask'):
+
+def binary(conditions, classes, mask_name="dt_mask"):
 
     cond = ee.Dictionary(conditions)
     paths = ee.Dictionary(classes)
 
     def C(condition, bool):
         # b = ee.Number(bool)
-        return ee.Image(ee.Algorithms.If(bool, ee.Image(condition),
-                                         ee.Image(condition).Not()))
+        return ee.Image(
+            ee.Algorithms.If(bool, ee.Image(condition), ee.Image(condition).Not())
+        )
 
     # function to iterate over the path (classes)
     def overpath(key, path):
-        v = ee.List(path) # the path is a list of lists
+        v = ee.List(path)  # the path is a list of lists
         # define an intial image = 1 with one band with the name of the class
         ini = ee.Image.constant(1).select([0], [key])
 
@@ -39,7 +41,7 @@ def binary(conditions, classes, mask_name='dt_mask'):
     new_classes_list = new_classes.keys()
 
     def mapclasses(el):
-        return ee.String(el).split('-').get(0)
+        return ee.String(el).split("-").get(0)
 
     repeated = new_classes_list.map(mapclasses)
 
@@ -55,7 +57,7 @@ def binary(conditions, classes, mask_name='dt_mask'):
 
     def unify(key, init):
         init = ee.Dictionary(init)
-        baseclass = ee.String(key).split('-').get(0)
+        baseclass = ee.String(key).split("-").get(0)
         mask_before = ee.Image(init.get(baseclass))
         mask = new_classes.get(key)
         new_mask = mask_before.Or(mask)
@@ -63,7 +65,7 @@ def binary(conditions, classes, mask_name='dt_mask'):
 
     new_classes_unique = ee.Dictionary(new_classes_list.iterate(unify, ini))
 
-    masks = new_classes_unique.values() # list of masks
+    masks = new_classes_unique.values()  # list of masks
 
     # Return an Image with one band per option
 
@@ -71,8 +73,7 @@ def binary(conditions, classes, mask_name='dt_mask'):
         ini = ee.Image(ini)
         return ini.addBands(mask)
 
-    mask_img = ee.Image(masks.slice(1).iterate(tomaskimg,
-                                               ee.Image(masks.get(0))))
+    mask_img = ee.Image(masks.slice(1).iterate(tomaskimg, ee.Image(masks.get(0))))
     # print(mask_img)
 
     init = ee.Image.constant(0).rename(mask_name)

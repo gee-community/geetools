@@ -7,23 +7,23 @@ EE_EPOCH = datetime(1970, 1, 1, 0, 0, 0)
 
 
 def toDatetime(date):
-    """ convert a `ee.Date` into a `datetime` object """
-    formatted = date.format('yyyy,MM,dd,HH,mm,ss').getInfo()
-    args = formatted.split(',')
+    """convert a `ee.Date` into a `datetime` object"""
+    formatted = date.format("yyyy,MM,dd,HH,mm,ss").getInfo()
+    args = formatted.split(",")
     intargs = [int(arg) for arg in args]
     return datetime(*intargs)
 
 
 def millisToDatetime(millis):
-    """ Converts milliseconds from 1970-01-01T00:00:00 to a
-    datetime object """
-    seconds = millis/1000
+    """Converts milliseconds from 1970-01-01T00:00:00 to a
+    datetime object"""
+    seconds = millis / 1000
     dt = timedelta(seconds=seconds)
     return EE_EPOCH + dt
 
 
-def daterangeList(start_date, end_date, interval=1, unit='month'):
-    """ Divide a range that goes from start_date to end_date into many
+def daterangeList(start_date, end_date, interval=1, unit="month"):
+    """Divide a range that goes from start_date to end_date into many
         ee.DateRange, each one holding as many units as the interval.
 
     :param start_date: the start date. For the second DateRange and the
@@ -35,18 +35,19 @@ def daterangeList(start_date, end_date, interval=1, unit='month'):
     :return: a list holding ee.DateRange
     :rtype: list
     """
-    units = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second']
+    units = ["year", "month", "week", "day", "hour", "minute", "second"]
     if unit not in units:
-        raise ValueError('unit param must be one of {}'.format(units))
+        raise ValueError("unit param must be one of {}".format(units))
 
     def callback(interval, unit):
         def wrap(n, ini):
             ini = ee.List(ini)
             last_range = ee.DateRange(ini.get(-1))
             last_date = last_range.end()
-            next_date = last_date.advance(1, 'second')
+            next_date = last_date.advance(1, "second")
             next_interval = next_date.advance(interval, unit)
             return ini.add(ee.DateRange(next_date, next_interval))
+
         return wrap
 
     total_days = end_date.difference(start_date, unit)
@@ -56,14 +57,19 @@ def daterangeList(start_date, end_date, interval=1, unit='month'):
     # first daterange
     first = ee.DateRange(start_date, start_date.advance(interval, unit))
 
-    return ee.List(dateranges_list.iterate(callback(interval, unit),
-                                           ee.List([first])))
+    return ee.List(dateranges_list.iterate(callback(interval, unit), ee.List([first])))
 
 
-def daterangeIntervals(start_date, end_date, interval=1, unit='month',
-                       date_range=(1, 1), date_range_unit='day',
-                       direction='backward'):
-    """ Make Date Ranges in equal intervals
+def daterangeIntervals(
+    start_date,
+    end_date,
+    interval=1,
+    unit="month",
+    date_range=(1, 1),
+    date_range_unit="day",
+    direction="backward",
+):
+    """Make Date Ranges in equal intervals
 
     :param interval: the amount of the interval in `unit`
     :param unit: the unit of the interval
@@ -78,26 +84,27 @@ def daterangeIntervals(start_date, end_date, interval=1, unit='month',
     intervals = amplitude.divide(interval).toInt()
     proxy = ee.List.sequence(0, intervals)
 
-    if direction == 'forward':
+    if direction == "forward":
         dates = proxy.map(
-            lambda i: start_date.advance(
-                ee.Number(i).multiply(interval), unit))
+            lambda i: start_date.advance(ee.Number(i).multiply(interval), unit)
+        )
     else:
         dates = proxy.map(
-            lambda i: end_date.advance(
-                ee.Number(i).multiply(-interval), unit))
+            lambda i: end_date.advance(ee.Number(i).multiply(-interval), unit)
+        )
 
     def make_drange(date):
         date = ee.Date(date)
         return ee.DateRange(
             date.advance(-date_range[0], date_range_unit),
-            date.advance(date_range[1], date_range_unit))
+            date.advance(date_range[1], date_range_unit),
+        )
 
     return dates.map(lambda d: make_drange(d))
 
 
-def dayRangeIntervals(start, end, interval=30, reverse=False, buffer='second'):
-    """ Divide a date range into many DateRange objects. Return a list of DateRange
+def dayRangeIntervals(start, end, interval=30, reverse=False, buffer="second"):
+    """Divide a date range into many DateRange objects. Return a list of DateRange
 
     :param start: the start date
     :param end: the end date
@@ -105,7 +112,7 @@ def dayRangeIntervals(start, end, interval=30, reverse=False, buffer='second'):
     :return: a list holding ee.DateRange
     :rtype: list
     """
-    unit = 'day'
+    unit = "day"
     start_date = ee.Date(start)
     end_date = ee.Date(end)
     begin_date = end_date if reverse else start_date
@@ -113,10 +120,14 @@ def dayRangeIntervals(start, end, interval=30, reverse=False, buffer='second'):
     diff = end_date.difference(start_date, unit)
     complete_intervals = diff.divide(interval).toInt()
 
-    start_i_list = ee.List.sequence(0, complete_intervals)\
-                          .map(lambda i: ee.Number(i).multiply(interval))
-    end_i_list = ee.List.sequence(1, complete_intervals)\
-                        .map(lambda i: ee.Number(i).multiply(interval)).add(diff)
+    start_i_list = ee.List.sequence(0, complete_intervals).map(
+        lambda i: ee.Number(i).multiply(interval)
+    )
+    end_i_list = (
+        ee.List.sequence(1, complete_intervals)
+        .map(lambda i: ee.Number(i).multiply(interval))
+        .add(diff)
+    )
 
     if reverse:
         start_i_list = start_i_list.map(lambda i: ee.Number(i).multiply(-1))
@@ -138,8 +149,8 @@ def dayRangeIntervals(start, end, interval=30, reverse=False, buffer='second'):
     return final.reverse() if reverse else final
 
 
-def unitSinceEpoch(date, unit='day'):
-    """ Return the number of units since the epoch (1970-1-1)
+def unitSinceEpoch(date, unit="day"):
+    """Return the number of units since the epoch (1970-1-1)
 
     :param date: the date
     :type date: ee.Date
@@ -152,8 +163,8 @@ def unitSinceEpoch(date, unit='day'):
     return date.difference(epoch, unit).toInt()
 
 
-def getDateBand(img, unit='day', bandname='date', property_name=None):
-    """ Get a date band from an image representing units since epoch
+def getDateBand(img, unit="day", bandname="date", property_name=None):
+    """Get a date band from an image representing units since epoch
 
     :param img: the Image
     :param unit: one of 'year', 'month' 'week', 'day', 'hour', 'minute',
@@ -167,15 +178,15 @@ def getDateBand(img, unit='day', bandname='date', property_name=None):
     diff = unitSinceEpoch(date, unit)
     datei = ee.Image.constant(diff).rename(bandname)
     if not property_name:
-        property_name = '{}_since_epoch'.format(unit)
+        property_name = "{}_since_epoch".format(unit)
 
     datei_attr = datei.set(property_name, diff).toInt()
 
-    return datei_attr.copyProperties(img, ['system:footprint'])
+    return datei_attr.copyProperties(img, ["system:footprint"])
 
 
-def makeDateBand(image, format='YMMdd', bandname='date'):
-    """ Make a date band using a formatter. Format pattern:
+def makeDateBand(image, format="YMMdd", bandname="date"):
+    """Make a date band using a formatter. Format pattern:
 
     C       century of era (>=0)         number        20
     Y       year of era (>=0)            year          1996
@@ -208,7 +219,7 @@ def makeDateBand(image, format='YMMdd', bandname='date'):
     """
     f = ee.String(format)
     # catch string formats for month
-    pattern = f.replace('(MMM+)', 'MM')
+    pattern = f.replace("(MMM+)", "MM")
 
     proj = image.select(0).projection()
 
@@ -218,16 +229,23 @@ def makeDateBand(image, format='YMMdd', bandname='date'):
     idate_number = ee.Number.parse(idate)
     date_band = ee.Image.constant(idate_number).rename(bandname)
     date_band = date_band.toInt()  # force to be an Integer
-    final = ee.Image(ee.Algorithms.If(footprint.isUnbounded(), date_band,
-                                      date_band.clip(footprint)))
+    final = ee.Image(
+        ee.Algorithms.If(footprint.isUnbounded(), date_band, date_band.clip(footprint))
+    )
 
     return final.setDefaultProjection(proj)
 
 
-def regularIntervals(start_date, end_date, interval=1, unit='month',
-                     date_range=(1, 1), date_range_unit='day',
-                     direction='backward'):
-    """ Make date ranges at regular intervals
+def regularIntervals(
+    start_date,
+    end_date,
+    interval=1,
+    unit="month",
+    date_range=(1, 1),
+    date_range_unit="day",
+    direction="backward",
+):
+    """Make date ranges at regular intervals
 
     :param start_date: if `direction` is forward the intervals will
         start from this date
@@ -256,21 +274,27 @@ def regularIntervals(start_date, end_date, interval=1, unit='month',
     intervals = amplitude.divide(interval).toInt()
     proxy = ee.List.sequence(0, intervals)
 
-    if direction == 'forward':
-        dates = proxy.map(lambda i: start_date.advance(ee.Number(i).multiply(interval), unit))
+    if direction == "forward":
+        dates = proxy.map(
+            lambda i: start_date.advance(ee.Number(i).multiply(interval), unit)
+        )
     else:
-        dates = proxy.map(lambda i: end_date.advance(ee.Number(i).multiply(-interval), unit))
+        dates = proxy.map(
+            lambda i: end_date.advance(ee.Number(i).multiply(-interval), unit)
+        )
 
     def make_drange(date):
         date = ee.Date(date)
-        return ee.DateRange(date.advance(-date_range[0], date_range_unit),
-                            date.advance(date_range[1], date_range_unit))
+        return ee.DateRange(
+            date.advance(-date_range[0], date_range_unit),
+            date.advance(date_range[1], date_range_unit),
+        )
 
     return dates.map(lambda d: make_drange(d))
 
 
-def dateSinceEpoch(date, unit='day'):
-    """ Get the date for the specified date in unit
+def dateSinceEpoch(date, unit="day"):
+    """Get the date for the specified date in unit
 
     :param date: the date in the specified unit
     :type date: int
@@ -284,26 +308,30 @@ def dateSinceEpoch(date, unit='day'):
 
 
 def fromDOY(doy, year):
-    """ Creat a ee.Date given a Day of Year and a Year """
+    """Creat a ee.Date given a Day of Year and a Year"""
+
     def less10(doy):
         doy = doy.toInt()
-        return ee.String('00').cat(ee.Number(doy).format())
+        return ee.String("00").cat(ee.Number(doy).format())
 
     def less100(doy):
         doy = doy.toInt()
-        return ee.String('0').cat(ee.Number(doy).format())
+        return ee.String("0").cat(ee.Number(doy).format())
 
     doy = ee.Number(doy).add(1).toInt()
     year_str = ee.Number(year).format()
-    doy_str = ee.Algorithms.If(doy.lt(10), less10(doy),
-                               ee.String(ee.Algorithms.If(doy.lt(100), less100(doy), doy.format())))
+    doy_str = ee.Algorithms.If(
+        doy.lt(10),
+        less10(doy),
+        ee.String(ee.Algorithms.If(doy.lt(100), less100(doy), doy.format())),
+    )
     s = ee.String(doy_str).cat(year_str)
 
-    return ee.Date.parse('DDDyyyy', s)
+    return ee.Date.parse("DDDyyyy", s)
 
 
 def isLeap(year):
-    """ Determine wheater a year is leap or not. Returns 1 if leap, 0 if not """
+    """Determine wheater a year is leap or not. Returns 1 if leap, 0 if not"""
     year = ee.Number(year)
 
     divisible4 = year.mod(4).gt(0)
@@ -311,11 +339,8 @@ def isLeap(year):
     divisible400 = year.mod(400).gt(0)
 
     leap = ee.Algorithms.If(
-        divisible4, 0,
-        ee.Algorithms.If(
-            divisible100, 1,
-            ee.Algorithms.If(
-                divisible400, 0, 1)))
+        divisible4,
+        0,
+        ee.Algorithms.If(divisible100, 1, ee.Algorithms.If(divisible400, 0, 1)),
+    )
     return ee.Number(leap)
-
-

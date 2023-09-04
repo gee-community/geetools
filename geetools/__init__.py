@@ -1,12 +1,10 @@
 # coding=utf-8
 from __future__ import absolute_import
 
-from .deprecated import number
 from ._version import __version__
 
 __title__ = "geetools"
-__summary__ = "A set of useful tools to use with Google Earth Engine Python" \
-              "API"
+__summary__ = "A set of useful tools to use with Google Earth Engine Python" "API"
 __uri__ = "http://geetools.readthedocs.io"
 
 __author__ = "Rodrigo E. Principe"

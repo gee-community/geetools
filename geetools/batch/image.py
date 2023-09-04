@@ -6,9 +6,10 @@ from .. import tools
 from ..utils import makeName
 
 
-def toLocal(image, name=None, path=None, scale=None, region=None,
-            dimensions=None, toFolder=True):
-    """ Download an Image to your hard drive
+def toLocal(
+    image, name=None, path=None, scale=None, region=None, dimensions=None, toFolder=True
+):
+    """Download an Image to your hard drive
 
     :param image: the image to download
     :type image: ee.Image
@@ -29,8 +30,8 @@ def toLocal(image, name=None, path=None, scale=None, region=None,
         import zipfile
     except:
         raise ValueError(
-            'zipfile module not found, install it using '
-            '`pip install zipfile`')
+            "zipfile module not found, install it using " "`pip install zipfile`"
+        )
 
     name = name if name else image.id().getInfo()
 
@@ -41,19 +42,18 @@ def toLocal(image, name=None, path=None, scale=None, region=None,
     else:
         region = tools.geometry.getRegion(image)
 
-    params = {'region': region,
-              'scale': scale}
+    params = {"region": region, "scale": scale}
 
     if dimensions:
-        params = params.update({'dimensions': dimensions})
+        params = params.update({"dimensions": dimensions})
 
     url = image.getDownloadURL(params)
 
-    ext = 'zip'
+    ext = "zip"
 
     utils.downloadFile(url, name, ext)
 
-    filename = '{}.{}'.format(name, ext)
+    filename = "{}.{}".format(name, ext)
 
     original_filepath = os.path.join(os.getcwd(), filename)
 
@@ -65,7 +65,7 @@ def toLocal(image, name=None, path=None, scale=None, region=None,
         filepath = os.path.join(path, filename)
 
     try:
-        zip_ref = zipfile.ZipFile(filepath, 'r')
+        zip_ref = zipfile.ZipFile(filepath, "r")
 
         if toFolder:
             finalpath = os.path.join(path, name)
@@ -78,9 +78,18 @@ def toLocal(image, name=None, path=None, scale=None, region=None,
         raise
 
 
-def toAsset(image, assetPath, name=None, to='Folder', scale=None,
-            region=None, create=True, verbose=False, **kwargs):
-    """ This function can create folders and ImageCollections on the fly.
+def toAsset(
+    image,
+    assetPath,
+    name=None,
+    to="Folder",
+    scale=None,
+    region=None,
+    create=True,
+    verbose=False,
+    **kwargs
+):
+    """This function can create folders and ImageCollections on the fly.
     The rest is the same to Export.image.toAsset. You can pass the same
     params as the original function
 
@@ -113,9 +122,9 @@ def toAsset(image, assetPath, name=None, to='Folder', scale=None,
     # image = utils.convertDataType(dataType)(image)
 
     # Check if the user is specified in the asset path
-    is_user = (assetPath.split('/')[0] == 'users')
+    is_user = assetPath.split("/")[0] == "users"
     if not is_user:
-        user = ee.batch.data.getAssetRoots()[0]['id']
+        user = ee.batch.data.getAssetRoots()[0]["id"]
         assetPath = "{}/{}".format(user, assetPath)
 
     # description = kwargs.get('description', image.id().getInfo())
@@ -124,7 +133,7 @@ def toAsset(image, assetPath, name=None, to='Folder', scale=None,
 
     if create:
         # Recrusive create path
-        path2create = assetPath #  '/'.join(assetPath.split('/')[:-1])
+        path2create = assetPath  #  '/'.join(assetPath.split('/')[:-1])
         utils.createAssets([path2create], to, True)
 
     # Region
@@ -132,24 +141,37 @@ def toAsset(image, assetPath, name=None, to='Folder', scale=None,
     # Name
     name = name if name else image.id().getInfo()
     # Asset ID (Path + name)
-    assetId = '/'.join([assetPath, name])
+    assetId = "/".join([assetPath, name])
     # Description
     description = utils.matchDescription(name)
     # Init task
-    task = ee.batch.Export.image.toAsset(image, assetId=assetId,
-                                         region=region, scale=scale,
-                                         description=description,
-                                         **kwargs)
+    task = ee.batch.Export.image.toAsset(
+        image,
+        assetId=assetId,
+        region=region,
+        scale=scale,
+        description=description,
+        **kwargs
+    )
     task.start()
     if verbose:
-        print('Exporting {} to {}'.format(name, assetPath))
+        print("Exporting {} to {}".format(name, assetPath))
 
     return task
 
 
-def toDriveByFeature(image, collection, folder, namePattern, datePattern=None,
-                     scale=1000, dataType="float", verbose=False, **kwargs):
-    """ Export an image clipped by features (Polygons). You can use the
+def toDriveByFeature(
+    image,
+    collection,
+    folder,
+    namePattern,
+    datePattern=None,
+    scale=1000,
+    dataType="float",
+    verbose=False,
+    **kwargs
+):
+    """Export an image clipped by features (Polygons). You can use the
     same arguments as the original function ee.batch.export.image.toDrive
 
     :Parameters:
@@ -187,7 +209,7 @@ def toDriveByFeature(image, collection, folder, namePattern, datePattern=None,
             n = makeName(image, namePattern, datePattern)
             n = tools.string.format(n, props)
             n = n.getInfo()
-            n = n.replace('{','').replace('}','')
+            n = n.replace("{", "").replace("}", "")
             desc = utils.matchDescription(n)
 
             # convert data type
@@ -201,7 +223,9 @@ def toDriveByFeature(image, collection, folder, namePattern, datePattern=None,
                 folder=folder,
                 fileNamePrefix=n,
                 region=region,
-                scale=scale, **kwargs)
+                scale=scale,
+                **kwargs
+            )
 
             task.start()
             if verbose:
@@ -210,15 +234,14 @@ def toDriveByFeature(image, collection, folder, namePattern, datePattern=None,
 
             i += 1
         except Exception as e:
-            error = str(e).split(':')
-            if error[0] == 'List.get':
+            error = str(e).split(":")
+            if error[0] == "List.get":
                 break
             else:
                 raise e
 
 
-def qgisCode(image, visParams=None, name=None, namePattern=None,
-             datePattern=None):
+def qgisCode(image, visParams=None, name=None, namePattern=None, datePattern=None):
     QGIS_IMG_CODE = """name = '{name}'
 url = '{url}'
 urlWithParams = "type=xyz&url={{}}".format(url)
@@ -232,31 +255,38 @@ else:
     if namePattern:
         name = makeName(image, namePattern, datePattern)
     else:
-        name = name or 'no_name_img'
+        name = name or "no_name_img"
     return QGIS_IMG_CODE.format(name=name, url=url)
 
 
-def toQGIS(image, visParams=None, name=None, filename=None, path=None,
-           replace=True, verbose=False):
-    """ Download a python file to import from QGIS """
+def toQGIS(
+    image,
+    visParams=None,
+    name=None,
+    filename=None,
+    path=None,
+    replace=True,
+    verbose=False,
+):
+    """Download a python file to import from QGIS"""
     code = qgisCode(image, visParams, name)
     path = path or os.getcwd()
     # Check extension
     if filename:
-        ext = filename.split('.')[-1]
-        if ext != 'py':
-            filename += '.py'
+        ext = filename.split(".")[-1]
+        if ext != "py":
+            filename += ".py"
     else:
-        filename = 'qgis2ee'
+        filename = "qgis2ee"
     # add _qgis_ to filename
-    splitted = filename.split('.')[:-1]
-    noext = '.'.join(splitted)
-    filename = '{}_qgis_'.format(noext)
+    splitted = filename.split(".")[:-1]
+    noext = ".".join(splitted)
+    filename = "{}_qgis_".format(noext)
     # process
     finalpath = os.path.join(path, filename)
-    finalpath = '{}.py'.format(finalpath)
+    finalpath = "{}.py".format(finalpath)
     if not os.path.exists(finalpath) or replace:
-        with open(finalpath, 'w+') as thefile:
+        with open(finalpath, "w+") as thefile:
             thefile.write(code)
         return thefile
     else:

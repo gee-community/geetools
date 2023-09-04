@@ -12,25 +12,25 @@ p_cloud = ee.Geometry.Point([-71.09680552342795, -42.65765342130262])
 p_snow = ee.Geometry.Point([-71.34485556784499, -42.572002133174415])
 p_shadow = ee.Geometry.Point([-71.48614073981918, -42.648269348224574])
 
-image = ee.Image(TEST_CLOUD_IMAGES['L7SR'])
+image = ee.Image(TEST_CLOUD_IMAGES["L7SR"])
 
 
 def test_clouds():
-    masked = cloud_mask.landsat457SRPixelQA(['cloud'])(image)
+    masked = cloud_mask.landsat457SRPixelQA(["cloud"])(image)
     vals = getValue(masked, p_cloud, 30)
 
     assert vals.get("B1").getInfo() == None
 
 
 def test_shadows():
-    masked = cloud_mask.landsat457SRPixelQA(['shadow'])(image)
+    masked = cloud_mask.landsat457SRPixelQA(["shadow"])(image)
     vals = getValue(masked, p_shadow, 30)
 
     assert vals.get("B1").getInfo() == None
 
 
 def test_snow():
-    masked = cloud_mask.landsat457SRPixelQA(['snow'])(image)
+    masked = cloud_mask.landsat457SRPixelQA(["snow"])(image)
     vals = getValue(masked, p_snow, 30)
 
     assert vals.get("B1").getInfo() == None

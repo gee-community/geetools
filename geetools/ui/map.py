@@ -5,27 +5,27 @@ import ee
 
 
 def formatVisParams(visParams):
-    """ format visualization params to match getMapId requirement """
+    """format visualization params to match getMapId requirement"""
     copy = {key: val for key, val in visParams.items()}
 
     def list2str(params):
         n = len(params)
         if n == 3:
-            newbands = '{},{},{}'.format(params[0], params[1], params[2])
+            newbands = "{},{},{}".format(params[0], params[1], params[2])
         else:
-            newbands = '{}'.format(params[0])
+            newbands = "{}".format(params[0])
         return newbands
 
-    if 'bands' in copy:
-        copy['bands'] = list2str(copy['bands'])
+    if "bands" in copy:
+        copy["bands"] = list2str(copy["bands"])
 
-    if 'palette' in copy:
-        if isinstance(copy['palette'], list):
-            copy['palette'] = ','.join(copy['palette'])
+    if "palette" in copy:
+        if isinstance(copy["palette"], list):
+            copy["palette"] = ",".join(copy["palette"])
         else:
-            copy['palette'] = [str(copy['palette'])]
+            copy["palette"] = [str(copy["palette"])]
 
-    for k in ['min', 'max', 'bias', 'gain', 'gamma']:
+    for k in ["min", "max", "bias", "gain", "gamma"]:
         if k in copy:
             value = copy[k]
             if isinstance(value, list):
@@ -34,4 +34,3 @@ def formatVisParams(visParams):
                 copy[k] = list2str([value])
 
     return copy
-
