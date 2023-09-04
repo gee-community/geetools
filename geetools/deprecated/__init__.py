@@ -1,0 +1,1 @@
+"""Package gathering all the method that are deprecated and will be removed during V1"""
