@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.2", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geetools"
+version = "0.6.14"
+description = "A collection of tools to work with Google Earth Engine Python API"
+keywords = ["python", "geospatial", "remote-sensing", "google-earth-engine", "earthengine"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "earthengine-api",
+    "requests",
+    "pandas",
+    "geopandas",
+]
+
+[[project.authors]]
+name = "Rodrigo E. Principe"
+email = "fitoprincipe82@gmail.com"
+
+[project.license]
+text = "MIT"
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.urls]
+github = "https://github.com/gee-community/gee_tools"
+
+[project.optional-dependencies]
+"dev" = []
+"test" = []
+"doc" = []
+
+[tool.setuptools]
+include-package-data = true
+packages = ["geetools"]
+license-files = ["LICENSE"]
