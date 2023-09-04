@@ -42,7 +42,14 @@ github = "https://github.com/gee-community/gee_tools"
 
 [project.optional-dependencies]
 "dev" = []
-"test" = []
+"test" = [
+    "pytest",
+    "pytest-sugar",
+    "pytest-cov",
+    "pytest-deadfixtures",
+    "httplib2",
+    "pytest-regressions",
+]
 "doc" = []
 
 [tool.setuptools]
