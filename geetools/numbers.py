@@ -5,14 +5,14 @@ import ee
 
 from .accessors import gee_accessor
 
-@gee_accessor(ee.numbers.Number)
+@gee_accessor(ee.Number)
 class Number:
     """toolbox for the number class"""
 
-    def __init__(self, obj: ee.numbers.Number):
+    def __init__(self, obj: ee.Number):
         self._obj = obj
 
-    def truncate(self, nbDecimals: Union[ee.Number, int] = 2) -> ee.numbers.Number:
+    def truncate(self, nbDecimals: Union[ee.Number, int] = 2) -> ee.Number:
         """Truncate a number to a given number of decimals
 
         Parameters:

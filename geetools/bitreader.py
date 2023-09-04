@@ -2,7 +2,7 @@
 """ Bit Reader module """
 import ee
 import ee.data
-from . import tools
+import geetools.tools as tools
 
 
 class BitReader(object):

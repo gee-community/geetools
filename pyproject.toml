@@ -54,7 +54,10 @@ github = "https://github.com/gee-community/gee_tools"
 
 [tool.setuptools]
 include-package-data = true
-packages = ["geetools"]
+packages = [
+    "geetools",
+    "geetools.tools",
+]
 license-files = ["LICENSE"]
 
 [tool.licensecheck]
@@ -74,3 +77,9 @@ docstring-quotes = "double"
 
 [tool.ruff.pydocstyle]
 convention = "google"
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+
+[tool.coverage.run]
+source = ["geetools"]
