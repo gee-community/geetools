@@ -2,6 +2,7 @@
 
 import ee
 from geetools.tools.geometry import getRegion
+
 ee.Initialize()
 
 l8SR = ee.Image("LANDSAT/LC8_SR/LC82310772014043")
@@ -14,7 +15,7 @@ list2 = ee.List([4, 5, 6, 7])
 
 
 def test_getRegion():
-    expected = [[0.0,0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0], [0.0, 0.0]]
+    expected = [[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0], [0.0, 0.0]]
     pol = ee.Geometry.Polygon(expected)
     feat = ee.Feature(pol)
 

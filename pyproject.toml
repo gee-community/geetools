@@ -40,7 +40,7 @@ content-type = "text/markdown"
 github = "https://github.com/gee-community/gee_tools"
 
 [project.optional-dependencies]
-"dev" = []
+"dev" = ["pre-commit"]
 "test" = []
 "doc" = []
 
@@ -48,3 +48,21 @@ github = "https://github.com/gee-community/gee_tools"
 include-package-data = true
 packages = ["geetools"]
 license-files = ["LICENSE"]
+
+[tool.licensecheck]
+using = "PEP631:test;dev;doc"
+
+[tool.ruff]
+ignore-init-module-imports = true
+fix = true
+select = ["E", "F", "W", "I", "D", "RUF"]
+ignore = [
+  "E501",  # line too long | Black take care of it
+  "D213",  # Multi-line docstring | We use D212
+]
+
+[tool.ruff.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.pydocstyle]
+convention = "google"

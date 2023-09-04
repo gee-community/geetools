@@ -6,10 +6,17 @@ import math
 from . import tools
 
 
-def distanceToMask(image, kernel=None, radius=1000, unit='meters',
-                   scale=None, geometry=None, band_name='distance_to_mask',
-                   normalize=False):
-    """ Compute the distance to the mask in meters
+def distanceToMask(
+    image,
+    kernel=None,
+    radius=1000,
+    unit="meters",
+    scale=None,
+    geometry=None,
+    band_name="distance_to_mask",
+    normalize=False,
+):
+    """Compute the distance to the mask in meters
 
     :param image: Image holding the mask
     :type image: ee.Image
@@ -73,10 +80,18 @@ def distanceToMask(image, kernel=None, radius=1000, unit='meters',
     return final.rename(band_name)
 
 
-def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
-              crs=None, crsTransform=None, bestEffort=False,
-              maxPixels=1e13, tileScale=1):
-    """ Percentage of masked pixels (masked/total * 100) as an Image property
+def maskCover(
+    image,
+    geometry=None,
+    scale=None,
+    property_name="MASK_COVER",
+    crs=None,
+    crsTransform=None,
+    bestEffort=False,
+    maxPixels=1e13,
+    tileScale=1,
+):
+    """Percentage of masked pixels (masked/total * 100) as an Image property
 
     :param image: ee.Image holding the mask. If the image has more than
         one band, the first one will be used
@@ -118,10 +133,10 @@ def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
 
     # Get total number of pixels
     ones = ones_i.reduceRegion(
-        reducer= ee.Reducer.count(),
-        geometry= geometry,
-        scale= scale,
-        maxPixels= maxPixels,
+        reducer=ee.Reducer.count(),
+        geometry=geometry,
+        scale=scale,
+        maxPixels=maxPixels,
         crs=crs,
         crsTransform=crsTransform,
         bestEffort=bestEffort,
@@ -135,15 +150,15 @@ def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
     image_to_compute = mask.updateMask(mask_not)
 
     # Get number of zeros in the given image
-    zeros_in_mask =  image_to_compute.reduceRegion(
-        reducer= ee.Reducer.count(),
-        geometry= geometry,
-        scale= scale,
-        maxPixels= maxPixels,
+    zeros_in_mask = image_to_compute.reduceRegion(
+        reducer=ee.Reducer.count(),
+        geometry=geometry,
+        scale=scale,
+        maxPixels=maxPixels,
         crs=crs,
         crsTransform=crsTransform,
         bestEffort=bestEffort,
-        tileScale=tileScale
+        tileScale=tileScale,
     ).get(band)
     zeros_in_mask = ee.Number(zeros_in_mask)
 
@@ -158,9 +173,8 @@ def maskCover(image, geometry=None, scale=None, property_name='MASK_COVER',
     return image.set(property_name, final)
 
 
-def euclideanDistance(image1, image2, bands=None, discard_zeros=False,
-                      name='distance'):
-    """ Compute the Euclidean distance between two images. The image's bands
+def euclideanDistance(image1, image2, bands=None, discard_zeros=False, name="distance"):
+    """Compute the Euclidean distance between two images. The image's bands
     is the dimension of the arrays.
 
     :param image1:
@@ -198,20 +212,19 @@ def euclideanDistance(image1, image2, bands=None, discard_zeros=False,
 
     a = image1.subtract(image2)
     b = a.pow(2)
-    c = b.reduce('sum')
+    c = b.reduce("sum")
     d = c.sqrt()
 
     return d.rename(name)
 
 
-def sumDistance(image, collection, bands=None, discard_zeros=False,
-                name='sumdist'):
-    """ Compute de sum of all distances between the given image and the
+def sumDistance(image, collection, bands=None, discard_zeros=False, name="sumdist"):
+    """Compute de sum of all distances between the given image and the
     collection passed
-    
-    :param image: 
+
+    :param image:
     :param collection:
-    :return: 
+    :return:
     """
     condition = isinstance(collection, ee.ImageCollection)
 
@@ -223,8 +236,7 @@ def sumDistance(image, collection, bands=None, discard_zeros=False,
     def over_rest(im, ini):
         ini = ee.Image(ini)
         im = ee.Image(im)
-        dist = ee.Image(euclideanDistance(image, im, bands, discard_zeros))\
-                 .rename(name)
+        dist = ee.Image(euclideanDistance(image, im, bands, discard_zeros)).rename(name)
         return ini.add(dist)
 
     return ee.Image(collection.iterate(over_rest, accum))
@@ -244,26 +256,25 @@ def pansharpenKernel(image, pan, rgb=None, kernel=None):
     :rtype: ee.Image
     """
     if not kernel:
-        kernel = ee.Kernel.square(90, 'meters')
+        kernel = ee.Kernel.square(90, "meters")
     if not rgb:
-        rgb = ['red', 'green', 'blue']
+        rgb = ["red", "green", "blue"]
 
     if not pan:
-        pan = 'pan'
+        pan = "pan"
 
     bgr = image.select(rgb)
     pani = image.select(pan)
-    bgr_mean = bgr.reduce('mean').rename('mean')
+    bgr_mean = bgr.reduce("mean").rename("mean")
     # Compute the aggregate mean of the unsharpened bands and the pan band
-    mean_values = pani.addBands(bgr_mean).reduceNeighborhood(
-        ee.Reducer.mean(),
-        kernel
+    mean_values = pani.addBands(bgr_mean).reduceNeighborhood(ee.Reducer.mean(), kernel)
+    gain = mean_values.select("mean_mean").divide(
+        mean_values.select("{}_mean".format(pan))
     )
-    gain = mean_values.select('mean_mean').divide(
-        mean_values.select('{}_mean'.format(pan)))
     sharpen = bgr.divide(bgr_mean).multiply(pani).multiply(gain)
-    return ee.Image(sharpen.copyProperties(
-        source=image, properties=image.propertyNames()))
+    return ee.Image(
+        sharpen.copyProperties(source=image, properties=image.propertyNames())
+    )
 
 
 def pansharpenIhsFusion(image, pan=None, rgb=None):
@@ -280,24 +291,23 @@ def pansharpenIhsFusion(image, pan=None, rgb=None):
     :rtype: ee.Image
     """
     if not rgb:
-        rgb = ['red', 'green', 'blue']
+        rgb = ["red", "green", "blue"]
 
     if not pan:
-        pan = 'pan'
+        pan = "pan"
 
     rgb = image.select(rgb)
     pan = image.select(pan)
     # Convert to HSV, swap in the pan band, and convert back to RGB.
-    huesat = rgb.rgbToHsv().select('hue', 'saturation')
+    huesat = rgb.rgbToHsv().select("hue", "saturation")
     upres = ee.Image.cat(huesat, pan).hsvToRgb()
     return image.addBands(upres)
 
 
 class Landsat(object):
-
     @staticmethod
-    def unmask_slc_off(image, optical_bands='B.+'):
-        """ Unmask pixels that were affected by scl-off  error in Landsat 7
+    def unmask_slc_off(image, optical_bands="B.+"):
+        """Unmask pixels that were affected by scl-off  error in Landsat 7
 
         Expects a Landsat 7 image and it is meant to be used before any other
         masking, otherwise this could affect the previous mask.
@@ -308,12 +318,12 @@ class Landsat(object):
         B6 (thermal), B7 (swir2).
         """
         idate = image.date()
-        slcoff = ee.Date('2003-05-31')
-        condition = idate.difference(slcoff, 'days').gte(0)
+        slcoff = ee.Date("2003-05-31")
+        condition = idate.difference(slcoff, "days").gte(0)
 
         def compute(i):
             mask = i.mask()
-            reduced = mask.select(optical_bands).reduce('sum')
+            reduced = mask.select(optical_bands).reduce("sum")
             slc_off = reduced.eq(0)
             unmasked = i.unmask()
             newmask = mask.where(slc_off, 1)
@@ -321,37 +331,37 @@ class Landsat(object):
 
         return ee.Image(ee.Algorithms.If(condition, compute(image), image))
 
-
     @staticmethod
-    def _rescale(image, bands=None, thermal_bands=None, original='TOA',
-                 to='SR', number='all'):
-        """ Rescaling logic """
+    def _rescale(
+        image, bands=None, thermal_bands=None, original="TOA", to="SR", number="all"
+    ):
+        """Rescaling logic"""
         if not bands:
-            bands = ['B1','B2','B3','B4','B5','B6','B7']
+            bands = ["B1", "B2", "B3", "B4", "B5", "B6", "B7"]
         bands = ee.List(bands)
 
         if not thermal_bands:
-            thermal_bands = ['B10', 'B11']
+            thermal_bands = ["B10", "B11"]
         thermal_bands = ee.List(thermal_bands)
 
         allbands = bands.cat(thermal_bands)
 
-        if number == '8':
+        if number == "8":
             max_raw = 65535
         else:
             max_raw = 255
 
-        if original == 'TOA' and to == 'SR':
+        if original == "TOA" and to == "SR":
             scaled = image.select(bands).multiply(10000).toInt16()
             scaled_thermal = image.select(thermal_bands).multiply(10).toInt16()
-        elif original == 'SR' and to == 'TOA':
+        elif original == "SR" and to == "TOA":
             scaled = image.select(bands).toFloat().divide(10000)
             scaled_thermal = image.select(thermal_bands).toFloat().divide(10)
-        elif original == 'TOA' and to == 'RAW':
-            scaled = tools.image.parametrize(image.select(bands), (0, 1),
-                                             (0, max_raw))
-            scaled_thermal = tools.image.parametrize(image.select(bands), (0, 1),
-                                                     (0, max_raw)).multiply(1000)
+        elif original == "TOA" and to == "RAW":
+            scaled = tools.image.parametrize(image.select(bands), (0, 1), (0, max_raw))
+            scaled_thermal = tools.image.parametrize(
+                image.select(bands), (0, 1), (0, max_raw)
+            ).multiply(1000)
 
         original_bands = image.bandNames()
 
@@ -363,7 +373,7 @@ class Landsat(object):
 
     @staticmethod
     def rescaleToaSr(image, bands=None, thermal_bands=None):
-        """ Re-scale a TOA Landsat image to match the data type of SR Landsat
+        """Re-scale a TOA Landsat image to match the data type of SR Landsat
         image
 
         :param image: a Landsat TOA image
@@ -376,11 +386,11 @@ class Landsat(object):
         :type thermal_bands: list
         :rtype: ee.Image
         """
-        return Landsat._rescale(image, bands, thermal_bands, 'TOA', 'SR')
+        return Landsat._rescale(image, bands, thermal_bands, "TOA", "SR")
 
     @staticmethod
     def rescaleSrToa(image, bands=None, thermal_bands=None):
-        """ Re-scale a TOA Landsat image to match the data type of SR Landsat
+        """Re-scale a TOA Landsat image to match the data type of SR Landsat
         image
 
         :param image: a Landsat TOA image
@@ -393,12 +403,20 @@ class Landsat(object):
         :type thermal_bands: list
         :rtype: ee.Image
         """
-        return Landsat._rescale(image, bands, thermal_bands, 'SR', 'TOA')
+        return Landsat._rescale(image, bands, thermal_bands, "SR", "TOA")
 
     @staticmethod
-    def harmonization(image, blue='B2', green='B3', red='B4', nir='B5',
-                      swir='B6', swir2='B7', max_value=None):
-        """ Harmonization of Landsat 8 images to be consistant with
+    def harmonization(
+        image,
+        blue="B2",
+        green="B3",
+        red="B4",
+        nir="B5",
+        swir="B6",
+        swir2="B7",
+        max_value=None,
+    ):
+        """Harmonization of Landsat 8 images to be consistant with
         Landsat 7 images
 
         Roy, D.P., Kovalskyy, V., Zhang, H.K., Vermote, E.F., Yan, L.,
@@ -420,13 +438,11 @@ class Landsat(object):
         if max_value is None:
             max_value = 1
 
-        slopes = ee.Image.constant([0.9785, 0.9542, 0.9825,
-                                    1.0073, 1.0171, 0.9949])
-        itcp = ee.Image.constant([-0.0095, -0.0016, -0.0022,
-                                  -0.0021, -0.0030, 0.0029])
+        slopes = ee.Image.constant([0.9785, 0.9542, 0.9825, 1.0073, 1.0171, 0.9949])
+        itcp = ee.Image.constant([-0.0095, -0.0016, -0.0022, -0.0021, -0.0030, 0.0029])
 
         only_bands = image.select(bands)
-        resampled = only_bands.resample('bicubic')
+        resampled = only_bands.resample("bicubic")
 
         harmonized = resampled.subtract(itcp.multiply(max_value)).divide(slopes)
 
@@ -436,9 +452,16 @@ class Landsat(object):
         return image.addBands(harmonized, overwrite=True)
 
     @staticmethod
-    def brdfCorrect(image, red='red', green='green', blue='blue', nir='nir',
-                    swir1='swir1', swir2='swir2'):
-        """ Correct Landsat data for BRDF effects using a c-factor.
+    def brdfCorrect(
+        image,
+        red="red",
+        green="green",
+        blue="blue",
+        nir="nir",
+        swir1="swir1",
+        swir2="swir2",
+    ):
+        """Correct Landsat data for BRDF effects using a c-factor.
 
         D.P. Roy, H.K. Zhang, J. Ju, J.L. Gomez-Dans, P.E. Lewis, C.B. Schaaf,
         Q. Sun, J. Li, H. Huang, V. Kovalskyy, A general method to normalize
@@ -456,7 +479,7 @@ class Landsat(object):
         :rtype: ee.Image
         """
         original = image
-        constants = {'pi': math.pi}
+        constants = {"pi": math.pi}
 
         ### HELPERS ###
         def merge(o1, o2):
@@ -482,11 +505,13 @@ class Landsat(object):
             """
             if isinstance(band, str):
                 # print('band:', band)
-                if (band.find('.') > -1) \
-                        or (band.find(' ') > -1) \
-                        or (band.find('{') > -1):
+                if (
+                    (band.find(".") > -1)
+                    or (band.find(" ") > -1)
+                    or (band.find("{") > -1)
+                ):
                     # print('formatted:', format_str(band, args), '\n')
-                    band = img.expression(format_str(band, args), {'i': img})
+                    band = img.expression(format_str(band, args), {"i": img})
                 else:
                     band = image.select(band)
 
@@ -501,7 +526,6 @@ class Landsat(object):
             return img.addBands(toAdd.rename(name), None, True)
 
         def setIf(img, name, condition=None, trueValue=None, falseValue=None):
-
             def invertMask(mask):
                 # return mask.multiply(-1).add(1)
                 return mask.Not()
@@ -519,12 +543,12 @@ class Landsat(object):
             return ee.Number(ee.List(point).get(1))
 
         def pointBetween(pointA, pointB):
-            return ee.Geometry.LineString([pointA, pointB]).centroid() \
-                .coordinates()
+            return ee.Geometry.LineString([pointA, pointB]).centroid().coordinates()
 
         def slopeBetween(pointA, pointB):
-            return ((y(pointA)).subtract(y(pointB))) \
-                .divide((x(pointA)).subtract(x(pointB)))
+            return ((y(pointA)).subtract(y(pointB))).divide(
+                (x(pointA)).subtract(x(pointB))
+            )
 
         def toLine(pointA, pointB):
             return ee.Geometry.LineString([pointA, pointB])
@@ -537,21 +561,22 @@ class Landsat(object):
         inputBandNames = image.bandNames()
 
         coefficientsByBand = {
-            blue: {'fiso': 0.0774, 'fgeo': 0.0079, 'fvol': 0.0372},
-            green: {'fiso': 0.1306, 'fgeo': 0.0178, 'fvol': 0.0580},
-            red: {'fiso': 0.1690, 'fgeo': 0.0227, 'fvol': 0.0574},
-            nir: {'fiso': 0.3093, 'fgeo': 0.0330, 'fvol': 0.1535},
-            swir1: {'fiso': 0.3430, 'fgeo': 0.0453, 'fvol': 0.1154},
-            swir2: {'fiso': 0.2658, 'fgeo': 0.0387, 'fvol': 0.0639}
+            blue: {"fiso": 0.0774, "fgeo": 0.0079, "fvol": 0.0372},
+            green: {"fiso": 0.1306, "fgeo": 0.0178, "fvol": 0.0580},
+            red: {"fiso": 0.1690, "fgeo": 0.0227, "fvol": 0.0574},
+            nir: {"fiso": 0.3093, "fgeo": 0.0330, "fvol": 0.1535},
+            swir1: {"fiso": 0.3430, "fgeo": 0.0453, "fvol": 0.1154},
+            swir2: {"fiso": 0.2658, "fgeo": 0.0387, "fvol": 0.0639},
         }
 
         def findCorners(img):
-            footprint = ee.Geometry(img.get('system:footprint'))
+            footprint = ee.Geometry(img.get("system:footprint"))
             bounds = ee.List(footprint.bounds().coordinates().get(0))
             coords = footprint.coordinates()
 
             def wrap_xs(item):
                 return x(item)
+
             xs = coords.map(wrap_xs)
 
             def wrap_ys(item):
@@ -562,6 +587,7 @@ class Landsat(object):
             def findCorner(targetValue, values):
                 def wrap_diff(value):
                     return ee.Number(value).subtract(targetValue).abs()
+
                 diff = values.map(wrap_diff)
                 minValue = diff.reduce(ee.Reducer.min())
                 idx = diff.indexOf(minValue)
@@ -572,10 +598,10 @@ class Landsat(object):
             upperRight = findCorner(x(bounds.get(2)), xs)
             upperLeft = findCorner(y(bounds.get(3)), ys)
             return {
-                'upperLeft': upperLeft,
-                'upperRight': upperRight,
-                'lowerRight': lowerRight,
-                'lowerLeft': lowerLeft
+                "upperLeft": upperLeft,
+                "upperRight": upperRight,
+                "lowerRight": lowerRight,
+                "lowerLeft": lowerLeft,
             }
 
         corners = findCorners(image)
@@ -583,24 +609,30 @@ class Landsat(object):
         def viewAngles(img):
             maxDistanceToSceneEdge = 1000000
             maxSatelliteZenith = 7.5
-            upperCenter = pointBetween(corners['upperLeft'], corners['upperRight'])
-            lowerCenter = pointBetween(corners['lowerLeft'], corners['lowerRight'])
+            upperCenter = pointBetween(corners["upperLeft"], corners["upperRight"])
+            lowerCenter = pointBetween(corners["lowerLeft"], corners["lowerRight"])
             slope = slopeBetween(lowerCenter, upperCenter)
             slopePerp = ee.Number(-1).divide(slope)
-            img = set_name(img, 'viewAz',
-                             ee.Image(ee.Number(math.pi / 2).subtract((slopePerp).atan())))
+            img = set_name(
+                img,
+                "viewAz",
+                ee.Image(ee.Number(math.pi / 2).subtract((slopePerp).atan())),
+            )
 
-            leftLine = toLine(corners['upperLeft'], corners['lowerLeft'])
-            rightLine = toLine(corners['upperRight'], corners['lowerRight'])
-            leftDistance = ee.FeatureCollection(leftLine) \
-                .distance(maxDistanceToSceneEdge)
-            rightDistance = ee.FeatureCollection(rightLine) \
-                .distance(maxDistanceToSceneEdge)
-            viewZenith = rightDistance.multiply(maxSatelliteZenith * 2) \
-                .divide(rightDistance.add(leftDistance)) \
+            leftLine = toLine(corners["upperLeft"], corners["lowerLeft"])
+            rightLine = toLine(corners["upperRight"], corners["lowerRight"])
+            leftDistance = ee.FeatureCollection(leftLine).distance(
+                maxDistanceToSceneEdge
+            )
+            rightDistance = ee.FeatureCollection(rightLine).distance(
+                maxDistanceToSceneEdge
+            )
+            viewZenith = (
+                rightDistance.multiply(maxSatelliteZenith * 2)
+                .divide(rightDistance.add(leftDistance))
                 .subtract(maxSatelliteZenith)
-            img = set_name(img, 'viewZen',
-                             viewZenith.multiply(math.pi).divide(180))
+            )
+            img = set_name(img, "viewZen", viewZenith.multiply(math.pi).divide(180))
 
             return img
 
@@ -608,80 +640,98 @@ class Landsat(object):
 
         def solarPosition(img):
             # Ported from http://pythonfmask.org/en/latest/_modules/fmask/landsatangles.html
-            date = ee.Date(ee.Number(img.get('system:time_start')))
+            date = ee.Date(ee.Number(img.get("system:time_start")))
             secondsInHour = 3600
-            img = set_name(img, 'longDeg',
-                           ee.Image.pixelLonLat().select('longitude'))
+            img = set_name(img, "longDeg", ee.Image.pixelLonLat().select("longitude"))
 
-            img = set_name(img, 'latRad',
-                           ee.Image.pixelLonLat().select('latitude') \
-                           .multiply(math.pi).divide(180))
+            img = set_name(
+                img,
+                "latRad",
+                ee.Image.pixelLonLat().select("latitude").multiply(math.pi).divide(180),
+            )
 
-            img = set_name(img, 'hourGMT',
-                           ee.Number(date.getRelative('second', 'day')).divide(secondsInHour))
+            img = set_name(
+                img,
+                "hourGMT",
+                ee.Number(date.getRelative("second", "day")).divide(secondsInHour),
+            )
 
-            img = set_name(img, 'jdp', # Julian Date Proportion
-                           date.getFraction('year'))
+            img = set_name(
+                img, "jdp", date.getFraction("year")  # Julian Date Proportion
+            )
 
-            img = set_name(img, 'jdpr', # Julian Date Proportion in Radians
-                           'i.jdp * 2 * {pi}')
+            img = set_name(
+                img, "jdpr", "i.jdp * 2 * {pi}"  # Julian Date Proportion in Radians
+            )
 
+            img = set_name(img, "meanSolarTime", "i.hourGMT + i.longDeg / 15")
 
-            img = set_name(img, 'meanSolarTime',
-                           'i.hourGMT + i.longDeg / 15')
+            img = set_name(
+                img,
+                "localSolarDiff",
+                "(0.000075 + 0.001868 * cos(i.jdpr) - 0.032077 * sin(i.jdpr)"
+                + "- 0.014615 * cos(2 * i.jdpr) - 0.040849 * sin(2 * i.jdpr))"
+                + "* 12 * 60 / {pi}",
+            )
 
-            img = set_name(img, 'localSolarDiff',
-                           '(0.000075 + 0.001868 * cos(i.jdpr) - 0.032077 * sin(i.jdpr)' +
-                           '- 0.014615 * cos(2 * i.jdpr) - 0.040849 * sin(2 * i.jdpr))' +
-                           '* 12 * 60 / {pi}')
+            img = set_name(
+                img, "trueSolarTime", "i.meanSolarTime + i.localSolarDiff / 60 - 12"
+            )
 
-            img = set_name(img, 'trueSolarTime',
-                           'i.meanSolarTime + i.localSolarDiff / 60 - 12')
+            img = set_name(img, "angleHour", "i.trueSolarTime * 15 * {pi} / 180")
 
-            img = set_name(img, 'angleHour',
-                           'i.trueSolarTime * 15 * {pi} / 180')
+            img = set_name(
+                img,
+                "delta",
+                "0.006918"
+                + "- 0.399912 * cos(1 * i.jdpr) + 0.070257 * sin(1 * i.jdpr)"
+                + "- 0.006758 * cos(2 * i.jdpr) + 0.000907 * sin(2 * i.jdpr)"
+                + "- 0.002697 * cos(3 * i.jdpr) + 0.001480 * sin(3 * i.jdpr)",
+            )
 
-            img = set_name(img, 'delta',
-                           '0.006918'+
-                           '- 0.399912 * cos(1 * i.jdpr) + 0.070257 * sin(1 * i.jdpr)'+
-                           '- 0.006758 * cos(2 * i.jdpr) + 0.000907 * sin(2 * i.jdpr)'+
-                           '- 0.002697 * cos(3 * i.jdpr) + 0.001480 * sin(3 * i.jdpr)')
+            img = set_name(
+                img,
+                "cosSunZen",
+                "sin(i.latRad) * sin(i.delta) "
+                + "+ cos(i.latRad) * cos(i.delta) * cos(i.angleHour)",
+            )
 
-            img = set_name(img, 'cosSunZen',
-                           'sin(i.latRad) * sin(i.delta) ' +
-                           '+ cos(i.latRad) * cos(i.delta) * cos(i.angleHour)')
+            img = set_name(img, "sunZen", "acos(i.cosSunZen)")
 
-            img = set_name(img, 'sunZen',
-                           'acos(i.cosSunZen)')
+            img = set_name(
+                img,
+                "sinSunAzSW",
+                toImage(img, "cos(i.delta) * sin(i.angleHour) / sin(i.sunZen)").clamp(
+                    -1, 1
+                ),
+            )
 
-            img = set_name(img, 'sinSunAzSW',
-                           toImage(img, 'cos(i.delta) * sin(i.angleHour) / sin(i.sunZen)') \
-                           .clamp(-1, 1))
+            img = set_name(
+                img,
+                "cosSunAzSW",
+                "(-cos(i.latRad) * sin(i.delta)"
+                + "+ sin(i.latRad) * cos(i.delta) * cos(i.angleHour)) / sin(i.sunZen)",
+            )
 
-            img = set_name(img, 'cosSunAzSW',
-                           '(-cos(i.latRad) * sin(i.delta)' +
-                           '+ sin(i.latRad) * cos(i.delta) * cos(i.angleHour)) / sin(i.sunZen)')
+            img = set_name(img, "sunAzSW", "asin(i.sinSunAzSW)")
 
-            img = set_name(img, 'sunAzSW',
-                           'asin(i.sinSunAzSW)')
+            img = setIf(
+                img, "sunAzSW", "i.cosSunAzSW <= 0", "{pi} - i.sunAzSW", "i.sunAzSW"
+            )
 
-            img = setIf(img, 'sunAzSW',
-                        'i.cosSunAzSW <= 0',
-                        '{pi} - i.sunAzSW',
-                        'i.sunAzSW')
+            img = setIf(
+                img,
+                "sunAzSW",
+                "i.cosSunAzSW > 0 and i.sinSunAzSW <= 0",
+                "2 * {pi} + i.sunAzSW",
+                "i.sunAzSW",
+            )
 
-            img = setIf(img, 'sunAzSW',
-                        'i.cosSunAzSW > 0 and i.sinSunAzSW <= 0',
-                        '2 * {pi} + i.sunAzSW',
-                        'i.sunAzSW')
+            img = set_name(img, "sunAz", "i.sunAzSW + {pi}")
 
-            img = set_name(img, 'sunAz',
-                           'i.sunAzSW + {pi}')
-
-            img = setIf(img, 'sunAz',
-                        'i.sunAz > 2 * {pi}',
-                        'i.sunAz - 2 * {pi}',
-                        'i.sunAz')
+            img = setIf(
+                img, "sunAz", "i.sunAz > 2 * {pi}", "i.sunAz - 2 * {pi}", "i.sunAz"
+            )
 
             return img
 
@@ -689,125 +739,169 @@ class Landsat(object):
 
         def sunZenOut(img):
             # https://nex.nasa.gov/nex/static/media/publication/HLS.v1.0.UserGuide.pdf
-            img = set_name(img, 'centerLat',
-                             ee.Number(
-                                 ee.Geometry(img.get('system:footprint')) \
-                                     .bounds().centroid(30).coordinates().get(0)) \
-                             .multiply(math.pi).divide(180))
-            img = set_name(img, 'sunZenOut',
-                             '(31.0076' +
-                             '- 0.1272 * i.centerLat' +
-                             '+ 0.01187 * pow(i.centerLat, 2)' +
-                             '+ 2.40E-05 * pow(i.centerLat, 3)' +
-                             '- 9.48E-07 * pow(i.centerLat, 4)' +
-                             '- 1.95E-09 * pow(i.centerLat, 5)' +
-                             '+ 6.15E-11 * pow(i.centerLat, 6)) * {pi}/180')
+            img = set_name(
+                img,
+                "centerLat",
+                ee.Number(
+                    ee.Geometry(img.get("system:footprint"))
+                    .bounds()
+                    .centroid(30)
+                    .coordinates()
+                    .get(0)
+                )
+                .multiply(math.pi)
+                .divide(180),
+            )
+            img = set_name(
+                img,
+                "sunZenOut",
+                "(31.0076"
+                + "- 0.1272 * i.centerLat"
+                + "+ 0.01187 * pow(i.centerLat, 2)"
+                + "+ 2.40E-05 * pow(i.centerLat, 3)"
+                + "- 9.48E-07 * pow(i.centerLat, 4)"
+                + "- 1.95E-09 * pow(i.centerLat, 5)"
+                + "+ 6.15E-11 * pow(i.centerLat, 6)) * {pi}/180",
+            )
 
             return img
 
         image = sunZenOut(image)
-        image = set_name(image, 'relativeSunViewAz', 'i.sunAz - i.viewAz')
+        image = set_name(image, "relativeSunViewAz", "i.sunAz - i.viewAz")
 
         def cosPhaseAngle(img, name, sunZen, viewZen, relativeSunViewAz):
             args = {
-                'sunZen': sunZen,
-                'viewZen': viewZen,
-                'relativeSunViewAz': relativeSunViewAz}
+                "sunZen": sunZen,
+                "viewZen": viewZen,
+                "relativeSunViewAz": relativeSunViewAz,
+            }
 
-            img = set_name(img, name,
-                             toImage(img, 'cos({sunZen}) * cos({viewZen})' +
-                                     '+ sin({sunZen}) * sin({viewZen}) * cos({relativeSunViewAz})',
-                                     args).clamp(-1, 1))
+            img = set_name(
+                img,
+                name,
+                toImage(
+                    img,
+                    "cos({sunZen}) * cos({viewZen})"
+                    + "+ sin({sunZen}) * sin({viewZen}) * cos({relativeSunViewAz})",
+                    args,
+                ).clamp(-1, 1),
+            )
             return img
 
         def rossThick(img, bandName, sunZen, viewZen, relativeSunViewAz):
-            args = {'sunZen': sunZen,
-                    'viewZen': viewZen,
-                    'relativeSunViewAz': relativeSunViewAz}
+            args = {
+                "sunZen": sunZen,
+                "viewZen": viewZen,
+                "relativeSunViewAz": relativeSunViewAz,
+            }
 
-            img = cosPhaseAngle(img, 'cosPhaseAngle', sunZen, viewZen,
-                                  relativeSunViewAz)
-            img = set_name(img, 'phaseAngle',
-                             'acos(i.cosPhaseAngle)')
+            img = cosPhaseAngle(
+                img, "cosPhaseAngle", sunZen, viewZen, relativeSunViewAz
+            )
+            img = set_name(img, "phaseAngle", "acos(i.cosPhaseAngle)")
 
-            img = set_name(img, bandName,
-                             '(({pi}/2 - i.phaseAngle) * i.cosPhaseAngle + sin(i.phaseAngle)) ' +
-                             '/ (cos({sunZen}) + cos({viewZen})) - {pi}/4', args)
+            img = set_name(
+                img,
+                bandName,
+                "(({pi}/2 - i.phaseAngle) * i.cosPhaseAngle + sin(i.phaseAngle)) "
+                + "/ (cos({sunZen}) + cos({viewZen})) - {pi}/4",
+                args,
+            )
 
             return img
 
-        image = rossThick(image, 'kvol', 'i.sunZen', 'i.viewZen', 'i.relativeSunViewAz')
-        image = rossThick(image, 'kvol0', 'i.sunZenOut', 0, 0)
+        image = rossThick(image, "kvol", "i.sunZen", "i.viewZen", "i.relativeSunViewAz")
+        image = rossThick(image, "kvol0", "i.sunZenOut", 0, 0)
 
         def anglePrime(img, name, angle):
-            args = {'b/r': 1, 'angle': angle}
-            img = set_name(img, 'tanAnglePrime',
-                             '{b/r} * tan({angle})', args)
-            img = setIf(img, 'tanAnglePrime', 'i.tanAnglePrime < 0', 0)
-            img = set_name(img, name,
-                             'atan(i.tanAnglePrime)')
+            args = {"b/r": 1, "angle": angle}
+            img = set_name(img, "tanAnglePrime", "{b/r} * tan({angle})", args)
+            img = setIf(img, "tanAnglePrime", "i.tanAnglePrime < 0", 0)
+            img = set_name(img, name, "atan(i.tanAnglePrime)")
             return img
 
         def liThin(img, bandName, sunZen, viewZen, relativeSunViewAz):
             # From https://modis.gsfc.nasa.gov/data/atbd/atbd_mod09.pdf
             args = {
-                'sunZen': sunZen,
-                'viewZen': viewZen,
-                'relativeSunViewAz': relativeSunViewAz,
-                'h/b': 2,
+                "sunZen": sunZen,
+                "viewZen": viewZen,
+                "relativeSunViewAz": relativeSunViewAz,
+                "h/b": 2,
             }
 
-            img = anglePrime(img, 'sunZenPrime', sunZen)
-            img = anglePrime(img, 'viewZenPrime', viewZen)
-            img = cosPhaseAngle(img, 'cosPhaseAnglePrime', 'i.sunZenPrime',
-                                  'i.viewZenPrime', relativeSunViewAz)
-            img = set_name(img, 'distance',
-                             'sqrt(pow(tan(i.sunZenPrime), 2) + pow(tan(i.viewZenPrime), 2)' +
-                             '- 2 * tan(i.sunZenPrime) * tan(i.viewZenPrime)'+
-                             '* cos({relativeSunViewAz}))',
-                             args)
-            img = set_name(img, 'temp',
-                             '1/cos(i.sunZenPrime) + 1/cos(i.viewZenPrime)')
-            img = set_name(img, 'cosT',
-                             toImage(img, '{h/b} * sqrt(pow(i.distance, 2)'+
-                                     '+ pow(tan(i.sunZenPrime) * tan(i.viewZenPrime)'+
-                                     '* sin({relativeSunViewAz}), 2))/i.temp', args) \
-                             .clamp(-1, 1))
-            img = set_name(img, 't', 'acos(i.cosT)')
-            img = set_name(img, 'overlap',
-                             '(1/{pi}) * (i.t - sin(i.t) * i.cosT) * (i.temp)')
-            img = setIf(img, 'overlap', 'i.overlap > 0', 0)
-            img = set_name(img, bandName,
-                             'i.overlap - i.temp' +
-                             '+ (1/2) * (1 + i.cosPhaseAnglePrime) * (1/cos(i.sunZenPrime))'+
-                             '* (1/cos(i.viewZenPrime))')
+            img = anglePrime(img, "sunZenPrime", sunZen)
+            img = anglePrime(img, "viewZenPrime", viewZen)
+            img = cosPhaseAngle(
+                img,
+                "cosPhaseAnglePrime",
+                "i.sunZenPrime",
+                "i.viewZenPrime",
+                relativeSunViewAz,
+            )
+            img = set_name(
+                img,
+                "distance",
+                "sqrt(pow(tan(i.sunZenPrime), 2) + pow(tan(i.viewZenPrime), 2)"
+                + "- 2 * tan(i.sunZenPrime) * tan(i.viewZenPrime)"
+                + "* cos({relativeSunViewAz}))",
+                args,
+            )
+            img = set_name(img, "temp", "1/cos(i.sunZenPrime) + 1/cos(i.viewZenPrime)")
+            img = set_name(
+                img,
+                "cosT",
+                toImage(
+                    img,
+                    "{h/b} * sqrt(pow(i.distance, 2)"
+                    + "+ pow(tan(i.sunZenPrime) * tan(i.viewZenPrime)"
+                    + "* sin({relativeSunViewAz}), 2))/i.temp",
+                    args,
+                ).clamp(-1, 1),
+            )
+            img = set_name(img, "t", "acos(i.cosT)")
+            img = set_name(
+                img, "overlap", "(1/{pi}) * (i.t - sin(i.t) * i.cosT) * (i.temp)"
+            )
+            img = setIf(img, "overlap", "i.overlap > 0", 0)
+            img = set_name(
+                img,
+                bandName,
+                "i.overlap - i.temp"
+                + "+ (1/2) * (1 + i.cosPhaseAnglePrime) * (1/cos(i.sunZenPrime))"
+                + "* (1/cos(i.viewZenPrime))",
+            )
 
             return img
 
-        image = liThin(image, 'kgeo', 'i.sunZen', 'i.viewZen', 'i.relativeSunViewAz')
-        image = liThin(image, 'kgeo0', 'i.sunZenOut', 0, 0)
+        image = liThin(image, "kgeo", "i.sunZen", "i.viewZen", "i.relativeSunViewAz")
+        image = liThin(image, "kgeo0", "i.sunZenOut", 0, 0)
 
         def brdf(img, bandName, kvolBand, kgeoBand, coefficients):
-            args = merge(coefficients, {
-                'kvol': '3 * i.' + kvolBand, # check this multiplication factor. Is there an 'optimal' value?  Without a factor here, there is not enough correction.
-                'kgeo': 'i.' + kgeoBand
-            })
+            args = merge(
+                coefficients,
+                {
+                    "kvol": "3 * i."
+                    + kvolBand,  # check this multiplication factor. Is there an 'optimal' value?  Without a factor here, there is not enough correction.
+                    "kgeo": "i." + kgeoBand,
+                },
+            )
 
-            img = set_name(img, bandName,
-                           '{fiso} + {fvol} * {kvol} + {fgeo} * {kvol}', args)
+            img = set_name(
+                img, bandName, "{fiso} + {fvol} * {kvol} + {fgeo} * {kvol}", args
+            )
             return img
 
         def applyCFactor(img, bandName, coefficients):
-            img = brdf(img, 'brdf', 'kvol', 'kgeo', coefficients)
-            img = brdf(img, 'brdf0', 'kvol0', 'kgeo0', coefficients)
-            img = set_name(img, 'cFactor',
-                           'i.brdf0 / i.brdf', coefficients)
-            img = set_name(img, bandName,
-                           '{bandName} * i.cFactor', {'bandName': 'i.' + bandName})
+            img = brdf(img, "brdf", "kvol", "kgeo", coefficients)
+            img = brdf(img, "brdf0", "kvol0", "kgeo0", coefficients)
+            img = set_name(img, "cFactor", "i.brdf0 / i.brdf", coefficients)
+            img = set_name(
+                img, bandName, "{bandName} * i.cFactor", {"bandName": "i." + bandName}
+            )
             return img
 
         def adjustBands(img):
-            """ apply cFactor per band """
+            """apply cFactor per band"""
             for bandName in coefficientsByBand:
                 coefficients = coefficientsByBand[bandName]
                 img = applyCFactor(img, bandName, coefficients)

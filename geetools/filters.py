@@ -7,7 +7,7 @@ import ee
 
 
 def dateRange(range):
-    """ Filter by DateRange
+    """Filter by DateRange
 
     :param range: date range
     :type range: ee.DateRange
