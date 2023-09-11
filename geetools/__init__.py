@@ -1,5 +1,4 @@
 # coding=utf-8
-from __future__ import absolute_import
 from ._version import __version__
 
 __title__ = "geetools"
@@ -12,40 +11,41 @@ __email__ = "fitoprincipe82@gmail.com"
 __license__ = "MIT"
 __copyright__ = "2017 Rodrigo E. Principe"
 
-try:
-    from . import (
-        tools,
-        bitreader,
-        cloud_mask,
-        expressions,
-        decision_tree,
-        filters,
-        indices,
-        batch,
-        algorithms,
-        composite,
-        manager,
-        utils,
-        collection,
-        oauth,
-        visualization,
-        classification,
-    )
-    from .tools import (
-        array,
-        date,
-        dictionary,
-        ee_list,
-        featurecollection,
-        geometry,
-        image,
-        imagecollection,
-        number,
-        string,
-    )
-    from .ui import eprint
-    from .batch import Export, Import, Convert, Download
-    from .oauth import Initialize
-    from .utils import evaluate
-except ImportError:
-    pass
+# from geetools import (
+    # bitreader,
+    #cloud_mask,
+    #expressions,
+    #decision_tree,
+    #filters,
+    #indices,
+    #batch,
+    #algorithms,
+    #composite,
+    #manager,
+    #utils,
+    #collection,
+    #oauth,
+    #visualization,
+    #classification
+#)
+# from geetools.tools import (
+    #array,
+    # date,
+    # dictionary,
+    # ee_list,
+    # featurecollection,
+    # geometry,
+    # image,
+    # imagecollection,
+    # string
+#)
+# from geetools.ui import eprint
+# from geetools.batch import Export, Import, Convert, Download
+# from geetools.oauth import Initialize
+# from geetools.utils import evaluate
+
+from .numbers import Number
+
+# reproduce older structure of the lib (deprecated)
+# will be removed along the deprecation cycle
+from .tools import number

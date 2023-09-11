@@ -23,6 +23,7 @@ dependencies = [
     "requests",
     "pandas",
     "geopandas",
+    "deprecated",
 ]
 
 [[project.authors]]
@@ -41,12 +42,22 @@ github = "https://github.com/gee-community/gee_tools"
 
 [project.optional-dependencies]
 "dev" = ["pre-commit"]
-"test" = []
+"test" = [
+    "pytest",
+    "pytest-sugar",
+    "pytest-cov",
+    "pytest-deadfixtures",
+    "httplib2",
+    "pytest-regressions",
+]
 "doc" = []
 
 [tool.setuptools]
 include-package-data = true
-packages = ["geetools"]
+packages = [
+    "geetools",
+    "geetools.tools",
+]
 license-files = ["LICENSE"]
 
 [tool.licensecheck]
@@ -66,3 +77,9 @@ docstring-quotes = "double"
 
 [tool.ruff.pydocstyle]
 convention = "google"
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+
+[tool.coverage.run]
+source = ["geetools"]

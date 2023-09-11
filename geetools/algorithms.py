@@ -162,7 +162,7 @@ def maskCover(
     ).get(band)
     zeros_in_mask = ee.Number(zeros_in_mask)
 
-    percentage = tools.number.trimDecimals(zeros_in_mask.divide(ones), 4)
+    percentage = tools.trimDecimals(zeros_in_mask.divide(ones), 4)
 
     # Multiply by 100
     cover = percentage.multiply(100)
