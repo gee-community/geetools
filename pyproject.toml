@@ -41,7 +41,11 @@ content-type = "text/markdown"
 github = "https://github.com/gee-community/gee_tools"
 
 [project.optional-dependencies]
-"dev" = ["pre-commit"]
+"dev" = [
+    "pre-commit",
+    "nox",
+    "commitizen"
+]
 "test" = [
     "pytest",
     "pytest-sugar",
@@ -50,7 +54,16 @@ github = "https://github.com/gee-community/gee_tools"
     "httplib2",
     "pytest-regressions",
 ]
-"doc" = []
+doc = [
+  "sphinx>=6.2.1",
+  "pydata-sphinx-theme",
+  "sphinx-copybutton",
+  "sphinx-design",
+  "sphinx-autoapi",
+  "ipykernel",
+  "httplib2",
+  "jupyter-sphinx",
+]
 
 [tool.setuptools]
 include-package-data = true
