@@ -44,6 +44,7 @@ __copyright__ = "2017 Rodrigo E. Principe"
 # from geetools.utils import evaluate
 
 from . import _deprecated_filters as filters  # noqa: F401
+from .Array import Array  # noqa: F401
 from .Filter import Filter  # noqa: F401
 from .List import List  # noqa: F401
 from .Number import Number  # noqa: F401
