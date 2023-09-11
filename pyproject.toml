@@ -59,7 +59,10 @@ doc = [
   "pydata-sphinx-theme",
   "sphinx-copybutton",
   "sphinx-design",
-  "sphinx-autoapi"
+  "sphinx-autoapi",
+  "ipykernel",
+  "httplib2",
+  "jupyter-sphinx",
 ]
 
 [tool.setuptools]
