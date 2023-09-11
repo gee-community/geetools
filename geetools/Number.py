@@ -1,4 +1,6 @@
-"""Extra methods for the ee.Number class."""
+"""Extra methods for the ``ee.Number`` class."""
+from __future__ import annotations
+
 from typing import Union
 
 import ee
@@ -8,7 +10,7 @@ from .accessors import gee_accessor
 
 @gee_accessor(ee.Number)
 class Number:
-    """toolbox for the number class."""
+    """toolbox for the ``ee.Number`` class."""
 
     def __init__(self, obj: ee.Number):
         """Initialize the Number class."""
@@ -18,7 +20,7 @@ class Number:
         """Truncate a number to a given number of decimals.
 
         Parameters:
-            nbDecimals : The number of decimals to truncate to.
+            nbDecimals: The number of decimals to truncate to.
 
         Returns:
             The truncated number.
