@@ -1,5 +1,5 @@
 # from . import collection, date, dictionary, ee_list, featurecollection, \
-#              geometry, image, imagecollection, array, \
+#              geometry, image, imagecollection \
 #              computedobject, element, feature
 """Legacy import package for tools."""
 

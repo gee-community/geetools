@@ -8,7 +8,8 @@ import ee
 from .accessors import gee_accessor
 
 # hack to have the generated Array class available
-ee._InitializeGeneratedClasses()
+# it might create issues in the future with libs that have exotic init methods
+ee.Initialize()
 
 
 @gee_accessor(ee.Array)
@@ -46,4 +47,35 @@ class Array:
                 arr = ee.Array.geetools.full(3, 3, 1)
                 arr.getInfo()
         """
+        width, height = ee.Number(width).toInt(), ee.Number(height).toInt()
         return ee.Array(ee.List.repeat(ee.List.repeat(value, width), height))
+
+    def set(
+        self,
+        x: Union[int, ee.number],
+        y: Union[int, ee.number],
+        value: Union[int, float, ee.Number],
+    ) -> ee.Array:
+        """Set the value of a cell in an array.
+
+        Parameters:
+            x: The x coordinate of the cell.
+            y: The y coordinate of the cell.
+            value: The value to set the cell to.
+
+        Returns:
+            The array with the cell set to the given value.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                arr = ee.Array.geetools.full(3, 3, 1)
+                arr.geetools.set(1, 1, 0).getInfo()
+        """
+        xPos, yPos = ee.Number(x).toInt(), ee.Number(y).toInt()
+        row = ee.List(self._obj.toList().get(yPos)).set(xPos, ee.Number(value))
+        return ee.Array(self._obj.toList().set(yPos, row))

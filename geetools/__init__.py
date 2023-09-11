@@ -53,6 +53,7 @@ from .String import String  # noqa: F401
 # reproduce older structure of the lib (deprecated)
 # will be removed along the deprecation cycle
 from .tools import (
+    array,  # noqa: F401
     number,  # noqa: F401
     string,  # noqa: F401
 )
