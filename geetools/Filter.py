@@ -16,6 +16,7 @@ class Filter:
         """Initialize the Filter class."""
         self._obj = obj
 
+    @classmethod
     def dateRange(self, range: ee.DateRange) -> Any:
         """Filter by daterange.
 
