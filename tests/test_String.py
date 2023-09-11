@@ -1,7 +1,8 @@
-"""test he String class methods."""
+"""Test the String class methods."""
+import ee
 import pytest
 
-from geetools import tools
+import geetools
 
 
 class TestEq:
@@ -17,5 +18,10 @@ class TestEq:
 
     def test_deprecated_method(self, string_instance):
         with pytest.deprecated_call():
-            eq_number = tools.string.eq(string_instance, "foo")
+            eq_number = geetools.string.eq(string_instance, "foo")
             assert eq_number.getInfo() == 1
+
+    @pytest.fixture
+    def string_instance(self):
+        """Return a defined string instance."""
+        return ee.String("foo")

@@ -44,6 +44,7 @@ __copyright__ = "2017 Rodrigo E. Principe"
 # from geetools.oauth import Initialize
 # from geetools.utils import evaluate
 
+from .List import List  # noqa: F401
 from .Number import Number  # noqa: F401
 from .String import String  # noqa: F401
 

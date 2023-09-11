@@ -7,3 +7,9 @@ from deprecated.sphinx import deprecated
 def eq(string, other):
     """Compare two ee.String and return 1 if equal else 0."""
     return ee.String(string).geetools.eq(other)
+
+
+@deprecated(version="1.0.0", reason="Use ee.List.geetools.product instead")
+def mix(strings):
+    """Mix a list of lists."""
+    return ee.List(strings[0]).geetools.product(strings[1])

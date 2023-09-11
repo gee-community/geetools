@@ -1,24 +1,19 @@
 # coding=utf-8
-""" Tools for Earth Engine ee.List objects """
+"""Tools for Earth Engine ee.List objects."""
 import ee
+
 from . import dictionary, ee_list
 
 
-def eq(string, to_compare):
-    """Compare two ee.String and return 1 if equal else 0"""
-    string = ee.String(string)
-    to_compare = ee.String(to_compare)
-    return string.compareTo(to_compare).Not()
-
-
 def format(string, replacement):
-    """Format a string using variables (as str.format). You can format numbers
+    """Format a string using variables (as str.format).
+
+    You can format numbers
     using the pattern: `{var:format}` where format string must be according to
     the argument in function ee.Number.format, which is based on
-    https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html
+    https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html.
 
     Example:
-
         string = ee.String('hello {nn:%.2f} {ll} {something} {else}')
         replacement = {'something': 'world', 'else': 'people',
                        'nn': 1.2555555654, 'pp': 'ignore'}
@@ -39,16 +34,16 @@ def format(string, replacement):
 
     def addFormat(st):
         st = ee.String(st)
-        splitted = ee.List(st.split(":"))
-        length = splitted.size()
+        split = ee.List(st.split(":"))
+        length = split.size()
         cond = length.eq(1)
 
         def true():
-            return splitted.add("0")
+            return split.add("0")
 
         def false():
-            proxy = splitted.set(0, st)
-            return splitted
+            split.set(0, st)
+            return split
 
         return ee.List(ee.Algorithms.If(cond, true(), false()))
 
@@ -101,20 +96,3 @@ def _zip(l1, l2):
         return l2.map(lambda e: el.cat(ee.String(e)))
 
     return l1.map(wrap).flatten()
-
-
-def mix(strings):
-    """Mix a list of lists. For example:
-
-    [[1,2,3], ['a', '1', 4]] -> ['1a', '11', '14', '2a', '21', '24', '3a', '31', '34']
-    """
-    strings = ee.List(strings)
-    first = ee.List([ee.List(strings.get(0))])
-    rest = ee.List(strings.slice(1))
-
-    def wrap(eelist, aggregate):
-        aggregate = ee.List(aggregate)
-        last = ee.List(aggregate.get(-1))
-        return ee.List([_zip(last, eelist)])
-
-    return ee.List(rest.iterate(wrap, first)).flatten()
