@@ -56,7 +56,7 @@ html_css_files = ["custom.css"]
 
 # -- Options for autosummary/autodoc output ------------------------------------
 autodoc_typehints = "description"
-autoapi_dirs = ["../gee_tools"]
+autoapi_dirs = ["../geetools"]
 autoapi_python_class_content = "init"
 autoapi_member_order = "groupwise"
 
