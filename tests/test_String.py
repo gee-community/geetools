@@ -25,3 +25,25 @@ class TestEq:
     def string_instance(self):
         """Return a defined string instance."""
         return ee.String("foo")
+
+
+class TestFormat:
+    """test the format method."""
+
+    def test_format_with_dictionary(self, string_instance):
+        formatted_string = string_instance.geetools.format(
+            {"greeting": "Hello", "name": "bob"}
+        )
+        assert formatted_string.getInfo() == "Hello bob !"
+
+    def test_deprecated_method(self, string_instance):
+        with pytest.deprecated_call():
+            formatted_string = geetools.string.format(
+                string_instance, {"greeting": "Hello", "name": "bob"}
+            )
+            assert formatted_string.getInfo() == "Hello bob !"
+
+    @pytest.fixture
+    def string_instance(self):
+        """Return a defined string instance."""
+        return ee.String("{greeting} {name} !")

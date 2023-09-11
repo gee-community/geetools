@@ -34,10 +34,10 @@ class List:
 
                 ee.Initialize()
 
-                l1 = ee.List([1,2,3])
-                l2 = ee.List(['a', '1', 4])
+                l1 = ee.List(["1", "2", "3"])
+                l2 = ee.List(["a", "b", "c"])
 
-                l1.product(l2).getInfo()
+                l1.geetools.product(l2).getInfo()
         """
         l1 = ee.List(self._obj).map(lambda e: ee.String(e))
         l2 = ee.List(other).map(lambda e: ee.String(e))
