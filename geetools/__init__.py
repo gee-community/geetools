@@ -45,7 +45,11 @@ __copyright__ = "2017 Rodrigo E. Principe"
 # from geetools.utils import evaluate
 
 from .Number import Number  # noqa: F401
+from .String import String  # noqa: F401
 
 # reproduce older structure of the lib (deprecated)
 # will be removed along the deprecation cycle
-from .tools import number  # noqa: F401
+from .tools import (
+    number,  # noqa: F401
+    string,  # noqa: F401
+)

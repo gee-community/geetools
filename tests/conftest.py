@@ -5,6 +5,7 @@ from pathlib import Path
 
 import ee
 import httplib2
+import pytest
 
 
 def pytest_configure() -> None:
@@ -29,3 +30,15 @@ def pytest_configure() -> None:
         # if the user is in local development the authentication should
         # already be available
         ee.Initialize(http_transport=httplib2.Http())
+
+
+@pytest.fixture
+def number_instance():
+    """Return a defined number instance."""
+    return ee.Number(1234.56785678)
+
+
+@pytest.fixture
+def string_instance():
+    """Return a defined string instance."""
+    return ee.String("foo")
