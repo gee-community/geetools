@@ -60,3 +60,24 @@ class Dictionary:
         orderededKeys = self._obj.keys().sort()
         values = orderededKeys.map(lambda key: self._obj.get(key))
         return ee.Dictionary.fromLists(orderededKeys, values)
+
+    def extract(self, list: Union[ee.List, list]) -> ee.List:
+        """Extract values from a list of keys.
+
+        Parameters:
+            list: A list of keys.
+
+        Returns:
+            A list of values.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                d = ee.Dictionary({"foo": 1, "bar": 2, "baz": 3})
+                d.geetools.extract(["foo", "bar"]).getInfo()
+        """
+        return ee.List(list).map(lambda key: self._obj.get(key))

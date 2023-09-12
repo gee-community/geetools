@@ -34,3 +34,17 @@ class TestSort:
             d = ee.Dictionary({"foo": 1, "bar": 2})
             d = geetools.tools.dictionary.sort(d)
             assert d.getInfo() == {"bar": 2, "foo": 1}
+
+
+class TestExtract:
+    """Test the extract method."""
+
+    def test_extract(self):
+        d = ee.Dictionary({"foo": 1, "bar": 2}).geetools.extract(["foo"])
+        assert d.getInfo() == [1]
+
+    def test_deprecated_method(self):
+        with pytest.deprecated_call():
+            d = ee.Dictionary({"foo": 1, "bar": 2})
+            d = geetools.tools.dictionary.extractList(d, ["foo"])
+            assert d.getInfo() == [1]
