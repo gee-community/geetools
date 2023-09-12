@@ -64,3 +64,26 @@ class TestFromEpoch:
         with pytest.deprecated_call():
             date = geetools.tools.date.dateSinceEpoch(49, "year")
             assert date.format("YYYY-MM-DD").getInfo() == "2019-01-01"
+
+
+class TestFromDOY:
+    """Test the fromDOY method."""
+
+    def test_from_doy(self):
+        date = ee.Date.geetools.fromDOY(1, 2020)
+        assert date.format("YYYY-MM-DD").getInfo() == "2020-01-01"
+
+    def test_wrong_year(self):
+        # check GEE can use year < EPOCH
+        date = ee.Date.geetools.fromDOY(1, 3)
+        assert date.format("YYYY-MM-DD").getInfo() == "0003-01-01"
+
+    def test_wrong_doy(self):
+        # check that GEE can use > 365 doy
+        date = ee.Date.geetools.fromDOY(367, 2020)
+        assert date.format("YYYY-MM-DD").getInfo() == "2021-01-01"
+
+    def test_deprecated_method(self):
+        with pytest.deprecated_call():
+            date = geetools.tools.date.fromDOY(1, 2020)
+            assert date.format("YYYY-MM-DD").getInfo() == "2020-01-01"

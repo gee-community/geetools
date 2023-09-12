@@ -60,7 +60,7 @@ class Date:
         return self._obj.difference(EE_EPOCH, unit).toInt()
 
     @classmethod
-    def fromEpoch(self, number: int, unit: str = "day") -> ee.Date:
+    def fromEpoch(cls, number: int, unit: str = "day") -> ee.Date:
         """Set an the number of units since epoch (1970-01-01).
 
         Parameters:
@@ -80,8 +80,32 @@ class Date:
                 d = ee.Date.geetools.fromEpoch(49, 'year')
                 d.getInfo()
         """
-        self._check_unit(unit)
+        cls._check_unit(unit)
         return ee.Date(EE_EPOCH.isoformat()).advance(number, unit)
+
+    @classmethod
+    def fromDOY(cls, doy: int, year: int) -> ee.Date:
+        """Create a date from a day of year and a year.
+
+        Parameters:
+            doy: The day of year.
+            year: The year.
+
+        Returns:
+            The date as a ``ee.Date`` object.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                d = ee.Date.geetools.fromDOY(1, 2020)
+                d.getInfo()
+        """
+        doy, year = ee.Number(doy).toInt(), ee.Number(year).toInt()
+        return ee.Date.fromYMD(year, 1, 1).advance(doy.subtract(1), "day")
 
     @classmethod
     def _check_unit(cls, unit: str) -> None:
