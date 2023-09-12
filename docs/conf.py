@@ -66,6 +66,14 @@ autodoc_typehints = "description"
 autoapi_dirs = ["../geetools"]
 autoapi_python_class_content = "both"
 autoapi_member_order = "groupwise"
+autoapi_options = [
+    "members",
+    "undoc-members",
+    "show-inheritance",
+    "show-module-summary",
+    "special-members",
+    "imported-members",
+]
 
 # -- Options for intersphinx output --------------------------------------------
 intersphinx_mapping = {}
