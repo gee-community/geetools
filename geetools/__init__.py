@@ -18,15 +18,11 @@ import ee
 # classification
 # )
 # from geetools.tools import (
-# array,
-# date,
-# dictionary,
 # ee_list,
 # featurecollection,
 # geometry,
 # image,
 # imagecollection,
-# string
 # )
 # from geetools.ui import eprint
 # from geetools.batch import Export, Import, Convert, Download
@@ -43,6 +39,7 @@ from ._version import __version__  # noqa: F401
 # then we extend all the other classes
 from .Array import Array  # noqa: F401
 from .Date import Date  # noqa: F401
+from .Dictionary import Dictionary  # noqa: F401
 from .Filter import Filter  # noqa: F401
 from .Float import Float
 from .Integer import Integer
@@ -51,6 +48,8 @@ from .Number import Number  # noqa: F401
 from .String import String  # noqa: F401
 from .tools import (
     array,  # noqa: F401
+    date,  # noqa: F401
+    dictionary,  # noqa: F401
     number,  # noqa: F401
     string,  # noqa: F401
 )

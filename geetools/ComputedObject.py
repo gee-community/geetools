@@ -38,7 +38,7 @@ def isInstance(self, klass: Type) -> ee.Number:
 
             ee.Initialize()
 
-            s = ee.String("foo").geetools.isInstance(ee.String)
+            s = ee.String("foo").isInstance(ee.String)
             s.getInfo()
     """
     return ee.Algorithms.ObjectType(self).compareTo(klass.__name__).eq(0)
