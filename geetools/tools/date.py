@@ -7,16 +7,9 @@ import ee
 EE_EPOCH = datetime(1970, 1, 1, 0, 0, 0)
 
 
-def toDatetime(date):
-    """convert a `ee.Date` into a `datetime` object."""
-    formatted = date.format("yyyy,MM,dd,HH,mm,ss").getInfo()
-    args = formatted.split(",")
-    intargs = [int(arg) for arg in args]
-    return datetime(*intargs)
-
-
 def millisToDatetime(millis):
-    """Converts milliseconds from 1970-01-01T00:00:00 to a
+    """Converts milliseconds from 1970-01-01T00:00:00 to a.
+
     datetime object
     .
     """
@@ -26,7 +19,8 @@ def millisToDatetime(millis):
 
 
 def daterangeList(start_date, end_date, interval=1, unit="month"):
-    """Divide a range that goes from start_date to end_date into many
+    """Divide a range that goes from start_date to end_date into many.
+
         ee.DateRange, each one holding as many units as the interval.
 
     :param start_date: the start date. For the second DateRange and the
@@ -189,7 +183,7 @@ def getDateBand(img, unit="day", bandname="date", property_name=None):
 
 
 def makeDateBand(image, format="YMMdd", bandname="date"):
-    """Make a date band using a formatter. Format pattern:
+    """Make a date band using a formatter. Format pattern.
 
     C       century of era (>=0)         number        20
     Y       year of era (>=0)            year          1996
