@@ -40,3 +40,23 @@ class Dictionary:
         keys = list.map(lambda pair: ee.List(pair).get(0))
         values = list.map(lambda pair: ee.List(pair).get(1))
         return ee.Dictionary.fromLists(keys, values)
+
+    def sort(self) -> ee.Dictionary:
+        """Sort the dictionary by keys in ascending order.
+
+        Returns:
+            The sorted dictionary.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                d = ee.Dictionary({"foo": 1, "bar": 2}).geetools.sort()
+                d.getInfo()
+        """
+        orderededKeys = self._obj.keys().sort()
+        values = orderededKeys.map(lambda key: self._obj.get(key))
+        return ee.Dictionary.fromLists(orderededKeys, values)

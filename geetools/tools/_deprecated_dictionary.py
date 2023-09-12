@@ -7,3 +7,9 @@ from deprecated.sphinx import deprecated
 def fromList(alist):
     """Create a ee.Dictionary from a list of [[key, val], [key2, val2]...]."""
     return ee.Dictionary.geetools.fromPairs(alist)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Dictionary.geetools.sort instead")
+def sort(dictionary):
+    """Sort a dictionary by keys in ascending order."""
+    return ee.Dictionary(dictionary).geetools.sort()
