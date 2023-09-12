@@ -52,6 +52,10 @@ html_theme_options = {
             "icon": "fa-brands fa-python",
         },
     ],
+    "secondary_sidebar_items": [
+        "page-toc.html",
+        "edit-this-page.html",
+    ],
 }
 html_context = {
     "github_user": "gee-community",
