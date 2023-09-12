@@ -87,3 +87,24 @@ class TestFromDOY:
         with pytest.deprecated_call():
             date = geetools.tools.date.fromDOY(1, 2020)
             assert date.format("YYYY-MM-DD").getInfo() == "2020-01-01"
+
+
+class TestIsLeap:
+    """Test the isLeap method."""
+
+    def test_is_leap_1992(self):
+        leap = ee.Date("1992-01-01").geetools.isLeap()
+        assert leap.getInfo() == 1
+
+    def test_is_leap_2000(self):
+        leap = ee.Date("2000-01-01").geetools.isLeap()
+        assert leap.getInfo() == 1
+
+    def test_is_leap_1900(self):
+        leap = ee.Date("1900-01-01").geetools.isLeap()
+        assert leap.getInfo() == 0
+
+    def test_deprecated_method(self):
+        with pytest.deprecated_call():
+            leap = geetools.tools.date.isLeap(ee.Date("1992-01-01"))
+            assert leap.getInfo() == 1

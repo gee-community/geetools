@@ -286,19 +286,3 @@ def fromDOY(doy, year):
     s = ee.String(doy_str).cat(year_str)
 
     return ee.Date.parse("DDDyyyy", s)
-
-
-def isLeap(year):
-    """Determine wheater a year is leap or not. Returns 1 if leap, 0 if not."""
-    year = ee.Number(year)
-
-    divisible4 = year.mod(4).gt(0)
-    divisible100 = year.mod(100).gt(0)
-    divisible400 = year.mod(400).gt(0)
-
-    leap = ee.Algorithms.If(
-        divisible4,
-        0,
-        ee.Algorithms.If(divisible100, 1, ee.Algorithms.If(divisible400, 0, 1)),
-    )
-    return ee.Number(leap)

@@ -23,13 +23,19 @@ def unitSinceEpoch(date, unit="day"):
     return ee.Date(date).geetools.getUnitSinceEpoch(unit)
 
 
-@deprecated(version="1.0.0", reason="Use ee.Date.fromEpoch instead")
+@deprecated(version="1.0.0", reason="Use ee.Date.geetools.fromEpoch instead")
 def dateSinceEpoch(date, unit="day"):
     """Get the date for the specified date in unit.."""
     return ee.Date.geetools.fromEpoch(date, unit)
 
 
-@deprecated(version="1.0.0", reason="Use ee.Date.fromDOY instead")
+@deprecated(version="1.0.0", reason="Use ee.Date.geetools.fromDOY instead")
 def fromDOY(year, doy):
     """Get the date from year and day of year."""
     return ee.Date.geetools.fromDOY(year, doy)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Date.geetools.isLeap instead")
+def isLeap(date):
+    """Check if a date is leap."""
+    return ee.Date(date).geetools.isLeap()

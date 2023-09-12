@@ -107,6 +107,32 @@ class Date:
         doy, year = ee.Number(doy).toInt(), ee.Number(year).toInt()
         return ee.Date.fromYMD(year, 1, 1).advance(doy.subtract(1), "day")
 
+    def isLeap(self) -> ee.Number:
+        """Check if the year of the date is a leap year.
+
+        Returns:
+            ``1`` if the year is a leap year, ``0`` otherwise.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                d = ee.Date('2020-01-01').geetools.isLeap()
+                d.getInfo()
+        """
+        year = self._obj.get("year")
+        divisibleBy4 = year.mod(4).eq(0)
+        divisibleBy100 = year.mod(100).eq(0)
+        divisibleBy400 = year.mod(400).eq(0)
+
+        # d400 or (d4 and not d100)
+        isLeap = divisibleBy400.Or(divisibleBy4.And(divisibleBy100.Not()))
+
+        return isLeap.toInt()
+
     @classmethod
     def _check_unit(cls, unit: str) -> None:
         """Check if the unit is valid."""
