@@ -101,3 +101,8 @@ Jupyter Notebooks avilables [here](https://github.com/gee-community/gee_tools/tr
 
 Any contribution is welcome.
 Any bug or question please use the [`github issue tracker`](https://github.com/gee-community/gee_tools/issues)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=gee-community/gee_tools&type=Date)](https://star-history.com/#gee-community/gee_tools&Date)
+
