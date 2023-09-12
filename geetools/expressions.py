@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" Expression generator for Google Earth Engine """
+"""Expression generator for Google Earth Engine."""
 from __future__ import print_function
 
 
@@ -9,7 +9,7 @@ class Expression(object):
 
     @staticmethod
     def max(a, b):
-        """Generates the expression for max(a, b)
+        """Generates the expression for max(a, b).
 
         :param a: one value. Can be a number or a variable
         :type a: str
@@ -22,7 +22,7 @@ class Expression(object):
 
     @staticmethod
     def min(a, b):
-        """Generates the expression for min(a, b)
+        """Generates the expression for min(a, b).
 
         :param a: one value. Can be a number or a variable
         :type a: str

@@ -1,12 +1,13 @@
 # coding=utf-8
-""" Tools for Earth Engine ee.List objects """
+"""Tools for Earth Engine ee.List objects."""
 
 import ee
+
 from . import computedobject
 
 
 def difference(eelist, to_compare):
-    """Difference between two earth engine lists
+    """Difference between two earth engine lists.
 
     :param ee_list2: the other list
     :return: list with the values of the difference
@@ -16,7 +17,7 @@ def difference(eelist, to_compare):
 
 
 def format(eelist):
-    """Convert a list to a string"""
+    """Convert a list to a string."""
 
     def wrap(el, ini):
         ini = ee.String(ini)
@@ -28,7 +29,7 @@ def format(eelist):
 
 
 def getFromDict(eelist, values):
-    """Get a list of Dict's values from a list object. Keys must be unique
+    """Get a list of Dict's values from a list object. Keys must be unique.
 
     :param values: dict to get the values for list's keys
     :type values: ee.Dictionary
@@ -50,7 +51,7 @@ def getFromDict(eelist, values):
 
 def intersection(eelist, intersect):
     """Find matching values. If ee_list1 has duplicated values that are
-    present on ee_list2, all values from ee_list1 will apear in the result
+    present on ee_list2, all values from ee_list1 will apear in the result.
 
     :param intersect: the other Earth Engine List
     :return: list with the intersection (matching values)
@@ -69,7 +70,7 @@ def intersection(eelist, intersect):
 
 
 def removeDuplicates(eelist):
-    """Remove duplicated values from a EE list object"""
+    """Remove duplicated values from a EE list object."""
     # TODO: See ee.List.distinct()
     newlist = ee.List([])
 
@@ -82,7 +83,7 @@ def removeDuplicates(eelist):
 
 
 def removeIndex(list, index):
-    """Remove an element by its index"""
+    """Remove an element by its index."""
     list = ee.List(list)
     index = ee.Number(index)
     size = list.size()
@@ -115,7 +116,7 @@ def removeIndex(list, index):
 
 
 def replaceDict(eelist, to_replace):
-    """Replace many elements of a Earth Engine List object using a dictionary
+    """Replace many elements of a Earth Engine List object using a dictionary.
 
         **EXAMPLE**
 
@@ -149,7 +150,7 @@ def replaceDict(eelist, to_replace):
 def sequence(ini, end, step=1):
     """Create a sequence from ini to end by step. Similar to
     ee.List.sequence, but if end != last item then adds the end to the end
-    of the resuting list
+    of the resuting list.
     """
     end = ee.Number(end)
     if step == 0:
@@ -165,7 +166,7 @@ def sequence(ini, end, step=1):
 def toString(eelist):
     """Convert elements of a list into Strings. If the list contains other
     elements that are not strings or numbers, it will return the object type.
-    For example, ['a', 1, ee.Image(0)] -> ['a', '1', 'Image']
+    For example, ['a', 1, ee.Image(0)] -> ['a', '1', 'Image'].
     """
     eelist = ee.List(eelist)
 
@@ -205,7 +206,9 @@ def zip(eelist):
 
 def transpose(eelist):
     """Transpose a list of lists. Similar to ee.Array.transpose but using
-    ee.List. All inner lists must have the same size"""
+    ee.List. All inner lists must have the same size
+    .
+    """
     first = ee.List(eelist.get(0))
     size = first.size()
     result = ee.List.repeat(ee.List([]), size)

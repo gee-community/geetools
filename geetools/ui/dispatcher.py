@@ -1,10 +1,10 @@
 # coding=utf-8
-""" Dispatch methods for different EE Object types """
+"""Dispatch methods for different EE Object types."""
 import ee
 
 
 def belongToEE(eeobject):
-    """Determine if the parsed object belongs to the Earth Engine API"""
+    """Determine if the parsed object belongs to the Earth Engine API."""
     module = getattr(eeobject, "__module__", None)
     parent = module.split(".")[0] if module else None
     if parent == ee.__name__:
@@ -15,7 +15,7 @@ def belongToEE(eeobject):
 
 # GENERAL DISPATCHER
 def dispatch(eeobject):
-    """General dispatcher"""
+    """General dispatcher."""
     if belongToEE(eeobject):
         # DISPATCH!!
         if isinstance(eeobject, (ee.Image,)):
@@ -34,7 +34,7 @@ def dispatch(eeobject):
 
 
 def dispatchImage(image):
-    """Dispatch a Widget for an Image Object"""
+    """Dispatch a Widget for an Image Object."""
     info = image.getInfo()
 
     # IMAGE
@@ -82,14 +82,14 @@ def dispatchImage(image):
 
 
 def dispatchDate(date):
-    """Dispatch a ee.Date"""
+    """Dispatch a ee.Date."""
     info = date.format().getInfo()
 
     return info
 
 
 def dispatchDaterange(daterange):
-    """Dispatch a DateRange"""
+    """Dispatch a DateRange."""
     start = daterange.start().format().getInfo()
     end = daterange.end().format().getInfo()
     value = "{} to {}".format(start, end)

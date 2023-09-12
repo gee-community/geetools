@@ -1,13 +1,14 @@
 # coding=utf-8
-""" Module holding tools for ee.Date """
-import ee
+"""Module holding tools for ee.Date."""
 from datetime import datetime, timedelta
+
+import ee
 
 EE_EPOCH = datetime(1970, 1, 1, 0, 0, 0)
 
 
 def toDatetime(date):
-    """convert a `ee.Date` into a `datetime` object"""
+    """convert a `ee.Date` into a `datetime` object."""
     formatted = date.format("yyyy,MM,dd,HH,mm,ss").getInfo()
     args = formatted.split(",")
     intargs = [int(arg) for arg in args]
@@ -16,7 +17,9 @@ def toDatetime(date):
 
 def millisToDatetime(millis):
     """Converts milliseconds from 1970-01-01T00:00:00 to a
-    datetime object"""
+    datetime object
+    .
+    """
     seconds = millis / 1000
     dt = timedelta(seconds=seconds)
     return EE_EPOCH + dt
@@ -69,7 +72,7 @@ def daterangeIntervals(
     date_range_unit="day",
     direction="backward",
 ):
-    """Make Date Ranges in equal intervals
+    """Make Date Ranges in equal intervals.
 
     :param interval: the amount of the interval in `unit`
     :param unit: the unit of the interval
@@ -104,7 +107,7 @@ def daterangeIntervals(
 
 
 def dayRangeIntervals(start, end, interval=30, reverse=False, buffer="second"):
-    """Divide a date range into many DateRange objects. Return a list of DateRange
+    """Divide a date range into many DateRange objects. Return a list of DateRange.
 
     :param start: the start date
     :param end: the end date
@@ -150,7 +153,7 @@ def dayRangeIntervals(start, end, interval=30, reverse=False, buffer="second"):
 
 
 def unitSinceEpoch(date, unit="day"):
-    """Return the number of units since the epoch (1970-1-1)
+    """Return the number of units since the epoch (1970-1-1).
 
     :param date: the date
     :type date: ee.Date
@@ -164,7 +167,7 @@ def unitSinceEpoch(date, unit="day"):
 
 
 def getDateBand(img, unit="day", bandname="date", property_name=None):
-    """Get a date band from an image representing units since epoch
+    """Get a date band from an image representing units since epoch.
 
     :param img: the Image
     :param unit: one of 'year', 'month' 'week', 'day', 'hour', 'minute',
@@ -245,7 +248,7 @@ def regularIntervals(
     date_range_unit="day",
     direction="backward",
 ):
-    """Make date ranges at regular intervals
+    """Make date ranges at regular intervals.
 
     :param start_date: if `direction` is forward the intervals will
         start from this date
@@ -294,7 +297,7 @@ def regularIntervals(
 
 
 def dateSinceEpoch(date, unit="day"):
-    """Get the date for the specified date in unit
+    """Get the date for the specified date in unit.
 
     :param date: the date in the specified unit
     :type date: int
@@ -308,7 +311,7 @@ def dateSinceEpoch(date, unit="day"):
 
 
 def fromDOY(doy, year):
-    """Creat a ee.Date given a Day of Year and a Year"""
+    """Creat a ee.Date given a Day of Year and a Year."""
 
     def less10(doy):
         doy = doy.toInt()
@@ -331,7 +334,7 @@ def fromDOY(doy, year):
 
 
 def isLeap(year):
-    """Determine wheater a year is leap or not. Returns 1 if leap, 0 if not"""
+    """Determine wheater a year is leap or not. Returns 1 if leap, 0 if not."""
     year = ee.Number(year)
 
     divisible4 = year.mod(4).gt(0)

@@ -1,8 +1,9 @@
 # coding=utf-8
 
+import ee
+
 from . import featurecollection, imagecollection, utils
 from . import image as batchimage
-import ee
 
 
 class Export(ee.batch.Export):

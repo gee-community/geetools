@@ -1,12 +1,12 @@
 # coding=utf-8
-""" Module holding tools for ee.Collection """
+"""Module holding tools for ee.Collection."""
 import ee
 
 
 def enumerate(collection):
     """Create a list of lists in which each element of the list is:
     [index, element]. For example, if you parse a FeatureCollection with 3
-    Features you'll get: [[0, feat0], [1, feat1], [2, feat2]]
+    Features you'll get: [[0, feat0], [1, feat1], [2, feat2]].
 
     :param collection: can be an ImageCollection or a FeatureCollection
     :return: ee.Collection
@@ -40,7 +40,6 @@ def joinByProperty(primary, secondary, propertyField, outer=False):
     It drops non matching features.
 
     Example:
-
     fc1 = ee.FeatureCollection([ee.Feature(geom=ee.Geometry.Point([0,0]),
                                        opt_properties={'id': 1, 'prop_from_fc1': 'I am from fc1'})])
     fc2 = ee.FeatureCollection([ee.Feature(geom=ee.Geometry.Point([0,0]),

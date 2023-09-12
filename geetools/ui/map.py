@@ -1,11 +1,9 @@
 # coding=utf-8
-""" Basic Map tools """
-
-import ee
+"""Basic Map tools."""
 
 
 def formatVisParams(visParams):
-    """format visualization params to match getMapId requirement"""
+    """format visualization params to match getMapId requirement."""
     copy = {key: val for key, val in visParams.items()}
 
     def list2str(params):

@@ -1,21 +1,22 @@
 # coding=utf-8
-""" Authentication functions """
-import ee
-from google.oauth2.credentials import Credentials
+"""Authentication functions."""
 import json
 import os
 import shutil
+
+import ee
+from google.oauth2.credentials import Credentials
 
 DEFAULT_PATH = os.path.split(ee.oauth.get_credentials_path())[0]
 
 
 def list_users(credential_path=DEFAULT_PATH):
-    """List local users"""
+    """List local users."""
     return os.listdir(credential_path)
 
 
 def delete_local_user(user=None, credential_path=DEFAULT_PATH):
-    """Delete a user's file"""
+    """Delete a user's file."""
     if not user:
         path = ee.oauth.get_credentials_path()
     else:
@@ -34,7 +35,7 @@ def rename_current_user(name, credential_path=DEFAULT_PATH):
 
 def Initialize(filename, credential_path="default"):
     """
-    Authenticate to GEE with the specified credentials
+    Authenticate to GEE with the specified credentials.
 
     If credential_path is set to 'defualt', it searches for the 'filename' in
     the same folder in which credentials are stored locally

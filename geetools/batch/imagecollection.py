@@ -1,9 +1,11 @@
 # coding=utf-8
-import ee
 import os
-from . import utils
-from ..utils import makeName
+
+import ee
+
 from .. import tools
+from ..utils import makeName
+from . import utils
 
 
 def toDrive(
@@ -20,7 +22,7 @@ def toDrive(
 ):
     """Upload all images from one collection to Google Drive. You can use
     the same arguments as the original function
-    ee.batch.export.image.toDrive
+    ee.batch.export.image.toDrive.
 
     :param collection: Collection to upload
     :type collection: ee.ImageCollection
@@ -115,7 +117,7 @@ def toCloudStorage(
 ):
     """Upload all images from one collection to Google Cloud Storage. You can
     use the same arguments as the original function
-    ee.batch.export.image.toCloudStorage
+    ee.batch.export.image.toCloudStorage.
 
     :param collection: Collection to upload
     :type collection: ee.ImageCollection
@@ -203,7 +205,7 @@ def toAsset(
 ):
     """Upload all images from one collection to a Earth Engine Asset.
     You can use the same arguments as the original function
-    ee.batch.export.image.toDrive
+    ee.batch.export.image.toDrive.
 
     :param collection: Collection to upload
     :type collection: ee.ImageCollection
@@ -352,7 +354,7 @@ def toQGIS(
     replace=True,
     verbose=True,
 ):
-    """Download a python file to import from QGIS"""
+    """Download a python file to import from QGIS."""
     code = qgisCode(collection, visParams, name, datePattern, verbose)
     path = path or os.getcwd()
     # Check extension

@@ -1,14 +1,15 @@
 # coding=utf-8
-""" Manager module for file managment """
+"""Manager module for file managment."""
+
+import json
+import os
 
 import ee
 import ee.data
-import os
-import json
 
 
 def esave(eeobject, filename, path=None):
-    """Saves any EE object to a file with extension .gee
+    """Saves any EE object to a file with extension .gee.
 
     The file has to be opened with `eopen`
     """
@@ -21,10 +22,10 @@ def esave(eeobject, filename, path=None):
 
 
 def eopen(file, path=None):
-    """Opens a files saved with `esave` method
+    """Opens a files saved with `esave` method.
 
-    :return: the EE object"""
-
+    :return: the EE object
+    """
     path = path if path else os.getcwd()
 
     try:

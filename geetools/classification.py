@@ -1,4 +1,4 @@
-""" Module for classification tools """
+"""Module for classification tools."""
 import ee
 
 
@@ -54,7 +54,7 @@ def binaryRasterAccuracy(truth, classified, region=None):
 
 
 def binaryMetrics(truth, classified, scale, region=None):
-    """get accuracy from a truth image and a classified image
+    """get accuracy from a truth image and a classified image.
 
     names from: https://en.wikipedia.org/wiki/Evaluation_of_binary_classifiers
 

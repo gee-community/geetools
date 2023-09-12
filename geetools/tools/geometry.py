@@ -1,8 +1,7 @@
 # coding=utf-8
-""" Module holding tools for ee.Geometry """
+"""Module holding tools for ee.Geometry."""
 import ee
 import ee.data
-
 
 UNBOUNDED = [
     [[-180.0, -90.0], [180.0, -90.0], [180.0, 90.0], [-180.0, 90.0], [-180.0, -90.0]]
@@ -13,7 +12,7 @@ UNBOUNDED_2 = [[[None, None], [None, None], [None, None], [None, None], [None, N
 
 def isUnbounded(geometry):
     """Check if the geometry is unbounded using the module's definition of
-    unboundness. It's a client-side function. For server-side function use
+    unboundness. It's a client-side function. For server-side function use.
 
     `ee.Geometry.isUnbounded()`
     """
@@ -36,7 +35,7 @@ UNBOUNDED_2 = [[[None, None], [None, None], [None, None], [None, None], [None, N
 
 def isUnbounded(geometry):
     """Check if the geometry is unbounded using the module's definition of
-    unboundness. It's a client-side function. For server-side function use
+    unboundness. It's a client-side function. For server-side function use.
 
     `ee.Geometry.isUnbounded()`
     """
@@ -51,7 +50,7 @@ def isUnbounded(geometry):
 
 
 def unpack(iterable):
-    """Helper function to unpack an iterable"""
+    """Helper function to unpack an iterable."""
     unpacked = []
     for tt in iterable:
         for t in tt:
@@ -61,7 +60,7 @@ def unpack(iterable):
 
 def getRegion(eeobject, bounds=False, error=1):
     """Gets the region of a given geometry to use in exporting tasks. The
-    argument can be a Geometry, Feature or Image
+    argument can be a Geometry, Feature or Image.
 
     :param eeobject: geometry to get region of
     :type eeobject: ee.Feature, ee.Geometry, ee.Image
@@ -122,7 +121,9 @@ def getRegion(eeobject, bounds=False, error=1):
 
 def GeometryCollection_to_MultiPolygon(geom):
     """Convert a Geometry of type `GeometryCollection` into a Geometry of type
-    `MultiPolygon` which will include Polygons, MultiPolygons and LinearRings"""
+    `MultiPolygon` which will include Polygons, MultiPolygons and LinearRings
+    .
+    """
     geometries = ee.List(geom.geometries())  # list of dicts
 
     def over_geom(geomdict, polygons):
@@ -148,7 +149,9 @@ def GeometryCollection_to_MultiPolygon(geom):
 
 def GeometryCollection_to_MultiLineString(geom):
     """Convert a Geometry of type `GeometryCollection` into a Geometry of type
-    `MultiLineString` which will include LineString and MultiLineString"""
+    `MultiLineString` which will include LineString and MultiLineString
+    .
+    """
     geometries = ee.List(geom.geometries())  # list of dicts
 
     def over_geom(geomdict, strings):
@@ -173,7 +176,9 @@ def GeometryCollection_to_MultiLineString(geom):
 
 def GeometryCollection_to_MultiPoint(geom):
     """Convert a Geometry of type `GeometryCollection` into a Geometry of type
-    `MultiPoint` which will include Point and MultiPoint"""
+    `MultiPoint` which will include Point and MultiPoint
+    .
+    """
     geometries = ee.List(geom.geometries())  # list of dicts
 
     def over_geom(geomdict, points):

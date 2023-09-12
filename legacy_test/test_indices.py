@@ -5,6 +5,7 @@ import ee
 ee.Initialize()
 from geetools import indices
 from geetools.tools.image import getValue
+
 from . import TEST_CLOUD_IMAGES
 
 image = ee.Image(TEST_CLOUD_IMAGES["S2"])

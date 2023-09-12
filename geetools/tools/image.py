@@ -1,18 +1,21 @@
 # coding=utf-8
 """
-Tools for ee.Image
+Tools for ee.Image.
 """
 from __future__ import absolute_import
+
+import math
+
 import ee
 import ee.data
-import math
-from . import ee_list, date, string
-from ..utils import castImage
+
 from ..ui import map as mapui
+from ..utils import castImage
+from . import date, ee_list, string
 
 
 def _add_suffix_prefix(image, value, option, bands=None):
-    """Internal function to handle addPrefix and addSuffix"""
+    """Internal function to handle addPrefix and addSuffix."""
     if bands:
         bands = ee.List(bands)
 
@@ -34,7 +37,7 @@ def _add_suffix_prefix(image, value, option, bands=None):
 
 
 def addSuffix(image, suffix, bands=None):
-    """Add a suffix to the specified bands
+    """Add a suffix to the specified bands.
 
     :param suffix: the value to add as a suffix
     :type suffix: str
@@ -47,7 +50,7 @@ def addSuffix(image, suffix, bands=None):
 
 
 def addPrefix(image, prefix, bands=None):
-    """Add a prefix to the specified bands
+    """Add a prefix to the specified bands.
 
     :param prefix: the value to add as a prefix
     :type prefix: str
@@ -60,7 +63,7 @@ def addPrefix(image, prefix, bands=None):
 
 
 def bufferMask(image, radius=1.5, kernelType="square", units="pixels"):
-    """Make a buffer around the masked pixels"""
+    """Make a buffer around the masked pixels."""
     masked = image.mask().Not()
     buffer = masked.focal_max(radius, kernelType, units)
     return image.updateMask(buffer.Not())
@@ -70,7 +73,9 @@ def deleteProperties(image, delete=None, keep=None, proxy_name="proxy"):
     """Workaround for deleting properties of an Image. You can set
     `proxy_name` in case the original image already has that band. If `delete`
     is None it will delete all properties, otherwise it can be a list of
-    properties to delete"""
+    properties to delete
+    .
+    """
     bands = image.bandNames()
     proxy = ee.Image().rename(proxy_name)
     deleted = proxy.addBands(image).select(bands)
@@ -83,7 +88,7 @@ def deleteProperties(image, delete=None, keep=None, proxy_name="proxy"):
 
 def empty(value=0, names=None, from_dict=None):
     """Create a constant image with the given band names and value, and/or
-    from a dictionary of {name: value}
+    from a dictionary of {name: value}.
 
     :param names: list of names
     :type names: ee.List or list
@@ -117,7 +122,9 @@ def empty(value=0, names=None, from_dict=None):
 
 def emptyBackground(image, value=0):
     """Make all background pixels (not only masked, but all over the world)
-    take the parsed value"""
+    take the parsed value
+    .
+    """
     bnames = image.bandNames()
     emp = empty(value, bnames).toFloat()
     prop = image.propertyNames()
@@ -126,7 +133,7 @@ def emptyBackground(image, value=0):
 
 
 def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False, region=None):
-    """Make an empty copy of the given image"""
+    """Make an empty copy of the given image."""
     if not region:
         footprint = image.geometry()
     else:
@@ -141,7 +148,7 @@ def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False, region=N
 
 
 def getValue(image, point, scale=None, side="server"):
-    """Return the value of all bands of the image in the specified point
+    """Return the value of all bands of the image in the specified point.
 
     :param img: Image to get the info from
     :type img: ee.Image
@@ -178,7 +185,7 @@ def addMultiBands(imagesList):
     """Image.addBands for many images. All bands from all images will be
     put together, so if there is one band with the same name in different
     images, the first occurrence will keep the name and the rest will have a
-    number suffix ({band}_1, {band}_2, etc)
+    number suffix ({band}_1, {band}_2, etc).
 
     :param imagesList: a list of images
     :type imagesList: list or ee.List
@@ -197,7 +204,7 @@ def addMultiBands(imagesList):
 
 
 def renameDict(image, names):
-    """Renames bands of images using a dict
+    """Renames bands of images using a dict.
 
     :param names: matching names where key is original name and values the
         new name
@@ -225,7 +232,7 @@ def renameDict(image, names):
 
 
 def removeBands(image, bands):
-    """Remove the specified bands from an image"""
+    """Remove the specified bands from an image."""
     bnames = image.bandNames()
     bands = ee.List(bands)
     inter = ee_list.intersection(bnames, bands)
@@ -234,7 +241,7 @@ def removeBands(image, bands):
 
 
 def parametrize(image, range_from, range_to, bands=None, drop=False):
-    """Parametrize from a original **known** range to a fixed new range
+    """Parametrize from a original **known** range to a fixed new range.
 
     :param range_from: Original range. example: (0, 5000)
     :type range_from: tuple
@@ -338,7 +345,7 @@ def sumBands(image, name="sum", bands=None):
 
 
 def replace(image, to_replace, to_add):
-    """Replace one band of the image with a provided band
+    """Replace one band of the image with a provided band.
 
     :param to_replace: name of the band to replace. If the image hasn't got
         that band, it will be added to the image.
@@ -359,7 +366,7 @@ def replace(image, to_replace, to_add):
 
 
 def addConstantBands(image, value=None, *names, **pairs):
-    """Adds bands with a constant value
+    """Adds bands with a constant value.
 
     :param names: final names for the additional bands
     :type names: str
@@ -427,7 +434,7 @@ def minscale(image):
         B1 = 30
         B2 = 60
         B3 = 10
-    the function will return 10
+    the function will return 10.
 
     :return: the minimal scale
     :rtype: ee.Number
@@ -448,7 +455,7 @@ def minscale(image):
 
 
 def mixBands(imgs):
-    """Mix all bands into a single image"""
+    """Mix all bands into a single image."""
     if isinstance(imgs, (list, tuple)):
         imgs = ee.List(imgs)
 
@@ -459,7 +466,7 @@ def mixBands(imgs):
 
 
 def computeBits(image, start, end, newName):
-    """Compute the bits of an image
+    """Compute the bits of an image.
 
     :param start: start bit
     :type start: int
@@ -492,7 +499,7 @@ def computeBits(image, start, end, newName):
 
 
 def passProperty(image, to, properties):
-    """Pass properties from one image to another
+    """Pass properties from one image to another.
 
     :param img_with: image that has the properties to tranpass
     :type img_with: ee.Image
@@ -512,7 +519,7 @@ def passProperty(image, to, properties):
 def goodPix(image, retain=None, drop=None, name="good_pix"):
     """Get a 'good pixels' bands from the image's bands that retain the good
     pixels and drop the bad pixels. It will first retain the retainable bands
-    and then drop the droppable ones
+    and then drop the droppable ones.
 
     :param image: the image
     :type image: ee.Image
@@ -611,7 +618,7 @@ def toGrid(image, size=1, band=None, geometry=None):
 
 
 def renamePattern(image, pattern, bands=None):
-    """Rename the bands of the parsed image with the given pattern
+    """Rename the bands of the parsed image with the given pattern.
 
     :param image:
     :param pattern: the special keyword `{band}` will be replaced with the
@@ -663,7 +670,7 @@ def gaussFunction(
     **kwargs
 ):
     """Apply the Guassian function to an Image.
-    https://en.wikipedia.org/wiki/Gaussian_function
+    https://en.wikipedia.org/wiki/Gaussian_function.
 
     :param band: the name of the band to use
     :type band: str
@@ -807,7 +814,7 @@ def normalDistribution(
     name="normal_distribution",
     **kwargs
 ):
-    """Compute a Normal Distribution using the Gaussian Function"""
+    """Compute a Normal Distribution using the Gaussian Function."""
     pi = ee.Number(math.pi)
 
     image = image.select(band)
@@ -945,7 +952,7 @@ def linearFunction(
 
 
 def doyToDate(image, dateFormat="yyyyMMdd", year=None):
-    """Make a date band from a day of year band"""
+    """Make a date band from a day of year band."""
     if not year:
         year = image.date().get("year")
 
@@ -968,7 +975,7 @@ def doyToDate(image, dateFormat="yyyyMMdd", year=None):
 
 
 def maskInside(image, geometry):
-    """This is the opposite to ee.Image.clip(geometry)"""
+    """This is the opposite to ee.Image.clip(geometry)."""
     mask = ee.Image.constant(1).clip(geometry).mask().Not()
     return image.updateMask(mask)
 
@@ -983,7 +990,7 @@ def paint(
     **kwargs
 ):
     """Paint a FeatureCollection onto an Image. Returns an Image with three
-    bands: vis-blue, vis-geen, vis-red (uint8)
+    bands: vis-blue, vis-geen, vis-red (uint8).
 
     It admits the same parameters as ee.FeatureCollection.style
     """
@@ -1026,7 +1033,9 @@ def paint(
 
 def repeatBand(image, times=None, names=None, properties=None):
     """Repeat one band. If the image parsed has more than one band, the first
-    will be used"""
+    will be used
+    .
+    """
     band = ee.Image(image.select([0]))
     if times is not None:
         times = ee.Number(times)
@@ -1060,7 +1069,7 @@ def repeatBand(image, times=None, names=None, properties=None):
 
 def arrayNonZeros(image):
     """
-    Return an image array without zeros
+    Return an image array without zeros.
 
     :param image:
     :return:
@@ -1092,7 +1101,9 @@ def arrayNonZeros(image):
 
 def getTileURL(image, visParams=None):
     """Get the URL for the given image passing a normal visualization
-    parameters like `{'bands':['B4','B3','B2'], 'min':0, 'max':5000}`"""
+    parameters like `{'bands':['B4','B3','B2'], 'min':0, 'max':5000}`
+    .
+    """
     if visParams:
         vis = mapui.formatVisParams(visParams)
         image_info = image.getMapId(vis)
@@ -1103,7 +1114,7 @@ def getTileURL(image, visParams=None):
 
 
 def applyMask(image, mask, bands=None, negative=True):
-    """Apply a passed positive mask"""
+    """Apply a passed positive mask."""
     bands = bands or mask.bandNames()
     bands = ee.List(bands)
 
@@ -1128,7 +1139,7 @@ def maskCover(
     maxPixels=1e13,
     tileScale=1,
 ):
-    """Percentage of masked pixels (masked/total * 100) as an Image property
+    """Percentage of masked pixels (masked/total * 100) as an Image property.
 
     :param image: ee.Image holding the mask. If the image has more than
         one band, the first one will be used
@@ -1223,7 +1234,9 @@ def regionCover(
     tileScale=1,
 ):
     """Compute the percentage of values greater than 1 in a region. If more
-    than one band is specified, it applies the specified operator"""
+    than one band is specified, it applies the specified operator
+    .
+    """
     operators = ["OR", "AND"]
     if operator not in operators:
         raise ValueError("operator must be one of {}".format(operators))
@@ -1294,7 +1307,7 @@ def regionCover(
 
 
 def proxy(values=(0,), names=("constant",), types=("int8",)):
-    """Create a proxy image with the given values, names and types
+    """Create a proxy image with the given values, names and types.
 
     :param values: list of values for every band of the resulting image
     :type values: list
@@ -1322,7 +1335,9 @@ def proxy(values=(0,), names=("constant",), types=("int8",)):
 
 def clipToCollection(image, featureCollection, keepFeatureProperties=True):
     """Clip an image using each feature of a collection and return an
-    ImageCollection with one image per feature"""
+    ImageCollection with one image per feature
+    .
+    """
 
     def overFC(feat):
         geom = feat.geometry()
@@ -1340,7 +1355,7 @@ class Classification(object):
 
     @staticmethod
     def vectorize(image, categories, label="label"):
-        """Reduce to vectors the selected classes fro a classified image
+        """Reduce to vectors the selected classes fro a classified image.
 
         :param categories: the categories to vectorize
         :type categories: list
@@ -1383,7 +1398,7 @@ def _lookup(sourceHist, targetHist):
 def histogramMatch(
     sourceImg, targetImg, geometry=None, scale=None, tiles=4, bestEffort=True
 ):
-    """Histogram Matching. From https://medium.com/google-earth/histogram-matching-c7153c85066d"""
+    """Histogram Matching. From https://medium.com/google-earth/histogram-matching-c7153c85066d."""
     if not geometry:
         geometry = sourceImg.geometry()
 

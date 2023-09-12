@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" Test package initialization """
+"""Test package initialization."""
 
 TEST_CLOUD_IMAGES = {
     "S2": "COPERNICUS/S2/20150825T143316_20150825T144048_T18GYT",

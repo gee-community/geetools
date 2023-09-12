@@ -1,8 +1,10 @@
 # coding=utf-8
-""" Module holding misc algorithms """
+"""Module holding misc algorithms."""
+import math
+
 import ee
 import ee.data
-import math
+
 from . import tools
 
 
@@ -16,7 +18,7 @@ def distanceToMask(
     band_name="distance_to_mask",
     normalize=False,
 ):
-    """Compute the distance to the mask in meters
+    """Compute the distance to the mask in meters.
 
     :param image: Image holding the mask
     :type image: ee.Image
@@ -91,7 +93,7 @@ def maskCover(
     maxPixels=1e13,
     tileScale=1,
 ):
-    """Percentage of masked pixels (masked/total * 100) as an Image property
+    """Percentage of masked pixels (masked/total * 100) as an Image property.
 
     :param image: ee.Image holding the mask. If the image has more than
         one band, the first one will be used
@@ -220,7 +222,7 @@ def euclideanDistance(image1, image2, bands=None, discard_zeros=False, name="dis
 
 def sumDistance(image, collection, bands=None, discard_zeros=False, name="sumdist"):
     """Compute de sum of all distances between the given image and the
-    collection passed
+    collection passed.
 
     :param image:
     :param collection:
@@ -245,7 +247,7 @@ def sumDistance(image, collection, bands=None, discard_zeros=False, name="sumdis
 def pansharpenKernel(image, pan, rgb=None, kernel=None):
     """
     Compute the per-pixel means of the unsharpened bands
-    source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine
+    source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine.
 
     :param pan: the name of the panchromatic band
     :type pan: str
@@ -280,7 +282,7 @@ def pansharpenKernel(image, pan, rgb=None, kernel=None):
 def pansharpenIhsFusion(image, pan=None, rgb=None):
     """
     HSV-based Pan-Sharpening
-    source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine
+    source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine.
 
     :param image:
     :type image: ee.Image
@@ -307,7 +309,7 @@ def pansharpenIhsFusion(image, pan=None, rgb=None):
 class Landsat(object):
     @staticmethod
     def unmask_slc_off(image, optical_bands="B.+"):
-        """Unmask pixels that were affected by scl-off  error in Landsat 7
+        """Unmask pixels that were affected by scl-off  error in Landsat 7.
 
         Expects a Landsat 7 image and it is meant to be used before any other
         masking, otherwise this could affect the previous mask.
@@ -335,7 +337,7 @@ class Landsat(object):
     def _rescale(
         image, bands=None, thermal_bands=None, original="TOA", to="SR", number="all"
     ):
-        """Rescaling logic"""
+        """Rescaling logic."""
         if not bands:
             bands = ["B1", "B2", "B3", "B4", "B5", "B6", "B7"]
         bands = ee.List(bands)
@@ -374,7 +376,7 @@ class Landsat(object):
     @staticmethod
     def rescaleToaSr(image, bands=None, thermal_bands=None):
         """Re-scale a TOA Landsat image to match the data type of SR Landsat
-        image
+        image.
 
         :param image: a Landsat TOA image
         :type image: ee.Image
@@ -391,7 +393,7 @@ class Landsat(object):
     @staticmethod
     def rescaleSrToa(image, bands=None, thermal_bands=None):
         """Re-scale a TOA Landsat image to match the data type of SR Landsat
-        image
+        image.
 
         :param image: a Landsat TOA image
         :type image: ee.Image
@@ -417,7 +419,7 @@ class Landsat(object):
         max_value=None,
     ):
         """Harmonization of Landsat 8 images to be consistant with
-        Landsat 7 images
+        Landsat 7 images.
 
         Roy, D.P., Kovalskyy, V., Zhang, H.K., Vermote, E.F., Yan, L.,
         Kumar, S.S, Egorov, A., 2016, Characterization of Landsat-7 to
@@ -501,7 +503,7 @@ class Landsat(object):
             """
             compute an expression passed in band if it's a str.
             formats the expression in band using format_str if necessary
-            :return: one band image
+            :return: one band image.
             """
             if isinstance(band, str):
                 # print('band:', band)
@@ -520,7 +522,7 @@ class Landsat(object):
         def set_name(img, name, toAdd, args=None):
             """
             compute the band (toAdd) with toImage.
-            add the band to the passed image and rename it
+            add the band to the passed image and rename it.
             """
             toAdd = toImage(img, toAdd, args)
             return img.addBands(toAdd.rename(name), None, True)
@@ -901,7 +903,7 @@ class Landsat(object):
             return img
 
         def adjustBands(img):
-            """apply cFactor per band"""
+            """apply cFactor per band."""
             for bandName in coefficientsByBand:
                 coefficients = coefficientsByBand[bandName]
                 img = applyCFactor(img, bandName, coefficients)

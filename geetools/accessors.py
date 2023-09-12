@@ -1,4 +1,4 @@
-"""Generic accessor to add extra function to the base GEE API classes"""
+"""Generic accessor to add extra function to the base GEE API classes."""
 
 from typing import Any, Callable, Type
 
@@ -7,10 +7,12 @@ class Accessor:
     """Object for implementing class accessors."""
 
     def __init__(self, name: str, accessor: Any):
+        """Initialize the accessor."""
         self.name = name
         self.accessor = accessor
 
     def __get__(self, obj: Any, cls: Type) -> Any:
+        """Get the accessor."""
         return self.accessor(obj)
 
 

@@ -1,13 +1,14 @@
 # coding=utf-8
-""" Module holding tools for ee.FeatueCollections """
+"""Module holding tools for ee.FeatueCollections."""
 import ee
+
 from . import collection as eecollection
 from . import geometry as geometry_module
 
 
 def addId(collection, name="id", start=1):
     """Add a unique numeric identifier, from parameter 'start' to
-    collection.size() stored in a property called with parameter 'name'
+    collection.size() stored in a property called with parameter 'name'.
 
     :param collection: the collection
     :type collection: ee.FeatureCollection
@@ -39,7 +40,9 @@ def addId(collection, name="id", start=1):
 
 def clean(collection):
     """Convert Features that have a Geometry of type `GeometryCollection`
-    into the inner geometries"""
+    into the inner geometries
+    .
+    """
     withType = collection.map(
         lambda feat: feat.set("GTYPE", ee.String(feat.geometry().type()))
     )
@@ -59,7 +62,7 @@ def clean(collection):
 def enumerateProperty(col, name="enumeration"):
     """Create a list of lists in which each element of the list is:
     [index, element]. For example, if you parse a FeatureCollection with 3
-    Features you'll get: [[0, feat0], [1, feat1], [2, feat2]]
+    Features you'll get: [[0, feat0], [1, feat1], [2, feat2]].
 
     :param collection: the collection
     :return: ee.FeatureCollection
@@ -79,8 +82,9 @@ def enumerateProperty(col, name="enumeration"):
 def enumerateSimple(collection, name="ENUM"):
     """Simple enumeration of features inside a collection. Each feature stores
     its enumeration, so if the order of features changes over time, the
-    numbers will not be in order"""
-
+    numbers will not be in order
+    .
+    """
     size = collection.size()
     collist = collection.toList(size)
     seq = ee.List.sequence(0, size.subtract(1))
@@ -96,7 +100,7 @@ def enumerateSimple(collection, name="ENUM"):
 
 
 def listOptions(collection, propertyName):
-    """List all available values of `propertyName` in a feature collection"""
+    """List all available values of `propertyName` in a feature collection."""
 
     def wrap(feat, l):
         l = ee.List(l)
@@ -108,7 +112,7 @@ def listOptions(collection, propertyName):
 
 
 def mergeGeometries(collection):
-    """Merge the geometries of many features. Return ee.Geometry"""
+    """Merge the geometries of many features. Return ee.Geometry."""
     alist = collection.toList(collection.size())
 
     first = ee.Feature(alist.get(0))

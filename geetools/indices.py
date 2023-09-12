@@ -1,5 +1,5 @@
 # coding=utf-8
-""" Functions for calculation indices """
+"""Functions for calculation indices."""
 import ee
 
 FORMULAS = {
@@ -32,7 +32,7 @@ def compute(image, index, band_params, extra_params=None, bandname=None):
 
 
 def ndvi(image, nir, red, bandname="ndvi"):
-    """Calculates NDVI index
+    """Calculates NDVI index.
 
     :USE:
 
@@ -60,7 +60,7 @@ def ndvi(image, nir, red, bandname="ndvi"):
 
 
 def evi(image, nir, red, blue, G=2.5, C1=6, C2=7.5, L=1, bandname="evi"):
-    """Calculates EVI index
+    """Calculates EVI index.
 
     :param nir: name of the Near Infrared () band
     :type nir: str
@@ -96,7 +96,7 @@ def evi(image, nir, red, blue, G=2.5, C1=6, C2=7.5, L=1, bandname="evi"):
 
 
 def nbr(image, nir, swir2, bandname="nbr"):
-    """Calculates NBR index
+    """Calculates NBR index.
 
     :USE:
 
@@ -124,7 +124,7 @@ def nbr(image, nir, swir2, bandname="nbr"):
 
 
 def nbr2(image, swir, swir2, bandname="nbr2"):
-    """Calculates NBR index
+    """Calculates NBR index.
 
     :USE:
 
@@ -159,7 +159,7 @@ def ndfi(image, blue, green, red, nir, swir1, swir2, clouds=0.1, bandname="NDFI"
      - NPV: Not Photosynthetic Vegetation
      - Soil: Soil
      - {bandname}: index name as passed in arguments. Defaults to NDFI, which
-        stands for Normalized Difference Fraction Index
+        stands for Normalized Difference Fraction Index.
     """
     gv = [0.0500, 0.0900, 0.0400, 0.6100, 0.3000, 0.1000]
     shade = [0, 0, 0, 0, 0, 0]

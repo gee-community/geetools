@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import ee
+
 from geetools.tools.image import getValue
 
 ee.Initialize()
