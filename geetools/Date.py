@@ -31,7 +31,7 @@ class Date:
 
                 ee.Initialize()
 
-                d = ee.Date('2020-01-01').geetools.toDateTime()
+                d = ee.Date('2020-01-01').geetools.toDatetime()
                 d.strftime('%Y-%m-%d')
 
         """
@@ -53,7 +53,7 @@ class Date:
 
                 ee.Initialize()
 
-                d = ee.Date('2020-01-01').geetools.unitSinceEpoch('year')
+                d = ee.Date('2020-01-01').geetools.getUnitSinceEpoch('year')
                 d.getInfo()
         """
         self._check_unit(unit)

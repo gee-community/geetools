@@ -263,26 +263,3 @@ def regularIntervals(
         )
 
     return dates.map(lambda d: make_drange(d))
-
-
-def fromDOY(doy, year):
-    """Creat a ee.Date given a Day of Year and a Year."""
-
-    def less10(doy):
-        doy = doy.toInt()
-        return ee.String("00").cat(ee.Number(doy).format())
-
-    def less100(doy):
-        doy = doy.toInt()
-        return ee.String("0").cat(ee.Number(doy).format())
-
-    doy = ee.Number(doy).add(1).toInt()
-    year_str = ee.Number(year).format()
-    doy_str = ee.Algorithms.If(
-        doy.lt(10),
-        less10(doy),
-        ee.String(ee.Algorithms.If(doy.lt(100), less100(doy), doy.format())),
-    )
-    s = ee.String(doy_str).cat(year_str)
-
-    return ee.Date.parse("DDDyyyy", s)
