@@ -8,8 +8,7 @@ Pypackage Skeleton
    :hidden:
 
    usage
-   authors
-   contribute
+   contribute/index
 
 Documentation contents
 ----------------------
@@ -28,7 +27,7 @@ The documentation contains 3 main sections:
    .. grid-item::
 
       .. card:: Contribute
-         :link: contribute.html
+         :link: contribute/index.html
 
          Help us improve the lib.
 
