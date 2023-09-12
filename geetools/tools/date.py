@@ -265,20 +265,6 @@ def regularIntervals(
     return dates.map(lambda d: make_drange(d))
 
 
-def dateSinceEpoch(date, unit="day"):
-    """Get the date for the specified date in unit.
-
-    :param date: the date in the specified unit
-    :type date: int
-    :param unit: one of 'year', 'month' 'week', 'day', 'hour', 'minute',
-        or 'second'
-    :return: the corresponding date
-    :rtype: ee.Date
-    """
-    epoch = ee.Date(EE_EPOCH.isoformat())
-    return epoch.advance(date, unit)
-
-
 def fromDOY(doy, year):
     """Creat a ee.Date given a Day of Year and a Year."""
 

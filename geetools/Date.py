@@ -37,7 +37,7 @@ class Date:
         """
         return datetime.fromtimestamp(self._obj.millis().getInfo() / 1000.0)
 
-    def unitSinceEpoch(self, unit: str = "day") -> ee.Number:
+    def getUnitSinceEpoch(self, unit: str = "day") -> ee.Number:
         """Get the number of units since epoch (1970-01-01).
 
         Parameters:
@@ -58,6 +58,30 @@ class Date:
         """
         self._check_unit(unit)
         return self._obj.difference(EE_EPOCH, unit).toInt()
+
+    @classmethod
+    def fromEpoch(self, number: int, unit: str = "day") -> ee.Date:
+        """Set an the number of units since epoch (1970-01-01).
+
+        Parameters:
+            number: The number of units since the epoch.
+            unit: The unit to return the number of. One of: ``second``, ``minute``, ``hour``, ``day``, ``month``, ``year``.
+
+        Returns:
+            The date as a ``ee.Date`` object.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                d = ee.Date.geetools.fromEpoch(49, 'year')
+                d.getInfo()
+        """
+        self._check_unit(unit)
+        return ee.Date(EE_EPOCH.isoformat()).advance(number, unit)
 
     @classmethod
     def _check_unit(cls, unit: str) -> None:
