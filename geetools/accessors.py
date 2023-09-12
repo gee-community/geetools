@@ -16,7 +16,7 @@ class Accessor:
         return self.accessor(obj)
 
 
-def gee_accessor(cls: Type) -> Callable:
+def geetools_accessor(cls: Type) -> Callable:
     """Create an accessor through the geetools namespace to a given class.
 
     Parameters:

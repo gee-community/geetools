@@ -5,10 +5,10 @@ from typing import Union
 
 import ee
 
-from .accessors import gee_accessor
+from .accessors import geetools_accessor
 
 
-@gee_accessor(ee.Number)
+@geetools_accessor(ee.Number)
 class Number:
     """toolbox for the ``ee.Number`` class."""
 
