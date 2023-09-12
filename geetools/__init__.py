@@ -18,7 +18,6 @@ import ee
 # classification
 # )
 # from geetools.tools import (
-# array,
 # date,
 # dictionary,
 # ee_list,
@@ -43,6 +42,7 @@ from ._version import __version__  # noqa: F401
 # then we extend all the other classes
 from .Array import Array  # noqa: F401
 from .Date import Date  # noqa: F401
+from .Dictionary import Dictionary  # noqa: F401
 from .Filter import Filter  # noqa: F401
 from .Float import Float
 from .Integer import Integer

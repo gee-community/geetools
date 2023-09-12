@@ -21,21 +21,6 @@ def extractList(dict, list):
     return values
 
 
-def fromList(alist):
-    """Create a ee.Dictionary from a list of [[key, val], [key2, val2]...]."""
-    l = ee.List(alist)
-    empty = ee.Dictionary({})
-
-    def overList(ll, e):
-        e = ee.Dictionary(e)
-        ll = ee.List(ll)
-        key = ll.get(0)
-        val = ll.get(1)
-        return e.set(key, val)
-
-    return ee.Dictionary(l.iterate(overList, empty))
-
-
 def sort(dictionary):
     """Sort a dictionary. Can be a `dict` or a `ee.Dictionary`.
 
