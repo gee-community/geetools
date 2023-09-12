@@ -1,11 +1,13 @@
 # coding=utf-8
-""" Helper functions for visualizing """
+"""Helper functions for visualizing."""
 import ee
 
 
 def stretch_std(image, region, bands=None, std=1, scale=None):
     """Get mins and maxs values for stretching a visualization using standard
-    deviation"""
+    deviation
+    .
+    """
     if not bands:
         names = image.bandNames()
         bands = ee.List(
@@ -45,7 +47,9 @@ def stretch_std(image, region, bands=None, std=1, scale=None):
 
 def stretch_percentile(image, region, bands=None, percentile=90, scale=None):
     """Get mins and maxs values for stretching a visualization using
-    percentiles"""
+    percentiles
+    .
+    """
     # Calculate start and end percentiles
     startp = 50 - (percentile / 2)
     endp = 50 + (percentile / 2)

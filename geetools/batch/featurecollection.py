@@ -1,14 +1,16 @@
 # coding=utf-8
-import ee
-from . import utils
-import json
 import csv
+import json
+
+import ee
+
 from .. import tools
+from . import utils
 
 
 def fromShapefile(filename, crs=None, start=None, end=None):
     """Convert an ESRI file (.shp and .dbf must be present) to a
-    ee.FeatureCollection
+    ee.FeatureCollection.
 
     At the moment only works for shapes with less than 1000 records and doesn't
     handle complex shapes.
@@ -176,7 +178,7 @@ def fromKML(filename=None, data=None, crs=None, encoding=None):
 
 
 def toDict(collection, split_at=4000):
-    """Get the FeatureCollection as a dict object"""
+    """Get the FeatureCollection as a dict object."""
     size = collection.size()
     condition = size.gte(4999)
 
@@ -213,7 +215,7 @@ def toDict(collection, split_at=4000):
 
 
 def toGeoJSON(collection, name, path=None, split_at=4000):
-    """Export a FeatureCollection to a GeoJSON file
+    """Export a FeatureCollection to a GeoJSON file.
 
     :param collection: The collection to export
     :type collection: ee.FeatureCollection
@@ -246,7 +248,7 @@ def toGeoJSON(collection, name, path=None, split_at=4000):
 
 
 def toCSV(collection, filename, split_at=4000):
-    """Alternative to download a FeatureCollection as a CSV"""
+    """Alternative to download a FeatureCollection as a CSV."""
     d = toDict(collection, split_at)
 
     fields = list(d["columns"].keys())
@@ -280,7 +282,7 @@ def toCSV(collection, filename, split_at=4000):
 
 def toLocal(collection, filename, filetype=None, selectors=None, path=None):
     """Download a FeatureCollection to a local file a CSV or geoJSON file.
-    This uses a different method than `toGeoJSON` and `toCSV`
+    This uses a different method than `toGeoJSON` and `toCSV`.
 
     :param filetype: The filetype of download, either CSV or JSON.
         Defaults to CSV.
@@ -299,7 +301,7 @@ def toLocal(collection, filename, filetype=None, selectors=None, path=None):
 def toAsset(table, assetPath, name=None, create=True, verbose=False, **kwargs):
     """This function can create folders and ImageCollections on the fly.
     The rest is the same to Export.image.toAsset. You can pass the same
-    params as the original function
+    params as the original function.
 
     :param table: the feature collection to upload
     :type table: ee.FeatureCollection
@@ -311,7 +313,6 @@ def toAsset(table, assetPath, name=None, create=True, verbose=False, **kwargs):
     :return: the tasks
     :rtype: ee.batch.Task
     """
-
     # Check if the user is specified in the asset path
     is_user = assetPath.split("/")[0] == "users"
     if not is_user:
@@ -351,7 +352,9 @@ def _toDriveShapefile(
     """Export a FeatureCollection to a SHP in Google Drive. The advantage of
     this over the one provided by GEE is that this function takes care of the
     geometries and exports one shapefile per geometry, so at the end you could
-    get many shapefiles"""
+    get many shapefiles
+    .
+    """
     gtypes = utils.GEOMETRY_TYPES
     types = types or list(gtypes.keys())
     for gtype, _ in gtypes.items():
@@ -387,7 +390,9 @@ def _toDriveShapefileGeomCol(
     """Export a FeatureCollection to a SHP in Google Drive. The advantage of
     this over the one provided by GEE is that this function takes care of the
     geometries and exports one shapefile per geometry, so at the end you could
-    get many shapefiles"""
+    get many shapefiles
+    .
+    """
     ids = collection.aggregate_array("system:index").getInfo()
     multipol = ee.FeatureCollection([])
     multils = ee.FeatureCollection([])
@@ -425,7 +430,9 @@ def toDriveShapefile(
     """Export a FeatureCollection to a SHP in Google Drive. The advantage of
     this over the one provided by GEE is that this function takes care of the
     geometries and exports one shapefile per geometry, so at the end you could
-    get many shapefiles"""
+    get many shapefiles
+    .
+    """
     collection = collection.map(lambda feat: feat.set("GTYPE", feat.geometry().type()))
     notGeomCol = collection.filter(ee.Filter.neq("GTYPE", "GeometryCollection"))
     GeomCol = collection.filter(ee.Filter.eq("GTYPE", "GeometryCollection"))

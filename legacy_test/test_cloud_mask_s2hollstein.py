@@ -1,8 +1,10 @@
 # coding=utf-8
 
 import ee
+
 from geetools import cloud_mask
 from geetools.tools.image import getValue
+
 from . import TEST_CLOUD_IMAGES
 
 # Initialize
@@ -20,25 +22,25 @@ def test_clouds():
     masked = cloud_mask.applyHollstein(image, ["cloud"])
     vals = getValue(masked, p_cloud, 30)
 
-    assert vals.get("B1").getInfo() == None
+    assert vals.get("B1").getInfo() is None
 
 
 def test_cirrus():
     masked = cloud_mask.applyHollstein(image, ["cirrus"])
     vals = getValue(masked, p_cirrus, 30)
 
-    assert vals.get("B1").getInfo() == None
+    assert vals.get("B1").getInfo() is None
 
 
 def test_shadow():
     masked = cloud_mask.applyHollstein(image, ["shadow"])
     vals = getValue(masked, p_shadow, 30)
 
-    assert vals.get("B1").getInfo() == None
+    assert vals.get("B1").getInfo() is None
 
 
 def test_snow():
     masked = cloud_mask.applyHollstein(image, ["snow"])
     vals = getValue(masked, p_snow, 30)
 
-    assert vals.get("B1").getInfo() == None
+    assert vals.get("B1").getInfo() is None

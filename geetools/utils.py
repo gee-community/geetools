@@ -1,11 +1,13 @@
 # coding=utf-8
-""" Some util functions """
+"""Some util functions."""
 
-import pandas as pd
-from copy import deepcopy
-import ee
-from .tools import string
 import threading
+from copy import deepcopy
+
+import ee
+import pandas as pd
+
+from .tools import string
 
 
 def getReducerName(reducer):
@@ -43,7 +45,7 @@ def getReducerName(reducer):
 def reduceRegionsPandas(
     data, index="system:index", add_coordinates=False, duplicate_index=False
 ):
-    """Transform data coming from Image.reduceRegions to a pandas dataframe
+    """Transform data coming from Image.reduceRegions to a pandas dataframe.
 
     :param data: data coming from Image.reduceRegions
     :type data: ee.Dictionary or dict
@@ -91,7 +93,7 @@ def reduceRegionsPandas(
 
 
 def castImage(value):
-    """Cast a value into an ee.Image if it is not already"""
+    """Cast a value into an ee.Image if it is not already."""
     if isinstance(value, ee.Image) or value is None:
         return value
     else:
@@ -133,7 +135,9 @@ def makeName(img, pattern, date_pattern=None, extra=None):
 
 def maskIslands(mask, limit, pixels_limit=1000):
     """returns a new mask where connected pixels with less than the 'limit'
-    of area are turned to 0"""
+    of area are turned to 0
+    .
+    """
     area = ee.Image.pixelArea().rename("area")
 
     conn = mask.connectedPixelCount(pixels_limit).rename("connected")
@@ -151,7 +155,9 @@ def maskIslands(mask, limit, pixels_limit=1000):
 def dict2namedtuple(thedict, name="NamedDict"):
     """Create a namedtuple from a dict object. It handles nested dicts. If
     you want to scape this behaviour the dict must be placed into a list as its
-    unique element"""
+    unique element
+    .
+    """
     from collections import namedtuple
 
     thenametuple = namedtuple(name, [])
@@ -177,7 +183,9 @@ def dict2namedtuple(thedict, name="NamedDict"):
 
 def formatVisParams(visParams):
     """format visualization parameters to match EE requirements at
-    ee.data.getMapId"""
+    ee.data.getMapId
+    .
+    """
     formatted = dict()
     for param, value in visParams.items():
         if isinstance(value, list):
@@ -200,7 +208,9 @@ def _retrieve(f):
 
 def evaluate(obj, callback, args):
     """Retrieve eeobject value asynchronously. First argument of callback
-    must always be the object itself"""
+    must always be the object itself
+    .
+    """
     args.insert(0, obj)
     callback = _retrieve(callback)
     thd = threading.Thread(target=callback, args=args)

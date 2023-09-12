@@ -1,8 +1,10 @@
 # coding=utf-8
-""" User Interface Tools """
-import ee
-import threading
+"""User Interface Tools."""
 import pprint
+import threading
+
+import ee
+
 from . import dispatcher, map
 
 ASYNC = False
@@ -10,7 +12,7 @@ ASYNC = False
 
 def eprint(*args, **kwargs):
     """Print EE Objects. Similar to `print(object.getInfo())` but with
-    some magic (lol)
+    some magic (lol).
 
     :param eeobject: object to print
     :type eeobject: ee.ComputedObject
@@ -26,7 +28,7 @@ def eprint(*args, **kwargs):
     info_return = [None] * len(args)
 
     def get_info(eeobject, index):
-        """Get Info"""
+        """Get Info."""
         info_return[index] = dispatcher.dispatch(eeobject)
 
     for i, eeobject in enumerate(args):
@@ -43,7 +45,9 @@ def eprint(*args, **kwargs):
 
 def getInfo(eeobject):
     """Get eeobject information (getInfo) asynchronously. For not async just
-    use `ee.data.getInfo`"""
+    use `ee.data.getInfo`
+    .
+    """
 
     class newDict(dict):
         def get(self):

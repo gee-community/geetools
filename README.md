@@ -7,17 +7,21 @@ There is JavaScript module that you can import from the code editor that has
 similar functions (not exactly the same) and it's available [here](https://github.com/fitoprincipe/geetools-code-editor)
 
 ### Note for old users
+
 #### New version 0.3.0
+
 I have splitted this package in two. This `geetools` will contain functions and
 methods related to Google Earth Engine exclusively, so you can use this module
 in any python environment you like. For working in Jupyter I have made another
-package called `ipygee` available [here](http://www.github.com/fitoprincipe/ipygee) 
+package called `ipygee` available [here](http://www.github.com/fitoprincipe/ipygee)
 
 #### New version 0.5.0 (breaking changes)
+
 I have splitted this package in two (again). Now the functions to make a strip
 of images using Pillow is available as a different package called [`geepillow`](https://github.com/fitoprincipe/geepillow)
 
 #### New version 0.6.0 (breaking changes)
+
 I have splitted this package in two (again x2). The module `geetools.collection`
 in an independent package called [geedataset](https://github.com/fitoprincipe/geedatasets)
 
@@ -30,6 +34,7 @@ in an independent package called [geedataset](https://github.com/fitoprincipe/ge
     pip install --upgrade geetools
 
 ## Basic Usage
+
 ### Export every image in a ImageCollection
 
 ```python
@@ -74,23 +79,28 @@ tasks = geetools.batch.Export.imagecollection.toDrive(
 ## Some useful functions
 
 ### batch exporting
+
 - Export every image in an ImageCollection to Google Drive, GEE Asset or Cloud Storage [examples](https://github.com/gee-community/gee_tools/tree/master/notebooks/batch)
 - Clip an image using a FeatureCollection and export the image inside every Feature [example](https://github.com/gee-community/gee_tools/tree/master/notebooks/batch)
 
 ### Image processing
+
 - Pansharp [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/algorithms/pansharpen.ipynb)
 - Mask pixels around masked pixels (buffer around a mask) [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/image/bufferMask.ipynb)
 - Get the percentage of masked pixels inside a geometry [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/algorithms/mask_cover.ipynb)
 - Cloud masking functions [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/cloud_mask/cloud_masking.ipynb)
 
 ### Compositing
+
 - Closest date composite: replace masked pixels with the "last available not masked pixel" [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/composite/closest_date.ipynb)
 - Medoid composite [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/composite/medoid.ipynb)
 
 ### Image Collections
+
 - Mosaic same day [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/imagecollection/mosaicSameDay.ipynb)
 
 ### Visualization
+
 - Get visualization parameters using a stretching function [example](https://github.com/gee-community/gee_tools/blob/master/notebooks/visualization/stretching.ipynb)
 
 ## All example Jupyter Notebooks
@@ -105,4 +115,3 @@ Any bug or question please use the [`github issue tracker`](https://github.com/g
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=gee-community/gee_tools&type=Date)](https://star-history.com/#gee-community/gee_tools&Date)
-

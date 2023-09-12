@@ -1,12 +1,13 @@
 # coding=utf-8
-""" Module holding tools for ee.ImageCollections and ee.FeatueCollections """
+"""Module holding tools for ee.ImageCollections and ee.FeatueCollections."""
+from collections import OrderedDict
+
 import ee
 import ee.data
-from collections import OrderedDict
 
 
 def extractList(dict, list):
-    """Extract values from a list of keys"""
+    """Extract values from a list of keys."""
     empty = ee.List([])
     list = ee.List(list)
     dict = ee.Dictionary(dict)
@@ -21,7 +22,7 @@ def extractList(dict, list):
 
 
 def fromList(alist):
-    """Create a ee.Dictionary from a list of [[key, val], [key2, val2]...]"""
+    """Create a ee.Dictionary from a list of [[key, val], [key2, val2]...]."""
     l = ee.List(alist)
     empty = ee.Dictionary({})
 
@@ -36,7 +37,7 @@ def fromList(alist):
 
 
 def sort(dictionary):
-    """Sort a dictionary. Can be a `dict` or a `ee.Dictionary`
+    """Sort a dictionary. Can be a `dict` or a `ee.Dictionary`.
 
     :param dictionary: the dictionary to sort
     :type dictionary: dict or ee.Dictionary

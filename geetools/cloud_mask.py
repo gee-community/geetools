@@ -2,10 +2,10 @@
 # coding=utf-8
 
 from __future__ import print_function
-from . import tools
-from . import decision_tree
+
 import ee
-from . import __version__
+
+from . import __version__, decision_tree, tools
 from .bitreader import BitReader
 
 # options for BitReaders for known collections
@@ -135,7 +135,7 @@ def generalMask(
     all_masks_name="mask",
 ):
     """General function to get a bit mask band given a set of options
-    a bit reader and the name of the qa_band
+    a bit reader and the name of the qa_band.
 
     :param options: options to decode
     :param reader: the bit reader
@@ -241,7 +241,7 @@ def modis09ga(
     add_mask_band=True,
     add_every_mask=False,
 ):
-    """Function for masking MOD09GA and MYD09GA collections
+    """Function for masking MOD09GA and MYD09GA collections.
 
     :return: a function to use in a map function over a collection
     """
@@ -262,7 +262,7 @@ def modis13q1(
     add_mask_band=True,
     add_every_mask=False,
 ):
-    """Function for masking MOD13Q1 and MYD13Q1 collections
+    """Function for masking MOD13Q1 and MYD13Q1 collections.
 
     :return: a function to use in a map function over a collection
     """
@@ -382,7 +382,7 @@ def sentinel2(
 
 def compute(image, mask_band, bits, options=None, name_all="all_masks"):
     """Compute bits using a specified band, a bit's relation and a list of
-    options
+    options.
 
     :param image: the image that holds the bit mask band
     :type image: ee.Image
@@ -415,7 +415,7 @@ def compute(image, mask_band, bits, options=None, name_all="all_masks"):
         cond = bits_dict.contains(option)
 
         def for_true():
-            """function to execute if condition == True"""
+            """function to execute if condition == True."""
             # get the mask for the option
             mask = tools.image.computeBits(
                 image, bits_dict.get(option), bits_dict.get(option), option
@@ -451,7 +451,7 @@ def hollsteinMask(
     swir="B11",
     name="hollstein",
 ):
-    """Get Hollstein mask"""
+    """Get Hollstein mask."""
 
     def difference(a, b):
         def wrap(img):
@@ -552,7 +552,7 @@ def applyHollstein(
     cirrus="B10",
     swir="B11",
 ):
-    """Apply Hollstein mask"""
+    """Apply Hollstein mask."""
     mask = hollsteinMask(
         image,
         options,
@@ -577,7 +577,7 @@ def hollsteinS2(
     updateMask=True,
 ):
     """Compute Hollstein Decision tree for detecting clouds, clouds shadow,
-    cirrus, snow and water in Sentinel 2 imagery
+    cirrus, snow and water in Sentinel 2 imagery.
 
     :param options: masks to apply. Options: 'cloud', 'shadow', 'snow',
         'cirrus', 'water'
@@ -607,7 +607,7 @@ def hollsteinS2(
 
 
 def darkPixels(green, swir2, threshold=0.25):
-    """Detect dark pixels from green and swir2 band
+    """Detect dark pixels from green and swir2 band.
 
     :param green: name of the green band
     :type green: str
@@ -630,7 +630,7 @@ def darkPixels(green, swir2, threshold=0.25):
 # LEDAPS
 def ledaps(image):
     """Function to use in Surface Reflectance Collections computed by
-    LEDAPS
+    LEDAPS.
 
     Use:
 
@@ -656,7 +656,7 @@ def landsatSR(
 ):
     """Function to use in Landsat Surface Reflectance Collections:
     LANDSAT/LT04/C01/T1_SR, LANDSAT/LT05/C01/T1_SR, LANDSAT/LE07/C01/T1_SR,
-    LANDSAT/LC08/C01/T1_SR
+    LANDSAT/LC08/C01/T1_SR.
 
     :param options: masks to apply. Options: 'cloud', 'shadow', 'adjacent',
         'snow'

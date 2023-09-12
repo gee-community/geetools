@@ -1,12 +1,13 @@
 # coding=utf-8
-""" Bit Reader module """
+"""Bit Reader module."""
 import ee
 import ee.data
+
 import geetools.tools as tools
 
 
 class BitReader(object):
-    """Bit Reader
+    """Bit Reader.
 
     Initializes with parameter `options`, which must be a dictionary with
     the following format:
@@ -45,7 +46,7 @@ class BitReader(object):
 
     @staticmethod
     def getBin(bit, nbits=None, shift=0):
-        """from https://stackoverflow.com/questions/699866/python-int-to-binary"""
+        """from https://stackoverflow.com/questions/699866/python-int-to-binary."""
         pure = bin(bit)[2:]
 
         if not nbits:
@@ -73,7 +74,7 @@ class BitReader(object):
 
     @staticmethod
     def decodeKey(key):
-        """decodes an option's key into a list"""
+        """decodes an option's key into a list."""
         if isinstance(key, (str,)):
             bits = key.split("-")
 
@@ -100,7 +101,7 @@ class BitReader(object):
         self.options = options
 
         def allBits():
-            """get a list of all bits and check consistance"""
+            """get a list of all bits and check consistance."""
             all_values = [x for key in options.keys() for x in self.decodeKey(key)]
             for val in all_values:
                 n = all_values.count(val)
@@ -148,7 +149,7 @@ class BitReader(object):
         self.info = info
 
     def encode(self, cat):
-        """Given a category, return the encoded value (only)"""
+        """Given a category, return the encoded value (only)."""
         info = self.info[cat]
         lshift = info["lshift"]
         decoded = info["shifted"]
@@ -158,7 +159,7 @@ class BitReader(object):
 
     def encodeBand(self, category, mask, name=None):
         """Make an image in which all pixels have the value for the given
-        category
+        category.
 
         :param category: the category to encode
         :type category: str
@@ -181,7 +182,9 @@ class BitReader(object):
 
     def encodeAnd(self, *args):
         """decodes a comination of the given categories. returns a list of
-        possible values"""
+        possible values
+        .
+        """
         first = args[0]
         values_first = self.encodeOne(first)
 
@@ -197,7 +200,9 @@ class BitReader(object):
 
     def encodeOr(self, *args):
         """decodes a comination of the given categories. returns a list of
-        possible values"""
+        possible values
+        .
+        """
         first = args[0]
         values_first = self.encodeOne(first)
 
@@ -211,7 +216,9 @@ class BitReader(object):
 
     def encodeNot(self, *args):
         """Given a set of categories return a list of values that DO NOT
-        match with any"""
+        match with any
+        .
+        """
         result = []
         match = self.encodeOr(*args)
         for bit in range(self.max):
@@ -220,7 +227,7 @@ class BitReader(object):
         return result
 
     def encodeOne(self, cat):
-        """Given a category, return a list of values that match it"""
+        """Given a category, return a list of values that match it."""
         info = self.info[cat]
         lshift = info["lshift"]
         length = info["bit_length"]
@@ -237,7 +244,7 @@ class BitReader(object):
         return result
 
     def decode(self, value):
-        """given a value return a list with all categories"""
+        """given a value return a list with all categories."""
         result = []
         for cat in self.all_categories:
             data = self.info[cat]
@@ -253,7 +260,7 @@ class BitReader(object):
         return result
 
     def decodeImage(self, image, qa_band):
-        """Get an Image with one band per category in the Bit Reader
+        """Get an Image with one band per category in the Bit Reader.
 
         :param bit_reader: the bit reader
         :type bit_reader: BitReader
@@ -291,6 +298,8 @@ class BitReader(object):
 
     def match(self, value, category):
         """given a value and a category return True if the value includes
-        that category, else False"""
+        that category, else False
+        .
+        """
         encoded = self.decode(value)
         return category in encoded

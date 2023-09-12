@@ -1,4 +1,4 @@
-""" EE Computed Object """
+"""EE Computed Object."""
 import ee
 
 STRING = "String"
@@ -11,7 +11,7 @@ GEOMETRY = "Geometry"
 
 
 def _isType(ComputedObject, checktype):
-    """Return 1 if the element is the passed type or 0 if not"""
+    """Return 1 if the element is the passed type or 0 if not."""
     otype = ee.Algorithms.ObjectType(ComputedObject)
     return otype.compareTo(checktype).eq(0)
 

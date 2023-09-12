@@ -1,6 +1,7 @@
 # coding=utf-8
-import ee
 import os
+
+import ee
 
 GEOMETRY_TYPES = {
     "BBox": ee.geometry.Geometry.BBox,
@@ -17,7 +18,7 @@ GEOMETRY_TYPES = {
 
 
 def getProjection(filename, path=None):
-    """Get EPSG from a shapefile using pycrs
+    """Get EPSG from a shapefile using pycrs.
 
     :param filename: an ESRI shapefile (.shp)
     :type filename: str
@@ -29,8 +30,9 @@ def getProjection(filename, path=None):
         raise e
     except Exception as e:
         raise e
-    import requests
     import os
+
+    import requests
 
     if not path:
         path = os.getcwd()
@@ -50,10 +52,11 @@ def getProjection(filename, path=None):
 
 
 def kmlToGeoJsonDict(kmlfile=None, data=None, encoding=None):
-    """Convert a KML file to a GeoJSON dict"""
+    """Convert a KML file to a GeoJSON dict."""
     import xml.dom.minidom as md
-    from fastkml import kml
+
     import kml2geojson
+    from fastkml import kml
 
     k = kml.KML()
 
@@ -82,7 +85,7 @@ def kmlToGeoJsonDict(kmlfile=None, data=None, encoding=None):
 
 
 def isPoint(pointlist):
-    """Verify is a list is a list of points"""
+    """Verify is a list is a list of points."""
     if len(pointlist) in [2, 3]:
         if isinstance(pointlist[0], (int, float)) and isinstance(
             pointlist[1], (int, float)
@@ -95,7 +98,7 @@ def isPoint(pointlist):
 
 
 def hasZ(pointlist):
-    """determine if points inside coordinates have Z values"""
+    """determine if points inside coordinates have Z values."""
     points = pointlist[0]
     first = points[0]
     if len(first) == 3:
@@ -105,7 +108,7 @@ def hasZ(pointlist):
 
 
 def removeZ(coords):
-    """Remove Z values from coordinates"""
+    """Remove Z values from coordinates."""
     newcoords = coords.copy()
     for p in newcoords[0]:
         p.pop(2)
@@ -147,7 +150,7 @@ def recrusiveDeleteAsset(assetId):
 
 
 def convertDataType(newtype):
-    """Convert an image to the specified data type
+    """Convert an image to the specified data type.
 
     :param newtype: the data type. One of 'float', 'int', 'byte', 'double',
         'Uint8','int8','Uint16', 'int16', 'Uint32','int32'
@@ -176,7 +179,7 @@ def convertDataType(newtype):
 
 
 def create_asset(asset_id, asset_type, mk_parents=True):
-    """Create an Asset"""
+    """Create an Asset."""
     types = {"ImageCollection": "IMAGE_COLLECTION", "Folder": "FOLDER"}
 
     already = ee.data.getInfo(asset_id)
@@ -202,7 +205,7 @@ def create_asset(asset_id, asset_type, mk_parents=True):
 def createAssets(asset_ids, asset_type, mk_parents):
     """Creates the specified assets if they do not exist.
     This is a fork of the original function in 'ee.data' module with the
-    difference that
+    difference that.
 
     - If the asset already exists but the type is different that the one we
       want, raise an error
@@ -241,7 +244,7 @@ def createAssets(asset_ids, asset_type, mk_parents):
 
 
 def downloadFile(url, name, extension, path=None):
-    """Download a file from a given url
+    """Download a file from a given url.
 
     :param url: full url
     :type url: str

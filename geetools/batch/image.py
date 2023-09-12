@@ -1,15 +1,17 @@
 # coding=utf-8
-import ee
 import os
-from . import utils
+
+import ee
+
 from .. import tools
 from ..utils import makeName
+from . import utils
 
 
 def toLocal(
     image, name=None, path=None, scale=None, region=None, dimensions=None, toFolder=True
 ):
-    """Download an Image to your hard drive
+    """Download an Image to your hard drive.
 
     :param image: the image to download
     :type image: ee.Image
@@ -91,7 +93,7 @@ def toAsset(
 ):
     """This function can create folders and ImageCollections on the fly.
     The rest is the same to Export.image.toAsset. You can pass the same
-    params as the original function
+    params as the original function.
 
     :param image: the image to upload
     :type image: ee.Image
@@ -172,7 +174,7 @@ def toDriveByFeature(
     **kwargs
 ):
     """Export an image clipped by features (Polygons). You can use the
-    same arguments as the original function ee.batch.export.image.toDrive
+    same arguments as the original function ee.batch.export.image.toDrive.
 
     :Parameters:
     :param image: image to clip
@@ -268,7 +270,7 @@ def toQGIS(
     replace=True,
     verbose=False,
 ):
-    """Download a python file to import from QGIS"""
+    """Download a python file to import from QGIS."""
     code = qgisCode(image, visParams, name)
     path = path or os.getcwd()
     # Check extension

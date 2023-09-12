@@ -1,7 +1,8 @@
 # coding=utf-8
 
-from geetools.tools import ee_list
 import ee
+
+from geetools.tools import ee_list
 
 ee.Initialize()
 

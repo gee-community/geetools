@@ -1,15 +1,19 @@
 # coding=utf-8
-""" Module holding tools for creating composites """
-import ee
+"""Module holding tools for creating composites."""
 from uuid import uuid4
-from . import tools, algorithms
+
+import ee
+
+from . import algorithms, tools
 
 
 def medoidScore(
     collection, bands=None, discard_zeros=False, bandname="sumdist", normalize=True
 ):
     """Compute a score to reflect 'how far' is from the medoid. Same params
-    as medoid()"""
+    as medoid()
+    .
+    """
     first_image = ee.Image(collection.first())
     if not bands:
         bands = first_image.bandNames()
@@ -73,7 +77,7 @@ def medoidScore(
 
 
 def medoid(collection, bands=None, discard_zeros=False):
-    """Medoid Composite. Adapted from https://www.mdpi.com/2072-4292/5/12/6481
+    """Medoid Composite. Adapted from https://www.mdpi.com/2072-4292/5/12/6481.
 
     :param collection: the collection to composite
     :type collection: ee.ImageCollection
@@ -94,7 +98,7 @@ def medoid(collection, bands=None, discard_zeros=False):
 
 def closestDate(col, clip_to_first=False):
     """Make a composite in which masked pixels are filled with the
-    last available pixel. Make sure all image bands are casted
+    last available pixel. Make sure all image bands are casted.
 
     :param clip_to_first: whether to clip with the 'first' image
         geometry
@@ -143,7 +147,10 @@ def compositeRegularIntervals(
     (if the argument is None) is `lambda col: col.median()`.
     """
     if composite_function is None:
-        composite_function = lambda col: col.median()
+
+        def composite_function(col):
+            return col.median()
+
     sorted_list = collection.sort("system:time_start").toList(collection.size())
 
     if start is None:
@@ -205,7 +212,9 @@ def compositeByMonth(
     (if the argument is None) is `lambda col: col.median()`.
     """
     if composite_function is None:
-        composite_function = lambda col: col.median()
+
+        def composite_function(col):
+            return col.median()
 
     years = (
         ee.List(collection.aggregate_array("system:time_start"))
@@ -249,7 +258,7 @@ def compositeByMonth(
 
 
 def max(collection, band):
-    """Make a max composite using the specified band"""
+    """Make a max composite using the specified band."""
     band = ee.String(band)
     first = collection.first()
     originalbands = first.bandNames()

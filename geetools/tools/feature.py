@@ -1,12 +1,15 @@
 import ee
+
 from .geometry import *
 
 
 def GeometryCollection_to_FeatureCollection(feature):
     """Convert a Feature with a Geometry of type `GeometryCollection`
-    into a `FeatureCollection`"""
+    into a `FeatureCollection`
+    .
+    """
     geom = feature.geometry()
-    geometries = geom.geometries()
+    geom.geometries()
     features = ee.List([])
 
     poly = GeometryCollection_to_MultiPolygon(geom)

@@ -1,8 +1,10 @@
 # coding=utf-8
 
 import ee
+
 from geetools import cloud_mask
 from geetools.tools.image import getValue
+
 from . import TEST_CLOUD_IMAGES
 
 # Initialize
@@ -18,11 +20,11 @@ def test_clouds():
     masked = cloud_mask.sentinel2(["cloud"])(image)
     vals = getValue(masked, p_cloud, 30)
 
-    assert vals.get("B1").getInfo() == None
+    assert vals.get("B1").getInfo() is None
 
 
 def test_cirrus():
     masked = cloud_mask.sentinel2(["cirrus"])(image)
     vals = getValue(masked, p_cirrus, 30)
 
-    assert vals.get("B1").getInfo() == None
+    assert vals.get("B1").getInfo() is None
