@@ -1,21 +1,10 @@
 # coding=utf-8
 """Module holding tools for ee.Date."""
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import ee
 
 EE_EPOCH = datetime(1970, 1, 1, 0, 0, 0)
-
-
-def millisToDatetime(millis):
-    """Converts milliseconds from 1970-01-01T00:00:00 to a.
-
-    datetime object
-    .
-    """
-    seconds = millis / 1000
-    dt = timedelta(seconds=seconds)
-    return EE_EPOCH + dt
 
 
 def daterangeList(start_date, end_date, interval=1, unit="month"):
