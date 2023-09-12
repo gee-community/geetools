@@ -18,14 +18,11 @@ import ee
 # classification
 # )
 # from geetools.tools import (
-# date,
-# dictionary,
 # ee_list,
 # featurecollection,
 # geometry,
 # image,
 # imagecollection,
-# string
 # )
 # from geetools.ui import eprint
 # from geetools.batch import Export, Import, Convert, Download
@@ -51,6 +48,8 @@ from .Number import Number  # noqa: F401
 from .String import String  # noqa: F401
 from .tools import (
     array,  # noqa: F401
+    date,  # noqa: F401
+    dictionary,  # noqa: F401
     number,  # noqa: F401
     string,  # noqa: F401
 )
