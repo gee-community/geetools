@@ -135,20 +135,6 @@ def dayRangeIntervals(start, end, interval=30, reverse=False, buffer="second"):
     return final.reverse() if reverse else final
 
 
-def unitSinceEpoch(date, unit="day"):
-    """Return the number of units since the epoch (1970-1-1).
-
-    :param date: the date
-    :type date: ee.Date
-    :param unit: one of 'year', 'month' 'week', 'day', 'hour', 'minute',
-        or 'second'
-    :return: the corresponding units from the epoch
-    :rtype: ee.Number
-    """
-    epoch = ee.Date(EE_EPOCH.isoformat())
-    return date.difference(epoch, unit).toInt()
-
-
 def getDateBand(img, unit="day", bandname="date", property_name=None):
     """Get a date band from an image representing units since epoch.
 
@@ -160,8 +146,8 @@ def getDateBand(img, unit="day", bandname="date", property_name=None):
         and also as an attribute
     :rtype: ee.Image
     """
-    date = img.date()
-    diff = unitSinceEpoch(date, unit)
+    img.date()
+    diff = 1  # unitSinceEpoch(date, unit)
     datei = ee.Image.constant(diff).rename(bandname)
     if not property_name:
         property_name = "{}_since_epoch".format(unit)

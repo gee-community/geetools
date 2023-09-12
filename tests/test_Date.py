@@ -25,3 +25,25 @@ class TestToDatetime:
     def date_instance(self):
         """Return a defined date instance."""
         return ee.Date("2020-01-01")
+
+
+class TestUnitSinceEpoch:
+    """Test the unitSinceEpoch method."""
+
+    def test_unit_since_epoch(self, date_instance):
+        unit = date_instance.geetools.unitSinceEpoch("year")
+        assert unit.getInfo() >= 49  # 2020 - 1970
+
+    def test_wrong_unit(self, date_instance):
+        with pytest.raises(ValueError):
+            date_instance.geetools.unitSinceEpoch("foo")
+
+    def test_deprecated_method(self, date_instance):
+        with pytest.deprecated_call():
+            unit = geetools.tools.date.unitSinceEpoch(date_instance, "year")
+            assert unit.getInfo() >= 49
+
+    @pytest.fixture
+    def date_instance(self):
+        """Return a defined date instance."""
+        return ee.Date("2020-01-01")
