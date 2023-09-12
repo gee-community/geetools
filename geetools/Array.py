@@ -5,14 +5,14 @@ from typing import Union
 
 import ee
 
-from .accessors import gee_accessor
+from .accessors import geetools_accessor
 
 # hack to have the generated Array class available
 # it might create issues in the future with libs that have exotic init methods
 ee.Initialize()
 
 
-@gee_accessor(ee.Array)
+@geetools_accessor(ee.Array)
 class Array:
     """Toolbox for the ``ee.Array`` class."""
 
