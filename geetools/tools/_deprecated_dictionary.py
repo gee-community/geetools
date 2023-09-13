@@ -18,4 +18,4 @@ def sort(dictionary):
 @deprecated(version="1.0.0", reason="Use ee.Dictionary.geetools.extract instead")
 def extractList(dictionary, keys):
     """Extract values from a list of keys."""
-    return ee.Dictionary(dictionary).geetools.extract(keys)
+    return ee.Dictionary(dictionary).geetools.getMany(keys)

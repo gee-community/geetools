@@ -49,3 +49,15 @@ def toString(eelist):
 def format(eelist):
     """Format a list to a string."""
     return ee.String("[").cat(ee.List(eelist).geetools.join(",")).cat(ee.String("]"))
+
+
+@deprecated(version="1.0.0", reason="Use ee.Dictionary.geetools.getMany instead")
+def getFromDict(eelist, values):
+    """Get a list of Dict's values from a list object."""
+    return ee.Dictionary(values).geetools.getMany(eelist)
+
+
+@deprecated(version="1.0.0", reason="Cast the list to ee.Array instead")
+def transpose(eelist):
+    """Transpose a list of lists."""
+    return ee.Array(eelist).transpose()
