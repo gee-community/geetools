@@ -13,3 +13,9 @@ def difference(list1, list2):
 def intersection(list1, list2):
     """Return the intersection between two lists."""
     return ee.List(list1).geetools.intersection(list2)
+
+
+@deprecated(version="1.0.0", reason="Use ee.List.distinct instead")
+def removeDuplicates(list):
+    """Remove duplicates from a list."""
+    return ee.List(list).distinct()

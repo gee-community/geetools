@@ -39,19 +39,6 @@ def getFromDict(eelist, values):
     return values
 
 
-def removeDuplicates(eelist):
-    """Remove duplicated values from a EE list object."""
-    # TODO: See ee.List.distinct()
-    newlist = ee.List([])
-
-    def wrap(element, init):
-        init = ee.List(init)
-        contained = init.contains(element)
-        return ee.Algorithms.If(contained, init, init.add(element))
-
-    return ee.List(eelist.iterate(wrap, newlist))
-
-
 def removeIndex(list, index):
     """Remove an element by its index."""
     list = ee.List(list)
