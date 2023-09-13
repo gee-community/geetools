@@ -95,3 +95,29 @@ class List:
         """
         l1, l2 = ee.List(self._obj), ee.List(other)
         return l1.removeAll(l1.removeAll(l2))
+
+    def union(self, other: Union[list, ee.List]) -> ee.List:
+        """Compute the union of the current list and the ``other`` list.
+
+        This list will drop duplicated items.
+
+        Parameters:
+            other: The list to compute the union with.
+
+        Returns:
+            A list of strings corresponding to the union of the current list and the ``other`` list.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                l1 = ee.List(["1", "2", "3"])
+                l2 = ee.List(["2", "3", "4"])
+
+                l1.geetools.union(l2).getInfo()
+        """
+        l1, l2 = ee.List(self._obj), ee.List(other)
+        return l1.cat(l2).distinct()

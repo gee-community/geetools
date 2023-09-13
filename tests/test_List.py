@@ -93,3 +93,25 @@ class TestIntersection:
     def list_int(self):
         """Return a defined list instance."""
         return ee.List([1, 2, 3])
+
+
+class TestUnion:
+    """Test the union method."""
+
+    def test_union_with_duplicate(self, list_instance):
+        union_list = list_instance.geetools.union(list_instance)
+        assert union_list.getInfo() == ["a", "b", "c"]
+
+    def test_union_without_dupplicates(self, list_instance, list_int):
+        union_list = list_instance.geetools.union(list_int)
+        assert union_list.getInfo() == ["a", "b", "c", 1, 2, 3]
+
+    @pytest.fixture
+    def list_instance(self):
+        """Return a defined list instance."""
+        return ee.List(["a", "b", "c"])
+
+    @pytest.fixture
+    def list_int(self):
+        """Return a defined list instance."""
+        return ee.List([1, 2, 3])
