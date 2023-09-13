@@ -190,6 +190,24 @@ class TestReplaceMany:
         return ee.List(["a", "b", "c"])
 
 
+class TestZip:
+    """Test the zip method."""
+
+    def test_zip(self, list_instance):
+        zipped_list = list_instance.geetools.zip()
+        assert zipped_list.getInfo() == [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
+
+    def test_deprecated_method(self, list_instance):
+        with pytest.deprecated_call():
+            zipped_list = geetools.tools.ee_list.zip(list_instance)
+            assert zipped_list.getInfo() == [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
+
+    @pytest.fixture
+    def list_instance(self):
+        """Return a defined list instance."""
+        return ee.List([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+
 class TestToStrings:
     """Test the toStrings method."""
 

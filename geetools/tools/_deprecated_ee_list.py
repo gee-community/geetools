@@ -61,3 +61,9 @@ def getFromDict(eelist, values):
 def transpose(eelist):
     """Transpose a list of lists."""
     return ee.Array(eelist).transpose()
+
+
+@deprecated(version="1.0.0", reason="Use ee.List.geetools.zip instead")
+def zip(eelist):
+    """Zip a list of lists."""
+    return ee.List(eelist).geetools.zip()

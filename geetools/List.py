@@ -259,3 +259,24 @@ class List:
             return ee.Algorithms.If(stringReady, ee.Algorithms.String(el), otype)
 
         return self._obj.map(getString)
+
+    def zip(self) -> ee.List:
+        """Zip a list of lists.
+
+        The nested lists need to all have the same size. The size of the first element will be taken as reference.
+
+        Returns:
+            A list of lists with the zipped elements
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                l = ee.List([[1,2,3], [4,5,6], [7,8,9]])
+                l.geetools.zip().getInfo()
+        """
+        indices = ee.List.sequence(0, ee.List(self._obj.get(0)).size().subtract(1))
+        return indices.map(lambda i: self._obj.map(lambda j: ee.List(j).get(i)))
