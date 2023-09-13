@@ -31,3 +31,9 @@ def removeIndex(list, index):
 def sequence(start, stop, step):
     """Create a sequence of numbers."""
     return ee.List.geetools.sequence(start, stop, step)
+
+
+@deprecated(version="1.0.0", reason="Use ee.List.geetools.replaceMany instead")
+def replaceDict(eelist, to_replace):
+    """Replace many elements of a Earth Engine List object using a dictionary."""
+    return ee.List(eelist).geetools.replaceMany(to_replace)

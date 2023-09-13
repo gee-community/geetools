@@ -39,38 +39,6 @@ def getFromDict(eelist, values):
     return values
 
 
-def replaceDict(eelist, to_replace):
-    """Replace many elements of a Earth Engine List object using a dictionary.
-
-        **EXAMPLE**
-
-    .. code:: python
-
-        list = ee.List(["one", "two", "three", 4])
-        newlist = replace_many(list, {"one": 1, 4:"four"})
-
-        print newlist.getInfo()
-
-    >> [1, "two", "three", "four"]
-
-    :param to_replace: values to replace
-    :type to_replace: dict
-    :return: list with replaced values
-    :rtype: ee.List
-    """
-    eelist = ee.List(eelist)
-    to_replace = ee.Dictionary(to_replace)
-    keys = to_replace.keys()
-
-    def wrap(el):
-        # Convert to String
-        elstr = ee.Algorithms.String(el)
-        condition = ee.List(keys).indexOf(elstr)
-        return ee.Algorithms.If(condition.neq(-1), to_replace.get(elstr), el)
-
-    return eelist.map(wrap)
-
-
 def toString(eelist):
     """Convert elements of a list into Strings. If the list contains other.
 

@@ -181,3 +181,31 @@ class List:
         ini, end = ee.Number(ini), ee.Number(end)
         step = ee.Number(step).toInt().max(1)
         return ee.List.sequence(ini, end, step).add(end).add(ini).distinct()
+
+    def replaceMany(self, replace: Union[ee.Dictionary, dict]) -> ee.List:
+        """Replace many values in a list.
+
+        Parameters:
+            replace: the dictionary with the values to replace. the keys are the values to replace and the values are the new values.
+
+        Returns:
+            A list with the values replaced
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                l = ee.List(["one", "two", "three", 4])
+                replace = ee.Dictionary({"one": 1, 4:"four"})
+                l = l.geetools.replaceMany(replace)
+                l.getInfo()
+        """
+        replace = ee.Dictionary(replace)
+        keys = replace.keys()
+        list = keys.iterate(
+            lambda k, p: ee.List(p).replace(k, replace.get(k)), self._obj
+        )
+        return ee.List(list)  # to avoid returning a COmputedObject

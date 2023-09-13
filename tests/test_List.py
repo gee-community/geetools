@@ -168,3 +168,23 @@ class TestSequence:
         with pytest.deprecated_call():
             seq = geetools.tools.ee_list.sequence(1, 10)
             assert seq.getInfo() == list(range(1, 10))
+
+
+class TestReplaceMany:
+    """Test the replaceMany method."""
+
+    def test_replace_many(self, list_instance):
+        replaced_list = list_instance.geetools.replaceMany({"a": "foo", "c": "bar"})
+        assert replaced_list.getInfo() == ["foo", "b", "bar"]
+
+    def test_deprecated_method(self, list_instance):
+        with pytest.deprecated_call():
+            replaced_list = geetools.tools.ee_list.replaceDict(
+                list_instance, {"a": "foo", "c": "bar"}
+            )
+            assert replaced_list.getInfo() == ["foo", "b", "bar"]
+
+    @pytest.fixture
+    def list_instance(self):
+        """Return a defined list instance."""
+        return ee.List(["a", "b", "c"])
