@@ -25,3 +25,9 @@ def removeDuplicates(list):
 def removeIndex(list, index):
     """Remove an element from a list by index."""
     return ee.List(list).geetools.delete(index)
+
+
+@deprecated(version="1.0.0", reason="Use ee.List.geetools.sequence instead")
+def sequence(start, stop, step):
+    """Create a sequence of numbers."""
+    return ee.List.geetools.sequence(start, stop, step)

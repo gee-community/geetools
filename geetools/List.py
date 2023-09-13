@@ -144,3 +144,36 @@ class List:
         """
         index = ee.Number(index).toInt()
         return self._obj.slice(0, index).cat(self._obj.slice(index.add(1)))
+
+    @classmethod
+    def sequence(
+        cls,
+        ini: Union[int, ee.Number],
+        end: Union[int, ee.Number],
+        step: Union[int, ee.Number] = 1,
+    ) -> ee.List:
+        """Create a sequence from ini to end by step.
+
+        Similar to ``ee.List.sequence``, but if end != last item then adds the end to the end of the resuting list.
+
+        Parameters:
+            ini: The initial value of the sequence.
+            end: The final value of the sequence.
+            step: The step of the sequence.
+
+        Returns:
+            A list of numbers corresponding to the sequence.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                l = ee.List.geetools.sequence(0, 10, 2)
+                l.getInfo()
+        """
+        ini, end = ee.Number(ini), ee.Number(end)
+        step = ee.Number(step).toInt().max(1)
+        return ee.List.sequence(ini, end, step).add(end).add(ini).distinct()

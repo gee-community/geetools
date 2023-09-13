@@ -39,39 +39,6 @@ def getFromDict(eelist, values):
     return values
 
 
-def removeIndex(list, index):
-    """Remove an element by its index."""
-    list = ee.List(list)
-    index = ee.Number(index)
-    size = list.size()
-
-    def allowed():
-        def zerof(list):
-            return list.slice(1, list.size())
-
-        def rest(list, index):
-            list = ee.List(list)
-            index = ee.Number(index)
-            last = index.eq(list.size())
-
-            def lastf(list):
-                return list.slice(0, list.size().subtract(1))
-
-            def restf(list, index):
-                list = ee.List(list)
-                index = ee.Number(index)
-                first = list.slice(0, index)
-                return first.cat(list.slice(index.add(1), list.size()))
-
-            return ee.List(ee.Algorithms.If(last, lastf(list), restf(list, index)))
-
-        return ee.List(ee.Algorithms.If(index, rest(list, index), zerof(list)))
-
-    condition = index.gte(size).Or(index.lt(0))
-
-    return ee.List(ee.Algorithms.If(condition, -1, allowed()))
-
-
 def replaceDict(eelist, to_replace):
     """Replace many elements of a Earth Engine List object using a dictionary.
 
@@ -102,23 +69,6 @@ def replaceDict(eelist, to_replace):
         return ee.Algorithms.If(condition.neq(-1), to_replace.get(elstr), el)
 
     return eelist.map(wrap)
-
-
-def sequence(ini, end, step=1):
-    """Create a sequence from ini to end by step. Similar to.
-
-    ee.List.sequence, but if end != last item then adds the end to the end
-    of the resuting list.
-    """
-    end = ee.Number(end)
-    if step == 0:
-        step = 1
-    amplitude = end.subtract(ini)
-    mod = ee.Number(amplitude).mod(step)
-    seq = ee.List.sequence(ini, end, step)
-    condition = mod.neq(0)
-    final = ee.Algorithms.If(condition, seq.add(end), seq)
-    return ee.List(final)
 
 
 def toString(eelist):
