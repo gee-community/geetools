@@ -35,3 +35,32 @@ class TestProduct:
     def list_int(self):
         """Return a defined list instance."""
         return ee.List([1, 2, 3])
+
+
+class TestComplement:
+    """Test the complement method."""
+
+    def test_complement_with_same_type(self, list_instance):
+        complement_list = list_instance.geetools.complement(list_instance)
+        assert complement_list.getInfo() == []
+
+    def test_complement_with_different_type(self, list_instance, list_int):
+        complement_list = list_instance.geetools.complement(list_int)
+        assert complement_list.getInfo() == ["a", "b", "c", 1, 2, 3]
+
+    def test_deprecated_method(self, list_instance):
+        with pytest.deprecated_call():
+            complement_list = geetools.tools.ee_list.difference(
+                list_instance, list_instance
+            )
+            assert complement_list.getInfo() == []
+
+    @pytest.fixture
+    def list_instance(self):
+        """Return a defined list instance."""
+        return ee.List(["a", "b", "c"])
+
+    @pytest.fixture
+    def list_int(self):
+        """Return a defined list instance."""
+        return ee.List([1, 2, 3])

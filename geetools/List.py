@@ -41,7 +41,31 @@ class List:
         """
         l1 = ee.List(self._obj).map(lambda e: ee.String(e))
         l2 = ee.List(other).map(lambda e: ee.String(e))
+        product = l1.map(lambda e: l2.map(lambda f: ee.String(e).cat(ee.String(f))))
+        return product.flatten()
 
-        return l1.map(
-            lambda e: l2.map(lambda f: ee.String(e).cat(ee.String(f)))
-        ).flatten()
+    def complement(self, other: Union[list, ee.List]) -> ee.List:
+        """Compute the complement of the current list and the ``other`` list.
+
+        The mthematical complement is the list of elements that are in the current list but not in the ``other`` list and vice-versa.
+
+        Parameters:
+            other: The list to compute the complement with.
+
+        Returns:
+            A list of strings corresponding to the complement of the current list and the ``other`` list.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                l1 = ee.List(["1", "2", "3"])
+                l2 = ee.List(["2", "3", "4"])
+
+                l1.geetools.complement(l2).getInfo()
+        """
+        l1, l2 = ee.List(self._obj), ee.List(other)
+        return l1.removeAll(l2).cat(l2.removeAll(l1))
