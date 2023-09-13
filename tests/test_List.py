@@ -13,9 +13,7 @@ class TestProduct:
         expected = ["aa", "ab", "ac", "ba", "bb", "bc", "ca", "cb", "cc"]
         assert product_list.getInfo() == expected
 
-    @pytest.mark.xfail
     def test_product_with_different_type(self, list_instance, list_int):
-        """waiting for https://gis.stackexchange.com/questions/466702/compute-the-cartesian-product-of-2-ee-lists."""
         product_list = list_instance.geetools.product(list_int)
         expected = ["a1", "a2", "a3", "b1", "b2", "b3", "c1", "c2", "c3"]
         assert product_list.getInfo() == expected

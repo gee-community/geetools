@@ -41,7 +41,11 @@ class List:
         """
         l1 = ee.List(self._obj).map(lambda e: ee.String(e))
         l2 = ee.List(other).map(lambda e: ee.String(e))
-        product = l1.map(lambda e: l2.map(lambda f: ee.String(e).cat(ee.String(f))))
+        product = l1.map(
+            lambda e: l2.map(
+                lambda f: ee.Algorithms.String(e).cat(ee.Algorithms.String(f))
+            )
+        )
         return product.flatten()
 
     def complement(self, other: Union[list, ee.List]) -> ee.List:
