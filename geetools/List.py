@@ -144,7 +144,7 @@ class List:
                 ee.Initialize()
 
                 l = ee.List(["a", "b", "c"])
-                l.geetools.del(1).getInfo()
+                l.geetools.delete(1).getInfo()
         """
         index = ee.Number(index).toInt()
         return self._obj.slice(0, index).cat(self._obj.slice(index.add(1)))
@@ -198,8 +198,8 @@ class List:
 
                 ee.Initialize()
 
-                l = ee.List(["one", "two", "three", 4])
-                replace = ee.Dictionary({"one": 1, 4:"four"})
+                l = ee.List(["a", "b", "c"])
+                replace = ee.Dictionary({"a": "foo", "c": "bar"})
                 l = l.geetools.replaceMany(replace)
                 l.getInfo()
         """
