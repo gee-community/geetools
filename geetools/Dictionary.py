@@ -61,7 +61,7 @@ class Dictionary:
         values = orderededKeys.map(lambda key: self._obj.get(key))
         return ee.Dictionary.fromLists(orderededKeys, values)
 
-    def extract(self, list: Union[ee.List, list]) -> ee.List:
+    def getMany(self, list: Union[ee.List, list]) -> ee.List:
         """Extract values from a list of keys.
 
         Parameters:
@@ -78,6 +78,6 @@ class Dictionary:
                 ee.Initialize()
 
                 d = ee.Dictionary({"foo": 1, "bar": 2, "baz": 3})
-                d.geetools.extract(["foo", "bar"]).getInfo()
+                d.geetools.getMany(["foo", "bar"]).getInfo()
         """
         return ee.List(list).map(lambda key: self._obj.get(key))
