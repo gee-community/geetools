@@ -121,3 +121,26 @@ class List:
         """
         l1, l2 = ee.List(self._obj), ee.List(other)
         return l1.cat(l2).distinct()
+
+    # this method is simply a del but the name is protected in the GEE context
+    def delete(self, index: Union[int, ee.Number]) -> ee.List:
+        """Delete an element from a list.
+
+        Parameters:
+            index: The index of the element to delete.
+
+        Returns:
+            The list without the element at the given index.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                l = ee.List(["a", "b", "c"])
+                l.geetools.del(1).getInfo()
+        """
+        index = ee.Number(index).toInt()
+        return self._obj.slice(0, index).cat(self._obj.slice(index.add(1)))

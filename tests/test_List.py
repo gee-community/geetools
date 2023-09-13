@@ -115,3 +115,21 @@ class TestUnion:
     def list_int(self):
         """Return a defined list instance."""
         return ee.List([1, 2, 3])
+
+
+class TestDelete:
+    """Test the delete method."""
+
+    def test_delete(self, list_instance):
+        deleted_list = list_instance.geetools.delete(1)
+        assert deleted_list.getInfo() == ["a", "c"]
+
+    def test_deprecated_method(self, list_instance):
+        with pytest.deprecated_call():
+            deleted_list = geetools.tools.ee_list.removeIndex(list_instance, 1)
+            assert deleted_list.getInfo() == ["a", "c"]
+
+    @pytest.fixture
+    def list_instance(self):
+        """Return a defined list instance."""
+        return ee.List(["a", "b", "c"])

@@ -19,3 +19,9 @@ def intersection(list1, list2):
 def removeDuplicates(list):
     """Remove duplicates from a list."""
     return ee.List(list).distinct()
+
+
+@deprecated(version="1.0.0", reason="Use ee.List.geetools.delete instead")
+def removeIndex(list, index):
+    """Remove an element from a list by index."""
+    return ee.List(list).geetools.delete(index)
