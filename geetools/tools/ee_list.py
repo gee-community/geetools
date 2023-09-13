@@ -6,16 +6,6 @@ import ee
 from . import computedobject
 
 
-def difference(eelist, to_compare):
-    """Difference between two earth engine lists.
-
-    :param ee_list2: the other list
-    :return: list with the values of the difference
-    :rtype: ee.List
-    """
-    return eelist.removeAll(to_compare).add(to_compare.removeAll(eelist)).flatten()
-
-
 def format(eelist):
     """Convert a list to a string."""
 
@@ -47,26 +37,6 @@ def getFromDict(eelist, values):
 
     values = ee.List(eelist.iterate(wrap, empty))
     return values
-
-
-def intersection(eelist, intersect):
-    """Find matching values. If ee_list1 has duplicated values that are
-    present on ee_list2, all values from ee_list1 will apear in the result.
-
-    :param intersect: the other Earth Engine List
-    :return: list with the intersection (matching values)
-    :rtype: ee.List
-    """
-    eelist = ee.List(eelist)
-    intersect = ee.List(intersect)
-    newlist = ee.List([])
-
-    def wrap(element, first):
-        first = ee.List(first)
-
-        return ee.Algorithms.If(intersect.contains(element), first.add(element), first)
-
-    return ee.List(eelist.iterate(wrap, newlist))
 
 
 def removeDuplicates(eelist):
@@ -148,7 +118,8 @@ def replaceDict(eelist, to_replace):
 
 
 def sequence(ini, end, step=1):
-    """Create a sequence from ini to end by step. Similar to
+    """Create a sequence from ini to end by step. Similar to.
+
     ee.List.sequence, but if end != last item then adds the end to the end
     of the resuting list.
     """
@@ -164,7 +135,8 @@ def sequence(ini, end, step=1):
 
 
 def toString(eelist):
-    """Convert elements of a list into Strings. If the list contains other
+    """Convert elements of a list into Strings. If the list contains other.
+
     elements that are not strings or numbers, it will return the object type.
     For example, ['a', 1, ee.Image(0)] -> ['a', '1', 'Image'].
     """
@@ -197,15 +169,16 @@ def zip(eelist):
     first = ee.List(eelist.get(0))
     rest = ee.List(eelist).slice(1)
 
-    def wrap(l, accum):
+    def wrap(li, accum):
         accum = ee.List(accum)
-        return accum.zip(l).map(lambda l: ee.List(l).flatten())
+        return accum.zip(li).map(lambda lr: ee.List(lr).flatten())
 
     return ee.List(rest.iterate(wrap, first))
 
 
 def transpose(eelist):
-    """Transpose a list of lists. Similar to ee.Array.transpose but using
+    """Transpose a list of lists. Similar to ee.Array.transpose but using.
+
     ee.List. All inner lists must have the same size
     .
     """

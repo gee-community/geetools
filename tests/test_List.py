@@ -64,3 +64,32 @@ class TestComplement:
     def list_int(self):
         """Return a defined list instance."""
         return ee.List([1, 2, 3])
+
+
+class TestIntersection:
+    """Test the intersection method."""
+
+    def test_intersection_with_same_type(self, list_instance):
+        intersection_list = list_instance.geetools.intersection(list_instance)
+        assert intersection_list.getInfo() == ["a", "b", "c"]
+
+    def test_intersection_with_different_type(self, list_instance, list_int):
+        intersection_list = list_instance.geetools.intersection(list_int)
+        assert intersection_list.getInfo() == []
+
+    def test_deprecated_method(self, list_instance):
+        with pytest.deprecated_call():
+            intersection_list = geetools.tools.ee_list.intersection(
+                list_instance, list_instance
+            )
+            assert intersection_list.getInfo() == ["a", "b", "c"]
+
+    @pytest.fixture
+    def list_instance(self):
+        """Return a defined list instance."""
+        return ee.List(["a", "b", "c"])
+
+    @pytest.fixture
+    def list_int(self):
+        """Return a defined list instance."""
+        return ee.List([1, 2, 3])

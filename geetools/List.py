@@ -69,3 +69,29 @@ class List:
         """
         l1, l2 = ee.List(self._obj), ee.List(other)
         return l1.removeAll(l2).cat(l2.removeAll(l1))
+
+    def intersection(self, other: Union[list, ee.List]) -> ee.List:
+        """Compute the intersection of the current list and the ``other`` list.
+
+        The intersection is the list of elements that are in both lists.
+
+        Parameters:
+            other: The list to compute the intersection with.
+
+        Returns:
+            A list of strings corresponding to the intersection of the current list and the ``other`` list.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                l1 = ee.List(["1", "2", "3"])
+                l2 = ee.List(["2", "3", "4"])
+
+                l1.geetools.intersection(l2).getInfo()
+        """
+        l1, l2 = ee.List(self._obj), ee.List(other)
+        return l1.removeAll(l1.removeAll(l2))
