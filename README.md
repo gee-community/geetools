@@ -114,4 +114,11 @@ Any bug or question please use the [`github issue tracker`](https://github.com/g
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=gee-community/gee_tools&type=Date)](https://star-history.com/#gee-community/gee_tools&Date)
+<a href="https://star-history.com/#gee-community/gee_tools&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=gee-community/gee_tools&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=gee-community/gee_tools&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=gee-community/gee_tools&type=Date" />
+  </picture>
+</a>
+
