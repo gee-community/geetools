@@ -210,8 +210,13 @@ class List:
         )
         return ee.List(list)  # to avoid returning a COmputedObject
 
-    def format(self) -> ee.string:
+    def join(self, separator: Union[str, ee.String] = ", ") -> ee.string:
         """Format a list to a string.
+
+        Same as the join method but elements that cannot be stringified will be returned as the object type.
+
+        Parameters:
+            separator: The separator to use.
 
         Returns:
             A string with the list elements separated by commas.
@@ -223,10 +228,10 @@ class List:
 
                 ee.Initialize()
 
-                l = ee.List(["a", "b", "c"])
-                l.geetools.format().getInfo()
+                l = ee.List(['a', 1, ee.Image(0)])
+                l.geetools.join().getInfo()
         """
-        pass
+        return self.toStrings().join(separator)
 
     def toStrings(self) -> ee.List:
         """Convert elements of a list into Strings.

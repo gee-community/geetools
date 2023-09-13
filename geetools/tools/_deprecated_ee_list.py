@@ -43,3 +43,9 @@ def replaceDict(eelist, to_replace):
 def toString(eelist):
     """Convert elements of a list into Strings."""
     return ee.List(eelist).geetools.toStrings()
+
+
+@deprecated(version="1.0.0", reason="Use ee.List.geetools.format instead")
+def format(eelist):
+    """Format a list to a string."""
+    return ee.String("[").cat(ee.List(eelist).geetools.join(",")).cat(ee.String("]"))

@@ -4,18 +4,6 @@
 import ee
 
 
-def format(eelist):
-    """Convert a list to a string."""
-
-    def wrap(el, ini):
-        ini = ee.String(ini)
-        strel = ee.Algorithms.String(el)
-        return ini.cat(",").cat(strel)
-
-    liststr = ee.String(eelist.iterate(wrap, ""))
-    return liststr.replace("^,", "[").cat("]")
-
-
 def getFromDict(eelist, values):
     """Get a list of Dict's values from a list object. Keys must be unique.
 

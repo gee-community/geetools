@@ -206,3 +206,25 @@ class TestToStrings:
     def list_instance(self):
         """Return a defined list instance."""
         return ee.List(["a", 1, ee.Image(1)])
+
+
+class TestJoin:
+    """Test the join method."""
+
+    def test_join(self, list_instance):
+        formatted = list_instance.geetools.join()
+        assert formatted.getInfo() == "a, 1, Image"
+
+    def test_join_with_separator(self, list_instance):
+        formatted = list_instance.geetools.join(separator="; ")
+        assert formatted.getInfo() == "a; 1; Image"
+
+    def test_deprecated_method(self, list_instance):
+        with pytest.deprecated_call():
+            formatted = geetools.tools.ee_list.format(list_instance)
+            assert formatted.getInfo() == "[a,1,Image]"
+
+    @pytest.fixture
+    def list_instance(self):
+        """Return a defined list instance."""
+        return ee.List(["a", 1, ee.Image(1)])
