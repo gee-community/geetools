@@ -37,3 +37,9 @@ def sequence(start, stop, step):
 def replaceDict(eelist, to_replace):
     """Replace many elements of a Earth Engine List object using a dictionary."""
     return ee.List(eelist).geetools.replaceMany(to_replace)
+
+
+@deprecated(version="1.0.0", reason="Use ee.List.geetools.toStrings instead")
+def toString(eelist):
+    """Convert elements of a list into Strings."""
+    return ee.List(eelist).geetools.toStrings()

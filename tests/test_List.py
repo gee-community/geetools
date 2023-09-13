@@ -188,3 +188,21 @@ class TestReplaceMany:
     def list_instance(self):
         """Return a defined list instance."""
         return ee.List(["a", "b", "c"])
+
+
+class TestToStrings:
+    """Test the toStrings method."""
+
+    def test_to_strings(self, list_instance):
+        strings = list_instance.geetools.toStrings()
+        assert strings.getInfo() == ["a", "1", "Image"]
+
+    def test_deprecated_method(self, list_instance):
+        with pytest.deprecated_call():
+            strings = geetools.tools.ee_list.toString(list_instance)
+            assert strings.getInfo() == ["a", "1", "Image"]
+
+    @pytest.fixture
+    def list_instance(self):
+        """Return a defined list instance."""
+        return ee.List(["a", 1, ee.Image(1)])

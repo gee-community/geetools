@@ -209,3 +209,48 @@ class List:
             lambda k, p: ee.List(p).replace(k, replace.get(k)), self._obj
         )
         return ee.List(list)  # to avoid returning a COmputedObject
+
+    def format(self) -> ee.string:
+        """Format a list to a string.
+
+        Returns:
+            A string with the list elements separated by commas.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                l = ee.List(["a", "b", "c"])
+                l.geetools.format().getInfo()
+        """
+        pass
+
+    def toStrings(self) -> ee.List:
+        """Convert elements of a list into Strings.
+
+        If the list contains other elements that are not strings or numbers, it will return the object type. For example, ['a', 1, ee.Image(0)] -> ['a', '1', 'Image'].
+
+        Returns:
+            A list of strings corresponding to the elements of the list.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                l = ee.List(["a", 1, ee.Image(0)])
+                l.geetools.toStrings().getInfo()
+        """
+        klasses = ee.List(["Float", "Integer", "String"])
+
+        def getString(el):
+            otype = ee.Algorithms.ObjectType(el)
+            stringReady = klasses.contains(otype)
+            return ee.Algorithms.If(stringReady, ee.Algorithms.String(el), otype)
+
+        return self._obj.map(getString)

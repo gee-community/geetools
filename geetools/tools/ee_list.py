@@ -3,8 +3,6 @@
 
 import ee
 
-from . import computedobject
-
 
 def format(eelist):
     """Convert a list to a string."""
@@ -37,28 +35,6 @@ def getFromDict(eelist, values):
 
     values = ee.List(eelist.iterate(wrap, empty))
     return values
-
-
-def toString(eelist):
-    """Convert elements of a list into Strings. If the list contains other.
-
-    elements that are not strings or numbers, it will return the object type.
-    For example, ['a', 1, ee.Image(0)] -> ['a', '1', 'Image'].
-    """
-    eelist = ee.List(eelist)
-
-    def wrap(el):
-        def false(el):
-            otype = ee.Algorithms.ObjectType(el)
-            return ee.String(
-                ee.Algorithms.If(
-                    computedobject.isNumber(el), ee.Number(el).format(), otype
-                )
-            )
-
-        return ee.String(ee.Algorithms.If(computedobject.isString(el), el, false(el)))
-
-    return eelist.map(wrap)
 
 
 def zip(eelist):
