@@ -188,3 +188,33 @@ class Image:
         images = ee.List(images)
         merged = images.iterate(lambda dst, src: ee.Image(src).addBands(dst), self._obj)
         return ee.Image(merged)
+
+    def rename(self, names: Union[ee.Dictionary, dict]) -> ee.Image:
+        """Rename the bands of the image.
+
+        It's the same function as the one from GEE but it takes a dictionary as input.
+        Keys are the old names and values are the new names.
+
+        Parameters:
+            names: The new names of the bands.
+
+        Returns:
+            The image with the new band names.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                src = 'COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM'
+                image = ee.Image(src).select(['B1', 'B2', 'B3'])
+                image = image.geetools.rename({'B1': 'Aerosol', 'B2': 'Blue'})
+                print(image.bandNames().getInfo())
+        """
+        names = ee.Dictionary(names)
+        bands = names.keys().iterate(
+            lambda b, n: ee.List(n).replace(b, names.get(b)), self._obj.bandNames()
+        )
+        return self._obj.rename(bands)

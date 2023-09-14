@@ -167,3 +167,24 @@ class TestMerge:
         """Return an Image instance."""
         src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
         return ee.Image(src).select(["B1", "B2"])
+
+
+class TestRename:
+    """Test the ``rename`` method."""
+
+    def test_rename(self, image_instance):
+        image = image_instance.geetools.rename({"B1": "newB1", "B2": "newB2"})
+        assert image.bandNames().getInfo() == ["newB1", "newB2", "B3"]
+
+    def test_deprecated_method(self, image_instance):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.renameDict(
+                image_instance, {"B1": "newB1", "B2": "newB2"}
+            )
+            assert image.bandNames().getInfo() == ["newB1", "newB2", "B3"]
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2", "B3"])
