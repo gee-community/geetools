@@ -73,3 +73,36 @@ class Image:
             self._obj.bandNames(),
         )
         return self._obj.rename(bandNames)
+
+    def addPrefix(
+        self, prefix: Union[str, ee.String], bands: Union[ee.List, list] = []
+    ):
+        """Add a prefix to the image selected band.
+
+        Add a prefix to the selected band. If no band is specified, the prefix is added to all bands.
+
+        Parameters:
+            prefix: The prefix to add to the band.
+            bands: The bands to add the prefix to. If None, all bands are selected.
+
+        Returns:
+            The image with the prefix added to the selected bands.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
+                image = image.geetools.addPrefix('prefix_')
+                print(image.bandNames().getInfo())
+        """
+        prefix = ee.String(prefix)
+        bands = self._obj.bandNames() if bands == [] else ee.List(bands)
+        bandNames = bands.iterate(
+            lambda b, n: ee.List(n).replace(b, prefix.cat(ee.String(b))),
+            self._obj.bandNames(),
+        )
+        return self._obj.rename(bandNames)

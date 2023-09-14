@@ -12,19 +12,6 @@ from ..utils import castImage
 from . import date, ee_list, string
 
 
-def addPrefix(image, prefix, bands=None):
-    """Add a prefix to the specified bands.
-
-    :param prefix: the value to add as a prefix
-    :type prefix: str
-    :param bands: the bands to apply the prefix. If None, prefix will fill
-        all bands
-    :type bands: list
-    :rtype: ee.Image
-    """
-    return 1  # _add_suffix_prefix(image, prefix, "prefix", bands)
-
-
 def bufferMask(image, radius=1.5, kernelType="square", units="pixels"):
     """Make a buffer around the masked pixels."""
     masked = image.mask().Not()
