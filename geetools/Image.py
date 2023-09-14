@@ -106,3 +106,35 @@ class Image:
             self._obj.bandNames(),
         )
         return self._obj.rename(bandNames)
+
+    def getValues(
+        self, point: ee.Geometry.Point, scale: Union[ee.Number, int] = 0
+    ) -> ee.Dictionary:
+        """Get the value of the image at the given point using specified geometry.
+
+        The result is presented as a dictionary where the keys are the bands name and the value the mean value of the band at the given point.
+
+        Parameters:
+            point: The geometry to get the value from.
+
+        Returns:
+            A dictionary with the band names and the value at the given point.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
+                point = ee.Geometry.Point([11.0, 45.0])
+                value = image.geetools.getValues(point, 10)
+                print(value.getInfo())
+        """
+        scale = (
+            self._obj.select(0).projection().nominalScale()
+            if scale == 0
+            else ee.Number(scale)
+        )
+        return self._obj.reduceRegion(ee.Reducer.mean(), point, scale)

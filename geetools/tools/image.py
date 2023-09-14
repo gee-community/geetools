@@ -100,40 +100,6 @@ def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False, region=N
     return ee.Image(ee.Algorithms.If(footprint.isUnbounded(), emp, emp.clip(footprint)))
 
 
-def getValue(image, point, scale=None, side="server"):
-    """Return the value of all bands of the image in the specified point.
-
-    :param img: Image to get the info from
-    :type img: ee.Image
-    :param point: Point from where to get the info
-    :type point: ee.Geometry.Point
-    :param scale: The scale to use in the reducer. It defaults to 10 due to the
-        minimum scale available in EE (Sentinel 10m)
-    :type scale: int
-    :param side: 'server' or 'client' side
-    :type side: str
-    :return: Values of all bands in the point
-    :rtype: ee.Dictionary or dict
-    """
-    if scale:
-        scale = int(scale)
-    else:
-        scale = 1
-
-    type = point.getInfo()["type"]
-    if type != "Point":
-        raise ValueError("Point must be ee.Geometry.Point")
-
-    result = image.reduceRegion(ee.Reducer.first(), point, scale)
-
-    if side == "server":
-        return result
-    elif side == "client":
-        return result.getInfo()
-    else:
-        raise ValueError("side parameter must be 'server' or 'client'")
-
-
 def addMultiBands(imagesList):
     """Image.addBands for many images. All bands from all images will be.
 

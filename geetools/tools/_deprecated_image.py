@@ -13,3 +13,10 @@ def addSuffix(image, suffix, bands=None):
 def addPrefix(image, prefix, bands=None):
     """Add a prefix to the selected bands of the image."""
     return ee.Image(image).geetools.addPrefix(prefix, bands)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.getValues instead")
+def getValue(image, point, scale=None):
+    """Get the values of an image at a point."""
+    scale = scale or 0
+    return ee.Image(image).geetools.getValues(point, scale)

@@ -89,3 +89,31 @@ class TestAddPrefix:
         """Return an Image instance."""
         src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
         return ee.Image(src).select(["B1", "B2", "B3"])
+
+
+class TestGetValues:
+    """Test the ``getValues`` method."""
+
+    def test_get_values(self, image_instance, vatican):
+        values = image_instance.geetools.getValues(vatican)
+        assert values.getInfo() == {"B1": 218, "B2": 244, "B3": 251}
+
+    def test_get_values_with_scale(self, image_instance, vatican):
+        values = image_instance.geetools.getValues(vatican, scale=100)
+        assert values.getInfo() == {"B1": 117, "B2": 161, "B3": 247}
+
+    def test_deprecated_method(self, image_instance, vatican):
+        with pytest.deprecated_call():
+            values = geetools.tools.image.getValue(image_instance, vatican)
+            assert values.getInfo() == {"B1": 218, "B2": 244, "B3": 251}
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2", "B3"])
+
+    @pytest.fixture
+    def vatican(self):
+        """Return a vatican in the Vatican."""
+        return ee.Geometry.Point([12.4534, 41.9029])
