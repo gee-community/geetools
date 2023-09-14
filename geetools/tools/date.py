@@ -7,28 +7,6 @@ import ee
 EE_EPOCH = datetime(1970, 1, 1, 0, 0, 0)
 
 
-def getDateBand(img, unit="day", bandname="date", property_name=None):
-    """Get a date band from an image representing units since epoch.
-
-    :param img: the Image
-    :param unit: one of 'year', 'month' 'week', 'day', 'hour', 'minute',
-        or 'second'
-    :param bandname: the name of the resulting band
-    :return: a single band image with the date as the value for each pixel
-        and also as an attribute
-    :rtype: ee.Image
-    """
-    img.date()
-    diff = 1  # unitSinceEpoch(date, unit)
-    datei = ee.Image.constant(diff).rename(bandname)
-    if not property_name:
-        property_name = "{}_since_epoch".format(unit)
-
-    datei_attr = datei.set(property_name, diff).toInt()
-
-    return datei_attr.copyProperties(img, ["system:footprint"])
-
-
 def makeDateBand(image, format="YMMdd", bandname="date"):
     """Make a date band using a formatter. Format pattern.
 
