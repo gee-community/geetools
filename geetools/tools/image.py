@@ -100,43 +100,6 @@ def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False, region=N
     return ee.Image(ee.Algorithms.If(footprint.isUnbounded(), emp, emp.clip(footprint)))
 
 
-def renameDict(image, names):
-    """Renames bands of images using a dict.
-
-    :param names: matching names where key is original name and values the
-        new name
-    :type names: dict
-    :rtype: ee.Image
-
-    :EXAMPLE:
-
-    .. code:: python
-
-        image = ee.Image("LANDSAT/LC8_L1T_TOA_FMASK/LC82310902013344LGN00")
-        p = ee.Geometry.Point(-71.72029495239258, -42.78997046797438)
-
-        i = rename_bands({"B1":"BLUE", "B2":"GREEN"})
-
-        print get_value(image, p)
-        print get_value(i, p)
-
-    >> {u'B1': 0.10094200074672699, u'B2': 0.07873955368995667, u'B3': 0.057160500437021255}
-    >> {u'BLUE': 0.10094200074672699, u'GREEN': 0.07873955368995667, u'B3': 0.057160500437021255}
-    """
-    bandnames = image.bandNames()
-    newnames = ee_list.replaceDict(bandnames, names)
-    return image.select(bandnames, newnames)
-
-
-def removeBands(image, bands):
-    """Remove the specified bands from an image."""
-    bnames = image.bandNames()
-    bands = ee.List(bands)
-    inter = ee_list.intersection(bnames, bands)
-    diff = bnames.removeAll(inter)
-    return image.select(diff)
-
-
 def parametrize(image, range_from, range_to, bands=None, drop=False):
     """Parametrize from a original **known** range to a fixed new range.
 

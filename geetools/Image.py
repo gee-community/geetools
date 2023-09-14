@@ -218,3 +218,27 @@ class Image:
             lambda b, n: ee.List(n).replace(b, names.get(b)), self._obj.bandNames()
         )
         return self._obj.rename(bands)
+
+    def remove(self, bands: Union[list, ee.List]) -> ee.Image:
+        """Remove bands from the image.
+
+        Parameters:
+            bands: The bands to remove.
+
+        Returns:
+            The image without the specified bands.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                src = 'COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM'
+                image = ee.Image(src).select(['B1', 'B2', 'B3'])
+                image = image.geetools.remove(['B1', 'B2'])
+                print(image.bandNames().getInfo())
+        """
+        bands = self._obj.bandNames().removeAll(ee.List(bands))
+        return self._obj.select(bands)

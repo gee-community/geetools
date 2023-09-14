@@ -42,7 +42,13 @@ def mixBands(imageList):
     return ee.Image(list.get(0)).geetools.merge(list.slice(1))
 
 
-@deprecated(version="1.0.0", reason="Use ee.Image.geetools.getValues instead")
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.rename instead")
 def renameDict(image, names):
     """Renames bands of images using a dict."""
     return ee.Image(image).geetools.rename(names)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.remove instead")
+def removeBands(image, bands):
+    """Remove bands from an image."""
+    return ee.Image(image).geetools.remove(bands)

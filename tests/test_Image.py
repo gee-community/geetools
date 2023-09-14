@@ -188,3 +188,22 @@ class TestRename:
         """Return an Image instance."""
         src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
         return ee.Image(src).select(["B1", "B2", "B3"])
+
+
+class TestRemove:
+    """Test the ``remove`` method."""
+
+    def test_remove(self, image_instance):
+        image = image_instance.geetools.remove(["B1", "B2"])
+        assert image.bandNames().getInfo() == ["B3"]
+
+    def test_deprecated_method(self, image_instance):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.removeBands(image_instance, ["B1", "B2"])
+            assert image.bandNames().getInfo() == ["B3"]
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2", "B3"])
