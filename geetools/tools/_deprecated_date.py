@@ -59,3 +59,9 @@ def daterangeIntervals(
 ):
     """Divide a range that goes from start_date to end_date into many."""
     return ee.DateRange(start, end).geetools.split(interval, unit)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.addDate instead")
+def makeDateBand(image, format="YMMdd", bandname="date"):
+    """Add a band name to the image."""
+    return ee.Image(image).geetools.addDate()

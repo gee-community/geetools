@@ -43,6 +43,7 @@ from .DateRange import DateRange  # noqa: F401
 from .Dictionary import Dictionary  # noqa: F401
 from .Filter import Filter  # noqa: F401
 from .Float import Float
+from .Image import Image  # noqa: F401
 from .Integer import Integer
 from .List import List  # noqa: F401
 from .Number import Number  # noqa: F401

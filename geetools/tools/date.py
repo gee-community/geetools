@@ -7,57 +7,6 @@ import ee
 EE_EPOCH = datetime(1970, 1, 1, 0, 0, 0)
 
 
-def makeDateBand(image, format="YMMdd", bandname="date"):
-    """Make a date band using a formatter. Format pattern.
-
-    C       century of era (>=0)         number        20
-    Y       year of era (>=0)            year          1996
-
-    x       weekyear                     year          1996
-    w       week of weekyear             number        8
-    ww      week of weekyear             number        08
-    e       day of week                  number        2
-    ee      day of week                  number        02
-
-    y       year                         year          1996
-    D       day of year                  number        5
-    DD      day of year                  number        05
-    DDD     day of year                  number        005
-    M       month of year                month         7
-    MM      month of year                month         07
-    d       day of month                 number        5
-    dd      day of month                 number        05
-
-    K       hour of halfday (0~11)       number        0
-    h       clockhour of halfday (1~12)  number        12
-
-    H       hour of day (0~23)           number        0
-    k       clockhour of day (1~24)      number        24
-    m       minute of hour               number        30
-    s       second of minute             number        55
-    S       fraction of second           number        978
-
-    Use the image first band for setting the resulting band projection
-    """
-    f = ee.String(format)
-    # catch string formats for month
-    pattern = f.replace("(MMM+)", "MM")
-
-    proj = image.select(0).projection()
-
-    footprint = image.geometry()
-
-    idate = image.date().format(pattern)
-    idate_number = ee.Number.parse(idate)
-    date_band = ee.Image.constant(idate_number).rename(bandname)
-    date_band = date_band.toInt()  # force to be an Integer
-    final = ee.Image(
-        ee.Algorithms.If(footprint.isUnbounded(), date_band, date_band.clip(footprint))
-    )
-
-    return final.setDefaultProjection(proj)
-
-
 def regularIntervals(
     start_date,
     end_date,
