@@ -20,3 +20,9 @@ def getValue(image, point, scale=None):
     """Get the values of an image at a point."""
     scale = scale or 0
     return ee.Image(image).geetools.getValues(point, scale)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.minScale instead")
+def minscale(image):
+    """Get the minimum scale of an image."""
+    return ee.Image(image).geetools.minScale()

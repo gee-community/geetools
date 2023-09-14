@@ -348,33 +348,6 @@ def addConstantBands(image, value=None, *names, **pairs):
     return ee.Image(image).addBands(ee.Image(img_final))
 
 
-def minscale(image):
-    """Get the minimal scale of an Image, looking at all Image's bands.
-
-    For example if:
-        B1 = 30
-        B2 = 60
-        B3 = 10
-    the function will return 10.
-
-    :return: the minimal scale
-    :rtype: ee.Number
-    """
-    bands = image.bandNames()
-
-    first = image.select([ee.String(bands.get(0))])
-    ini = ee.Number(first.projection().nominalScale())
-
-    def wrap(name, i):
-        i = ee.Number(i)
-        scale = ee.Number(image.select([name]).projection().nominalScale())
-        condition = scale.lte(i)
-        newscale = ee.Algorithms.If(condition, scale, i)
-        return newscale
-
-    return ee.Number(bands.slice(1).iterate(wrap, ini))
-
-
 def mixBands(imgs):
     """Mix all bands into a single image."""
     if isinstance(imgs, (list, tuple)):

@@ -117,3 +117,22 @@ class TestGetValues:
     def vatican(self):
         """Return a vatican in the Vatican."""
         return ee.Geometry.Point([12.4534, 41.9029])
+
+
+class TestMinScale:
+    """Test the ``minScale`` method."""
+
+    def test_min_scale(self, image_instance):
+        scale = image_instance.geetools.minScale()
+        assert scale.getInfo() == 10
+
+    def test_deprecated_method(self, image_instance):
+        with pytest.deprecated_call():
+            scale = geetools.tools.image.minscale(image_instance)
+            assert scale.getInfo() == 10
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2", "B3"])

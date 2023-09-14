@@ -138,3 +138,27 @@ class Image:
             else ee.Number(scale)
         )
         return self._obj.reduceRegion(ee.Reducer.mean(), point, scale)
+
+    def minScale(self):
+        """Return the minimum scale of the image.
+
+        It will be looking at all bands available so Select specific values before using this method.
+
+        Returns:
+            The minimum scale of the image.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
+                image.geetools.minScale().getInfo()
+        """
+        bandNames = self._obj.bandNames()
+        scales = bandNames.map(
+            lambda b: self._obj.select(ee.String(b)).projection().nominalScale()
+        )
+        return ee.Number(scales.sort().get(0))
