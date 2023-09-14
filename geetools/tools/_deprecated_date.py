@@ -39,3 +39,23 @@ def fromDOY(year, doy):
 def isLeap(date):
     """Check if a date is leap."""
     return ee.Date(date).geetools.isLeap()
+
+
+@deprecated(version="1.0.0", reason="Use ee.DateRange.geetools.split instead")
+def daterangeList(start, end, interval, unit):
+    """Divide a range that goes from start_date to end_date into many."""
+    return ee.DateRange(start, end).geetools.split(interval, unit)
+
+
+@deprecated(version="1.0.0", reason="Use ee.DateRange.geetools.split instead")
+def daterangeIntervals(
+    start,
+    end,
+    interval=1,
+    unit="month",
+    date_range=(1, 1),
+    date_range_unit="day",
+    direction="backward",
+):
+    """Divide a range that goes from start_date to end_date into many."""
+    return ee.DateRange(start, end).geetools.split(interval, unit)
