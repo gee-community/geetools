@@ -52,3 +52,11 @@ def renameDict(image, names):
 def removeBands(image, bands):
     """Remove bands from an image."""
     return ee.Image(image).geetools.remove(bands)
+
+
+@deprecated(
+    version="1.0.0", reason="Use ee.Image.addbands instead with the overwrite parameter"
+)
+def replace(image, to_replace, to_add):
+    """Replace bands in an image."""
+    return ee.Image(image).addBands(to_add.rename(to_replace), overwrite=True)

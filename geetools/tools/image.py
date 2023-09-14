@@ -204,27 +204,6 @@ def sumBands(image, name="sum", bands=None):
     return image.addBands(newimg)
 
 
-def replace(image, to_replace, to_add):
-    """Replace one band of the image with a provided band.
-
-    :param to_replace: name of the band to replace. If the image hasn't got
-        that band, it will be added to the image.
-    :type to_replace: str
-    :param to_add: Image (one band) containing the band to add. If an Image
-        with more than one band is provided, it uses the first band.
-    :type to_add: ee.Image
-    :return: Same Image provided with the band replaced
-    :rtype: ee.Image
-    """
-    # TODO: see Image.addBands({overwrite:True})
-    band = to_add.select([0])
-    bands = image.bandNames()
-    resto = bands.remove(to_replace)
-    img_resto = image.select(resto)
-    img_final = img_resto.addBands(band)
-    return img_final
-
-
 def addConstantBands(image, value=None, *names, **pairs):
     """Adds bands with a constant value.
 
