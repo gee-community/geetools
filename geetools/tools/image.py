@@ -100,29 +100,6 @@ def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False, region=N
     return ee.Image(ee.Algorithms.If(footprint.isUnbounded(), emp, emp.clip(footprint)))
 
 
-def addMultiBands(imagesList):
-    """Image.addBands for many images. All bands from all images will be.
-
-    put together, so if there is one band with the same name in different
-    images, the first occurrence will keep the name and the rest will have a
-    number suffix ({band}_1, {band}_2, etc).
-
-    :param imagesList: a list of images
-    :type imagesList: list or ee.List
-    :rtype: ee.Image
-    """
-    imagesList = ee.List(imagesList)
-    first = ee.Image(imagesList.get(0))
-    rest = imagesList.slice(1)
-
-    def iteration(img, ini):
-        ini = ee.Image(ini)
-        img = ee.Image(img)
-        return ini.addBands(img)
-
-    return ee.Image(rest.iterate(iteration, first))
-
-
 def renameDict(image, names):
     """Renames bands of images using a dict.
 
@@ -346,17 +323,6 @@ def addConstantBands(image, value=None, *names, **pairs):
     img_final = reduce(lambda x, y: x.addBands(y), lista_img)
 
     return ee.Image(image).addBands(ee.Image(img_final))
-
-
-def mixBands(imgs):
-    """Mix all bands into a single image."""
-    if isinstance(imgs, (list, tuple)):
-        imgs = ee.List(imgs)
-
-    first = ee.Image(imgs.get(0))
-    rest = imgs.slice(1)
-
-    return ee.Image(rest.iterate(lambda i, f: ee.Image(f).addBands(i), first))
 
 
 def computeBits(image, start, end, newName):

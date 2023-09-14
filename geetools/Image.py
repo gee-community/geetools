@@ -139,7 +139,7 @@ class Image:
         )
         return self._obj.reduceRegion(ee.Reducer.mean(), point, scale)
 
-    def minScale(self):
+    def minScale(self) -> ee.Number:
         """Return the minimum scale of the image.
 
         It will be looking at all bands available so Select specific values before using this method.
@@ -162,3 +162,29 @@ class Image:
             lambda b: self._obj.select(ee.String(b)).projection().nominalScale()
         )
         return ee.Number(scales.sort().get(0))
+
+    def merge(self, images: Union[ee.List, list]) -> ee.Image:
+        """Merge images into a single image.
+
+        Parameters:
+            images: The images to merge.
+
+        Returns:
+            The merged image.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image1 = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
+                image2 = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQL')
+                image3 = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
+                image = image1.geetools.merge(image2, image3)
+                print(image.bandNames().getInfo())
+        """
+        images = ee.List(images)
+        merged = images.iterate(lambda dst, src: ee.Image(src).addBands(dst), self._obj)
+        return ee.Image(merged)

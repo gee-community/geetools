@@ -26,3 +26,17 @@ def getValue(image, point, scale=None):
 def minscale(image):
     """Get the minimum scale of an image."""
     return ee.Image(image).geetools.minScale()
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.merge instead")
+def addMultiBands(imageList):
+    """Merge images."""
+    list = ee.List(imageList)
+    return ee.Image(list.get(0)).geetools.merge(list.slice(1))
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.merge instead")
+def mixBands(imageList):
+    """Merge images."""
+    list = ee.List(imageList)
+    return ee.Image(list.get(0)).geetools.merge(list.slice(1))

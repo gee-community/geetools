@@ -136,3 +136,34 @@ class TestMinScale:
         """Return an Image instance."""
         src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
         return ee.Image(src).select(["B1", "B2", "B3"])
+
+
+class TestMerge:
+    """Test the ``merge`` method."""
+
+    def test_merge(self, image_instance):
+        image = image_instance.geetools.merge([image_instance, image_instance])
+        assert image.bandNames().getInfo() == [
+            "B1",
+            "B2",
+            "B1_1",
+            "B2_1",
+            "B1_2",
+            "B2_2",
+        ]
+
+    def test_deprecated_method(self, image_instance):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.addMultiBands([image_instance, image_instance])
+            assert image.bandNames().getInfo() == ["B1", "B2", "B1_1", "B2_1"]
+
+    def test_deprecated_method2(self, image_instance):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.mixBands([image_instance, image_instance])
+            assert image.bandNames().getInfo() == ["B1", "B2", "B1_1", "B2_1"]
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2"])
