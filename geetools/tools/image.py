@@ -1,7 +1,5 @@
 # coding=utf-8
-"""
-Tools for ee.Image.
-"""
+"""Tools for ee.Image."""
 from __future__ import absolute_import
 
 import math
@@ -14,41 +12,6 @@ from ..utils import castImage
 from . import date, ee_list, string
 
 
-def _add_suffix_prefix(image, value, option, bands=None):
-    """Internal function to handle addPrefix and addSuffix."""
-    if bands:
-        bands = ee.List(bands)
-
-    addon = ee.String(value)
-
-    allbands = image.bandNames()
-    bands_ = ee.List(ee.Algorithms.If(bands, bands, allbands))
-
-    def over_bands(band, first):
-        all = ee.List(first)
-        options = ee.Dictionary(
-            {"suffix": ee.String(band).cat(addon), "prefix": addon.cat(ee.String(band))}
-        )
-        return all.replace(band, ee.String(options.get(option)))
-
-    newbands = bands_.iterate(over_bands, allbands)
-    newbands = ee.List(newbands)
-    return image.select(allbands, newbands)
-
-
-def addSuffix(image, suffix, bands=None):
-    """Add a suffix to the specified bands.
-
-    :param suffix: the value to add as a suffix
-    :type suffix: str
-    :param bands: the bands to apply the suffix. If None, suffix will fill
-        all bands
-    :type bands: list
-    :rtype: ee.Image
-    """
-    return _add_suffix_prefix(image, suffix, "suffix", bands)
-
-
 def addPrefix(image, prefix, bands=None):
     """Add a prefix to the specified bands.
 
@@ -59,7 +22,7 @@ def addPrefix(image, prefix, bands=None):
     :type bands: list
     :rtype: ee.Image
     """
-    return _add_suffix_prefix(image, prefix, "prefix", bands)
+    return 1  # _add_suffix_prefix(image, prefix, "prefix", bands)
 
 
 def bufferMask(image, radius=1.5, kernelType="square", units="pixels"):
@@ -70,7 +33,8 @@ def bufferMask(image, radius=1.5, kernelType="square", units="pixels"):
 
 
 def deleteProperties(image, delete=None, keep=None, proxy_name="proxy"):
-    """Workaround for deleting properties of an Image. You can set
+    """Workaround for deleting properties of an Image. You can set.
+
     `proxy_name` in case the original image already has that band. If `delete`
     is None it will delete all properties, otherwise it can be a list of
     properties to delete
@@ -87,7 +51,8 @@ def deleteProperties(image, delete=None, keep=None, proxy_name="proxy"):
 
 
 def empty(value=0, names=None, from_dict=None):
-    """Create a constant image with the given band names and value, and/or
+    """Create a constant image with the given band names and value, and/or.
+
     from a dictionary of {name: value}.
 
     :param names: list of names
@@ -121,7 +86,8 @@ def empty(value=0, names=None, from_dict=None):
 
 
 def emptyBackground(image, value=0):
-    """Make all background pixels (not only masked, but all over the world)
+    """Make all background pixels (not only masked, but all over the world).
+
     take the parsed value
     .
     """
@@ -159,7 +125,7 @@ def getValue(image, point, scale=None, side="server"):
     :type scale: int
     :param side: 'server' or 'client' side
     :type side: str
-    :return: Values of all bands in the ponit
+    :return: Values of all bands in the point
     :rtype: ee.Dictionary or dict
     """
     if scale:
@@ -182,7 +148,8 @@ def getValue(image, point, scale=None, side="server"):
 
 
 def addMultiBands(imagesList):
-    """Image.addBands for many images. All bands from all images will be
+    """Image.addBands for many images. All bands from all images will be.
+
     put together, so if there is one band with the same name in different
     images, the first occurrence will keep the name and the rest will have a
     number suffix ({band}_1, {band}_2, etc).
@@ -430,6 +397,7 @@ def addConstantBands(image, value=None, *names, **pairs):
 
 def minscale(image):
     """Get the minimal scale of an Image, looking at all Image's bands.
+
     For example if:
         B1 = 30
         B2 = 60
@@ -503,9 +471,9 @@ def passProperty(image, to, properties):
 
     :param img_with: image that has the properties to tranpass
     :type img_with: ee.Image
-    :param img_without: image that will recieve the properties
+    :param img_without: image that will receive the properties
     :type img_without: ee.Image
-    :param properties: properies to transpass
+    :param properties: properties to transpass
     :type properties: list
     :return: the image with the new properties
     :rtype: ee.Image
@@ -517,7 +485,8 @@ def passProperty(image, to, properties):
 
 
 def goodPix(image, retain=None, drop=None, name="good_pix"):
-    """Get a 'good pixels' bands from the image's bands that retain the good
+    """Get a 'good pixels' bands from the image's bands that retain the good.
+
     pixels and drop the bad pixels. It will first retain the retainable bands
     and then drop the droppable ones.
 
@@ -553,7 +522,8 @@ def goodPix(image, retain=None, drop=None, name="good_pix"):
 
 
 def toGrid(image, size=1, band=None, geometry=None):
-    """Create a grid from pixels in an image. Results may depend on the image
+    """Create a grid from pixels in an image. Results may depend on the image.
+
     projection. Work fine in Landsat imagery.
 
     IMPORTANT: This grid is not perfect, it can be misplaced and have some
@@ -669,7 +639,8 @@ def gaussFunction(
     name="gauss",
     **kwargs
 ):
-    """Apply the Guassian function to an Image.
+    """Apply the Gaussian function to an Image.
+
     https://en.wikipedia.org/wiki/Gaussian_function.
 
     :param band: the name of the band to use
@@ -772,8 +743,9 @@ def gaussFunction(
 
 
 def makeName(img, pattern, date_pattern=None, extra=None):
-    """Make a name with the given pattern. The pattern must contain the
-    propeties to replace between curly braces. There are 2 special words:
+    """Make a name with the given pattern. The pattern must contain the.
+
+    properties to replace between curly braces. There are 2 special words:
 
     * 'system_date': replace with the date of the image formatted with
       `date_pattern`, which defaults to 'yyyyMMdd'
@@ -855,7 +827,8 @@ def linearFunction(
     scale=None,
     **kwargs
 ):
-    """Apply a linear function over one image band using the following
+    """Apply a linear function over one image band using the following.
+
     formula:
 
     - a = abs(val-mean)
@@ -989,7 +962,8 @@ def paint(
     fillColor=None,
     **kwargs
 ):
-    """Paint a FeatureCollection onto an Image. Returns an Image with three
+    """Paint a FeatureCollection onto an Image. Returns an Image with three.
+
     bands: vis-blue, vis-geen, vis-red (uint8).
 
     It admits the same parameters as ee.FeatureCollection.style
@@ -1032,7 +1006,8 @@ def paint(
 
 
 def repeatBand(image, times=None, names=None, properties=None):
-    """Repeat one band. If the image parsed has more than one band, the first
+    """Repeat one band. If the image parsed has more than one band, the first.
+
     will be used
     .
     """
@@ -1068,8 +1043,7 @@ def repeatBand(image, times=None, names=None, properties=None):
 
 
 def arrayNonZeros(image):
-    """
-    Return an image array without zeros.
+    """Return an image array without zeros.
 
     :param image:
     :return:
@@ -1100,7 +1074,8 @@ def arrayNonZeros(image):
 
 
 def getTileURL(image, visParams=None):
-    """Get the URL for the given image passing a normal visualization
+    """Get the URL for the given image passing a normal visualization.
+
     parameters like `{'bands':['B4','B3','B2'], 'min':0, 'max':5000}`
     .
     """
@@ -1233,7 +1208,8 @@ def regionCover(
     maxPixels=1e13,
     tileScale=1,
 ):
-    """Compute the percentage of values greater than 1 in a region. If more
+    """Compute the percentage of values greater than 1 in a region. If more.
+
     than one band is specified, it applies the specified operator
     .
     """
@@ -1334,7 +1310,8 @@ def proxy(values=(0,), names=("constant",), types=("int8",)):
 
 
 def clipToCollection(image, featureCollection, keepFeatureProperties=True):
-    """Clip an image using each feature of a collection and return an
+    """Clip an image using each feature of a collection and return an.
+
     ImageCollection with one image per feature
     .
     """
@@ -1355,7 +1332,7 @@ class Classification(object):
 
     @staticmethod
     def vectorize(image, categories, label="label"):
-        """Reduce to vectors the selected classes fro a classified image.
+        """Reduce to vectors the selected classes for a classified image.
 
         :param categories: the categories to vectorize
         :type categories: list

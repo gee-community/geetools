@@ -1,6 +1,8 @@
 """Toolbox for the ``ee.Image`` class."""
 from __future__ import annotations
 
+from typing import Union
+
 import ee
 
 from .accessors import geetools_accessor
@@ -38,3 +40,36 @@ class Image:
         return self._obj.addBands(
             ee.Image.constant(self._obj.date().millis()).rename("date")
         )
+
+    def addSuffix(
+        self, suffix: Union[str, ee.String], bands: Union[ee.List, list] = []
+    ) -> ee.Image:
+        """Add a suffix to the image selected band.
+
+        Add a suffix to the selected band. If no band is specified, the suffix is added to all bands.
+
+        Parameters:
+            suffix: The suffix to add to the band.
+            bands: The bands to add the suffix to. If None, all bands are selected.
+
+        Returns:
+            The image with the suffix added to the selected bands.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
+                image = image.geetools.addSuffix('_suffix')
+                print(image.bandNames().getInfo())
+        """
+        suffix = ee.String(suffix)
+        bands = self._obj.bandNames() if bands == [] else ee.List(bands)
+        bandNames = bands.iterate(
+            lambda b, n: ee.List(n).replace(b, ee.String(b).cat(suffix)),
+            self._obj.bandNames(),
+        )
+        return self._obj.rename(bandNames)
