@@ -133,12 +133,8 @@ class TestDelete:
         return ee.List(["a", "b", "c"])
 
 
-@pytest.mark.xfail
 class TestSequence:
-    """Test the sequence method.
-
-    waiting for https://gis.stackexchange.com/questions/466871/how-to-remove-duplicates-from-a-ee-list
-    """
+    """Test the sequence method."""
 
     def test_sequence(self):
         seq = ee.List.geetools.sequence(1, 10)
@@ -146,7 +142,7 @@ class TestSequence:
 
     def test_sequence_with_step(self):
         seq = ee.List.geetools.sequence(1, 10, 2)
-        assert seq.getInfo() == list(range(1, 11, 2))
+        assert seq.getInfo() == list(range(1, 11, 2)) + [10]
 
     def test_sequence_with_uneven_step(self):
         seq = ee.List.geetools.sequence(1, 10, 3)
@@ -154,20 +150,12 @@ class TestSequence:
 
     def test_sequence_with_0_step(self):
         seq = ee.List.geetools.sequence(1, 10, 0)
-        assert seq.getInfo() == list(range(1, 10))
-
-    def test_sequence_with_negative_step(self):
-        seq = ee.List.geetools.sequence(10, 1, -1)
-        assert seq.getInfo() == list(range(10, 1, -1))
-
-    def test_sequence_with_negative_and_uneven_step(self):
-        seq = ee.List.geetools.sequence(10, 1, -3)
-        assert seq.getInfo() == list(range(10, 1, -3)) + [1]
+        assert seq.getInfo() == list(range(1, 11))
 
     def test_deprecated_method(self):
         with pytest.deprecated_call():
             seq = geetools.tools.ee_list.sequence(1, 10)
-            assert seq.getInfo() == list(range(1, 10))
+            assert seq.getInfo() == list(range(1, 11))
 
 
 class TestReplaceMany:

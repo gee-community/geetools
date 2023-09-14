@@ -28,7 +28,7 @@ def removeIndex(list, index):
 
 
 @deprecated(version="1.0.0", reason="Use ee.List.geetools.sequence instead")
-def sequence(start, stop, step):
+def sequence(start, stop, step=1):
     """Create a sequence of numbers."""
     return ee.List.geetools.sequence(start, stop, step)
 
