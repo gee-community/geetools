@@ -180,7 +180,7 @@ class List:
         """
         ini, end = ee.Number(ini), ee.Number(end)
         step = ee.Number(step).toInt().max(1)
-        return ee.List.sequence(ini, end, step).add(end).add(ini).distinct()
+        return ee.List.sequence(ini, end, step).add(end.toFloat()).distinct()
 
     def replaceMany(self, replace: Union[ee.Dictionary, dict]) -> ee.List:
         """Replace many values in a list.
