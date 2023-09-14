@@ -54,9 +54,18 @@ def removeBands(image, bands):
     return ee.Image(image).geetools.remove(bands)
 
 
-@deprecated(
-    version="1.0.0", reason="Use ee.Image.addbands instead with the overwrite parameter"
-)
+@deprecated(version="1.0.0", reason="Use ee.Image.addbands instead")
 def replace(image, to_replace, to_add):
     """Replace bands in an image."""
     return ee.Image(image).addBands(to_add.rename(to_replace), overwrite=True)
+
+
+@deprecated(version="1.0.0", reason="Too many use cases, use pure GEE instead")
+def addConstantBands(image, value=None, *names, **pairs):
+    """Add constant bands to an image."""
+    names = ee.Dictionary({k: value for k in names}.update(**pairs))
+    image = names.keys().iterate(
+        lambda k, i: ee.Image(i).addBands(ee.Image.constant(names.get(k)).rename(k)),
+        ee.Image(image),
+    )
+    return ee.Image(image)

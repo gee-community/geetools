@@ -204,69 +204,6 @@ def sumBands(image, name="sum", bands=None):
     return image.addBands(newimg)
 
 
-def addConstantBands(image, value=None, *names, **pairs):
-    """Adds bands with a constant value.
-
-    :param names: final names for the additional bands
-    :type names: str
-    :param value: constant value
-    :type value: int or float
-    :param pairs: keywords for the bands (see example)
-    :type pairs: int or float
-    :return: the function for ee.ImageCollection.map()
-    :rtype: function
-
-    :Example:
-
-    .. code:: python
-
-        from geetools.tools import addConstantBands
-        import ee
-
-        col = ee.ImageCollection(ID)
-
-        # Option 1 - arguments
-        addC = addConstantBands(0, "a", "b", "c")
-        newcol = col.map(addC)
-
-        # Option 2 - keyword arguments
-        addC = addConstantBands(a=0, b=1, c=2)
-        newcol = col.map(addC)
-
-        # Option 3 - Combining
-        addC = addC = addConstantBands(0, "a", "b", "c", d=1, e=2)
-        newcol = col.map(addC)
-    """
-    from functools import reduce
-
-    # check type of value
-    # is_val_n = type(value) is int or type(value) is float
-    is_val_n = isinstance(value, (int, float))
-
-    if is_val_n and names:
-        list1 = [ee.Image.constant(value).select([0], [n]) for n in names]
-    else:
-        list1 = []
-
-    if pairs:
-        list2 = [
-            ee.Image.constant(val).select([0], [key]) for key, val in pairs.items()
-        ]
-    else:
-        list2 = []
-
-    if list1 or list2:
-        lista_img = list1 + list2
-    elif value is None:
-        raise ValueError("Parameter 'value' must be a number")
-    else:
-        return addConstantBands(image, value, "constant")
-
-    img_final = reduce(lambda x, y: x.addBands(y), lista_img)
-
-    return ee.Image(image).addBands(ee.Image(img_final))
-
-
 def computeBits(image, start, end, newName):
     """Compute the bits of an image.
 
