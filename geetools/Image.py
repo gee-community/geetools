@@ -32,7 +32,7 @@ class Image:
                 image = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
                 image = image.geetools.addDate()
                 date = image.select('date')
-                value = date.reduceRegion(ee.reducer.first()).get("first")
+                value = date.reduceRegion(ee.Reducer.first()).get("date")
                 ee.Date(value).format('YYYY-MM-dd').getInfo()
         """
         return self._obj.addBands(

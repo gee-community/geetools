@@ -40,7 +40,7 @@ class DateRange:
 
                 ee.Initialize()
 
-                d = ee.DateRange('2020-01-01', '2020-01-31').geetools.toListRange(1, 'day')
+                d = ee.DateRange('2020-01-01', '2020-01-31').geetools.split(1, 'day')
                 d.getInfo()
         """
         interval = ee.Number(interval).toInt().multiply(self._unitMillis(unit))
