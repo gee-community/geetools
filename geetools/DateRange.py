@@ -48,7 +48,6 @@ class DateRange:
 
         timestampList = ee.List.sequence(start, end, interval)
         timestampList = timestampList.add(ee.Number(end).toFloat()).distinct()
-
         indexList = ee.List.sequence(0, timestampList.size().subtract(2))
 
         return indexList.map(
