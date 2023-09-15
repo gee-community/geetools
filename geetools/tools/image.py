@@ -173,7 +173,7 @@ def sumBands(image, name="sum", bands=None):
 
     .. code:: python
 
-        img = ee.Image("LANDSAT/LC8_L1T_TOA_FMASK/LC82310902013344LGN00")
+        img = ee.Image("LA NDSAT/LC8_L1T_TOA_FMASK/LC82310902013344LGN00")
         newimg = Image.sumBands(img, "added_bands", ("B1", "B2", "B3"))
 
     :param name: name for the band that contains the added values of bands
@@ -290,72 +290,6 @@ def goodPix(image, retain=None, drop=None, name="good_pix"):
     final = not_bad_not_good.bitwiseXor(final_drop)
 
     return final.select([0], [name])
-
-
-def toGrid(image, size=1, band=None, geometry=None):
-    """Create a grid from pixels in an image. Results may depend on the image.
-
-    projection. Work fine in Landsat imagery.
-
-    IMPORTANT: This grid is not perfect, it can be misplaced and have some
-    holes due to projection.
-
-    :param image: the image
-    :type image: ee.Image
-    :param size: the size of each cell, according to:
-        - 1: 1 pixel
-        - 2: 9 pixels (3x3)
-        - 3: 25 pixels (5x5)
-        - and so on..
-    :type size: int
-    :param band: the band to get the projection (and so, the scale) from. If
-        None, the first one will be used
-    :type band: str
-    :param geometry: the geometry where the grid will be computed. If the image
-        is unbounded this parameter must be set in order to work. If None,
-        the image geometry will be used if not unbounded.
-    :type geometry: ee.Geometry or ee.Feature
-    """
-    band = band if band else 0
-    iband = image.select(band)
-
-    if geometry:
-        if isinstance(geometry, ee.Feature):
-            geometry = geometry.geometry()
-    else:
-        geometry = image.geometry()
-
-    projection = iband.projection()
-    scale = projection.nominalScale()
-    scale = scale.multiply((int(size) * 2) - 1)
-    buffer = scale.divide(2)
-
-    # get coordinates image
-    latlon = ee.Image.pixelLonLat().reproject(projection)
-
-    # put each lon lat in a list
-    coords = latlon.select(["longitude", "latitude"])
-
-    coords = coords.reduceRegion(
-        reducer=ee.Reducer.toList(), geometry=geometry.buffer(scale), scale=scale
-    )
-
-    # get lat & lon
-    lat = ee.List(coords.get("latitude"))
-    lon = ee.List(coords.get("longitude"))
-
-    # zip them. Example: zip([1, 3],[2, 4]) --> [[1, 2], [3,4]]
-    point_list = lon.zip(lat)
-
-    def over_list(p):
-        p = ee.List(p)
-        point = ee.Geometry.Point(p).buffer(buffer).bounds()
-        return ee.Feature(point)
-
-    # make grid
-    fc = ee.FeatureCollection(point_list.map(over_list))
-
-    return fc
 
 
 def renamePattern(image, pattern, bands=None):

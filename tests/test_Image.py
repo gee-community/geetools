@@ -214,3 +214,27 @@ class TestRemove:
         """Return an Image instance."""
         src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
         return ee.Image(src).select(["B1", "B2", "B3"])
+
+
+class TestToGrid:
+    """Test the ``toGrid`` method."""
+
+    def test_to_grid(self, image_instance, vatican, data_regression):
+        grid = image_instance.geetools.toGrid(1, "B2", vatican)
+        data_regression.check(grid.getInfo())
+
+    def test_deprecated_method(self, image_instance, vatican, data_regression):
+        with pytest.deprecated_call():
+            grid = geetools.tools.image.toGrid(image_instance, 1, "B2", vatican)
+            data_regression.check(grid.getInfo())
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2", "B3"])
+
+    @pytest.fixture
+    def vatican(self):
+        """Return a buffer around the Vatican."""
+        return ee.Geometry.Point([12.4534, 41.9029]).buffer(100)

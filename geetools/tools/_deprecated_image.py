@@ -69,3 +69,9 @@ def addConstantBands(image, value=None, *names, **pairs):
         ee.Image(image),
     )
     return ee.Image(image)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.toGrid instead")
+def toGrid(image, size=1, band=None, geometry=None):
+    """Create a grid from pixels in an image. Results may depend on the image."""
+    return ee.Image(image).geetools.toGrid(size, band, geometry)

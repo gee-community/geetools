@@ -1,7 +1,7 @@
 """Toolbox for the ``ee.Image`` class."""
 from __future__ import annotations
 
-from typing import Union
+from typing import Optional, Union
 
 import ee
 
@@ -183,7 +183,7 @@ class Image:
                 image1 = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
                 image2 = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQL')
                 image3 = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
-                image = image1.geetools.merge(image2, image3)
+                image = image1.geetools.merge([image2, image3])
                 print(image.bandNames().getInfo())
         """
         images = ee.List(images)
@@ -243,3 +243,63 @@ class Image:
         """
         bands = self._obj.bandNames().removeAll(ee.List(bands))
         return self._obj.select(bands)
+
+    def toGrid(
+        self,
+        size: Union[ee.Number, int] = 1,
+        band: Union[str, ee.String] = "",
+        geometry: Optional[ee.Geometry] = None,
+    ) -> ee.FeatureCollection:
+        """Convert an image to a grid of polygons.
+
+        Based on the size given by the user, the tool will build a grid of size*pixelSize x size * pixelSize cells. Each cell will be a polygon. Note that for images that have multiple scale depending on the band, we will use the first one or the one stated in the parameters.
+
+        Parameters:
+            size: The size of the grid. It will be size * pixelSize x size * pixelSize cells.
+            band: The band to burn into the grid.
+            geometry: The geometry to use as reference for the grid. If None, the image footprint will be used.
+
+        Returns:
+            The grid as a FeatureCollection.
+
+        Note:
+            The method has a known bug when the projection of the image is different than 3857. As we use a buffer, the grid cells can slightly overlap. Feel free to open a Issue and contribute if you feel it needs improvements.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                src = 'COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM'
+                image = ee.Image(src)
+                buffer = ee.Geometry.Point([12.4534, 41.9033]).buffer(100)
+                grid = image.geetools.toGrid(1, 'B2', buffer)
+                print(grid.getInfo())
+        """
+        band = ee.String(band) if band else self._obj.bandNames().get(0)
+        projection = self._obj.select(band).projection()
+        size = projection.nominalScale().multiply(ee.Number(size).toInt())
+
+        # extract the centers at the correct resolution
+        lonLat = ee.Image.pixelLonLat().reproject(projection)
+        coords = lonLat.reduceRegion(ee.Reducer.toList(), geometry, size)
+
+        # extract them as lists
+        lat, lon = ee.List(coords.get("latitude")), ee.List(coords.get("longitude"))
+
+        # we can now map them user their index to point -> buffer -> square
+        index = ee.List.sequence(0, lat.size().subtract(2))
+        squares = index.map(
+            lambda i: (
+                ee.Geometry.Point([lon.get(i), lat.get(i)])
+                .buffer(size.divide(2))
+                .bounds(0.01, projection)
+            )
+        )
+
+        # make the grid
+        features = ee.List(squares).map(lambda g: ee.Feature(ee.Geometry(g)))
+
+        return ee.FeatureCollection(features)
