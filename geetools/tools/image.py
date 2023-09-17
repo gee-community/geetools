@@ -12,13 +12,6 @@ from ..utils import castImage
 from . import date, ee_list, string
 
 
-def bufferMask(image, radius=1.5, kernelType="square", units="pixels"):
-    """Make a buffer around the masked pixels."""
-    masked = image.mask().Not()
-    buffer = masked.focal_max(radius, kernelType, units)
-    return image.updateMask(buffer.Not())
-
-
 def deleteProperties(image, delete=None, keep=None, proxy_name="proxy"):
     """Workaround for deleting properties of an Image. You can set.
 

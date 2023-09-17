@@ -279,3 +279,12 @@ class TestClipOnCollection:
                 ),
             ]
         )
+
+
+class TestBufferMask:
+    """Test the ``bufferMask`` method."""
+
+    @pytest.mark.xfail
+    def test_buffer_mask(self, image_instance, vatican):
+        """I don't know what to test here."""
+        assert False

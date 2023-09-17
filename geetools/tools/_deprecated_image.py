@@ -83,3 +83,9 @@ def clipToCollection(image, featureCollection, keepFeatureProperties=True):
     return ee.Image(image).geetools.clipOnCollection(
         featureCollection, int(keepFeatureProperties)
     )
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.bufferMask instead")
+def bufferMask(image, radius, units="pixels"):
+    """Buffer the mask of an image."""
+    return ee.Image(image).geetools.bufferMask(radius, units)

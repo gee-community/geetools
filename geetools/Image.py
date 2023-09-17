@@ -339,3 +339,39 @@ class Image:
             )
 
         return ee.ImageCollection(fc.map(fcClip))
+
+    def bufferMask(
+        self,
+        radius: Union[int, ee.Number] = 1.5,
+        kernelType: Union[ee.String, str] = "square",
+        units: Union[ee.String, str] = "pixels",
+    ) -> ee.Image:
+        """Make a buffer around every masked pixel of the Image.
+
+        The buffer will be made using the specified radius, kernelType and units and will mask surrounfing pixels.
+
+        Parameters:
+            radius: The radius of the buffer.
+            kernelType: The kernel type of the buffer. One of: ``square``, ``circle``, ``diamond``, ``octagon``, ``plus``, ``square``.
+            units: The units of the radius. One of: ``pixels``, ``meters``.
+
+        Returns:
+            The image with the buffer mask applied.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                src = 'COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM'
+                image = ee.Image(src)
+                image = image.geetools.bufferMask(1.5, 'square', 'pixels')
+                print(image.bandNames().getInfo())
+        """
+        radius, kernelType = ee.number(radius), ee.String(kernelType)
+        units = ee.String(units)
+        masked = self._obj.mask().Not()
+        buffer = masked.focalMax(radius, kernelType, units)
+        return self._obj.updateMask(buffer.Not())
