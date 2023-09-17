@@ -303,3 +303,39 @@ class Image:
         features = ee.List(squares).map(lambda g: ee.Feature(ee.Geometry(g)))
 
         return ee.FeatureCollection(features)
+
+    def clipOnCollection(
+        self, fc: ee.FeatureCollection, keepProperties: Union[ee.Number, int] = 1
+    ) -> ee.ImageCollection:
+        """Clip an image to a FeatureCollection.
+
+        The image will be clipped to every single features of the featureCollection as one independent image.
+
+        Parameters:
+            fc: The featureCollection to clip to.
+            keepProperties: If True, the properties of the featureCollection will be added to the clipped image.
+
+        Returns:
+            The clipped imageCollection.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                src = 'COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM'
+                image = ee.Image(src)
+                fc = ee.FeatureCollection('FAO/GAUL/2015/level0')
+                clipped = image.geetools.clipToCollection(fc)
+                print(clipped.size().getInfo())
+        """
+
+        def fcClip(feat):
+            image = self._obj.clip(feat.geometry())
+            return ee.Algorithms.If(
+                ee.Number(keepProperties).toInt(), image.copyProperties(feat), image
+            )
+
+        return ee.ImageCollection(fc.map(fcClip))

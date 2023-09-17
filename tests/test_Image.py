@@ -238,3 +238,44 @@ class TestToGrid:
     def vatican(self):
         """Return a buffer around the Vatican."""
         return ee.Geometry.Point([12.4534, 41.9029]).buffer(100)
+
+
+class TestClipOnCollection:
+    """Test the ``clipOnCollection`` method."""
+
+    def test_clip_on_collection(self, image_instance, fc_instance):
+        clipped = image_instance.geetools.clipOnCollection(fc_instance)
+        assert clipped.first().bandNames().getInfo() == ["B1", "B2", "B3"]
+        assert clipped.size().getInfo() == 2
+        assert "Id" in clipped.first().propertyNames().getInfo()
+
+    def test_clip_on_collection_without_properties(self, image_instance, fc_instance):
+        clipped = image_instance.geetools.clipOnCollection(fc_instance, 0)
+        assert clipped.first().bandNames().getInfo() == ["B1", "B2", "B3"]
+        assert clipped.size().getInfo() == 2
+        assert "Id" not in clipped.first().propertyNames().getInfo()
+
+    def test_deprecated_method(self, image_instance, fc_instance):
+        with pytest.deprecated_call():
+            clipped = geetools.tools.image.clipToCollection(image_instance, fc_instance)
+            assert clipped.first().bandNames().getInfo() == ["B1", "B2", "B3"]
+            assert clipped.size().getInfo() == 2
+            assert "Id" in clipped.first().propertyNames().getInfo()
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2", "B3"])
+
+    @pytest.fixture
+    def fc_instance(self):
+        """Return 2 little buffers in vaticanc city as a featurecollection."""
+        return ee.FeatureCollection(
+            [
+                ee.Feature(ee.Geometry.Point([12.4534, 41.9029]).buffer(50), {"Id": 1}),
+                ee.Feature(
+                    ee.Geometry.Point([12.4534, 41.9029]).buffer(100), {"Id": 2}
+                ),
+            ]
+        )

@@ -75,3 +75,11 @@ def addConstantBands(image, value=None, *names, **pairs):
 def toGrid(image, size=1, band=None, geometry=None):
     """Create a grid from pixels in an image. Results may depend on the image."""
     return ee.Image(image).geetools.toGrid(size, band, geometry)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.clipOnCollection instead")
+def clipToCollection(image, featureCollection, keepFeatureProperties=True):
+    """Clip an image using each feature of a collection and return an. image collection."""
+    return ee.Image(image).geetools.clipOnCollection(
+        featureCollection, int(keepFeatureProperties)
+    )
