@@ -288,3 +288,38 @@ class TestBufferMask:
     def test_buffer_mask(self, image_instance, vatican):
         """I don't know what to test here."""
         assert False
+
+
+class TestFull:
+    """Test the ``full`` method."""
+
+    def test_full(self, vatican):
+        image = ee.Image.geetools.full()
+        values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+        assert values.getInfo() == {"constant": 0}
+
+    def test_full_with_value(self, vatican):
+        image = ee.Image.geetools.full([1])
+        values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+        assert values.getInfo() == {"constant": 1}
+
+    def test_full_with_name(self, vatican):
+        image = ee.Image.geetools.full([1], ["toto"])
+        values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+        assert values.getInfo() == {"toto": 1}
+
+    def test_full_with_lists(self, vatican):
+        image = ee.Image.geetools.full([1, 2, 3], ["toto", "titi", "tata"])
+        values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+        assert values.getInfo() == {"toto": 1, "titi": 2, "tata": 3}
+
+    def test_deprecated_method(self, vatican):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.empty()
+            values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+            assert values.getInfo() == {"constant": 0}
+
+    @pytest.fixture
+    def vatican(self):
+        """A 1 m buffer around the Vatican."""
+        return ee.Geometry.Point([12.4534, 41.9033]).buffer(100)

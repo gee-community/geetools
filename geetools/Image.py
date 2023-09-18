@@ -328,7 +328,7 @@ class Image:
                 src = 'COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM'
                 image = ee.Image(src)
                 fc = ee.FeatureCollection('FAO/GAUL/2015/level0')
-                clipped = image.geetools.clipToCollection(fc)
+                clipped = image.geetools.clipOnCollection(fc)
                 print(clipped.size().getInfo())
         """
 
@@ -370,8 +370,45 @@ class Image:
                 image = image.geetools.bufferMask(1.5, 'square', 'pixels')
                 print(image.bandNames().getInfo())
         """
-        radius, kernelType = ee.number(radius), ee.String(kernelType)
+        radius, kernelType = ee.Number(radius), ee.String(kernelType)
         units = ee.String(units)
         masked = self._obj.mask().Not()
         buffer = masked.focalMax(radius, kernelType, units)
         return self._obj.updateMask(buffer.Not())
+
+    @classmethod
+    def full(
+        self,
+        values: Union[list, ee.List] = [0],
+        names: Union[list, ee.List] = ["constant"],
+    ) -> ee.Image:
+        """Create an image with the given values and names.
+
+        Parameters:
+            values: The values to initialize the image with. If one value is given, it will be used for all bands.
+            names: The names of the bands. By default it uses the earthen engine default value, "constant".
+
+        Returns:
+            An image with the given values and names.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image.geetools.full([1, 2, 3], ['a', 'b', 'c'])
+                print(image.bandNames().getInfo())
+        """
+        values, names = ee.List(values), ee.List(names)
+
+        # resize value to the same length as names
+        values = ee.List(
+            ee.Algorithms.If(
+                values.size().eq(1),
+                ee.List.repeat(ee.Number(values.get(0)), names.size()),
+                values,
+            )
+        )
+        return ee.Image.constant(values).rename(names)

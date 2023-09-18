@@ -89,3 +89,13 @@ def clipToCollection(image, featureCollection, keepFeatureProperties=True):
 def bufferMask(image, radius, units="pixels"):
     """Buffer the mask of an image."""
     return ee.Image(image).geetools.bufferMask(radius, units)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.full instead")
+def empty(value=[0], names=["constant"], from_dict=None):
+    """Create a constant image with the given band names and value, and/or. from a dictionary of {name: value}."""
+    if from_dict is not None:
+        raise Exception(
+            "from_dict is dropped as it can be done directly using ee.Image(from_dict.toImage())"
+        )
+    return ee.Image.geetools.full(value, names)

@@ -30,41 +30,6 @@ def deleteProperties(image, delete=None, keep=None, proxy_name="proxy"):
     return deleted
 
 
-def empty(value=0, names=None, from_dict=None):
-    """Create a constant image with the given band names and value, and/or.
-
-    from a dictionary of {name: value}.
-
-    :param names: list of names
-    :type names: ee.List or list
-    :param value: value for every band of the resulting image
-    :type value: int or float
-    :param from_dict: {name: value}
-    :type from_dict: dict
-    :rtype: ee.Image
-    """
-    image = ee.Image.constant(0)
-    bandnames = ee.List([])
-    if names:
-        bandnames = names if isinstance(names, ee.List) else ee.List(names)
-
-        def bn(name, img):
-            img = ee.Image(img)
-            newi = ee.Image(value).select([0], [name])
-            return img.addBands(newi)
-
-        image = ee.Image(bandnames.iterate(bn, image)).select(bandnames)
-
-    if from_dict:
-        from_dict = ee.Dictionary(from_dict)
-        image = ee.Image(from_dict.toImage())
-
-    if not from_dict and not names:
-        image = ee.Image.constant(value)
-
-    return image
-
-
 def emptyBackground(image, value=0):
     """Make all background pixels (not only masked, but all over the world).
 
@@ -72,7 +37,7 @@ def emptyBackground(image, value=0):
     .
     """
     bnames = image.bandNames()
-    emp = empty(value, bnames).toFloat()
+    emp = empty(value, bnames).toFloat()  # noqa: F821
     prop = image.propertyNames()
     props = image.toDictionary(prop)
     return ee.Image(emp.blend(image)).setMulti(props)
@@ -84,7 +49,7 @@ def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False, region=N
         footprint = image.geometry()
     else:
         footprint = region
-    emp = empty(emptyValue, image.bandNames())
+    emp = empty(emptyValue, image.bandNames())  # noqa: F821
     if copyProperties:
         emp = emp.copyProperties(source=image, properties=copyProperties)
     if keepMask:
@@ -274,8 +239,8 @@ def goodPix(image, retain=None, drop=None, name="good_pix"):
         band = image.select(bandname)
         return ini.Or(band)
 
-    final_retain = ee.Image(to_retain.iterate(make_or, empty(0)))
-    final_drop = ee.Image(to_drop.iterate(make_or, empty(0)))
+    final_retain = ee.Image(to_retain.iterate(make_or, empty(0)))  # noqa: F821
+    final_drop = ee.Image(to_drop.iterate(make_or, empty(0)))  # noqa: F821
 
     # not bad but not good (retain)
     not_bad_not_good = final_drop.And(final_retain)
@@ -1024,7 +989,9 @@ class Classification(object):
             ini = ee.Image(ini)
             return ini.add(image.eq(cat).multiply(cat))
 
-        filtered = ee.Image(ee.List(categories).iterate(over_cat, empty(0, [label])))
+        filtered = ee.Image(
+            ee.List(categories).iterate(over_cat, empty(0, [label]))  # noqa: F821
+        )
 
         out = filtered.neq(0)
         filtered = filtered.updateMask(out)
