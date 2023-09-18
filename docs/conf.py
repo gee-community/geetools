@@ -78,6 +78,7 @@ autoapi_options = [
     "special-members",
     "imported-members",
 ]
+autoapi_render_in_single_page = ["class", "function", "method"]
 
 # -- Options for intersphinx output --------------------------------------------
 intersphinx_mapping = {}

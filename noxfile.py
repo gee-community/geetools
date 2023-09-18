@@ -28,4 +28,7 @@ def docs(session):
     """Build the documentation."""
     build = session.posargs.pop() if session.posargs else "html"
     session.install(".[doc]")
+    session.install(
+        "sphinx-autoapi @ git+https://github.com/jorgepiloto/sphinx-autoapi@feat/single-page-option"
+    )
     session.run("sphinx-build", "-v", "-b", build, "docs", f"docs/_build/{build}")
