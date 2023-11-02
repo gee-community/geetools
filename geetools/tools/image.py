@@ -43,21 +43,6 @@ def emptyBackground(image, value=0):
     return ee.Image(emp.blend(image)).setMulti(props)
 
 
-def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False, region=None):
-    """Make an empty copy of the given image."""
-    if not region:
-        footprint = image.geometry()
-    else:
-        footprint = region
-    emp = empty(emptyValue, image.bandNames())  # noqa: F821
-    if copyProperties:
-        emp = emp.copyProperties(source=image, properties=copyProperties)
-    if keepMask:
-        emp = emp.updateMask(image.mask())
-
-    return ee.Image(ee.Algorithms.If(footprint.isUnbounded(), emp, emp.clip(footprint)))
-
-
 def parametrize(image, range_from, range_to, bands=None, drop=False):
     """Parametrize from a original **known** range to a fixed new range.
 

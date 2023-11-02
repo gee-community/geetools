@@ -99,3 +99,11 @@ def empty(value=[0], names=["constant"], from_dict=None):
             "from_dict is dropped as it can be done directly using ee.Image(from_dict.toImage())"
         )
     return ee.Image.geetools.full(value, names)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.fullLike instead")
+def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False, region=None):
+    """Make an empty copy of the given image."""
+    copyProperties = 1 if copyProperties else 0
+    keepMask = 1 if keepMask else 0
+    return ee.Image(image).geetools.fullLike(emptyValue, copyProperties, keepMask)

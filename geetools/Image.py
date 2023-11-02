@@ -412,3 +412,47 @@ class Image:
             )
         )
         return ee.Image.constant(values).rename(names)
+
+    def fullLike(
+        self,
+        fillValue: Union[int, float, ee.Number],
+        copyProperties: Union[ee.Number, int] = 0,
+        keepMask: Union[ee.Number, int] = 0,
+    ) -> ee.Image:
+        """Create an image with the same band names, projection and scale as the original image.
+
+        The projection is computed on the first band, make sure all bands have the same.
+        The procduced image can also copy the properties of the original image and keep the mask.
+
+        Parameters:
+            fillValue: The value to fill the image with.
+            copyProperties: If True, the properties of the original image will be copied to the new one.
+            keepMask: If True, the mask of the original image will be copied to the new one.
+
+        Returns:
+            An image with the same band names, projection and scale as the original image.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
+                image = image.geetools.fullLike(0)
+                print(image.bandNames().getInfo())
+        """
+        keepMask, copyProperties = ee.Number(keepMask), ee.Number(copyProperties)
+        footprint, bandNames = self._obj.geometry(), self._obj.bandNames()
+        fillValue = ee.List.repeat(fillValue, bandNames.size())
+        image = (
+            self.full(fillValue, bandNames)
+            .reproject(self._obj.select(0).projection())
+            .clip(footprint)
+        )
+        image = ee.Algorithms.If(copyProperties, image.copyProperties(self._obj), image)
+        image = ee.Algorithms.If(
+            keepMask, ee.Image(image).updateMask(self._obj.mask()), image
+        )
+        return ee.Image(image)

@@ -323,3 +323,40 @@ class TestFull:
     def vatican(self):
         """A 1 m buffer around the Vatican."""
         return ee.Geometry.Point([12.4534, 41.9033]).buffer(100)
+
+
+class TestFullLike:
+    """Test the ``fullLike`` method."""
+
+    def test_full_like(self, vatican, image_instance):
+        image = image_instance.geetools.fullLike(0)
+        values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+        assert "props" not in image.propertyNames().getInfo()
+        assert values.getInfo() == {"B1": 0, "B2": 0, "B3": 0}
+
+    def test_full_like_with_properties(self, image_instance):
+        image = image_instance.geetools.fullLike(0, copyProperties=1)
+        assert "props" in image.propertyNames().getInfo()
+
+    def test_full_like_with_mask(self, image_instance):
+        image = image_instance.geetools.fullLike(0, keepMask=1)
+        values = image.geetools.getValues(ee.Geometry.Point(0, 0))
+        assert values.getInfo() == {"B1": None, "B2": None, "B3": None}
+
+    def test_deprecated_method(self, vatican, image_instance):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.emptyCopy(image_instance)
+            values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+            assert values.getInfo() == {"B1": 0, "B2": 0, "B3": 0}
+
+    @pytest.fixture
+    def vatican(self):
+        """A 1 m buffer around the Vatican."""
+        return ee.Geometry.Point([12.4534, 41.9033]).buffer(100)
+
+    @pytest.fixture
+    def image_instance(self, vatican):
+        """Return an Image instance masked over the vatican."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        image = ee.Image(src).select(["B1", "B2", "B3"])
+        return image.set({"props": "toto"}).clip(vatican)
