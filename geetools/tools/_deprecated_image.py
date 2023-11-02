@@ -107,3 +107,12 @@ def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False, region=N
     copyProperties = 1 if copyProperties else 0
     keepMask = 1 if keepMask else 0
     return ee.Image(image).geetools.fullLike(emptyValue, copyProperties, keepMask)
+
+
+@deprecated(
+    version="1.0.0",
+    reason="Use ee.Image.geetools.reduceBands with 'sum' reducer instead",
+)
+def sumBands(image, name="sum", bands=None):
+    """Adds all *bands* values and puts the result on *name*."""
+    return ee.Image(image).geetools.reduceBands("sum", bands, name)

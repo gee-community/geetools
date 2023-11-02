@@ -109,44 +109,6 @@ def parametrize(image, range_from, range_to, bands=None, drop=False):
     return ee.Image(final.copyProperties(source=image))
 
 
-def sumBands(image, name="sum", bands=None):
-    """Adds all *bands* values and puts the result on *name*.
-
-    There are 2 ways to use it:
-
-    .. code:: python
-
-        img = ee.Image("LA NDSAT/LC8_L1T_TOA_FMASK/LC82310902013344LGN00")
-        newimg = Image.sumBands(img, "added_bands", ("B1", "B2", "B3"))
-
-    :param name: name for the band that contains the added values of bands
-    :type name: str
-    :param bands: names of the bands to be added. If None (default) it sums
-        all bands
-    :type bands: tuple
-    :return: the parsed image with one additional band with the sum of `bands`
-    :rtype: ee.Image
-    """
-    band_names = image.bandNames()
-    if bands is None:
-        bn = band_names
-    else:
-        bn = ee.List(list(bands))
-
-    nim = ee.Image(0).select([0], [name])
-
-    # TODO: check if passed band names are in band names # DONE
-    def sum_bands(n, ini):
-        condition = ee.List(band_names).contains(n)
-        return ee.Algorithms.If(
-            condition, ee.Image(ini).add(image.select([n])), ee.Image(ini)
-        )
-
-    newimg = ee.Image(bn.iterate(sum_bands, nim))
-
-    return image.addBands(newimg)
-
-
 def computeBits(image, start, end, newName):
     """Compute the bits of an image.
 

@@ -360,3 +360,43 @@ class TestFullLike:
         src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
         image = ee.Image(src).select(["B1", "B2", "B3"])
         return image.set({"props": "toto"}).clip(vatican)
+
+
+class TestReduceBands:
+    """Test the ``reduceBands`` method."""
+
+    def test_reduce_bands(self, image_instance, vatican):
+        image = image_instance.geetools.reduceBands("sum")
+        values = image.select("sum").reduceRegion(ee.Reducer.mean(), vatican, 1)
+        assert "sum" in image.bandNames().getInfo()
+        assert values.getInfo() == {"sum": 2333.794228356336}
+
+    def test_reduce_bands_with_bands(self, image_instance, vatican):
+        image = image_instance.geetools.reduceBands("sum", ["B1", "B2"])
+        values = image.select("sum").reduceRegion(ee.Reducer.mean(), vatican, 1)
+        assert "sum" in image.bandNames().getInfo()
+        assert values.getInfo() == {"sum": 1008.5144291091593}
+
+    def test_reduce_bands_with_name(self, image_instance, vatican):
+        image = image_instance.geetools.reduceBands("sum", name="toto")
+        values = image.select("toto").reduceRegion(ee.Reducer.mean(), vatican, 1)
+        assert "toto" in image.bandNames().getInfo()
+        assert values.getInfo() == {"toto": 2333.794228356336}
+
+    def test_deprecated_method(self, image_instance, vatican):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.sumBands(image_instance, "sum", ["B1", "B2"])
+            values = image.select("sum").reduceRegion(ee.Reducer.mean(), vatican, 1)
+            assert "sum" in image.bandNames().getInfo()
+            assert values.getInfo() == {"sum": 1008.5144291091593}
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2", "B3"])
+
+    @pytest.fixture
+    def vatican(self):
+        """A 1 m buffer around the Vatican."""
+        return ee.Geometry.Point([12.4534, 41.9033]).buffer(1)

@@ -451,8 +451,45 @@ class Image:
             .reproject(self._obj.select(0).projection())
             .clip(footprint)
         )
-        image = ee.Algorithms.If(copyProperties, image.copyProperties(self._obj), image)
-        image = ee.Algorithms.If(
-            keepMask, ee.Image(image).updateMask(self._obj.mask()), image
-        )
+        withProperties = image.copyProperties(self._obj)
+        image = ee.Algorithms.If(copyProperties, withProperties, image)
+        withMask = ee.Image(image).updateMask(self._obj.mask())
+        image = ee.Algorithms.If(keepMask, withMask, image)
         return ee.Image(image)
+
+    def reduceBands(
+        self,
+        reducer: Union[str, ee.String],
+        bands: Union[list, ee.List] = [],
+        name: Union[str, ee.String] = "",
+    ) -> ee.Image:
+        """Reduce the image using the selected reducer and adding the result as a band using the selected name.
+
+        Args:
+            bands: The bands to reduce
+            reducer: The reducer to use
+            name: The name of the new band
+
+        Returns:
+            The image with the new reduced band added
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
+                image = image.geetools.reduceBands("mean", ['B1', 'B2'])
+                print(image.bandNames().getInfo())
+        """
+        # the reduce method only accept client side string
+        if not isinstance(reducer, str):
+            raise TypeError("reducer must be a Python string")
+
+        bands, name = ee.List(bands), ee.String(name)
+        bands = ee.Algorithms.If(bands.size().eq(0), self._obj.bandNames(), bands)
+        name = ee.Algorithms.If(name.equals(ee.String("")), reducer, name)
+        reduceImage = self._obj.select(ee.List(bands)).reduce(reducer).rename([name])
+        return self._obj.addBands(reduceImage)
