@@ -557,12 +557,6 @@ def doyToDate(image, dateFormat="yyyyMMdd", year=None):
     return datei.rename("date")
 
 
-def maskInside(image, geometry):
-    """This is the opposite to ee.Image.clip(geometry)."""
-    mask = ee.Image.constant(1).clip(geometry).mask().Not()
-    return image.updateMask(mask)
-
-
 def paint(
     image,
     featurecollection,

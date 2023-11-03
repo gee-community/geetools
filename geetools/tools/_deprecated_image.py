@@ -143,3 +143,9 @@ def regionCover(*args, **kwargs):
 def applyMask(image, mask, bands=None, negative=True):
     """Apply a passed positive mask."""
     return ee.Image(image).updateMask(mask.Not())
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.negativeClip instead")
+def maskInside(image, geometry):
+    """Mask the image inside the geometry."""
+    return ee.Image(image).geetools.negativeClip(geometry)

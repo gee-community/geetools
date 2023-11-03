@@ -493,3 +493,32 @@ class Image:
         name = ee.Algorithms.If(name.equals(ee.String("")), reducer, name)
         reduceImage = self._obj.select(ee.List(bands)).reduce(reducer).rename([name])
         return self._obj.addBands(reduceImage)
+
+    def negativeClip(
+        self, geometry: Union[ee.FeatureCollection, ee.Geometry]
+    ) -> ee.Image:
+        """The opposite of the clip method.
+
+        The inside of the geometry will be masked from the image.
+
+        Args:
+            geometry: The geometry to mask from the image.
+
+        Returns:
+            The image with the geometry masked.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                src, bands = "COPERNICUS/S2_SR_HARMONIZED", ["B1", "B2", "B3"]
+                vatican = ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
+
+                image = ee.ImageCollection(src).filterBounds(vatican).first().select(bands)
+                image = image.geetools.negativeClip(vatican)
+                print(image.reduceRegion(ee.Reducer.mean(), vatican, 1).getInfo())
+        """
+        return self._obj.updateMask(self._obj.clip(geometry).mask().Not())

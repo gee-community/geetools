@@ -400,3 +400,23 @@ class TestReduceBands:
     def vatican(self):
         """A 1 m buffer around the Vatican."""
         return ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
+
+
+class TestNegativeClip:
+    """Test the ``negativeClip`` method."""
+
+    def test_negative_clip(self, image_instance, vatican):
+        image = image_instance.geetools.negativeClip(vatican)
+        values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
+        assert values.getInfo() == {"B1": None, "B2": None, "B3": None}
+
+    @pytest.fixture
+    def vatican(self):
+        """A 1 m buffer around the Vatican."""
+        return ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
+
+    @pytest.fixture
+    def image_instance(self, vatican):
+        """The first image in COpernicus hovering the vatican."""
+        src, bands = "COPERNICUS/S2_SR_HARMONIZED", ["B1", "B2", "B3"]
+        return ee.ImageCollection(src).filterBounds(vatican).first().select(bands)
