@@ -109,10 +109,37 @@ def emptyCopy(image, emptyValue=0, copyProperties=None, keepMask=False, region=N
     return ee.Image(image).geetools.fullLike(emptyValue, copyProperties, keepMask)
 
 
-@deprecated(
-    version="1.0.0",
-    reason="Use ee.Image.geetools.reduceBands with 'sum' reducer instead",
-)
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.reduceBands instead")
 def sumBands(image, name="sum", bands=None):
     """Adds all *bands* values and puts the result on *name*."""
     return ee.Image(image).geetools.reduceBands("sum", bands, name)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.full instead and cast it manually")  # fmt: skip
+def proxy(values=(0,), names=("constant",), types=("int8",)):
+    """Create a proxy image with the given values, names and types."""
+    return ee.Image.geetools.full(values, names)
+
+
+@deprecated(version="1.0.0", reason="We abandoned this method as it's bad practice")
+def maskCover(*args, **kwargs):
+    """Compute the percentage of covered area and set it as a property."""
+    raise Exception(
+        "maskCover is deprecated as you should not set this percentage in the image properties. Simply do a double zonal statistic analysis if needed that's the same amount of parameters."
+    )
+
+
+@deprecated(version="1.0.0", reason="We abandoned this method as it's bad practice")
+def regionCover(*args, **kwargs):
+    """Compute de percentage of values greater than 1 in area and set it as a property."""
+    raise Exception(
+        "regionCover is deprecated as you should not set this percentage in the image properties. Simply do a zonal statistic analysis if needed that's the same amount of parameters."
+    )
+
+
+@deprecated(
+    version="1.0.0", reason="Use ee.Image.updateMask(mask).Not() instead instead"
+)
+def applyMask(image, mask, bands=None, negative=True):
+    """Apply a passed positive mask."""
+    return ee.Image(image).updateMask(mask.Not())
