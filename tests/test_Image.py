@@ -420,3 +420,17 @@ class TestNegativeClip:
         """The first image in COpernicus hovering the vatican."""
         src, bands = "COPERNICUS/S2_SR_HARMONIZED", ["B1", "B2", "B3"]
         return ee.ImageCollection(src).filterBounds(vatican).first().select(bands)
+
+
+class testFormat:
+    """Test the ``toString`` method."""
+
+    def test_to_string(self, image_instance):
+        string = image_instance.geetools.toString("date: {system_date}")
+        assert string.getInfo() == "date: 2020-01-01"
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2", "B3"])

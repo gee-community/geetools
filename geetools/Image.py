@@ -522,3 +522,44 @@ class Image:
                 print(image.reduceRegion(ee.Reducer.mean(), vatican, 1).getInfo())
         """
         return self._obj.updateMask(self._obj.clip(geometry).mask().Not())
+
+    def format(
+        self,
+        string: Union[str, ee.String],
+        dateFormat: Union[str, ee.String] = "yyyy-MM-dd",
+    ) -> ee.String:
+        """Create a string from using the given pattern and using the image properties.
+
+        The ``system_date`` property is special cased to fit the dateFormat parameter.
+
+        Args:
+            string: The pattern to use for the string
+            dateFormat: The date format to use for the system_date property
+
+        Returns:
+            The string corresponding to the image
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image('COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM')
+                string = image.geetools.format('this is the image date: {system_date}')
+                print(string.getInfo())
+        """
+        dateFormat, string = ee.String(dateFormat), ee.String(string)
+
+        patternList = string.match(r"\{([^}]+)\}", "g")
+
+        def replaceProperties(p, s):
+            p = ee.String(p)
+            prop = self._obj.get(p.slice(1, -1))
+            date = self._obj.date().format(dateFormat)
+            prop = ee.Algorithms.If(p.equals("{system_date}"), date, prop)
+            # return ee.String(s).cat(date)
+            return ee.String(s).replace(p, ee.String(prop))
+
+        return patternList.iterate(replaceProperties, string)
