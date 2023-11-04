@@ -429,6 +429,73 @@ class testFormat:
         string = image_instance.geetools.toString("date: {system_date}")
         assert string.getInfo() == "date: 2020-01-01"
 
+    def test_deprecated_method(self, image_instance):
+        with pytest.deprecated_call():
+            string = geetools.tools.image.makeName(
+                image_instance, "date: {system_date}"
+            )
+            assert string.getInfo() == "date: 2020-01-01"
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2", "B3"])
+
+
+class TestPrefixSuffix:
+    """Test the ``prefix`` and ``suffix`` methods."""
+
+    def test_prefix(self, image_instance):
+        image = image_instance.geetools.addPrefix("prefix_")
+        assert image.bandNames().getInfo() == ["prefix_B1", "prefix_B2", "prefix_B3"]
+
+    def test_suffix(self, image_instance):
+        image = image_instance.geetools.addSuffix("_suffix")
+        assert image.bandNames().getInfo() == ["B1_suffix", "B2_suffix", "B3_suffix"]
+
+    def test_deprecated_method(self, image_instance):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.renamePattern(
+                image_instance, "prefix_{band}_suffix"
+            )
+            assert image.bandNames().getInfo() == [
+                "prefix_B1_suffix",
+                "prefix_B2_suffix",
+                "prefix_B3_suffix",
+            ]
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2", "B3"])
+
+
+class TestGauss:
+    """Test the ``gauss`` method."""
+
+    def test_gauss(self, image_instance, vatican):
+        image = image_instance.geetools.gauss()
+        values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
+        assert values.getInfo() == {"B1_gauss": 0.5596584633629059}
+
+    def test_gauss_with_band(self, image_instance, vatican):
+        image = image_instance.geetools.gauss("B2")
+        values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
+        assert values.getInfo() == {"B2_gauss": 0.11127562017793}
+
+    def test_deprecated_method(self, image_instance, vatican):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.gaussFunction(image_instance, "B2")
+            values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
+            assert values.getInfo() == {"B2_gauss": 0.11127562017793}
+
+    @pytest.fixture
+    def vatican(self):
+        """A 1 m buffer around the Vatican."""
+        return ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
+
     @pytest.fixture
     def image_instance(self):
         """Return an Image instance."""

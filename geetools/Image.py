@@ -563,3 +563,44 @@ class Image:
             return ee.String(s).replace(p, ee.String(prop))
 
         return patternList.iterate(replaceProperties, string)
+
+    def gauss(self, band: Union[ee.String, str] = "") -> ee.Image:
+        """Apply a gaussian filter to the image.
+
+        We apply the following function to the image: "exp(((val-mean)**2)/(-2*(std**2)))"
+        where val is the value of the pixel, mean is the mean of the image, std is the standard deviation of the image.
+
+        See the `Gaussian filter <https://en.wikipedia.org/wiki/Gaussian_function>`_ Wikipedia page for more information.
+
+        Args:
+            band: The band to apply the gaussian filter to. If empty, the first one is selected.
+
+        Returns:
+            The image with the gaussian filter applied.An single band image with the gaussian filter applied.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED").first()
+                image = image.geetools.gauss()
+                print(image.bandNames().getInfo())
+        """
+        band = ee.String(band) if band else ee.String(self._obj.bandNames().get(0))
+        image = self._obj.select(band)
+
+        kwargs = {"geometry": image.geometry(), "bestEffort": True}
+        mean = image.reduceRegion(ee.Reducer.mean(), **kwargs).get(band)
+        std = image.reduceRegion(ee.Reducer.stdDev(), **kwargs).get(band)
+
+        return image.expression(
+            "exp(((val-mean)**2)/(-2*(std**2)))",
+            {
+                "val": image,
+                "mean": ee.Image.constant(mean),
+                "std": ee.Image.constant(std),
+            },
+        ).rename(band.cat("_gauss"))

@@ -149,3 +149,76 @@ def applyMask(image, mask, bands=None, negative=True):
 def maskInside(image, geometry):
     """Mask the image inside the geometry."""
     return ee.Image(image).geetools.negativeClip(geometry)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.format instead")
+def makeName(image, pattern, date_pattern=None, extra=None):
+    """Make a name for an image using a pattern."""
+    return ee.Image(image).geetools.format(pattern, date_pattern)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.copyProperties instead")
+def passProperty(image, to, properties=[]):
+    """Pass properties from an image to another."""
+    return ee.Image(to).copyProperties(image, properties)
+
+
+@deprecated(
+    version="1.0.0", reason="The method was not doing what it was supposed to do"
+)
+def deleteProperties(image, delete, keep, proxy_name):
+    """Delete properties from an image."""
+    return ee.Image().addBands(image).copyProperties(image, exclude=[delete])
+
+
+@deprecated(version="1.0.0", reason="Drop use of this method it's bad practice")
+def emptyBackground(image, value=0):
+    """Make all background pixels (not only masked, but all over the world)."""
+    raise Exception(
+        "You should not use this method but consider masking instead. Upon exportation the mask value can be changed depending on the output format. It will avoid to get worldwide images with no data."
+    )
+
+
+@deprecated(
+    version="1.0.0", reason="Carefully create your mask with vanilla GEE instead"
+)
+def goodPix(image, retain, drop, name):
+    """Get a 'good pixels' bands from the image's bands that retain the good."""
+    raise Exception(
+        "The method was not doing what was described in the docstring. Use vanilla GEE instead."
+    )
+
+
+@deprecated(
+    version="1.0.0",
+    reason="Use ee.Image.geetools.addPrefix or ee.image.geetools.addSuffix instead instead",
+)
+def renamePattern(image, pattern, bands=[]):
+    """Rename bands using a pattern."""
+    prefix, suffix = pattern.split("{band}")
+    prefixed_band = bands if bands == [] else [prefix + b for b in bands]
+    return (
+        ee.Image(image)
+        .geetools.addPrefix(prefix, bands)
+        .geetools.addSuffix(suffix, prefixed_band)
+    )
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.gauss instead")
+def gaussFunction(
+    image,
+    band,
+    range_min=None,
+    range_max=None,
+    mean=0,
+    std=None,
+    output_min=None,
+    output_max=1,
+    stretch=1,
+    region=None,
+    scale=None,
+    name="gauss",
+    **kwargs
+):
+    """Apply the Gaussian function to an Image."""
+    return ee.Image(image).geetools.gauss(band or "")
