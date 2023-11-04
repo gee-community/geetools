@@ -185,58 +185,6 @@ def linearFunction(
     return result.rename(name)
 
 
-def paint(
-    image,
-    featurecollection,
-    vis_params=None,
-    color="black",
-    width=1,
-    fillColor=None,
-    **kwargs
-):
-    """Paint a FeatureCollection onto an Image. Returns an Image with three.
-
-    bands: vis-blue, vis-geen, vis-red (uint8).
-
-    It admits the same parameters as ee.FeatureCollection.style
-    """
-    if not fillColor:
-        fillColor = "#00000000"
-    if not vis_params:
-        firstband = ee.String(image.bandNames().get(0))
-        vis_params = dict(bands=[firstband, firstband, firstband], min=0, max=1)
-    region = image.geometry()
-    filtered = ee.FeatureCollection(
-        ee.Algorithms.If(
-            region.isUnbounded(),
-            featurecollection,
-            featurecollection.filterBounds(region),
-        )
-    )
-    fcraster = filtered.style(color=color, width=width, fillColor=fillColor, **kwargs)
-    mask = fcraster.reduce("sum").gte(0).rename("mask")
-    topaint = image.visualize(**vis_params)
-    final = topaint.where(mask, fcraster)
-    final = final.copyProperties(source=image)
-    properties = image.propertyNames()
-    final = ee.Image(
-        ee.Algorithms.If(
-            properties.contains("system:time_start"),
-            final.set("system:time_start", image.date().millis()),
-            final,
-        )
-    )
-    final = ee.Image(
-        ee.Algorithms.If(
-            properties.contains("system:time_end"),
-            final.set("system:time_end", ee.Number(image.get("system:time_end"))),
-            final,
-        )
-    )
-
-    return final
-
-
 def arrayNonZeros(image):
     """Return an image array without zeros.
 

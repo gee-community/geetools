@@ -41,6 +41,7 @@ from .Array import Array  # noqa: F401
 from .Date import Date  # noqa: F401
 from .DateRange import DateRange  # noqa: F401
 from .Dictionary import Dictionary  # noqa: F401
+from .FeatureCollection import FeatureCollection  # noqa: F401
 from .Filter import Filter  # noqa: F401
 from .Float import Float
 from .Image import Image  # noqa: F401

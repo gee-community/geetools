@@ -241,3 +241,9 @@ def repeatBand(image, times=1, names=None, properties=None):
     """Repeat one band. If the image parsed has more than one band, the first."""
     band = ee.Image(image).bandNames().get(0)
     return ee.Image(image).geetools.repeat(band, times)
+
+
+@deprecated(version="1.0.0", reason="Use ee.FeatureCollection.geetools.toImage instead")
+def paint(image, featurecollection, color="black", width=1, *args, **kwargs):
+    """Paint a FeatureCollection onto an Image."""
+    return featurecollection.geetools.toImage(color, width)
