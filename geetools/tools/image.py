@@ -5,7 +5,6 @@ from __future__ import absolute_import
 import ee
 import ee.data
 
-from ..ui import map as mapui
 from ..utils import castImage
 from . import ee_list
 
@@ -304,21 +303,6 @@ def arrayNonZeros(image):
     result2 = ee.Image(wrap(image))
 
     return ee.Image(ee.Algorithms.If(bands.size(), result1, result2))
-
-
-def getTileURL(image, visParams=None):
-    """Get the URL for the given image passing a normal visualization.
-
-    parameters like `{'bands':['B4','B3','B2'], 'min':0, 'max':5000}`
-    .
-    """
-    if visParams:
-        vis = mapui.formatVisParams(visParams)
-        image_info = image.getMapId(vis)
-    else:
-        image_info = image.getMapId()
-    fetcher = image_info["tile_fetcher"]
-    return fetcher.url_format
 
 
 class Classification(object):

@@ -228,3 +228,9 @@ def normalDistribution(image, band, **kwargs):
 def doyToDate(image, dateFormat="yyyyMMdd", year=None):
     """Make a date band from a day of year band."""
     return ee.Image(image).geetools.doyToDate(year, dateFormat)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.getMapId instead")
+def getTileURL(image, visParams=None):
+    """Get the URL for the given image passing a normal visualization."""
+    return ee.Image(image).getMapId(visParams).getTileUrl()
