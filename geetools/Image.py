@@ -604,3 +604,46 @@ class Image:
                 "std": ee.Image.constant(std),
             },
         ).rename(band.cat("_gauss"))
+
+    def doyToDate(
+        self,
+        year,
+        dateFormat: Union[str, ee.String] = "yyyyMMdd",
+        band: Union[ee.String, str] = "",
+    ) -> ee.Image:
+        """Convert the DOY band to a date band.
+
+        This method only work with date formats that can be converted to numbers as earthengine images don't accept string bands.
+
+        Args:
+            year: The year to use for the date
+            dateFormat: The date format to use for the date band
+            band: The band to use as DOY band. If empty, the first one is selected.
+
+        Returns:
+            The original image with the DOY band converted to a date band.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image.random().multiply(365).toInt()
+                vatican = ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
+
+                image = image.geetools.doyToDate(2023)
+                print(image.reduceRegion(ee.Reducer.min(), vatican, 1).getInfo())
+        """
+        year = ee.Number(year)
+        band = ee.String(band) if band else ee.String(self._obj.bandNames().get(0))
+        dateFormat = ee.String(dateFormat)
+
+        doyList = ee.List.sequence(0, 365)
+        remapList = doyList.map(
+            lambda d: ee.Number.parse(
+                ee.Date.fromYMD(year, 1, 1).advance(d, "day").format(dateFormat)
+            )
+        )
+        return self._obj.remap(doyList, remapList, bandName=band).rename(band)

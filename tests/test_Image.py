@@ -501,3 +501,39 @@ class TestGauss:
         """Return an Image instance."""
         src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
         return ee.Image(src).select(["B1", "B2", "B3"])
+
+
+class TestDoyToDate:
+    """Test the ``doyToDate`` method."""
+
+    def test_doy_to_date(self, image_instance, vatican):
+        image = image_instance.geetools.doyToDate(2023)
+        values = image.reduceRegion(ee.Reducer.min(), vatican, 1)
+        assert values.getInfo() == {"doy1": 20230101}
+
+    def test_doy_to_date_with_format(self, image_instance, vatican):
+        image = image_instance.geetools.doyToDate(2023, dateFormat="yyyy.DDD")
+        values = image.reduceRegion(ee.Reducer.min(), vatican, 1)
+        assert values.getInfo() == {"doy1": 2023.001}
+
+    def test_doy_to_date_with_band(self, image_instance, vatican):
+        image = image_instance.geetools.doyToDate(2023, band="doy2")
+        values = image.reduceRegion(ee.Reducer.min(), vatican, 1)
+        assert values.getInfo() == {"doy2": 20230101}
+
+    def test_deprecated_method(self, image_instance, vatican):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.doyToDate(image_instance, year=2023)
+            values = image.reduceRegion(ee.Reducer.min(), vatican, 1)
+            assert values.getInfo() == {"doy1": 20230101}
+
+    @pytest.fixture
+    def vatican(self):
+        """A 10 m buffer around the Vatican."""
+        return ee.Geometry.Point([12.4534, 41.9029]).buffer(100)
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance with 2 random doy bands."""
+        doy = ee.Image.random(seed=0).multiply(365).toInt().rename("doy1")
+        return doy.rename("doy1").addBands(doy.rename("doy2"))

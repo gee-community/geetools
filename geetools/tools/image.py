@@ -2,14 +2,12 @@
 """Tools for ee.Image."""
 from __future__ import absolute_import
 
-import math
-
 import ee
 import ee.data
 
 from ..ui import map as mapui
 from ..utils import castImage
-from . import date, ee_list
+from . import ee_list
 
 
 def parametrize(image, range_from, range_to, bands=None, drop=False):
@@ -76,44 +74,6 @@ def parametrize(image, range_from, range_to, bands=None, drop=False):
 
     # return passProperty(image, final, 'system:time_start')
     return ee.Image(final.copyProperties(source=image))
-
-
-def normalDistribution(
-    image,
-    band,
-    mean=None,
-    std=None,
-    region=None,
-    scale=None,
-    name="normal_distribution",
-    **kwargs
-):
-    """Compute a Normal Distribution using the Gaussian Function."""
-    pi = ee.Number(math.pi)
-
-    image = image.select(band)
-
-    if mean is None:
-        mean = image.reduceRegion(
-            reducer=ee.Reducer.mean(), geometry=region, scale=scale, **kwargs
-        )
-        mean = ee.Image.constant(mean.get(band))
-    else:
-        mean = castImage(mean)
-
-    if std is None:
-        std = image.reduceRegion(
-            reducer=ee.Reducer.stdDev(), geometry=region, scale=scale, **kwargs
-        )
-        std = ee.Image.constant(std.get(band))
-    else:
-        std = castImage(std)
-
-    output_max = ee.Image(1).divide(std.multiply(ee.Image(2).multiply(pi).sqrt()))
-
-    return gaussFunction(  # noqa: F821
-        image, band, mean=mean, std=std, output_max=output_max, name=name, **kwargs
-    )
 
 
 def linearFunction(
@@ -224,29 +184,6 @@ def linearFunction(
     )
 
     return result.rename(name)
-
-
-def doyToDate(image, dateFormat="yyyyMMdd", year=None):
-    """Make a date band from a day of year band."""
-    if not year:
-        year = image.date().get("year")
-
-    doyband = image.select([0])
-    leap = date.isLeap(year)
-    limit = ee.Number(ee.Algorithms.If(leap, 365, 364))
-    alldoys = ee.List.sequence(1, limit)
-
-    def wrap(doy, i):
-        i = ee.Image(i)
-        doy = ee.Number(doy)
-        d = date.fromDOY(doy, year)
-        date_band = ee.Image.constant(ee.Number.parse(d.format(dateFormat)))
-        condition = i.eq(doy)
-        return i.where(condition, date_band)
-
-    datei = ee.Image(alldoys.iterate(wrap, doyband))
-
-    return datei.rename("date")
 
 
 def paint(

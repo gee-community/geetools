@@ -1,4 +1,6 @@
 """Legacy tools for the ee.Image class."""
+from math import pi
+
 import ee
 from deprecated.sphinx import deprecated
 
@@ -190,8 +192,7 @@ def goodPix(image, retain, drop, name):
 
 
 @deprecated(
-    version="1.0.0",
-    reason="Use ee.Image.geetools.addPrefix or ee.image.geetools.addSuffix instead instead",
+    version="1.0.0", reason="Use ee.Image.geetools.addPrefix/addSuffix instead instead"
 )
 def renamePattern(image, pattern, bands=[]):
     """Rename bands using a pattern."""
@@ -205,20 +206,25 @@ def renamePattern(image, pattern, bands=[]):
 
 
 @deprecated(version="1.0.0", reason="Use ee.Image.geetools.gauss instead")
-def gaussFunction(
-    image,
-    band,
-    range_min=None,
-    range_max=None,
-    mean=0,
-    std=None,
-    output_min=None,
-    output_max=1,
-    stretch=1,
-    region=None,
-    scale=None,
-    name="gauss",
-    **kwargs
-):
+def gaussFunction(image, band, **kwargs):
     """Apply the Gaussian function to an Image."""
     return ee.Image(image).geetools.gauss(band or "")
+
+
+@deprecated(
+    version="1.0.0", reason="Use ee.Image.geetools.gauss instead andrescale it manually"
+)
+def normalDistribution(image, band, **kwargs):
+    """Compute a Normal Distribution using the Gaussian Function."""
+    params = {"geometry": image.geometry(), "bestEffort": True}
+    std = image.reduceRegion(ee.Reducer.stdDev(), **params).get(band)
+    ouptut_max = ee.Image(1).divide(
+        ee.Image(std).multiply(ee.Image(2).multiply(pi).sqrt())
+    )
+    return ee.Image(image).geetools.gauss(band).multiply(ouptut_max)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.doyToDate instead")
+def doyToDate(image, dateFormat="yyyyMMdd", year=None):
+    """Make a date band from a day of year band."""
+    return ee.Image(image).geetools.doyToDate(year, dateFormat)
