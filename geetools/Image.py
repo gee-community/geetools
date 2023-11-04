@@ -647,3 +647,35 @@ class Image:
             )
         )
         return self._obj.remap(doyList, remapList, bandName=band).rename(band)
+
+    def repeat(self, band, repeats: Union[ee.Number, int]) -> ee.image:
+        """Repeat a band of the image.
+
+        Args:
+            band: The band to repeat
+            repeats: The number of times to repeat the band
+
+        Returns:
+            The image with the band repeated
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED").first()
+                image = image.geetools.repeat('B1', 2)
+                print(image.bandNames().getInfo())
+        """
+        band, repeats = ee.String(band), ee.Number(repeats).toInt()
+
+        sequence = ee.List.sequence(1, repeats)
+        image = self._obj.select(band)
+
+        def addBand(n, i):
+            name = band.cat("_").cat(ee.Number(n).toInt().format())
+            return ee.Image(i).addBands(image.rename(name))
+
+        return ee.Image(sequence.iterate(addBand, self._obj))

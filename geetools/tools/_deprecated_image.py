@@ -234,3 +234,10 @@ def doyToDate(image, dateFormat="yyyyMMdd", year=None):
 def getTileURL(image, visParams=None):
     """Get the URL for the given image passing a normal visualization."""
     return ee.Image(image).getMapId(visParams).getTileUrl()
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.repeat instead")
+def repeatBand(image, times=1, names=None, properties=None):
+    """Repeat one band. If the image parsed has more than one band, the first."""
+    band = ee.Image(image).bandNames().get(0)
+    return ee.Image(image).geetools.repeat(band, times)

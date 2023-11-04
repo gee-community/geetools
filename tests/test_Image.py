@@ -537,3 +537,22 @@ class TestDoyToDate:
         """Return an Image instance with 2 random doy bands."""
         doy = ee.Image.random(seed=0).multiply(365).toInt().rename("doy1")
         return doy.rename("doy1").addBands(doy.rename("doy2"))
+
+
+class TestRepeat:
+    """Test the ``repeat`` method."""
+
+    def test_repeat(self, image_instance):
+        image = image_instance.geetools.repeat("B1", 2)
+        assert image.bandNames().getInfo() == ["B1", "B2", "B3", "B1_1", "B1_2"]
+
+    def test_deprecated_method(self, image_instance):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.repeatBand(image_instance, 2, ["B1", "B2"])
+            assert image.bandNames().getInfo() == ["B1", "B2", "B3", "B1_1", "B1_2"]
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an Image instance."""
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src).select(["B1", "B2", "B3"])

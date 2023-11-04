@@ -237,43 +237,6 @@ def paint(
     return final
 
 
-def repeatBand(image, times=None, names=None, properties=None):
-    """Repeat one band. If the image parsed has more than one band, the first.
-
-    will be used
-    .
-    """
-    band = ee.Image(image.select([0]))
-    if times is not None:
-        times = ee.Number(times)
-        proxylist = ee.List.repeat(0, times.subtract(1))
-
-        def add(band, i):
-            band = ee.Image(band)
-            i = ee.Image(i)
-            return i.addBands(band)
-
-        proxyImg = proxylist.map(lambda n: band)
-        repeated = ee.Image(proxyImg.iterate(add, band))
-    else:
-        newNames = ee.List(names)
-        firstName = ee.String(newNames.get(0))
-        rest = ee.List(newNames.slice(1))
-
-        def add(name, i):
-            name = ee.String(name)
-            i = ee.Image(i)
-            return i.addBands(band.rename(name))
-
-        first = band.rename(firstName)
-        repeated = ee.Image(rest.iterate(add, first))
-
-    if properties:
-        repeated = repeated.setMulti(properties)
-
-    return ee.Image(repeated)
-
-
 def arrayNonZeros(image):
     """Return an image array without zeros.
 
