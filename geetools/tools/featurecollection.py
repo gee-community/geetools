@@ -68,20 +68,3 @@ def enumerateSimple(collection, name="ENUM"):
     fc = ee.FeatureCollection(seq.map(wrap))
 
     return ee.FeatureCollection(fc.copyProperties(source=collection))
-
-
-def mergeGeometries(collection):
-    """Merge the geometries of many features. Return ee.Geometry."""
-    alist = collection.toList(collection.size())
-
-    first = ee.Feature(alist.get(0))
-    rest = alist.slice(1)
-
-    def wrap(feat, ini):
-        ini = ee.Geometry(ini)
-        feat = ee.Feature(feat)
-        geom = feat.geometry()
-        union = geom.union(ini)
-        return union.dissolve()
-
-    return ee.Geometry(rest.iterate(wrap, first.geometry()))

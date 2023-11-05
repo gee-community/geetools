@@ -51,3 +51,22 @@ class TestAddId:
     @pytest.fixture
     def fc_instance(self):
         return ee.FeatureCollection("FAO/GAUL/2015/level0").limit(10)
+
+
+class TestMergeGeometries:
+    """Test the ``mergeGeometries`` method."""
+
+    def test_merge_geometries(self, fc_instance, data_regression):
+        geom = fc_instance.geetools.mergeGeometries()
+        data_regression.check(geom.getInfo())
+
+    def test_deprecated_method(self, fc_instance, data_regression):
+        with pytest.deprecated_call():
+            geom = geetools.tools.featurecollection.mergeGeometries(fc_instance)
+            data_regression.check(geom.getInfo())
+
+    @pytest.fixture
+    def fc_instance(self):
+        """Return Italy switzerland and France."""
+        fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
+        return fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))

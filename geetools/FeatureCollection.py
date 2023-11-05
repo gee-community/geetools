@@ -61,3 +61,26 @@ class FeatureCollection:
         return self._obj.map(
             lambda f: f.set(name, idByIndex.get(f.get("system:index")))
         )
+
+    def mergeGeometries(self) -> ee.Geometry:
+        """Merge the geometries the included features.
+
+        Returns:
+            the dissolved geometry
+
+        Example:
+            .. jupyter-execute::
+
+                import ee
+                import geetools
+
+                ee.Initialize()
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
+                fc =fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))
+                geom = fc.geetools.mergeGeometries()
+                print(geom.getInfo())
+        """
+        first = self._obj.first().geometry()
+        union = self._obj.iterate(lambda f, g: f.geometry().union(g), first)
+        return ee.Geometry(union).dissolve()
