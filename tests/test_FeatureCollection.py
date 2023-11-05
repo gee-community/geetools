@@ -34,3 +34,20 @@ class TestToImage:
     def vatican(self):
         """Return a buffer around the Vatican City."""
         return ee.Geometry.Point([12.453386, 41.903282]).buffer(1)
+
+
+class TestAddId:
+    """Test the ``addId`` method."""
+
+    def test_add_id(self, fc_instance):
+        fc = fc_instance.geetools.addId()
+        assert fc.first().get("id").getInfo() == 1
+
+    def test_deprecated_method(self, fc_instance):
+        with pytest.deprecated_call():
+            fc = geetools.tools.featurecollection.addId(fc_instance)
+            assert fc.first().get("id").getInfo() == 1
+
+    @pytest.fixture
+    def fc_instance(self):
+        return ee.FeatureCollection("FAO/GAUL/2015/level0").limit(10)

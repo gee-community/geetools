@@ -32,3 +32,32 @@ class FeatureCollection:
         params = {"color": color}
         width == "" or params.update(width=width)
         return ee.Image().paint(self._obj, **params)
+
+    def addId(
+        self, name: Union[str, ee.String] = "id", start: Union[int, ee.Number] = 1
+    ) -> ee.FeatureCollection:
+        """Add a unique numeric identifier, starting from parameter ``start``.
+
+        Returns:
+            The parsed collection with a new id property
+
+        Example:
+            .. jupyter-execute::
+
+                import ee
+                import geetools
+
+                ee.Initialize()
+
+                fc = ee.FeatureCollection('FAO/GAUL/2015/level0')
+                fc = fc.geetools.addId()
+                print(fc.first().get('id').getInfo())
+        """
+        start, name = ee.Number(start).toInt(), ee.String(name)
+
+        indexes = ee.List(self._obj.aggregate_array("system:index"))
+        ids = ee.List.sequence(start, start.add(self._obj.size()).subtract(1))
+        idByIndex = ee.Dictionary.fromLists(indexes, ids)
+        return self._obj.map(
+            lambda f: f.set(name, idByIndex.get(f.get("system:index")))
+        )
