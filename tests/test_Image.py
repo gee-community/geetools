@@ -556,3 +556,71 @@ class TestRepeat:
         """Return an Image instance."""
         src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
         return ee.Image(src).select(["B1", "B2", "B3"])
+
+
+class TestHistogramMatch:
+    """Test the ``histogramMatch`` method."""
+
+    def test_histogram_match(self, image_source, image_target, vatican):
+        image = image_source.geetools.histogramMatch(image_target)
+        values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
+        assert values.getInfo() == {"B4": 0.0, "B3": 0.0, "B2": 0.0}
+
+    @pytest.fixture
+    def vatican(self):
+        """A 1 m buffer around the Vatican."""
+        return ee.Geometry.Point([12.4534, 41.9029]).buffer(1)
+
+    @pytest.fixture
+    def dates(self):
+        """The dates of my imagery."""
+        return "2023-06-01", "2023-06-30"
+
+    @pytest.fixture
+    def image_source(self, vatican, dates):
+        """image from the S2 copernicus program over vatican city."""
+        return (
+            ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .filterBounds(vatican)
+            .filterDate(*dates)
+            .first()
+            .select("B4", "B3", "B2")
+            .rename("R", "G", "B")
+        )
+
+    @pytest.fixture
+    def image_target(self, vatican, dates):
+        """image from the L8 Landsat program over vatican city."""
+        return (
+            ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
+            .filterBounds(vatican)
+            .filterDate(*dates)
+            .first()
+            .select("SR_B4", "SR_B3", "SR_B2")
+            .rename("R", "G", "B")
+        )
+
+
+class TestRemoveZeros:
+    """Test the ``removeZeros`` method."""
+
+    def test_remove_zeros(self, image_instance, vatican):
+        image = image_instance.geetools.removeZeros()
+        values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+        assert values.getInfo() == {"array": [1, 2]}
+
+    def test_deprecated_method(self, image_instance, vatican):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.arrayNonZeros(image_instance)
+            values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+            assert values.getInfo() == {"array": [1, 2]}
+
+    @pytest.fixture
+    def vatican(self):
+        """A 1 m buffer around the Vatican."""
+        return ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
+
+    @pytest.fixture
+    def image_instance(self):
+        """A random image instance with array data containing zeros."""
+        return ee.Image([0, 1, 2]).toArray()

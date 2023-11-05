@@ -679,3 +679,111 @@ class Image:
             return ee.Image(i).addBands(image.rename(name))
 
         return ee.Image(sequence.iterate(addBand, self._obj))
+
+    def histogramMatch(self, target):
+        """Match the histogram of the image to the target image.
+
+        The target images must use the same band names as the source one.
+        See the following article for more details: https://medium.com/google-earth/histogram-matching-c7153c85066d
+
+        Args:
+            target: The target image to match the histogram to
+
+        Returns:
+            The image with the histogram matched to the target image
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                vatican = ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
+                image = (
+                    ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+                    .filterBounds(vatican)
+                    .filterDate("2023-06-01", "2023-06-30")
+                    .first()
+                )
+                target = (
+                    ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
+                    .filterBounds(vatican)
+                    .filterDate("2023-06-01", "2023-06-30")
+                    .first()
+                )
+                image = image.geetools.histogramMatch(target)
+                print(image.bandNames().getInfo())
+        """
+        bands = self._obj.bandNames()
+
+        # get the histogram of the source and target images
+        kwargs = {
+            "reducer": ee.Reducer.autoHistogram(maxBuckets=256, cumulative=True),
+            "geometry": self._obj.geometry(),
+            "bestEffort": True,
+        }
+        sourceHistogram = self._obj.reduceRegion(**kwargs)
+        targetHistogram = target.updateMask(self._obj.mask()).reduceRegion(**kwargs)
+
+        # Create a lookup table to make sourceHist match targetHist.
+        def lookup(sourceHist, targetHist):
+            # Split the histograms by column and normalize the counts.
+            sourceValues = sourceHist.slice(1, 0, 1).project([0])
+            sourceCounts = sourceHist.slice(1, 1, 2).project([0])
+            sourceCounts = sourceCounts.divide(sourceCounts.get([-1]))
+
+            targetValues = targetHist.slice(1, 0, 1).project([0])
+            targetCounts = targetHist.slice(1, 1, 2).project([0])
+            targetCounts = targetCounts.divide(targetCounts.get([-1]))
+
+            # Find first position in target where targetCount >= srcCount[i], for each i.
+            lookup = sourceCounts.toList().map(
+                lambda n: targetValues.get(targetCounts.gte(n).argmax())
+            )
+
+            return {"x": sourceValues.toList(), "y": lookup}
+
+        matchedList = bands.map(
+            lambda b: (
+                self._obj.select(ee.String(b)).interpolate(
+                    **lookup(sourceHistogram.getArray(b), targetHistogram.getArray(b))
+                )
+            )
+        )
+
+        return ee.Image().addBands(matchedList).rename(bands)
+
+    def removeZeros(self) -> ee.Image:
+        """Return an image array with non-zero values extracted from each band.
+
+        This function processes a multi-band image array, where each band represents different data.
+        It removes zero values from each band independently and then combines the non-zero values from all bands into a single image.
+        The resulting image may have inconsistent array lengths for each pixel, as the number of zero values removed can vary across bands.
+
+        Returns:
+            The image with the zero values removed from each band.
+
+        Example:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                vatican = ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
+                image = ee.Image([0, 1, 2]).toArray()
+                image = image.geetools.removeZeros()
+                values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+                print(values.getInfo())
+        """
+        bands = self._obj.bandNames()
+
+        def remove(band):
+            image = self._obj.select([band])
+            isZero = image.divide(image)
+            countZeros = isZero.arrayReduce(ee.Reducer.sum(), [0]).multiply(-1)
+            nbZeros = countZeros.arrayProject([0]).arrayFlatten([["n"]]).toInt()
+            return image.arraySort().arraySlice(0, nbZeros)
+
+        return ee.ImageCollection(bands.map(remove)).toBands().rename(bands)

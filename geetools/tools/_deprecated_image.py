@@ -247,3 +247,17 @@ def repeatBand(image, times=1, names=None, properties=None):
 def paint(image, featurecollection, color="black", width=1, *args, **kwargs):
     """Paint a FeatureCollection onto an Image."""
     return featurecollection.geetools.toImage(color, width)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.histogramMatch instead")
+def histogramMatch(
+    sourceImg, targetImg, geometry=None, scale=None, tiles=4, bestEffort=True
+):
+    """Histogram Matching. From https://medium.com/google-earth/histogram-matching-c7153c85066d."""
+    return sourceImg.geetools.histogramMatch(targetImg)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.removeZeros instead")
+def arrayNonZeros(image):
+    """Return an image array without zeros."""
+    return ee.Image(image).geetools.removeZeros()
