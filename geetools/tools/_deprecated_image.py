@@ -261,3 +261,9 @@ def histogramMatch(
 def arrayNonZeros(image):
     """Return an image array without zeros."""
     return ee.Image(image).geetools.removeZeros()
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.interpolateBands instead")
+def parametrize(image, range_from, range_to, bands=None, drop=False):
+    """Parametrize from a original **known** range to a fixed new range."""
+    return ee.Image(image).geetools.interpolateBands(range_from, range_to)

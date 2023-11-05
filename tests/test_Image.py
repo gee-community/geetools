@@ -624,3 +624,31 @@ class TestRemoveZeros:
     def image_instance(self):
         """A random image instance with array data containing zeros."""
         return ee.Image([0, 1, 2]).toArray()
+
+
+class TestInterpolateBands:
+    """Test the ``interpolateBands`` method."""
+
+    def test_interpolate_bands(self, image_instance, vatican):
+        image = image_instance.geetools.interpolateBands([0, 3000], [0, 30])
+        values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+        assert values.getInfo() == {"B2": 11.79, "B4": 19.04}
+
+    def test_deprecated_method(self, image_instance, vatican):
+        with pytest.deprecated_call():
+            image = geetools.tools.image.parametrize(image_instance, [0, 3000], [0, 30])
+            values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+            assert values.getInfo() == {"B2": 11.79, "B4": 19.04}
+
+    @pytest.fixture
+    def vatican(self):
+        """A 1 m buffer around the Vatican."""
+        return ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
+
+    @pytest.fixture
+    def image_instance(self, vatican):
+        """A sentinel 2 single image centered on the vatican."""
+        src = "COPERNICUS/S2_SR_HARMONIZED"
+        return (
+            ee.ImageCollection(src).filterBounds(vatican).first().select(["B4", "B2"])
+        )

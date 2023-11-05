@@ -787,3 +787,40 @@ class Image:
             return image.arraySort().arraySlice(0, nbZeros)
 
         return ee.ImageCollection(bands.map(remove)).toBands().rename(bands)
+
+    def interpolateBands(
+        self, src: Union[list, ee.List], to: Union[list, ee.List]
+    ) -> ee.Image:
+        """Interpolate bands from the "src" value range to the "to" value range.
+
+        The Interpolation is performed linearly using the "extrapolate" option of the "interpolate" method.
+
+        Args:
+            src: The source value range
+            to: The target value range
+
+        Returns:
+            The image with the interpolated bands
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                vatican = ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
+                image = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED').filterBounds(vatican).first()
+                image = image.select(["B4", "B3", "B2"]).geetools.interpolateBands([0, 3000], [0, 30])
+                values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
+                print(values.getInfo())
+        """
+        bands = self._obj.bandNames()
+        src, to = ee.List(src), ee.List(to)
+
+        def interpolate(band):
+            original = self._obj.select([band])
+            normalized = original.unitScale(src.get(0), src.get(1))
+            return normalized.interpolate([0, 1], to)
+
+        return ee.ImageCollection(bands.map(interpolate)).toBands().rename(bands)
