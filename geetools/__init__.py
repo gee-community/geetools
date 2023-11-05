@@ -53,6 +53,7 @@ from .tools import (
     array,  # noqa: F401
     date,  # noqa: F401
     dictionary,  # noqa: F401
+    featurecollection,  # noqa: F401
     number,  # noqa: F401
     string,  # noqa: F401
 )
