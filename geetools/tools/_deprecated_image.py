@@ -264,6 +264,27 @@ def arrayNonZeros(image):
 
 
 @deprecated(version="1.0.0", reason="Use ee.Image.geetools.interpolateBands instead")
-def parametrize(image, range_from, range_to, bands=None, drop=False):
+def parametrize(image, range_from, range_to, *args, **kwargs):
     """Parametrize from a original **known** range to a fixed new range."""
     return ee.Image(image).geetools.interpolateBands(range_from, range_to)
+
+
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.interpolateBands instead")
+def linearFunction(
+    image,
+    band,
+    range_min=None,
+    range_max=None,
+    mean=None,
+    output_min=None,
+    output_max=None,
+    name="linear_function",
+    region=None,
+    scale=None,
+):
+    """Apply a linear function over one image band using the following."""
+    range_from = [range_min, range_max]
+    range_to = [output_min, output_max]
+    return (
+        ee.Image(image).select([band]).geetools.interpolateBands(range_from, range_to)
+    )

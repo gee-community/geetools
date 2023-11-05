@@ -640,6 +640,15 @@ class TestInterpolateBands:
             values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
             assert values.getInfo() == {"B2": 11.79, "B4": 19.04}
 
+    def test_deprecated_method_2(self, image_instance, vatican):
+        with pytest.deprecated_call():
+            band = image_instance.bandNames().get(0)
+            image = geetools.tools.image.linearFunction(
+                image_instance, band, 0, 3000, output_min=0, output_max=30
+            )
+            values = image.reduceRegion(ee.Reducer.first(), vatican, 1)
+            assert values.getInfo() == {"B4": 19.04}
+
     @pytest.fixture
     def vatican(self):
         """A 1 m buffer around the Vatican."""
