@@ -47,24 +47,3 @@ def enumerateProperty(col, name="enumeration"):
 
     featlist = enumerated.map(over_list)
     return ee.FeatureCollection(featlist)
-
-
-def enumerateSimple(collection, name="ENUM"):
-    """Simple enumeration of features inside a collection. Each feature stores.
-
-    its enumeration, so if the order of features changes over time, the
-    numbers will not be in order
-    .
-    """
-    size = collection.size()
-    collist = collection.toList(size)
-    seq = ee.List.sequence(0, size.subtract(1))
-
-    def wrap(n):
-        n = ee.Number(n).toInt()
-        feat = collist.get(n)
-        return ee.Feature(feat).set(name, n)
-
-    fc = ee.FeatureCollection(seq.map(wrap))
-
-    return ee.FeatureCollection(fc.copyProperties(source=collection))

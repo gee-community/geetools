@@ -22,3 +22,9 @@ def addId(collection, name="id", start=1):
 def mergeGeometries(collection):
     """Merge the geometries of many features. Return ee.Geometry."""
     return collection.geetools.mergeGeometries()
+
+
+@deprecated(version="1.0.0", reason="Use ee.FeatureCollection.geetools.addId instead")
+def enumerateSimple(collection, name="ENUM"):
+    """Simple enumeration of features inside a collection."""
+    return collection.geetools.addId(name)
