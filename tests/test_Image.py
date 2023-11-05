@@ -564,7 +564,7 @@ class TestHistogramMatch:
     def test_histogram_match(self, image_source, image_target, vatican):
         image = image_source.geetools.histogramMatch(image_target)
         values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
-        assert values.getInfo() == {"B4": 0.0, "B3": 0.0, "B2": 0.0}
+        assert values.getInfo() == {"B": 7680, "G": 8448, "R": 8416}
 
     @pytest.fixture
     def vatican(self):

@@ -705,12 +705,16 @@ class Image:
                     .filterBounds(vatican)
                     .filterDate("2023-06-01", "2023-06-30")
                     .first()
+                    .select("B4", "B3", "B2")
+                    .rename("R", "G", "B")
                 )
                 target = (
                     ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
                     .filterBounds(vatican)
                     .filterDate("2023-06-01", "2023-06-30")
                     .first()
+                    .select("SR_B4", "SR_B3", "SR_B2")
+                    .rename("R", "G", "B")
                 )
                 image = image.geetools.histogramMatch(target)
                 print(image.bandNames().getInfo())
@@ -752,7 +756,7 @@ class Image:
             )
         )
 
-        return ee.Image().addBands(matchedList).rename(bands)
+        return ee.ImageCollection(matchedList).toBands().rename(bands)
 
     def removeZeros(self) -> ee.Image:
         """Return an image array with non-zero values extracted from each band.
