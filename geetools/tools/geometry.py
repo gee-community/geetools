@@ -4,15 +4,6 @@ import ee
 import ee.data
 
 
-def unpack(iterable):
-    """Helper function to unpack an iterable."""
-    unpacked = []
-    for tt in iterable:
-        for t in tt:
-            unpacked.append(t)
-    return unpacked
-
-
 def getRegion(eeobject, bounds=False, error=1):
     """Gets the region of a given geometry to use in exporting tasks.
 
@@ -37,11 +28,11 @@ def getRegion(eeobject, bounds=False, error=1):
                     region.append(geom["coordinates"][0])
                 elif this_type in ["MultiPolygon"]:
                     geometries2 = geom["coordinates"]
-                    region.append(unpack(geometries2))
+                    region.append(unpack(geometries2))  # noqa: F821
 
         elif geomtype == "MultiPolygon":
             subregion = info["coordinates"]
-            region = unpack(subregion)
+            region = unpack(subregion)  # noqa: F821
         else:
             region = info["coordinates"]
 
