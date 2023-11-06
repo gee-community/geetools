@@ -60,7 +60,7 @@ class TestMergeGeometries:
         geom = fc_instance.geetools.mergeGeometries()
         data_regression.check(geom.getInfo())
 
-    def test_deprecated_method(self, fc_instance, data_regression):
+    def test_deprecated_merge(self, fc_instance, data_regression):
         with pytest.deprecated_call():
             geom = geetools.tools.featurecollection.mergeGeometries(fc_instance)
             data_regression.check(geom.getInfo())
@@ -79,7 +79,7 @@ class TestToPolygons:
         fc = fc_instance.geetools.toPolygons()
         data_regression.check(fc.getInfo())
 
-    def test_deprecated_method(self, fc_instance, data_regression):
+    def test_deprecated_clean(self, fc_instance, data_regression):
         with pytest.deprecated_call():
             fc = geetools.tools.featurecollection.clean(fc_instance)
             data_regression.check(fc.getInfo())
