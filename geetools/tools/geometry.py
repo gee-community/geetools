@@ -4,68 +4,6 @@ import ee
 import ee.data
 
 
-def getRegion(eeobject, bounds=False, error=1):
-    """Gets the region of a given geometry to use in exporting tasks.
-
-    argument can be a Geometry, Feature or Image.
-
-    :param eeobject: geometry to get region of
-    :type eeobject: ee.Feature, ee.Geometry, ee.Image
-    :param error: error parameter of ee.Element.geometry
-    :return: region coordinates ready to use in a client-side EE function
-    :rtype: json
-    """
-
-    def dispatch(geometry):
-        info = geometry.getInfo()
-        geomtype = info["type"]
-        if geomtype == "GeometryCollection":
-            geometries = info["geometries"]
-            region = []
-            for geom in geometries:
-                this_type = geom["type"]
-                if this_type in ["Polygon", "Rectangle"]:
-                    region.append(geom["coordinates"][0])
-                elif this_type in ["MultiPolygon"]:
-                    geometries2 = geom["coordinates"]
-                    region.append(unpack(geometries2))  # noqa: F821
-
-        elif geomtype == "MultiPolygon":
-            subregion = info["coordinates"]
-            region = unpack(subregion)  # noqa: F821
-        else:
-            region = info["coordinates"]
-
-        return region
-
-    # Geometry
-    if isinstance(eeobject, ee.Geometry):
-        geometry = eeobject.bounds() if bounds else eeobject
-        region = dispatch(geometry)
-    # Feature and Image
-    elif isinstance(eeobject, (ee.Feature, ee.Image)):
-        geometry = (
-            eeobject.geometry(error).bounds() if bounds else eeobject.geometry(error)
-        )
-        region = dispatch(geometry)
-    # FeatureCollection and ImageCollection
-    elif isinstance(eeobject, (ee.FeatureCollection, ee.ImageCollection)):
-        if bounds:
-            geometry = eeobject.geometry(error).bounds()
-        else:
-            geometry = eeobject.geometry(error).dissolve()
-        region = dispatch(geometry)
-    # List
-    elif isinstance(eeobject, list):
-        condition = all([type(item) == list for item in eeobject])
-        if condition:
-            region = eeobject
-    else:
-        region = eeobject
-
-    return region
-
-
 def GeometryCollection_to_MultiPolygon(geom):
     """Convert a Geometry of type `GeometryCollection` into a Geometry of type.
 
