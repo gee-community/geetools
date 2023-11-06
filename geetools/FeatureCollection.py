@@ -114,10 +114,7 @@ class FeatureCollection:
 
         def removeNonPoly(feat):
             filteredGeoms = feat.geometry().geometries().map(filterGeom, True)
-            return feat.setGeometry(
-                ee.Geometry.MultiPolygon(
-                    filteredGeoms, geodesic=feat.geometry().geodesic()
-                )
-            )
+            proj = feat.geometry().projection()
+            return feat.setGeometry(ee.Geometry.MultiPolygon(filteredGeoms, proj))
 
         return self._obj.map(removeNonPoly)

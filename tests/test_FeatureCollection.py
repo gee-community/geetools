@@ -75,16 +75,10 @@ class TestMergeGeometries:
 class TestToPolygons:
     """Test the ``toPolygons`` method."""
 
-    @pytest.mark.skip(
-        reason="https://gis.stackexchange.com/questions/469705/why-cannot-i-create-a-line-from-2-points-in-earthengine-python-api"
-    )
     def test_to_polygons(self, fc_instance, data_regression):
         fc = fc_instance.geetools.toPolygons()
         data_regression.check(fc.getInfo())
 
-    @pytest.mark.skip(
-        reason="https://gis.stackexchange.com/questions/469705/why-cannot-i-create-a-line-from-2-points-in-earthengine-python-api"
-    )
     def test_deprecated_method(self, fc_instance, data_regression):
         with pytest.deprecated_call():
             fc = geetools.tools.featurecollection.clean(fc_instance)
@@ -92,6 +86,17 @@ class TestToPolygons:
 
     @pytest.fixture
     def fc_instance(self):
-        """Return Italy switzerland and France."""
-        fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
-        return fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))
+        """Return a fc collection containing 1 single geometryCollection."""
+        point0 = ee.Geometry.Point([0, 0], proj="EPSG:4326")
+        point1 = ee.Geometry.Point([0, 1], proj="EPSG:4326")
+        poly0 = point0.buffer(1, proj="EPSG:4326")
+        poly1 = point1.buffer(1, proj="EPSG:4326").bounds(proj="EPSG:4326")
+        line = ee.Geometry.LineString([point1, point0], proj="EPSG:4326")
+        multiPoly = ee.Geometry.MultiPolygon([poly0, poly1], proj="EPSG:4326")
+        geometryCollection = ee.Algorithms.GeometryConstructors.MultiGeometry(
+            [multiPoly, poly0, poly1, point0, line],
+            crs="EPSG:4326",
+            geodesic=True,
+            maxError=1,
+        )
+        return ee.FeatureCollection([geometryCollection])
