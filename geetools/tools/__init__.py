@@ -4,6 +4,7 @@
 """Legacy import package for tools."""
 
 from . import _deprecated_array as array  # noqa: F401
+from . import _deprecated_collection as collection  # noqa: F401
 from . import _deprecated_computedobject as computedobject  # noqa: F401
 from . import _deprecated_date as date  # noqa: F401
 from . import _deprecated_dictionary as dictionary  # noqa: F401
