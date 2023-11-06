@@ -3,51 +3,6 @@
 import ee
 import ee.data
 
-UNBOUNDED = [
-    [[-180.0, -90.0], [180.0, -90.0], [180.0, 90.0], [-180.0, 90.0], [-180.0, -90.0]]
-]
-
-UNBOUNDED_2 = [[[None, None], [None, None], [None, None], [None, None], [None, None]]]
-
-
-def isUnbounded(geometry):
-    """Check if the geometry is unbounded using the module's definition of
-    unboundness. It's a client-side function. For server-side function use.
-
-    `ee.Geometry.isUnbounded()`
-    """
-    bounds = geometry.getInfo()["coordinates"]
-    check1 = bounds == UNBOUNDED
-    check2 = bounds == UNBOUNDED_2
-
-    if check1 or check2:
-        return True
-    else:
-        return False
-
-
-UNBOUNDED = [
-    [[-180.0, -90.0], [180.0, -90.0], [180.0, 90.0], [-180.0, 90.0], [-180.0, -90.0]]
-]
-
-UNBOUNDED_2 = [[[None, None], [None, None], [None, None], [None, None], [None, None]]]
-
-
-def isUnbounded(geometry):
-    """Check if the geometry is unbounded using the module's definition of
-    unboundness. It's a client-side function. For server-side function use.
-
-    `ee.Geometry.isUnbounded()`
-    """
-    bounds = geometry.getInfo()["coordinates"]
-    check1 = bounds == UNBOUNDED
-    check2 = bounds == UNBOUNDED_2
-
-    if check1 or check2:
-        return True
-    else:
-        return False
-
 
 def unpack(iterable):
     """Helper function to unpack an iterable."""
@@ -59,7 +14,8 @@ def unpack(iterable):
 
 
 def getRegion(eeobject, bounds=False, error=1):
-    """Gets the region of a given geometry to use in exporting tasks. The
+    """Gets the region of a given geometry to use in exporting tasks.
+
     argument can be a Geometry, Feature or Image.
 
     :param eeobject: geometry to get region of
@@ -120,7 +76,8 @@ def getRegion(eeobject, bounds=False, error=1):
 
 
 def GeometryCollection_to_MultiPolygon(geom):
-    """Convert a Geometry of type `GeometryCollection` into a Geometry of type
+    """Convert a Geometry of type `GeometryCollection` into a Geometry of type.
+
     `MultiPolygon` which will include Polygons, MultiPolygons and LinearRings
     .
     """
@@ -148,7 +105,8 @@ def GeometryCollection_to_MultiPolygon(geom):
 
 
 def GeometryCollection_to_MultiLineString(geom):
-    """Convert a Geometry of type `GeometryCollection` into a Geometry of type
+    """Convert a Geometry of type `GeometryCollection` into a Geometry of type.
+
     `MultiLineString` which will include LineString and MultiLineString
     .
     """
@@ -175,7 +133,8 @@ def GeometryCollection_to_MultiLineString(geom):
 
 
 def GeometryCollection_to_MultiPoint(geom):
-    """Convert a Geometry of type `GeometryCollection` into a Geometry of type
+    """Convert a Geometry of type `GeometryCollection` into a Geometry of type.
+
     `MultiPoint` which will include Point and MultiPoint
     .
     """
