@@ -102,9 +102,10 @@ class FeatureCollection:
                 ee.Initialize()
 
                 fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
-                fc =fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))
-                fc = fc.geetools.toPolygon()
-                print(fc.getInfo())
+                # example is broken at the moment
+                # fc =fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))
+                # fc = fc.geetools.toPolygon()
+                # print(fc.getInfo())
         """
 
         def filterGeom(geom):
