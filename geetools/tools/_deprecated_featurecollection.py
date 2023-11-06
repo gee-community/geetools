@@ -36,3 +36,9 @@ def enumerateSimple(collection, name="ENUM"):
 def clean(collection):
     """Convert Features that have a Geometry of type `GeometryCollection` into the inner geometries."""
     return collection.geetools.toPolygons()
+
+
+@deprecated(version="1.0.0", reason="Use ee.FeatureCollection.geetools.addId instead")
+def enumerateProperty(col, name="enumeration"):
+    """Create an enumeration property."""
+    return col.geetools.addId(name, 1)
