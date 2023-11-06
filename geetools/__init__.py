@@ -47,11 +47,13 @@ from .Float import Float
 from .Geometry import Geometry  # noqa: F401
 from .Image import Image  # noqa: F401
 from .Integer import Integer
+from .Join import Join  # noqa: F401
 from .List import List  # noqa: F401
 from .Number import Number  # noqa: F401
 from .String import String  # noqa: F401
 from .tools import (
     array,  # noqa: F401
+    collection,  # noqa: F401
     date,  # noqa: F401
     dictionary,  # noqa: F401
     feature,  # noqa: F401
