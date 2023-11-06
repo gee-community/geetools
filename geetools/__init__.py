@@ -40,6 +40,7 @@ from .Array import Array  # noqa: F401
 from .Date import Date  # noqa: F401
 from .DateRange import DateRange  # noqa: F401
 from .Dictionary import Dictionary  # noqa: F401
+from .Feature import Feature  # noqa: F401
 from .FeatureCollection import FeatureCollection  # noqa: F401
 from .Filter import Filter  # noqa: F401
 from .Float import Float
@@ -53,6 +54,7 @@ from .tools import (
     array,  # noqa: F401
     date,  # noqa: F401
     dictionary,  # noqa: F401
+    feature,  # noqa: F401
     featurecollection,  # noqa: F401
     geometry,  # noqa: F401
     number,  # noqa: F401
