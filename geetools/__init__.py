@@ -56,6 +56,7 @@ from .tools import (
     collection,  # noqa: F401
     date,  # noqa: F401
     dictionary,  # noqa: F401
+    element,  # noqa: F401
     feature,  # noqa: F401
     featurecollection,  # noqa: F401
     geometry,  # noqa: F401
