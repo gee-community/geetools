@@ -101,11 +101,17 @@ class FeatureCollection:
 
                 ee.Initialize()
 
-                fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
-                # example is broken at the moment
-                # fc =fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))
-                # fc = fc.geetools.toPolygon()
-                # print(fc.getInfo())
+                point0 = ee.Geometry.Point([0,0], proj="EPSG:4326")
+                point1 = ee.Geometry.Point([0,1], proj="EPSG:4326")
+                poly0 = point0.buffer(1, proj="EPSG:4326")
+                poly1 = point1.buffer(1, proj="EPSG:4326").bounds(proj="EPSG:4326")
+                line = ee.Geometry.LineString([point1, point0], proj="EPSG:4326")
+                multiPoly = ee.Geometry.MultiPolygon([poly0, poly1], proj="EPSG:4326")
+                geometryCol = ee.Algorithms.GeometryConstructors.MultiGeometry([multiPoly, poly0, poly1, point0, line], crs="EPSG:4326", geodesic=True, maxError=1)
+
+                fc = ee.FeatureCollection([geometryCol])
+                fc = fc.geetools.toPolygons()
+                print(fc.getInfo())
         """
 
         def filterGeom(geom):
@@ -114,10 +120,7 @@ class FeatureCollection:
 
         def removeNonPoly(feat):
             filteredGeoms = feat.geometry().geometries().map(filterGeom, True)
-            return feat.setGeometry(
-                ee.Geometry.MultiPolygon(
-                    filteredGeoms, geodesic=feat.geometry().geodesic()
-                )
-            )
+            proj = feat.geometry().projection()
+            return feat.setGeometry(ee.Geometry.MultiPolygon(filteredGeoms, proj))
 
         return self._obj.map(removeNonPoly)

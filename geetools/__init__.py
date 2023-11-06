@@ -43,6 +43,7 @@ from .Dictionary import Dictionary  # noqa: F401
 from .FeatureCollection import FeatureCollection  # noqa: F401
 from .Filter import Filter  # noqa: F401
 from .Float import Float
+from .Geometry import Geometry  # noqa: F401
 from .Image import Image  # noqa: F401
 from .Integer import Integer
 from .List import List  # noqa: F401
@@ -53,6 +54,7 @@ from .tools import (
     date,  # noqa: F401
     dictionary,  # noqa: F401
     featurecollection,  # noqa: F401
+    geometry,  # noqa: F401
     number,  # noqa: F401
     string,  # noqa: F401
 )
