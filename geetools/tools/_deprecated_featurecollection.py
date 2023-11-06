@@ -28,3 +28,11 @@ def mergeGeometries(collection):
 def enumerateSimple(collection, name="ENUM"):
     """Simple enumeration of features inside a collection."""
     return collection.geetools.addId(name)
+
+
+@deprecated(
+    version="1.0.0", reason="Use ee.FeatureCollection.geetools.toPolygons instead"
+)
+def clean(collection):
+    """Convert Features that have a Geometry of type `GeometryCollection` into the inner geometries."""
+    return collection.geetools.toPolygons()

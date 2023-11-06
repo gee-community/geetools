@@ -84,3 +84,39 @@ class FeatureCollection:
         first = self._obj.first().geometry()
         union = self._obj.iterate(lambda f, g: f.geometry().union(g), first)
         return ee.Geometry(union).dissolve()
+
+    def toPolygons(self) -> ee.FeatureCollection:
+        """Drop any geometry that is not a Polygon or a multipolygon.
+
+        This method is made to avoid errors when performing zonal statistics and/or other surfaces operations. These operations won't work on geometries that are Lines or points. The methods remove these geometry types from GEometryCollections and rremove features that don't have any polygon geometry
+
+        Returns:
+            The parsed collection with only polygon/MultiPolygon geometries
+
+        Example:
+            .. jupyter-execute::
+
+                import ee
+                import geetools
+
+                ee.Initialize()
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
+                fc =fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))
+                fc = fc.geetools.toPolygon()
+                print(fc.getInfo())
+        """
+
+        def filterGeom(geom):
+            geom = ee.Geometry(geom)
+            return ee.Algorithms.If(geom.type().compareTo("Polygon"), None, geom)
+
+        def removeNonPoly(feat):
+            filteredGeoms = feat.geometry().geometries().map(filterGeom, True)
+            return feat.setGeometry(
+                ee.Geometry.MultiPolygon(
+                    filteredGeoms, geodesic=feat.geometry().geodesic()
+                )
+            )
+
+        return self._obj.map(removeNonPoly)

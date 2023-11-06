@@ -70,3 +70,28 @@ class TestMergeGeometries:
         """Return Italy switzerland and France."""
         fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
         return fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))
+
+
+class TestToPolygons:
+    """Test the ``toPolygons`` method."""
+
+    @pytest.mark.skip(
+        reason="https://gis.stackexchange.com/questions/469705/why-cannot-i-create-a-line-from-2-points-in-earthengine-python-api"
+    )
+    def test_to_polygons(self, fc_instance, data_regression):
+        fc = fc_instance.geetools.toPolygons()
+        data_regression.check(fc.getInfo())
+
+    @pytest.mark.skip(
+        reason="https://gis.stackexchange.com/questions/469705/why-cannot-i-create-a-line-from-2-points-in-earthengine-python-api"
+    )
+    def test_deprecated_method(self, fc_instance, data_regression):
+        with pytest.deprecated_call():
+            fc = geetools.tools.featurecollection.clean(fc_instance)
+            data_regression.check(fc.getInfo())
+
+    @pytest.fixture
+    def fc_instance(self):
+        """Return Italy switzerland and France."""
+        fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
+        return fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))
