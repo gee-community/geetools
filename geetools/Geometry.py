@@ -28,8 +28,14 @@ class Geometry:
 
                 ee.Initialize()
 
-                geom = ee.Geometry.Polygon([[[0,0], [1,0], [1,1], [0,1]]])
-                geom = geom.geetools.keepType('LineString')
+                point0 = ee.Geometry.Point([0,0], proj="EPSG:4326")
+                point1 = ee.Geometry.Point([0,1], proj="EPSG:4326")
+                poly0 = point0.buffer(1, proj="EPSG:4326")
+                poly1 = point1.buffer(1, proj="EPSG:4326").bounds(proj="EPSG:4326")
+                line = ee.Geometry.LineString([point1, point0], proj="EPSG:4326")
+                multiPoly = ee.Geometry.MultiPolygon([poly0, poly1], proj="EPSG:4326")
+                geometryCol = ee.Algorithms.GeometryConstructors.MultiGeometry([multiPoly, poly0, poly1, point0, line], crs="EPSG:4326", geodesic=True, maxError=1)
+                geom = geometryCol.geetools.keepType('LineString')
                 print(geom.getInfo())
         """
         # will raise an error if self is not a GeometryCollection
