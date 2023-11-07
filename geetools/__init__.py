@@ -34,6 +34,7 @@ from . import ComputedObject  # noqa: F401
 # reproduce older structure of the lib (deprecated)
 # will be removed along the deprecation cycle
 from . import _deprecated_filters as filters  # noqa: F401
+from . import _deprecated_visualization as visualization  # noqa: F401
 
 # then we extend all the other classes
 from .Array import Array  # noqa: F401
