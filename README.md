@@ -1,7 +1,7 @@
 # Google Earth Engine tools
 
 These are a set of tools for working with Google Earth Engine Python API that
-may help to solve or automatize some processes.
+may help to solve or automate some processes.
 
 There is JavaScript module that you can import from the code editor that has
 similar functions (not exactly the same) and it's available [here](https://github.com/fitoprincipe/geetools-code-editor)
@@ -10,19 +10,19 @@ similar functions (not exactly the same) and it's available [here](https://githu
 
 #### New version 0.3.0
 
-I have splitted this package in two. This `geetools` will contain functions and
+I have split this package in two. This `geetools` will contain functions and
 methods related to Google Earth Engine exclusively, so you can use this module
 in any python environment you like. For working in Jupyter I have made another
 package called `ipygee` available [here](http://www.github.com/fitoprincipe/ipygee)
 
 #### New version 0.5.0 (breaking changes)
 
-I have splitted this package in two (again). Now the functions to make a strip
+I have split this package in two (again). Now the functions to make a strip
 of images using Pillow is available as a different package called [`geepillow`](https://github.com/fitoprincipe/geepillow)
 
 #### New version 0.6.0 (breaking changes)
 
-I have splitted this package in two (again x2). The module `geetools.collection`
+I have split this package in two (again x2). The module `geetools.collection`
 in an independent package called [geedataset](https://github.com/fitoprincipe/geedatasets)
 
 ## Installation
@@ -121,4 +121,3 @@ Any bug or question please use the [`github issue tracker`](https://github.com/g
     <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=gee-community/gee_tools&type=Date" />
   </picture>
 </a>
-
