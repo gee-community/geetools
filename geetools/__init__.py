@@ -64,6 +64,7 @@ from .tools import (
     number,  # noqa: F401
     string,  # noqa: F401
 )
+from .User import User  # noqa: F401
 
 # add the 2 placeholder classes to the ee namespace for consistency
 ee.Integer = Integer
