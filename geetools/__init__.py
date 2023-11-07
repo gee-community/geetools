@@ -2,44 +2,44 @@
 import ee
 
 # it needs to be imported first as it's the mother class
-from . import ComputedObject  # noqa: F401
-from . import _deprecated_expressions as expressions  # noqa: F401
+from . import ComputedObject
 
 # reproduce older structure of the lib (deprecated)
 # will be removed along the deprecation cycle
-from . import _deprecated_filters as filters  # noqa: F401
-from . import _deprecated_oauth as oauth  # noqa: F401
-from . import _deprecated_visualization as visualization  # noqa: F401
+from . import _deprecated_filters as filters
+from . import _deprecated_manager as manager
+from . import _deprecated_oauth as oauth
+from . import _deprecated_visualization as visualization
+from . import _deprecated_expressions as expressions
+from .tools import array
+from .tools import collection
+from .tools import date
+from .tools import dictionary
+from .tools import element
+from .tools import feature
+from .tools import featurecollection
+from .tools import geometry
+from .tools import number
+from .tools import string
 
 # then we extend all the other classes
-from .Array import Array  # noqa: F401
-from .Date import Date  # noqa: F401
-from .DateRange import DateRange  # noqa: F401
-from .Dictionary import Dictionary  # noqa: F401
-from .Feature import Feature  # noqa: F401
-from .FeatureCollection import FeatureCollection  # noqa: F401
-from .Filter import Filter  # noqa: F401
+from .Array import Array
+from .Date import Date
+from .DateRange import DateRange
+from .Dictionary import Dictionary
+from .Feature import Feature
+from .FeatureCollection import FeatureCollection
+from .Filter import Filter
 from .Float import Float
-from .Geometry import Geometry  # noqa: F401
-from .Image import Image  # noqa: F401
+from .Geometry import Geometry
+from .Image import Image
 from .Integer import Integer
-from .Join import Join  # noqa: F401
-from .List import List  # noqa: F401
-from .Number import Number  # noqa: F401
-from .String import String  # noqa: F401
-from .tools import (
-    array,  # noqa: F401
-    collection,  # noqa: F401
-    date,  # noqa: F401
-    dictionary,  # noqa: F401
-    element,  # noqa: F401
-    feature,  # noqa: F401
-    featurecollection,  # noqa: F401
-    geometry,  # noqa: F401
-    number,  # noqa: F401
-    string,  # noqa: F401
-)
-from .User import User  # noqa: F401
+from .Join import Join
+from .List import List
+from .Number import Number
+from .String import String
+
+# from .User import User
 
 # add the 2 placeholder classes to the ee namespace for consistency
 ee.Integer = Integer

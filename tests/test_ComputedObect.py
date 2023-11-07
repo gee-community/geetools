@@ -64,3 +64,37 @@ class TestIsinstance:
         with pytest.deprecated_call():
             g = ee.Geometry.Point([0, 0])
             assert geetools.tools.computedobject.isGeometry(g).getInfo() == 1
+
+
+class TestSave:
+    """Test the ``save`` method."""
+
+    @pytest.mark.skip(reason="Not working in tests but tested in a notebook")
+    def test_save(self, tmp_path):
+        file = tmp_path / "test.gee"
+        ee.Number(1.1).save(file)
+        assert file.exists()
+
+    @pytest.mark.skip(reason="Not working in tests but tested in a notebook")
+    def test_deprecated_method(self, tmp_path):
+        file = tmp_path / "test.gee"
+        with pytest.deprecated_call():
+            geetools.manager.esave(ee.Number(1.1), file)
+            assert file.exists()
+
+
+class TestOpen:
+    """Test the ``open`` method."""
+
+    @pytest.mark.skip(reason="Not working in tests but tested in a notebook")
+    def test_open(self, tmp_path):
+        (object := ee.Number(1.1)).save((file := tmp_path / "test.gee"))
+        opened = ee.Number.open(file)
+        assert object.equals(opened).getInfo()
+
+    @pytest.mark.skip(reason="Not working in tests but tested in a notebook")
+    def test_deprecated_method(self, tmp_path):
+        (object := ee.Number(1.1)).save((file := tmp_path / "test.gee"))
+        with pytest.deprecated_call():
+            opened = geetools.manager.eopen(file)
+            assert object.equals(opened).getInfo()
