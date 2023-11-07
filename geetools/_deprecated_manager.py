@@ -1,24 +1,18 @@
 # coding=utf-8
-"""Manager module for file managment."""
-
+"""Legacy Manager module for file management."""
 import json
 import os
+from pathlib import Path
 
 import ee
 import ee.data
+from deprecated.sphinx import deprecated
 
 
-def esave(eeobject, filename, path=None):
-    """Saves any EE object to a file with extension .gee.
-
-    The file has to be opened with `eopen`
-    """
-    obj = ee.serializer.encode(eeobject)
-
-    path = path if path else os.getcwd()
-
-    with open(os.path.join(path, filename + ".gee"), "w") as js:
-        json.dump(obj, js)
+@deprecated(version="1.0.0", reason="Use ee.ComputedObject.save instead")
+def esave(eeobject, filename, path=Path.home()):
+    """Saves any EE object to a file with extension .gee."""
+    return eeobject.save(path / filename)
 
 
 def eopen(file, path=None):

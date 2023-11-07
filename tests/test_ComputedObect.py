@@ -64,3 +64,25 @@ class TestIsinstance:
         with pytest.deprecated_call():
             g = ee.Geometry.Point([0, 0])
             assert geetools.tools.computedobject.isGeometry(g).getInfo() == 1
+
+
+class TestSave:
+    """Test the ``save`` method."""
+
+    def test_save(self, image_instance, tmp_path):
+        """Test the save method."""
+        file = tmp_path / "test.gee"
+        image_instance.save(file)
+        assert file.exists()
+
+    def test_deprecated_method(self, image_instance, tmp_path):
+        """Test the deprecated method."""
+        file = tmp_path / "test.gee"
+        with pytest.deprecated_call():
+            geetools.manager.esave(image_instance, file)
+            assert file.exists()
+
+    @pytest.fixture
+    def image_instance(self):
+        """Return an image instance."""
+        return ee.Image("COPERNICUS/S2/20151128T112653_20151128T135750_T29SND")

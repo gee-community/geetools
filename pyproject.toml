@@ -80,6 +80,7 @@ using = "PEP631:test;dev;doc"
 ignore-init-module-imports = true
 fix = true
 select = ["E", "F", "W", "I", "D", "RUF"]
+extend-exclude = ["geetools/__init__.py"]
 ignore = [
   "E501",  # line too long | Black take care of it
   "D213",  # Multi-line docstring | We use D212

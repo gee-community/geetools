@@ -8,6 +8,7 @@ from . import _deprecated_expressions as expressions  # noqa: F401
 # reproduce older structure of the lib (deprecated)
 # will be removed along the deprecation cycle
 from . import _deprecated_filters as filters  # noqa: F401
+from . import _deprecated_manager as manager  # noqa: F401
 from . import _deprecated_oauth as oauth  # noqa: F401
 from . import _deprecated_visualization as visualization  # noqa: F401
 
@@ -39,7 +40,8 @@ from .tools import (
     number,  # noqa: F401
     string,  # noqa: F401
 )
-from .User import User  # noqa: F401
+
+# from .User import User
 
 # add the 2 placeholder classes to the ee namespace for consistency
 ee.Integer = Integer
