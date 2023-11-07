@@ -17,11 +17,10 @@ def delete_local_user(user="", credential_path=""):
     geetools.User.delete(user, credential_path)
 
 
-@deprecated(version="1.0.0", reason="Use geetools.User.delete/create instead")
+@deprecated(version="1.0.0", reason="Use geetools.User.rename instead")
 def rename_current_user(name="", credential_path=""):
     """Rename the current user."""
-    geetools.User.delete(name, credential_path)
-    geetools.User.create(name, credential_path)
+    geetools.User.rename(name, "", credential_path)
 
 
 @deprecated(version="1.0.0", reason="Use geetools.User.set instead")

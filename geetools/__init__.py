@@ -1,39 +1,14 @@
 """A package to use with Google Earth Engine Python API."""
 import ee
 
-# from geetools import (
-# bitreader,
-# cloud_mask,
-# expressions,
-# decision_tree,
-# indices,
-# batch,
-# algorithms,
-# composite,
-# manager,
-# utils,
-# collection,
-# oauth,
-# visualization,
-# classification
-# )
-# from geetools.tools import (
-# ee_list,
-# featurecollection,
-# geometry,
-# image,
-# imagecollection,
-# )
-# from geetools.ui import eprint
-# from geetools.batch import Export, Import, Convert, Download
-# from geetools.oauth import Initialize
-# from geetools.utils import evaluate
 # it needs to be imported first as it's the mother class
 from . import ComputedObject  # noqa: F401
+from . import _deprecated_expressions as expressions  # noqa: F401
 
 # reproduce older structure of the lib (deprecated)
 # will be removed along the deprecation cycle
 from . import _deprecated_filters as filters  # noqa: F401
+from . import _deprecated_oauth as oauth  # noqa: F401
 from . import _deprecated_visualization as visualization  # noqa: F401
 
 # then we extend all the other classes

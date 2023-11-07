@@ -146,3 +146,28 @@ class User:
         credential_path = Path(credential_path).parent
         files = [f for f in credential_path.glob("credentials*") if f.is_file()]
         return [f.name.replace("credentials", "") or "default" for f in files]
+
+    @staticmethod
+    def rename(new: str, old: str = "", credential_path: str = "") -> None:
+        """Rename a user without changing the credentials.
+
+        Args:
+            new: The new name of the user
+            old: The name of the user to rename
+            credential_path: The path to the folder where the credentials are stored. If not set, it uses the default path
+
+        Example:
+            .. jupyter-execute::
+
+                import ee
+                import geetools
+
+                geetools.user.create("secondary")
+                geetools.User.rename("secondary", "new_default")
+                geetools.User.list()
+        """
+        old = f"credentials{old}"
+        new = f"credentials{new}"
+        credential_path = credential_path or ee.oauth.get_credentials_path()
+        credential_path = Path(credential_path).parent
+        suppress((credential_path / old).rename(credential_path / new))
