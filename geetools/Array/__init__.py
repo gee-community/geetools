@@ -5,7 +5,7 @@ from typing import Union
 
 import ee
 
-from .accessors import geetools_accessor
+from geetools.accessors import geetools_accessor
 
 # hack to have the generated Array class available
 # it might create issues in the future with libs that have exotic init methods

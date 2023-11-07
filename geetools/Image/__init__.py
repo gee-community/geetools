@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 import ee
 
-from .accessors import geetools_accessor
+from geetools.accessors import geetools_accessor
 
 
 @geetools_accessor(ee.Image)
