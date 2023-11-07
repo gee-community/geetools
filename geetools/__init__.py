@@ -3,7 +3,6 @@ import ee
 
 # it needs to be imported first as it's the mother class
 from . import ComputedObject
-from . import _deprecated_expressions as expressions
 
 # reproduce older structure of the lib (deprecated)
 # will be removed along the deprecation cycle
@@ -11,6 +10,17 @@ from . import _deprecated_filters as filters
 from . import _deprecated_manager as manager
 from . import _deprecated_oauth as oauth
 from . import _deprecated_visualization as visualization
+from . import _deprecated_expressions as expressions
+from .tools import array
+from .tools import collection
+from .tools import date
+from .tools import dictionary
+from .tools import element
+from .tools import feature
+from .tools import featurecollection
+from .tools import geometry
+from .tools import number
+from .tools import string
 
 # then we extend all the other classes
 from .Array import Array
@@ -28,18 +38,6 @@ from .Join import Join
 from .List import List
 from .Number import Number
 from .String import String
-from .tools import (
-    array,
-    collection,
-    date,
-    dictionary,
-    element,
-    feature,
-    featurecollection,
-    geometry,
-    number,
-    string,
-)
 
 # from .User import User
 
