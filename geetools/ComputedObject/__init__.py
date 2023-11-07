@@ -6,7 +6,7 @@ from typing import Type
 import ee
 
 
-def _extend(cls):
+def extend(cls):
     """Extends the cls class.
 
     This is only used on the ``ComputedObject`` as it's the parent class of all.
@@ -21,7 +21,7 @@ def _extend(cls):
     return lambda f: (setattr(cls, f.__name__, f) or f)
 
 
-@_extend(ee.ComputedObject)
+@extend(ee.ComputedObject)
 def isInstance(self, klass: Type) -> ee.Number:
     """Return 1 if the element is the passed type or 0 if not.
 
