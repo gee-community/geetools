@@ -70,13 +70,11 @@ class TestSave:
     """Test the ``save`` method."""
 
     def test_save(self, image_instance, tmp_path):
-        """Test the save method."""
         file = tmp_path / "test.gee"
         image_instance.save(file)
         assert file.exists()
 
     def test_deprecated_method(self, image_instance, tmp_path):
-        """Test the deprecated method."""
         file = tmp_path / "test.gee"
         with pytest.deprecated_call():
             geetools.manager.esave(image_instance, file)
@@ -86,3 +84,29 @@ class TestSave:
     def image_instance(self):
         """Return an image instance."""
         return ee.Image("COPERNICUS/S2/20151128T112653_20151128T135750_T29SND")
+
+
+class TestOpen:
+    """Test the ``open`` method."""
+
+    def test_open(self, fc_instance, tmp_path):
+        file = tmp_path / "test.gee"
+        fc_instance.save(file)
+        fc_open = ee.FeatureCollection.open(file)
+        list_instance = fc_instance.toList(fc_instance.size())
+        list_open = fc_open.toList(fc_open.size())
+        assert list_instance.equals(list_open).getInfo()
+
+    def test_deprecated_method(self, fc_instance, tmp_path):
+        file = tmp_path / "test.gee"
+        fc_instance.save(file)
+        with pytest.deprecated_call():
+            fc_open = geetools.manager.eopen(file)
+            list_instance = fc_instance.toList(fc_instance.size())
+            list_open = fc_open.toList(fc_open.size())
+            assert list_instance.equals(list_open).getInfo()
+
+    @pytest.fixture
+    def fc_instance(self):
+        """Return a feature collection instance."""
+        return ee.FeatureCollection("FAO/GAUL/2015/level0")
