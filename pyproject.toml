@@ -53,6 +53,7 @@ github = "https://github.com/gee-community/gee_tools"
     "pytest-deadfixtures",
     "httplib2",
     "pytest-regressions",
+    "Pillow",
 ]
 doc = [
   "sphinx>=6.2.1",
@@ -67,11 +68,10 @@ doc = [
 
 [tool.setuptools]
 include-package-data = true
-packages = [
-    "geetools",
-    "geetools.tools",
-]
-license-files = ["LICENSE"]
+
+[tool.setuptools.packages.find]
+include = ["geetools*"]
+exclude = ["tests*", "docs*"]
 
 [tool.licensecheck]
 using = "PEP631:test;dev;doc"
