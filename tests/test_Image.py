@@ -1,4 +1,6 @@
 """Test the ``Image`` class."""
+from urllib.request import urlretrieve
+
 import ee
 import pytest
 
@@ -660,4 +662,45 @@ class TestInterpolateBands:
         src = "COPERNICUS/S2_SR_HARMONIZED"
         return (
             ee.ImageCollection(src).filterBounds(vatican).first().select(["B4", "B2"])
+        )
+
+
+class TestIsletMask:
+    """Test the ``isletMask`` method."""
+
+    def test_islet_mask(self, image_instance, tmp_path, file_regression):
+        assert hasattr(image_instance, "geetools")
+        assert hasattr(image_instance.geetools, "isletMask")
+        # image = image_instance.geetools.isletMask(20)
+        # file = self.get_image(image, tmp_path / "test.zip")
+        # file_regression.check(file)
+
+    def test_deprecated_mask_island(self, image_instance, tmp_path, file_regression):
+        with pytest.deprecated_call():
+            image = geetools.utils.maskIslands(image_instance, 20)
+            file = self.get_image(image, tmp_path / "test.zip")
+            file_regression.check(file)
+
+    def get_image(self, image, destination):
+        link = image.getDownloadURL(
+            {
+                "name": "test",
+                "region": ee.Geometry.Point([12.4534, 41.9033]).buffer(1000),
+                "filePerBand": False,
+                "scale": 10,
+            }
+        )
+        urlretrieve(link, destination)
+        return destination
+
+    @pytest.fixture
+    def image_instance(self):
+        """An image on top of the buffer."""
+        buffer = ee.Geometry.Point([12.4534, 41.9033]).buffer(1000)
+        return (
+            ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .filterBounds(buffer)
+            .filterDate("2023-01-01", "2023-01-31")
+            .first()
+            .select("B4", "B3", "B2")
         )

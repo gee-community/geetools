@@ -828,3 +828,33 @@ class Image:
             return normalized.interpolate([0, 1], to)
 
         return ee.ImageCollection(bands.map(interpolate)).toBands().rename(bands)
+
+    def isletMask(self, offset: Union[ee.Number, float, int]) -> ee.Image:
+        """Compute the islet mask from an image.
+
+        An islet is a set of non-masked pixels connected together by their edges of very small surface. The user define the offset of the island size and we compute the max number of pixels to improve computation speed.
+
+        Args:
+            offset: The limit of the islet size in square metters
+
+        Returns:
+            The island mask
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED").first()
+                mask = image.select('SCL').eq(4)
+                mask = mask.geetools.islandMask(100)
+                print(mask.bandNames().getInfo())
+        """
+        offset = ee.Number(offset)
+        scale = self._obj.projection().nominalScale()
+        pixels_limit = offset.multiply(2).sqrt().divide(scale).toInt()
+        area = ee.Image.pixelArea().rename("area")
+        isletArea = self._obj.mask().connectedPixelCount(pixels_limit).multiply(area)
+        return isletArea.lt(offset).rename("mask").selfMask()

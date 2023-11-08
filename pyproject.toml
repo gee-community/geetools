@@ -67,11 +67,10 @@ doc = [
 
 [tool.setuptools]
 include-package-data = true
-packages = [
-    "geetools",
-    "geetools.tools",
-]
-license-files = ["LICENSE"]
+
+[tool.setuptools.packages.find]
+include = ["geetools*"]
+exclude = ["tests*", "docs*"]
 
 [tool.licensecheck]
 using = "PEP631:test;dev;doc"
