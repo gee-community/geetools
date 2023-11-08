@@ -21,6 +21,7 @@ class Image:
     # -- Indices manipulation --------------------------------------------------
     index_list = classmethod(_indices.index_list)
     spectralIndices = _indices.spectralIndices
+    tasseledCap = _indices.tasseledCap
 
     # -- the rest --------------------------------------------------------------
 

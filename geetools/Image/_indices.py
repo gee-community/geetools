@@ -111,3 +111,39 @@ def spectralIndices(
         drop=False,
     )
     # fmt: on
+
+
+def tasseledCap(self):
+    """Calculates tasseled cap brightness, wetness, and greenness components.
+
+    Tasseled cap transformations are applied using coefficients published for these
+    supported platforms:
+
+    * Sentinel-2 MSI Level 1C
+    * Landsat 9 OLI-2 SR
+    * Landsat 9 OLI-2 TOA
+    * Landsat 8 OLI SR
+    * Landsat 8 OLI TOA
+    * Landsat 7 ETM+ TOA
+    * Landsat 5 TM Raw DN
+    * Landsat 4 TM Raw DN
+    * Landsat 4 TM Surface Reflectance
+    * MODIS NBAR
+
+    Parameters:
+        self: ee.Image to calculate tasseled cap components for. Must belong to a supported platform.
+
+    Returns:
+        Image with the tasseled cap components as new bands.
+
+    Examples:
+        .. jupyter-execute::
+
+            import ee, geetools
+
+            ee.Initialize()
+
+            image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+            img = img.tasseledCap()
+    """
+    return ee_extra.Spectral.core.tasseledCap(self._obj)
