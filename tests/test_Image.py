@@ -1,4 +1,6 @@
 """Test the ``Image`` class."""
+import zipfile
+from tempfile import NamedTemporaryFile
 from urllib.request import urlretrieve
 
 import ee
@@ -668,20 +670,19 @@ class TestInterpolateBands:
 class TestIsletMask:
     """Test the ``isletMask`` method."""
 
-    def test_islet_mask(self, image_instance, tmp_path, file_regression):
-        assert hasattr(image_instance, "geetools")
-        assert hasattr(image_instance.geetools, "isletMask")
-        # image = image_instance.geetools.isletMask(20)
-        # file = self.get_image(image, tmp_path / "test.zip")
-        # file_regression.check(file)
+    def test_islet_mask(self, image_instance, tmp_path, image_regression):
+        image = image_instance.geetools.isletMask(20)
+        file = self.get_image(image, tmp_path / "test.tif")
+        image_regression.check(file.read_bytes())
 
-    def test_deprecated_mask_island(self, image_instance, tmp_path, file_regression):
+    def test_deprecated_mask_island(self, image_instance, tmp_path, image_regression):
         with pytest.deprecated_call():
             image = geetools.utils.maskIslands(image_instance, 20)
-            file = self.get_image(image, tmp_path / "test.zip")
-            file_regression.check(file)
+            file = self.get_image(image, tmp_path / "test.tif")
+            image_regression.check(file.read_bytes())
 
-    def get_image(self, image, destination):
+    def get_image(self, image, dst):
+
         link = image.getDownloadURL(
             {
                 "name": "test",
@@ -690,8 +691,13 @@ class TestIsletMask:
                 "scale": 10,
             }
         )
-        urlretrieve(link, destination)
-        return destination
+
+        with NamedTemporaryFile() as tmp:
+            urlretrieve(link, tmp.name)
+            with zipfile.ZipFile(tmp.name, "r") as zip_:
+                dst.write_bytes(zip_.read(zip_.namelist()[0]))
+
+        return dst
 
     @pytest.fixture
     def image_instance(self):

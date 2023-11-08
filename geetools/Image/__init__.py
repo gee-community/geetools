@@ -832,7 +832,7 @@ class Image:
     def isletMask(self, offset: Union[ee.Number, float, int]) -> ee.Image:
         """Compute the islet mask from an image.
 
-        An islet is a set of non-masked pixels connected together by their edges of very small surface. The user define the offset of the island size and we compute the max number of pixels to improve computation speed.
+        An islet is a set of non-masked pixels connected together by their edges of very small surface. The user define the offset of the island size and we compute the max number of pixels to improve computation speed. The inpt Image needs to be a single band binary image.
 
         Args:
             offset: The limit of the islet size in square metters
@@ -854,7 +854,13 @@ class Image:
         """
         offset = ee.Number(offset)
         scale = self._obj.projection().nominalScale()
-        pixels_limit = offset.multiply(2).sqrt().divide(scale).toInt()
+        pixelsLimit = offset.multiply(2).sqrt().divide(scale).max(ee.Number(2)).toInt()
         area = ee.Image.pixelArea().rename("area")
-        isletArea = self._obj.mask().connectedPixelCount(pixels_limit).multiply(area)
+        isletArea = (
+            self._obj.select(0)
+            .mask()
+            .toInt()
+            .connectedPixelCount(pixelsLimit)
+            .multiply(area)
+        )
         return isletArea.lt(offset).rename("mask").selfMask()
