@@ -7,6 +7,8 @@ import ee
 
 from geetools.accessors import geetools_accessor
 
+from . import _indices
+
 
 @geetools_accessor(ee.Image)
 class Image:
@@ -15,6 +17,11 @@ class Image:
     def __init__(self, obj: ee.Image):
         """Initialize the Image class."""
         self._obj = obj
+
+    # -- Indices manipulation --------------------------------------------------
+    indices = classmethod(_indices.indices)
+
+    # -- the rest --------------------------------------------------------------
 
     def addDate(self) -> ee.Image:
         """Add a band with the date of the image in the provided format.

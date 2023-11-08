@@ -710,3 +710,12 @@ class TestIsletMask:
             .first()
             .select("B4", "B3", "B2")
         )
+
+
+class TestIndices:
+    """Test the ``indices`` method."""
+
+    def test_indices(self):
+        indices = ee.Image.geetools.indices()
+        assert "NDVI" in indices.keys()
+        assert len(indices) == 228
