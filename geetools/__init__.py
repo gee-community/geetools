@@ -12,6 +12,7 @@ from . import _deprecated_oauth as oauth
 from . import _deprecated_visualization as visualization
 from . import _deprecated_expressions as expressions
 from . import _deprecated_utils as utils
+from . import _deprecated_decision_tree as decision_tree
 from .tools import array
 from .tools import collection
 from .tools import date
