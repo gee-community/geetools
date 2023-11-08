@@ -19,7 +19,8 @@ class Image:
         self._obj = obj
 
     # -- Indices manipulation --------------------------------------------------
-    indices = classmethod(_indices.indices)
+    index_list = classmethod(_indices.index_list)
+    spectralIndices = _indices.spectralIndices
 
     # -- the rest --------------------------------------------------------------
 
