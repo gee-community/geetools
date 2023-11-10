@@ -9,7 +9,7 @@ class TestToDatetime:
     """Test the toDatetime method."""
 
     def test_to_datetime(self, date_instance):
-        datetime = date_instance.geetools.toDatetime()
+        datetime = date_instance.geetools.to_datetime()
         assert datetime.year == 2020
         assert datetime.month == 1
         assert datetime.day == 1

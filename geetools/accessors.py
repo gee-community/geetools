@@ -31,3 +31,17 @@ def geetools_accessor(cls: Type) -> Callable:
         return accessor
 
     return decorator
+
+
+def geetools_extend(obj: Any) -> Callable:
+    """Extends the objcect whatever the type.
+
+    Be careful when using this decorator as it can override direct members of the existing object.
+
+    Parameters:
+        cls: Class to extend.
+
+    Returns:
+        Decorator for extending classes.
+    """
+    return lambda f: (setattr(obj, f.__name__, f) or f)

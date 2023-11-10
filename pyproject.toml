@@ -24,6 +24,7 @@ dependencies = [
     "pandas",
     "geopandas",
     "deprecated",
+    "ee-extra",
 ]
 
 [[project.authors]]

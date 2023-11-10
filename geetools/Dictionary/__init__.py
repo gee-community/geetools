@@ -16,7 +16,7 @@ class Dictionary:
         """Initialize the Dictionary class."""
         self._obj = obj
 
-    @classmethod
+    # -- alternative constructor -----------------------------------------------
     def fromPairs(self, list: Union[list, ee.List]) -> ee.Dictionary:
         """Create a dictionary from a list of [[key, value], ...]] pairs.
 
@@ -41,6 +41,7 @@ class Dictionary:
         values = list.map(lambda pair: ee.List(pair).get(1))
         return ee.Dictionary.fromLists(keys, values)
 
+    # -- dictionary operations -------------------------------------------------
     def sort(self) -> ee.Dictionary:
         """Sort the dictionary by keys in ascending order.
 

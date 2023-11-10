@@ -8,7 +8,7 @@ from deprecated.sphinx import deprecated
 @deprecated(version="1.0.0", reason="Use ee.Date.geetools.toDatetime instead")
 def toDatetime(date):
     """Convert from ee to ``datetime.datetime``."""
-    return ee.Date(date).geetools.toDatetime()
+    return ee.Date(date).geetools.to_datetime()
 
 
 @deprecated(version="1.0.0", reason="Epoch is the same for ee and python")

@@ -8,7 +8,10 @@ from tempfile import TemporaryDirectory
 import ee
 from google.oauth2.credentials import Credentials
 
+from geetools.accessors import geetools_extend
 
+
+@geetools_extend(ee)
 class User:
     """CRUD system to manage multiple user accounts on the same machine."""
 

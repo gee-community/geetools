@@ -710,3 +710,48 @@ class TestIsletMask:
             .first()
             .select("B4", "B3", "B2")
         )
+
+
+class TestIndicexList:
+    """Test the ``index_list`` method."""
+
+    def test_indices(self):
+        indices = ee.Image.geetools.index_list()
+        assert "NDVI" in indices.keys()
+        assert len(indices) == 228
+
+
+class TestSpectralIndices:
+    """Test the ``spectralIndices`` method."""
+
+    def test_default_spectral_indices(self, image_instance, vatican, data_regression):
+        image = image_instance.geetools.spectralIndices("all")
+        values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
+        data_regression.check(values.getInfo())
+
+    @pytest.fixture
+    def image_instance(self):
+        src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
+        return ee.Image(src)
+
+    @pytest.fixture
+    def vatican(self):
+        return ee.Geometry.Point([12.4534, 41.9033]).buffer(100)
+
+
+class TestTasseledCap:
+    """Test the ``tasseledCap`` method."""
+
+    def test_tasseled_cap(self, image_instance, vatican, data_regression):
+        image = image_instance.geetools.tasseledCap()
+        values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
+        data_regression.check(values.getInfo())
+
+    @pytest.fixture
+    def image_instance(self):
+        src = "COPERNICUS/S2/20230105T100319_20230105T100317_T32TQM"
+        return ee.Image(src)
+
+    @pytest.fixture
+    def vatican(self):
+        return ee.Geometry.Point([12.4534, 41.9033]).buffer(100)

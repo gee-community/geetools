@@ -16,11 +16,8 @@ class DateRange:
         """Initialize the DateRange class."""
         self._obj = obj
 
-    def split(
-        self,
-        interval: Union[int, ee.Number],
-        unit: str = "day",
-    ) -> ee.List:
+    # -- date range operations -------------------------------------------------
+    def split(self, interval: Union[int, ee.Number], unit: str = "day") -> ee.List:
         """Convert a ``ee.DateRange`` to a list of ``ee.DateRange``.
 
         The DateRange will be split in multiple DateRanges of the specified interval and Unit.
@@ -43,7 +40,8 @@ class DateRange:
                 d = ee.DateRange('2020-01-01', '2020-01-31').geetools.split(1, 'day')
                 d.getInfo()
         """
-        interval = ee.Number(interval).toInt().multiply(self._unitMillis(unit))
+        self.check_unit(unit)
+        interval = ee.Number(interval).toInt().multiply(self.unitMillis(unit))
         start, end = self._obj.start().millis(), self._obj.end().millis()
 
         timestampList = ee.List.sequence(start, end, interval)
@@ -56,16 +54,16 @@ class DateRange:
             )
         )
 
-    @classmethod
-    def _check_unit(cls, unit: str) -> None:
+    # -- utils -----------------------------------------------------------------
+    @staticmethod
+    def check_unit(unit: str) -> None:
         """Check if the unit is valid."""
         if unit not in (units := ["second", "minute", "hour", "day", "month", "year"]):
             raise ValueError(f"unit must be one of: {','.join(units)}")
 
-    @classmethod
-    def _unitMillis(cls, unit: str) -> ee.Number:
+    @staticmethod
+    def unitMillis(unit: str) -> ee.Number:
         """Get the milliseconds of a unit."""
-        cls._check_unit(unit)
         millis = {
             "second": 1000,
             "minute": 1000 * 60,
