@@ -1,0 +1,12 @@
+Clear_sky_days: 1.0
+Clear_sky_nights: 1.0
+Day_view_angl: 1.0
+Day_view_time: 0.1
+Emis_31: 0.002
+Emis_32: 0.002
+LST_Day_1km: 0.02
+LST_Night_1km: 0.02
+Night_view_angl: 1.0
+Night_view_time: 0.1
+QC_Day: 1.0
+QC_Night: 1.0

@@ -562,13 +562,16 @@ class TestRepeat:
         return ee.Image(src).select(["B1", "B2", "B3"])
 
 
-class TestHistogramMatch:
+class TestmatchHistogram:
     """Test the ``histogramMatch`` method."""
 
-    def test_histogram_match(self, image_source, image_target, vatican):
-        image = image_source.geetools.histogramMatch(image_target)
+    def test_histogram_match(
+        self, image_source, image_target, vatican, data_regression
+    ):
+        bands = {"R": "R", "G": "G", "B": "B"}
+        image = image_source.geetools.matchHistogram(image_target, bands)
         values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
-        assert values.getInfo() == {"B": 7680, "G": 8448, "R": 8416}
+        data_regression.check(values.getInfo())
 
     @pytest.fixture
     def vatican(self):
@@ -739,11 +742,11 @@ class TestSpectralIndices:
         return ee.Geometry.Point([12.4534, 41.9033]).buffer(100)
 
 
-class TestTasseledCap:
-    """Test the ``tasseledCap`` method."""
+class TestMaskClouds:
+    """Test the ``maskClouds`` method."""
 
-    def test_tasseled_cap(self, image_instance, vatican, data_regression):
-        image = image_instance.geetools.tasseledCap()
+    def test_mask_S2_clouds(self, image_instance, vatican, data_regression):
+        image = image_instance.geetools.maskClouds()
         values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
         data_regression.check(values.getInfo())
 
@@ -755,3 +758,107 @@ class TestTasseledCap:
     @pytest.fixture
     def vatican(self):
         return ee.Geometry.Point([12.4534, 41.9033]).buffer(100)
+
+
+class TestGetscaleParams:
+    """Test the ``getScaleParams`` method."""
+
+    def test_get_scale_params(self, data_regression):
+        params = (
+            ee.ImageCollection("MODIS/006/MOD11A2").first().geetools.getScaleParams()
+        )
+        data_regression.check(params)
+
+
+class TestGetOffsetParams:
+    """Test the ``getOffsetParams`` method."""
+
+    def get_offset_params(self, data_regression):
+        params = (
+            ee.ImageCollection("MODIS/006/MOD11A2").first().geetools.getOffsetParams()
+        )
+        data_regression.check(params)
+
+
+class TestScaleAndOffset:
+    """Test the ``scaleAndOffset`` method."""
+
+    def test_scale_and_offset(self, vatican, image_instance, data_regression):
+        image = image_instance.geetools.scaleAndOffset()
+        values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
+        data_regression.check(values.getInfo())
+
+    @pytest.fixture
+    def vatican(self):
+        return ee.Geometry.Point([12.4534, 41.9033]).buffer(100)
+
+    @pytest.fixture
+    def image_instance(self):
+        src = "COPERNICUS/S2/20230105T100319_20230105T100317_T32TQM"
+        return ee.Image(src)
+
+
+class TestPreprocess:
+    """Test the ``preprocess`` method."""
+
+    def test_preprocess(self, vatican, image_instance, data_regression):
+        image = image_instance.geetools.preprocess()
+        values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
+        data_regression.check(values.getInfo())
+
+    @pytest.fixture
+    def vatican(self):
+        return ee.Geometry.Point([12.4534, 41.9033]).buffer(100)
+
+    @pytest.fixture
+    def image_instance(self):
+        src = "COPERNICUS/S2/20230105T100319_20230105T100317_T32TQM"
+        return ee.Image(src)
+
+
+class TestGetSTAC:
+    """Test the ``getSTAC`` method."""
+
+    def test_get_stac(self, data_regression):
+        stac = ee.ImageCollection("COPERNICUS/S2_SR").first().geetools.getSTAC()
+        data_regression.check(stac)
+
+
+class TestGetDOI:
+    """Test the ``getDOI`` method."""
+
+    def get_doi(self, data_regression):
+        doi = ee.ImageCollection("COPERNICUS/S2_SR").first().geetools.getDOI()
+        data_regression.check(doi)
+
+
+class TestGetCitation:
+    """Test the ``getCitation`` method."""
+
+    def get_citation(self, data_regression):
+        citation = ee.ImageCollection("COPERNICUS/S2_SR").first().geetools.getCitation()
+        data_regression.check(citation)
+
+
+class TestPanSharpen:
+    """Test the panSharpen method."""
+
+    def test_pan_sharpen(self, data_regression):
+        source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
+        sharp = source.geetools.panSharpen(
+            method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13
+        )
+        centroid = sharp.geometry().centroid().buffer(100)
+        values = sharp.reduceRegion(ee.Reducer.mean(), centroid, 1)
+        data_regression.check(values.getInfo())
+
+
+class TestTasseledCap:
+    """Test the tasseledCap method."""
+
+    def test_tasseled_cap(self, data_regression):
+        img = ee.Image("LANDSAT/LT05/C01/T1/LT05_044034_20081011")
+        img = img.geetools.tasseledCap()
+        centroid = img.geometry().centroid().buffer(100)
+        values = img.reduceRegion(ee.Reducer.mean(), centroid, 1)
+        data_regression.check(values.getInfo())
