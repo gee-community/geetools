@@ -1,6 +1,12 @@
 """Placeholder Float class to be used in the isInstance method."""
+from __future__ import annotations
+
+import ee
+
+from geetools.accessors import geetools_extend
 
 
+@geetools_extend(ee)
 class Float:
     """Placeholder Float class to be used in the isInstance method."""
 

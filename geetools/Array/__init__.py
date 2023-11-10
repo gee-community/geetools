@@ -20,7 +20,7 @@ class Array:
         """Initialize the Array class."""
         self._obj = obj
 
-    @classmethod
+    # -- alternative constructor -----------------------------------------------
     def full(
         self,
         width: Union[int, float, ee.Number],
@@ -50,6 +50,7 @@ class Array:
         width, height = ee.Number(width).toInt(), ee.Number(height).toInt()
         return ee.Array(ee.List.repeat(ee.List.repeat(value, width), height))
 
+    # -- data maniputlation ----------------------------------------------------
     def set(
         self,
         x: Union[int, ee.number],

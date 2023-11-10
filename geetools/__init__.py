@@ -41,12 +41,8 @@ from .Join import Join
 from .List import List
 from .Number import Number
 from .String import String
+from .User import User
 
-# from .User import User
-
-# add the 2 placeholder classes to the ee namespace for consistency
-ee.Integer = Integer
-ee.Float = Float
 
 __title__ = "geetools"
 __summary__ = "A set of useful tools to use with Google Earth Engine Python" "API"

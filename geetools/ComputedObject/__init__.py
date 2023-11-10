@@ -7,23 +7,11 @@ from typing import Type, Union
 
 import ee
 
-
-def extend(cls):
-    """Extends the cls class.
-
-    This is only used on the ``ComputedObject`` as it's the parent class of all.
-    Using the regular accessor would lead to a duplicate member and undesired behavior.
-
-    Parameters:
-        cls: Class to extend.
-
-    Returns:
-        Decorator for extending classes.
-    """
-    return lambda f: (setattr(cls, f.__name__, f) or f)
+from geetools.accessors import geetools_extend
 
 
-@extend(ee.ComputedObject)
+# -- types management ----------------------------------------------------------
+@geetools_extend(ee.ComputedObject)
 def isInstance(self, klass: Type) -> ee.Number:
     """Return 1 if the element is the passed type or 0 if not.
 
@@ -46,7 +34,8 @@ def isInstance(self, klass: Type) -> ee.Number:
     return ee.Algorithms.ObjectType(self).compareTo(klass.__name__).eq(0)
 
 
-@extend(ee.ComputedObject)
+# -- .gee files ----------------------------------------------------------------
+@geetools_extend(ee.ComputedObject)
 def save(self, path: Union[str, Path]) -> Path:
     """Save a ``ComputedObject`` to a .gee file.
 
@@ -78,7 +67,7 @@ def save(self, path: Union[str, Path]) -> Path:
     return path
 
 
-@extend(ee.ComputedObject)
+@geetools_extend(ee.ComputedObject)
 @classmethod
 def open(cls, path: Union[str, Path]) -> ee.ComputedObject:
     """Open a .gee file as a ComputedObject.
@@ -108,5 +97,4 @@ def open(cls, path: Union[str, Path]) -> ee.ComputedObject:
     if (path := Path(path)).suffix != ".gee":
         raise ValueError("File must be a .gee file")
 
-    computedObject = ee.deserializer.decode(json.loads(path.read_text()))
-    return cls(computedObject)
+    return ee.deserializer.decode(json.loads(path.read_text()))

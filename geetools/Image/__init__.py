@@ -4,10 +4,9 @@ from __future__ import annotations
 from typing import Optional, Union
 
 import ee
+import ee_extra
 
 from geetools.accessors import geetools_accessor
-
-from . import _indices
 
 
 @geetools_accessor(ee.Image)
@@ -18,17 +17,152 @@ class Image:
         """Initialize the Image class."""
         self._obj = obj
 
-    # -- Indices manipulation --------------------------------------------------
-    index_list = classmethod(_indices.index_list)
-    spectralIndices = _indices.spectralIndices
-    tasseledCap = _indices.tasseledCap
+    # -- image Indices manipulation --------------------------------------------
+    def index_list(cls) -> dict:
+        """Return the list of indices implemented in this module.
 
-    # -- the rest --------------------------------------------------------------
+        Returns:
+            List of indices implemented in this module
 
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ind = ee.Image.geetools.indices()["BAIS2"]
+                print(ind["long_name"])
+                print(ind["formula"])
+                print(ind["reference"])
+        """
+        return ee_extra.Spectral.core.indices()
+
+    def spectralIndices(
+        self,
+        index: str = "NDVI",
+        G: Union[float, int] = 2.5,
+        C1: Union[float, int] = 6.0,
+        C2: Union[float, int] = 7.5,
+        L: Union[float, int] = 1.0,
+        cexp: Union[float, int] = 1.16,
+        nexp: Union[float, int] = 2.0,
+        alpha: Union[float, int] = 0.1,
+        slope: Union[float, int] = 1.0,
+        intercept: Union[float, int] = 0.0,
+        gamma: Union[float, int] = 1.0,
+        omega: Union[float, int] = 2.0,
+        beta: Union[float, int] = 0.05,
+        k: Union[float, int] = 0.0,
+        fdelta: Union[float, int] = 0.581,
+        kernel: str = "RBF",
+        sigma: str = "0.5 * (a + b)",
+        p: Union[float, int] = 2.0,
+        c: Union[float, int] = 1.0,
+        lambdaN: Union[float, int] = 858.5,
+        lambdaR: Union[float, int] = 645.0,
+        lambdaG: Union[float, int] = 555.0,
+        online: Union[float, int] = False,
+    ):
+        """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
+
+        Parameters:
+            self: Image to compute indices on. Must be scaled to [0,1].
+            index: Index or list of indices to compute, default = 'NDVI'
+                Available options:
+                    - 'vegetation' : Compute all vegetation indices.
+                    - 'burn' : Compute all burn indices.
+                    - 'water' : Compute all water indices.
+                    - 'snow' : Compute all snow indices.
+                    - 'urban' : Compute all urban (built-up) indices.
+                    - 'kernel' : Compute all kernel indices.
+                    - 'all' : Compute all indices listed below.
+                    - Awesome Spectral Indices for GEE: Check the complete list of indices `here <https://awesome-ee-spectral-indices.readthedocs.io/en/latest/list.html>`_.
+            G: Gain factor. Used just for index = 'EVI', default = 2.5
+            C1: Coefficient 1 for the aerosol resistance term. Used just for index = 'EVI', default = 6.0
+            C2: Coefficient 2 for the aerosol resistance term. Used just for index = 'EVI', default = 7.5
+            L: Canopy background adjustment. Used just for index = ['EVI','SAVI'], default = 1.0
+            cexp: Exponent used for OCVI, default = 1.16
+            nexp: Exponent used for GDVI, default = 2.0
+            alpha: Weighting coefficient used for WDRVI, default = 0.1
+            slope: Soil line slope, default = 1.0
+            intercept: Soil line intercept, default = 0.0
+            gamma: Weighting coefficient used for ARVI, default = 1.0
+            omega: Weighting coefficient  used for MBWI, default = 2.0
+            beta: Calibration parameter used for NDSIns, default = 0.05
+            k: Slope parameter by soil used for NIRvH2, default = 0.0
+            fdelta: Adjustment factor used for SEVI, default = 0.581
+            kernel: Kernel used for kernel indices, default = 'RBF'
+                Available options:
+                    - 'linear' : Linear Kernel.
+                    - 'RBF' : Radial Basis Function (RBF) Kernel.
+                    - 'poly' : Polynomial Kernel.
+            sigma: Length-scale parameter. Used for kernel = 'RBF', default = '0.5 * (a + b)'. If str, this must be an expression including 'a' and 'b'. If numeric, this must be positive.
+            p: Kernel degree. Used for kernel = 'poly', default = 2.0
+            c: Free parameter that trades off the influence of higher-order versus lower-order terms in the polynomial kernel. Used for kernel = 'poly', default = 1.0. This must be greater than or equal to 0.
+            lambdaN: NIR wavelength used for NIRvH2 and NDGI, default = 858.5
+            lambdaR: Red wavelength used for NIRvH2 and NDGI, default = 645.0
+            lambdaG: Green wavelength used for NDGI, default = 555.0
+            drop: Whether to drop all bands except the new spectral indices, default = False
+
+        Returns:
+            Image with the computed spectral index, or indices, as new bands.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                image = image.specralIndices(["NDVI", "NDFI"])
+        """
+        # fmt: off
+        return ee_extra.Spectral.core.spectralIndices(
+            self._obj, index, G, C1, C2, L, cexp, nexp, alpha, slope, intercept, gamma, omega,
+            beta, k, fdelta, kernel, sigma, p, c, lambdaN, lambdaR, lambdaG, online,
+            drop=False,
+        )
+        # fmt: on
+
+    def tasseledCap(self):
+        """Calculates tasseled cap brightness, wetness, and greenness components.
+
+        Tasseled cap transformations are applied using coefficients published for these
+        supported platforms:
+
+        * Sentinel-2 MSI Level 1C
+        * Landsat 9 OLI-2 SR
+        * Landsat 9 OLI-2 TOA
+        * Landsat 8 OLI SR
+        * Landsat 8 OLI TOA
+        * Landsat 7 ETM+ TOA
+        * Landsat 5 TM Raw DN
+        * Landsat 4 TM Raw DN
+        * Landsat 4 TM Surface Reflectance
+        * MODIS NBAR
+
+        Parameters:
+            self: ee.Image to calculate tasseled cap components for. Must belong to a supported platform.
+
+        Returns:
+            Image with the tasseled cap components as new bands.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                img = img.tasseledCap()
+        """
+        return ee_extra.Spectral.core.tasseledCap(self._obj)
+
+    # -- band manipulation -----------------------------------------------------
     def addDate(self) -> ee.Image:
         """Add a band with the date of the image in the provided format.
 
-        The date is stored as a Timestamp in millisecond in a band date.
+        The date is stored as a Timestamp in millisecond in a band "date".
 
         Returns:
             The image with the date band added.
@@ -47,9 +181,8 @@ class Image:
                 value = date.reduceRegion(ee.Reducer.first(), buffer, 10).get("date")
                 ee.Date(value).format('YYYY-MM-dd').getInfo()
         """
-        return self._obj.addBands(
-            ee.Image.constant(self._obj.date().millis()).rename("date")
-        )
+        date = self._obj.date().millis()
+        return self._obj.addBands(ee.Image.constant(date).rename("date"))
 
     def addSuffix(
         self, suffix: Union[str, ee.String], bands: Union[ee.List, list] = []
@@ -116,6 +249,105 @@ class Image:
             self._obj.bandNames(),
         )
         return self._obj.rename(bandNames)
+
+    def rename(self, names: Union[ee.Dictionary, dict]) -> ee.Image:
+        """Rename the bands of the image.
+
+        It's the same function as the one from GEE but it takes a dictionary as input.
+        Keys are the old names and values are the new names.
+
+        Parameters:
+            names: The new names of the bands.
+
+        Returns:
+            The image with the new band names.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                src = 'COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM'
+                image = ee.Image(src).select(['B1', 'B2', 'B3'])
+                image = image.geetools.rename({'B1': 'Aerosol', 'B2': 'Blue'})
+                print(image.bandNames().getInfo())
+        """
+        names = ee.Dictionary(names)
+        bands = names.keys().iterate(
+            lambda b, n: ee.List(n).replace(b, names.get(b)), self._obj.bandNames()
+        )
+        return self._obj.rename(bands)
+
+    def remove(self, bands: Union[list, ee.List]) -> ee.Image:
+        """Remove bands from the image.
+
+        Parameters:
+            bands: The bands to remove.
+
+        Returns:
+            The image without the specified bands.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                src = 'COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM'
+                image = ee.Image(src).select(['B1', 'B2', 'B3'])
+                image = image.geetools.remove(['B1', 'B2'])
+                print(image.bandNames().getInfo())
+        """
+        bands = self._obj.bandNames().removeAll(ee.List(bands))
+        return self._obj.select(bands)
+
+    def doyToDate(
+        self,
+        year,
+        dateFormat: Union[str, ee.String] = "yyyyMMdd",
+        band: Union[ee.String, str] = "",
+    ) -> ee.Image:
+        """Convert the DOY band to a date band.
+
+        This method only work with date formats that can be converted to numbers as earthengine images don't accept string bands.
+
+        Args:
+            year: The year to use for the date
+            dateFormat: The date format to use for the date band
+            band: The band to use as DOY band. If empty, the first one is selected.
+
+        Returns:
+            The original image with the DOY band converted to a date band.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image.random().multiply(365).toInt()
+                vatican = ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
+
+                image = image.geetools.doyToDate(2023)
+                print(image.reduceRegion(ee.Reducer.min(), vatican, 1).getInfo())
+        """
+        year = ee.Number(year)
+        band = ee.String(band) if band else ee.String(self._obj.bandNames().get(0))
+        dateFormat = ee.String(dateFormat)
+
+        doyList = ee.List.sequence(0, 365)
+        remapList = doyList.map(
+            lambda d: ee.Number.parse(
+                ee.Date.fromYMD(year, 1, 1).advance(d, "day").format(dateFormat)
+            )
+        )
+        return self._obj.remap(doyList, remapList, bandName=band).rename(band)
+
+    # -- the rest --------------------------------------------------------------
 
     def getValues(
         self, point: ee.Geometry.Point, scale: Union[ee.Number, int] = 0
@@ -198,60 +430,6 @@ class Image:
         images = ee.List(images)
         merged = images.iterate(lambda dst, src: ee.Image(src).addBands(dst), self._obj)
         return ee.Image(merged)
-
-    def rename(self, names: Union[ee.Dictionary, dict]) -> ee.Image:
-        """Rename the bands of the image.
-
-        It's the same function as the one from GEE but it takes a dictionary as input.
-        Keys are the old names and values are the new names.
-
-        Parameters:
-            names: The new names of the bands.
-
-        Returns:
-            The image with the new band names.
-
-        Examples:
-            .. jupyter-execute::
-
-                import ee, geetools
-
-                ee.Initialize()
-
-                src = 'COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM'
-                image = ee.Image(src).select(['B1', 'B2', 'B3'])
-                image = image.geetools.rename({'B1': 'Aerosol', 'B2': 'Blue'})
-                print(image.bandNames().getInfo())
-        """
-        names = ee.Dictionary(names)
-        bands = names.keys().iterate(
-            lambda b, n: ee.List(n).replace(b, names.get(b)), self._obj.bandNames()
-        )
-        return self._obj.rename(bands)
-
-    def remove(self, bands: Union[list, ee.List]) -> ee.Image:
-        """Remove bands from the image.
-
-        Parameters:
-            bands: The bands to remove.
-
-        Returns:
-            The image without the specified bands.
-
-        Examples:
-            .. jupyter-execute::
-
-                import ee, geetools
-
-                ee.Initialize()
-
-                src = 'COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM'
-                image = ee.Image(src).select(['B1', 'B2', 'B3'])
-                image = image.geetools.remove(['B1', 'B2'])
-                print(image.bandNames().getInfo())
-        """
-        bands = self._obj.bandNames().removeAll(ee.List(bands))
-        return self._obj.select(bands)
 
     def toGrid(
         self,
@@ -613,49 +791,6 @@ class Image:
                 "std": ee.Image.constant(std),
             },
         ).rename(band.cat("_gauss"))
-
-    def doyToDate(
-        self,
-        year,
-        dateFormat: Union[str, ee.String] = "yyyyMMdd",
-        band: Union[ee.String, str] = "",
-    ) -> ee.Image:
-        """Convert the DOY band to a date band.
-
-        This method only work with date formats that can be converted to numbers as earthengine images don't accept string bands.
-
-        Args:
-            year: The year to use for the date
-            dateFormat: The date format to use for the date band
-            band: The band to use as DOY band. If empty, the first one is selected.
-
-        Returns:
-            The original image with the DOY band converted to a date band.
-
-        Examples:
-            .. jupyter-execute::
-
-                import ee, geetools
-
-                ee.Initialize()
-
-                image = ee.Image.random().multiply(365).toInt()
-                vatican = ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
-
-                image = image.geetools.doyToDate(2023)
-                print(image.reduceRegion(ee.Reducer.min(), vatican, 1).getInfo())
-        """
-        year = ee.Number(year)
-        band = ee.String(band) if band else ee.String(self._obj.bandNames().get(0))
-        dateFormat = ee.String(dateFormat)
-
-        doyList = ee.List.sequence(0, 365)
-        remapList = doyList.map(
-            lambda d: ee.Number.parse(
-                ee.Date.fromYMD(year, 1, 1).advance(d, "day").format(dateFormat)
-            )
-        )
-        return self._obj.remap(doyList, remapList, bandName=band).rename(band)
 
     def repeat(self, band, repeats: Union[ee.Number, int]) -> ee.image:
         """Repeat a band of the image.
