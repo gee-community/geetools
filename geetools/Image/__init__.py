@@ -5,6 +5,7 @@ from typing import Optional, Union
 
 import ee
 import ee_extra
+import ee_extra.Algorithms.core
 
 from geetools.accessors import geetools_accessor
 
@@ -16,147 +17,6 @@ class Image:
     def __init__(self, obj: ee.Image):
         """Initialize the Image class."""
         self._obj = obj
-
-    # -- image Indices manipulation --------------------------------------------
-    def index_list(cls) -> dict:
-        """Return the list of indices implemented in this module.
-
-        Returns:
-            List of indices implemented in this module
-
-        Examples:
-            .. jupyter-execute::
-
-                import ee, geetools
-
-                ind = ee.Image.geetools.indices()["BAIS2"]
-                print(ind["long_name"])
-                print(ind["formula"])
-                print(ind["reference"])
-        """
-        return ee_extra.Spectral.core.indices()
-
-    def spectralIndices(
-        self,
-        index: str = "NDVI",
-        G: Union[float, int] = 2.5,
-        C1: Union[float, int] = 6.0,
-        C2: Union[float, int] = 7.5,
-        L: Union[float, int] = 1.0,
-        cexp: Union[float, int] = 1.16,
-        nexp: Union[float, int] = 2.0,
-        alpha: Union[float, int] = 0.1,
-        slope: Union[float, int] = 1.0,
-        intercept: Union[float, int] = 0.0,
-        gamma: Union[float, int] = 1.0,
-        omega: Union[float, int] = 2.0,
-        beta: Union[float, int] = 0.05,
-        k: Union[float, int] = 0.0,
-        fdelta: Union[float, int] = 0.581,
-        kernel: str = "RBF",
-        sigma: str = "0.5 * (a + b)",
-        p: Union[float, int] = 2.0,
-        c: Union[float, int] = 1.0,
-        lambdaN: Union[float, int] = 858.5,
-        lambdaR: Union[float, int] = 645.0,
-        lambdaG: Union[float, int] = 555.0,
-        online: Union[float, int] = False,
-    ):
-        """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
-
-        Parameters:
-            self: Image to compute indices on. Must be scaled to [0,1].
-            index: Index or list of indices to compute, default = 'NDVI'
-                Available options:
-                    - 'vegetation' : Compute all vegetation indices.
-                    - 'burn' : Compute all burn indices.
-                    - 'water' : Compute all water indices.
-                    - 'snow' : Compute all snow indices.
-                    - 'urban' : Compute all urban (built-up) indices.
-                    - 'kernel' : Compute all kernel indices.
-                    - 'all' : Compute all indices listed below.
-                    - Awesome Spectral Indices for GEE: Check the complete list of indices `here <https://awesome-ee-spectral-indices.readthedocs.io/en/latest/list.html>`_.
-            G: Gain factor. Used just for index = 'EVI', default = 2.5
-            C1: Coefficient 1 for the aerosol resistance term. Used just for index = 'EVI', default = 6.0
-            C2: Coefficient 2 for the aerosol resistance term. Used just for index = 'EVI', default = 7.5
-            L: Canopy background adjustment. Used just for index = ['EVI','SAVI'], default = 1.0
-            cexp: Exponent used for OCVI, default = 1.16
-            nexp: Exponent used for GDVI, default = 2.0
-            alpha: Weighting coefficient used for WDRVI, default = 0.1
-            slope: Soil line slope, default = 1.0
-            intercept: Soil line intercept, default = 0.0
-            gamma: Weighting coefficient used for ARVI, default = 1.0
-            omega: Weighting coefficient  used for MBWI, default = 2.0
-            beta: Calibration parameter used for NDSIns, default = 0.05
-            k: Slope parameter by soil used for NIRvH2, default = 0.0
-            fdelta: Adjustment factor used for SEVI, default = 0.581
-            kernel: Kernel used for kernel indices, default = 'RBF'
-                Available options:
-                    - 'linear' : Linear Kernel.
-                    - 'RBF' : Radial Basis Function (RBF) Kernel.
-                    - 'poly' : Polynomial Kernel.
-            sigma: Length-scale parameter. Used for kernel = 'RBF', default = '0.5 * (a + b)'. If str, this must be an expression including 'a' and 'b'. If numeric, this must be positive.
-            p: Kernel degree. Used for kernel = 'poly', default = 2.0
-            c: Free parameter that trades off the influence of higher-order versus lower-order terms in the polynomial kernel. Used for kernel = 'poly', default = 1.0. This must be greater than or equal to 0.
-            lambdaN: NIR wavelength used for NIRvH2 and NDGI, default = 858.5
-            lambdaR: Red wavelength used for NIRvH2 and NDGI, default = 645.0
-            lambdaG: Green wavelength used for NDGI, default = 555.0
-            drop: Whether to drop all bands except the new spectral indices, default = False
-
-        Returns:
-            Image with the computed spectral index, or indices, as new bands.
-
-        Examples:
-            .. jupyter-execute::
-
-                import ee, geetools
-
-                ee.Initialize()
-                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                image = image.specralIndices(["NDVI", "NDFI"])
-        """
-        # fmt: off
-        return ee_extra.Spectral.core.spectralIndices(
-            self._obj, index, G, C1, C2, L, cexp, nexp, alpha, slope, intercept, gamma, omega,
-            beta, k, fdelta, kernel, sigma, p, c, lambdaN, lambdaR, lambdaG, online,
-            drop=False,
-        )
-        # fmt: on
-
-    def tasseledCap(self):
-        """Calculates tasseled cap brightness, wetness, and greenness components.
-
-        Tasseled cap transformations are applied using coefficients published for these
-        supported platforms:
-
-        * Sentinel-2 MSI Level 1C
-        * Landsat 9 OLI-2 SR
-        * Landsat 9 OLI-2 TOA
-        * Landsat 8 OLI SR
-        * Landsat 8 OLI TOA
-        * Landsat 7 ETM+ TOA
-        * Landsat 5 TM Raw DN
-        * Landsat 4 TM Raw DN
-        * Landsat 4 TM Surface Reflectance
-        * MODIS NBAR
-
-        Parameters:
-            self: ee.Image to calculate tasseled cap components for. Must belong to a supported platform.
-
-        Returns:
-            Image with the tasseled cap components as new bands.
-
-        Examples:
-            .. jupyter-execute::
-
-                import ee, geetools
-
-                ee.Initialize()
-
-                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                img = img.tasseledCap()
-        """
-        return ee_extra.Spectral.core.tasseledCap(self._obj)
 
     # -- band manipulation -----------------------------------------------------
     def addDate(self) -> ee.Image:
@@ -824,84 +684,6 @@ class Image:
 
         return ee.Image(sequence.iterate(addBand, self._obj))
 
-    def histogramMatch(self, target):
-        """Match the histogram of the image to the target image.
-
-        The target images must use the same band names as the source one.
-        See the following article for more details: https://medium.com/google-earth/histogram-matching-c7153c85066d
-
-        Args:
-            target: The target image to match the histogram to
-
-        Returns:
-            The image with the histogram matched to the target image
-
-        Examples:
-            .. jupyter-execute::
-
-                import ee, geetools
-
-                ee.Initialize()
-
-                vatican = ee.Geometry.Point([12.4534, 41.9033]).buffer(1)
-                image = (
-                    ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
-                    .filterBounds(vatican)
-                    .filterDate("2023-06-01", "2023-06-30")
-                    .first()
-                    .select("B4", "B3", "B2")
-                    .rename("R", "G", "B")
-                )
-                target = (
-                    ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
-                    .filterBounds(vatican)
-                    .filterDate("2023-06-01", "2023-06-30")
-                    .first()
-                    .select("SR_B4", "SR_B3", "SR_B2")
-                    .rename("R", "G", "B")
-                )
-                image = image.geetools.histogramMatch(target)
-                print(image.bandNames().getInfo())
-        """
-        bands = self._obj.bandNames()
-
-        # get the histogram of the source and target images
-        kwargs = {
-            "reducer": ee.Reducer.autoHistogram(maxBuckets=256, cumulative=True),
-            "geometry": self._obj.geometry(),
-            "bestEffort": True,
-        }
-        sourceHistogram = self._obj.reduceRegion(**kwargs)
-        targetHistogram = target.updateMask(self._obj.mask()).reduceRegion(**kwargs)
-
-        # Create a lookup table to make sourceHist match targetHist.
-        def lookup(sourceHist, targetHist):
-            # Split the histograms by column and normalize the counts.
-            sourceValues = sourceHist.slice(1, 0, 1).project([0])
-            sourceCounts = sourceHist.slice(1, 1, 2).project([0])
-            sourceCounts = sourceCounts.divide(sourceCounts.get([-1]))
-
-            targetValues = targetHist.slice(1, 0, 1).project([0])
-            targetCounts = targetHist.slice(1, 1, 2).project([0])
-            targetCounts = targetCounts.divide(targetCounts.get([-1]))
-
-            # Find first position in target where targetCount >= srcCount[i], for each i.
-            lookup = sourceCounts.toList().map(
-                lambda n: targetValues.get(targetCounts.gte(n).argmax())
-            )
-
-            return {"x": sourceValues.toList(), "y": lookup}
-
-        matchedList = bands.map(
-            lambda b: (
-                self._obj.select(ee.String(b)).interpolate(
-                    **lookup(sourceHistogram.getArray(b), targetHistogram.getArray(b))
-                )
-            )
-        )
-
-        return ee.ImageCollection(matchedList).toBands().rename(bands)
-
     def removeZeros(self) -> ee.Image:
         """Return an image array with non-zero values extracted from each band.
 
@@ -1008,3 +790,403 @@ class Image:
             .multiply(area)
         )
         return isletArea.lt(offset).rename("mask").selfMask()
+
+    # -- ee-extra wrapper ------------------------------------------------------
+    def index_list(cls) -> dict:
+        """Return the list of indices implemented in this module.
+
+        Returns:
+            List of indices implemented in this module
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ind = ee.Image.geetools.indices()["BAIS2"]
+                print(ind["long_name"])
+                print(ind["formula"])
+                print(ind["reference"])
+        """
+        return ee_extra.Spectral.core.indices()
+
+    def spectralIndices(
+        self,
+        index: str = "NDVI",
+        G: Union[float, int] = 2.5,
+        C1: Union[float, int] = 6.0,
+        C2: Union[float, int] = 7.5,
+        L: Union[float, int] = 1.0,
+        cexp: Union[float, int] = 1.16,
+        nexp: Union[float, int] = 2.0,
+        alpha: Union[float, int] = 0.1,
+        slope: Union[float, int] = 1.0,
+        intercept: Union[float, int] = 0.0,
+        gamma: Union[float, int] = 1.0,
+        omega: Union[float, int] = 2.0,
+        beta: Union[float, int] = 0.05,
+        k: Union[float, int] = 0.0,
+        fdelta: Union[float, int] = 0.581,
+        kernel: str = "RBF",
+        sigma: str = "0.5 * (a + b)",
+        p: Union[float, int] = 2.0,
+        c: Union[float, int] = 1.0,
+        lambdaN: Union[float, int] = 858.5,
+        lambdaR: Union[float, int] = 645.0,
+        lambdaG: Union[float, int] = 555.0,
+        online: Union[float, int] = False,
+    ) -> ee.Image:
+        """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
+
+        Parameters:
+            self: Image to compute indices on. Must be scaled to [0,1].
+            index: Index or list of indices to compute, default = 'NDVI'
+                Available options:
+                    - 'vegetation' : Compute all vegetation indices.
+                    - 'burn' : Compute all burn indices.
+                    - 'water' : Compute all water indices.
+                    - 'snow' : Compute all snow indices.
+                    - 'urban' : Compute all urban (built-up) indices.
+                    - 'kernel' : Compute all kernel indices.
+                    - 'all' : Compute all indices listed below.
+                    - Awesome Spectral Indices for GEE: Check the complete list of indices `here <https://awesome-ee-spectral-indices.readthedocs.io/en/latest/list.html>`_.
+            G: Gain factor. Used just for index = 'EVI', default = 2.5
+            C1: Coefficient 1 for the aerosol resistance term. Used just for index = 'EVI', default = 6.0
+            C2: Coefficient 2 for the aerosol resistance term. Used just for index = 'EVI', default = 7.5
+            L: Canopy background adjustment. Used just for index = ['EVI','SAVI'], default = 1.0
+            cexp: Exponent used for OCVI, default = 1.16
+            nexp: Exponent used for GDVI, default = 2.0
+            alpha: Weighting coefficient used for WDRVI, default = 0.1
+            slope: Soil line slope, default = 1.0
+            intercept: Soil line intercept, default = 0.0
+            gamma: Weighting coefficient used for ARVI, default = 1.0
+            omega: Weighting coefficient  used for MBWI, default = 2.0
+            beta: Calibration parameter used for NDSIns, default = 0.05
+            k: Slope parameter by soil used for NIRvH2, default = 0.0
+            fdelta: Adjustment factor used for SEVI, default = 0.581
+            kernel: Kernel used for kernel indices, default = 'RBF'
+                Available options:
+                    - 'linear' : Linear Kernel.
+                    - 'RBF' : Radial Basis Function (RBF) Kernel.
+                    - 'poly' : Polynomial Kernel.
+            sigma: Length-scale parameter. Used for kernel = 'RBF', default = '0.5 * (a + b)'. If str, this must be an expression including 'a' and 'b'. If numeric, this must be positive.
+            p: Kernel degree. Used for kernel = 'poly', default = 2.0
+            c: Free parameter that trades off the influence of higher-order versus lower-order terms in the polynomial kernel. Used for kernel = 'poly', default = 1.0. This must be greater than or equal to 0.
+            lambdaN: NIR wavelength used for NIRvH2 and NDGI, default = 858.5
+            lambdaR: Red wavelength used for NIRvH2 and NDGI, default = 645.0
+            lambdaG: Green wavelength used for NDGI, default = 555.0
+            drop: Whether to drop all bands except the new spectral indices, default = False
+
+        Returns:
+            Image with the computed spectral index, or indices, as new bands.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                image = image.specralIndices(["NDVI", "NDFI"])
+        """
+        # fmt: off
+        return ee_extra.Spectral.core.spectralIndices(
+            self._obj, index, G, C1, C2, L, cexp, nexp, alpha, slope, intercept, gamma, omega,
+            beta, k, fdelta, kernel, sigma, p, c, lambdaN, lambdaR, lambdaG, online,
+            drop=False,
+        )
+        # fmt: on
+
+    def getScaleParams(self) -> dict:
+        """Gets the scale parameters for each band of the image.
+
+        Returns:
+            Dictionary with the scale parameters for each band.
+
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee
+                import geetools
+
+                ee.Initialize()
+
+                ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getScaleParams()
+        """
+        return ee_extra.STAC.core.getScaleParams(self._obj)
+
+    def getOffsetParams(self) -> dict:
+        """Gets the offset parameters for each band of the image.
+
+        Returns:
+            Dictionary with the offset parameters for each band.
+
+        Examples:
+            .. jupyter-execute::
+
+            import ee
+            import geetools
+
+            ee.Initialize()
+
+            ee.ImageCollection('MODIS/006/MOD11A2').first().getOffsetParams()
+        """
+        return ee_extra.STAC.core.getOffsetParams(self._obj)
+
+    def scaleAndOffset(self) -> ee.Image:
+        """Scales bands on an image according to their scale and offset parameters.
+
+        Returns:
+            Scaled image.
+
+        Examples:
+            .. jupyter_execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().scaleAndOffset()
+        """
+        return ee_extra.STAC.core.scaleAndOffset(self._obj)
+
+    def preprocess(self, **kwargs) -> ee.Image:
+        """Pre-processes the image: masks clouds and shadows, and scales and offsets the image.
+
+        Parameters:
+            **kwargs: Keywords arguments for ``maskClouds`` method.
+
+        Returns:
+            Pre-processed image.
+
+        Examples:
+            .. jupyter-execute::
+
+            import ee
+            import geetools
+
+            ee.Initialize()
+            S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().preprocess()
+        """
+        return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
+
+    def getSTAC(self) -> dict:
+        """Gets the STAC of the image.
+
+        Returns:
+            STAC of the image.
+
+        Examples:
+            .. jupyter-execute::
+
+            import ee
+            import geetools
+
+            ee.Initialize()
+
+            ee.ImageCollection('COPERNICUS/S2_SR').first().getSTAC()
+        """
+        return ee_extra.STAC.core.getSTAC(self._obj)
+
+    def getDOI(self) -> str:
+        """Gets the DOI of the image, if available.
+
+        Returns:
+            DOI of the ee.Image dataset.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee
+                import geetools
+
+                ee.Initialize()
+
+                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().getDOI()
+        """
+        return ee_extra.STAC.core.getDOI(self._obj)
+
+    def getCitation(self) -> str:
+        """Gets the citation of the image, if available.
+
+        Returns:
+            Citation of the ee.Image dataset.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee
+                import geetools
+
+                ee.Initialize()
+
+                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().getCitation()
+        """
+        return ee_extra.STAC.core.getCitation(self._obj)
+
+    def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.Image:
+        """Apply panchromatic sharpening to the Image.
+
+        Optionally, run quality assessments between the original and sharpened Image to
+        measure spectral distortion and set results as properties of the sharpened Image.
+
+        Parameters:
+        method: The sharpening algorithm to apply. Current options are "SFIM" (Smoothing Filter-based Intensity Modulation), "HPFA" (High Pass Filter Addition), "PCS" (Principal Component Substitution), and "SM" (simple mean). Different sharpening methods will produce different quality sharpening results in different scenarios.
+        qa: One or more optional quality assessment names to apply after sharpening. Results will be stored as image properties with the pattern `geetools:metric`, e.g. `geetools:RMSE`.
+        **kwargs: Keyword arguments passed to ee.Image.reduceRegion() such as "geometry", "maxPixels", "bestEffort", etc. These arguments are only used for PCS sharpening and quality assessments.
+
+        Returns:
+            The Image with all sharpenable bands sharpened to the panchromatic resolution and quality assessments run and set as properties.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee
+                import geetools
+
+                ee.Initialize()
+
+                source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
+                sharp = source.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
+        """
+        return ee_extra.Algorithms.core.panSharpen(
+            img=self._obj, method=method, qa=qa, prefix="geetools", **kwargs
+        )
+
+    def tasseledCap(self) -> ee.Image:
+        """Calculates tasseled cap brightness, wetness, and greenness components.
+
+        Tasseled cap transformations are applied using coefficients published for these
+        supported platforms:
+
+        * Sentinel-2 MSI Level 1C
+        * Landsat 9 OLI-2 SR
+        * Landsat 9 OLI-2 TOA
+        * Landsat 8 OLI SR
+        * Landsat 8 OLI TOA
+        * Landsat 7 ETM+ TOA
+        * Landsat 5 TM Raw DN
+        * Landsat 4 TM Raw DN
+        * Landsat 4 TM Surface Reflectance
+        * MODIS NBAR
+
+        Parameters:
+            self: ee.Image to calculate tasseled cap components for. Must belong to a supported platform.
+
+        Returns:
+            Image with the tasseled cap components as new bands.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                img = img.tasseledCap()
+        """
+        return ee_extra.Spectral.core.tasseledCap(self._obj)
+
+    def matchHistogram(
+        self,
+        target: ee.Image,
+        bands: dict,
+        geometry: Optional[ee.Geometry] = None,
+        maxBuckets: int = 256,
+    ) -> ee.Image:
+        """Adjust the image's histogram to match a target image.
+
+        Parameters:
+        target: Image to match.
+        bands: A dictionary of band names to match, with source bands as keys and target bands as values.
+        geometry: The region to match histograms in that overlaps both images. If none is provided, the geometry of the source image will be used.
+        maxBuckets: The maximum number of buckets to use when building histograms. Will be rounded to the nearest power of 2.
+
+        Returns:
+            The adjusted image containing the matched source bands.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee
+                import geetools
+
+                ee.Initialize()
+
+                source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
+                target = ee.Image("LANDSAT/LE07/C01/T1_TOA/LE07_046027_20150701")
+                bands = {
+                    "B4": "B3",
+                    "B3": "B2",
+                    "B2": "B1"
+                }
+                matched = source.matchHistogram(target, bands)
+        """
+        return ee_extra.Spectral.core.matchHistogram(
+            source=self._obj,
+            target=target,
+            bands=bands,
+            geometry=geometry,
+            maxBuckets=maxBuckets,
+        )
+
+    def maskClouds(
+        self,
+        method: str = "cloud_prob",
+        prob: int = 60,
+        maskCirrus: bool = True,
+        maskShadows: bool = True,
+        scaledImage: bool = False,
+        dark: float = 0.15,
+        cloudDist: int = 1000,
+        buffer: int = 250,
+        cdi: Optional[int] = None,
+    ):
+        """Masks clouds and shadows in an image (valid just for Surface Reflectance products).
+
+        Parameters:
+            self: Image to mask.
+            method: Method used to mask clouds. This parameter is ignored for Landsat products.
+                Available options:
+                    - 'cloud_prob' : Use cloud probability.
+                    - 'qa' : Use Quality Assessment band.
+            prob: Cloud probability threshold. Valid just for method = 'cloud_prob'. This parameter is ignored for Landsat products.
+            maskCirrus: Whether to mask cirrus clouds. Default to ``True``. Valid just for method = 'qa'. This parameter is ignored for Landsat products.
+            maskShadows: Whether to mask cloud shadows. Default to ``True`` This parameter is ignored for Landsat products.
+            scaledImage: Whether the pixel values are scaled to the range [0,1] (reflectance values). This parameter is ignored for Landsat products.
+            dark: NIR threshold. NIR values below this threshold are potential cloud shadows. This parameter is ignored for Landsat products.
+            cloudDist: Maximum distance in meters (m) to look for cloud shadows from cloud edges. This parameter is ignored for Landsat products.
+            buffer: Distance in meters (m) to dilate cloud and cloud shadows objects. This parameter is ignored for Landsat products.
+            cdi: Cloud Displacement Index threshold. Values below this threshold are considered potential clouds. A cdi = None means that the index is not used. This parameter is ignored for Landsat products.
+
+        Returns:
+            Cloud-shadow masked image.
+
+        Notes:
+            This method may mask water as well as clouds for the Sentinel-3 Radiance product.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+                S2 = (
+                    ee.ImageCollection('COPERNICUS/S2_SR')
+                    .first()
+                    .maskClouds(prob = 75,buffer = 300,cdi = -0.5))
+        """
+        return ee_extra.QA.clouds.maskClouds(
+            self._obj,
+            method,
+            prob,
+            maskCirrus,
+            maskShadows,
+            scaledImage,
+            dark,
+            cloudDist,
+            buffer,
+            cdi,
+        )

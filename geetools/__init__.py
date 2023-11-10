@@ -42,6 +42,7 @@ from .List import List
 from .Number import Number
 from .String import String
 from .User import User
+from .ImageCollection import ImageCollection
 
 
 __title__ = "geetools"
