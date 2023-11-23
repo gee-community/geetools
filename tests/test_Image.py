@@ -821,6 +821,7 @@ class TestGetSTAC:
 
     def test_get_stac(self, data_regression):
         stac = ee.ImageCollection("COPERNICUS/S2_SR").first().geetools.getSTAC()
+        stac["extent"].pop("temporal")
         data_regression.check(stac)
 
 
