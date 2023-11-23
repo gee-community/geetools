@@ -383,3 +383,30 @@ class ImageCollection:
                 img = img.tasseledCap()
         """
         return ee_extra.Spectral.core.tasseledCap(self._obj)
+
+    def append(self, image: ee.Image) -> ee.ImageCollection:
+        """Append an image to the existing image collection.
+
+        Args:
+            image: Image to append to the collection.
+
+        Returns:
+            ImageCollection with the new image appended.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ic = ee.ImageCollection('COPERNICUS/S2_SR');
+
+                var geom = ee.Geometry.Point(-122.196, 41.411);
+                ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
+                ic2021 = ic.filterBounds(geom).filterDate('2021-07-01', '2021-10-01')
+
+                ic = ic2018.append(ic2021.first())
+                ic.getInfo()
+        """
+        return self._obj.merge(ee.ImageCollection([image]))

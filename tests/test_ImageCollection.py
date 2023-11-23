@@ -1,8 +1,9 @@
 """Test the ImageCollection class."""
 
 import ee
+import pytest
 
-import geetools  # noqa: F401
+import geetools
 
 
 def reduce(collection: ee.ImageCollection) -> ee.Dictionary:
@@ -107,3 +108,16 @@ class TestTasseledCap:
     def test_tasseled_cap(self, s2, data_regression):
         tc = s2.geetools.tasseledCap()
         data_regression.check(reduce(tc).getInfo())
+
+
+class TestAppend:
+    """Test the ``append`` method."""
+
+    def test_append(self, s2_sr, data_regression):
+        appended = s2_sr.geetools.append(s2_sr.first())
+        data_regression.check(appended.size().getInfo())
+
+    def test_deprecated_add(self, s2_sr, data_regression):
+        with pytest.deprecated_call():
+            appended = geetools.imagecollection.add(s2_sr, s2_sr.first())
+            data_regression.check(appended.size().getInfo())

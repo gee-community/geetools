@@ -81,7 +81,7 @@ using = "PEP631:test;dev;doc"
 ignore-init-module-imports = true
 fix = true
 select = ["E", "F", "W", "I", "D", "RUF"]
-extend-exclude = ["geetools/__init__.py"]
+extend-exclude = ["geetools/__init__.py", "geetools/tools/_deprecated_imagecollection.py"]
 force-exclude = true # to make sure exclude is respected when used via pre-commit
 ignore = [
   "E501",  # line too long | Black take care of it
