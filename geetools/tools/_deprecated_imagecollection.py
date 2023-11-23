@@ -12,15 +12,12 @@ def add(collection, image):
     return ee.ImageCollection(collection).geetools.append(image)
 
 
+@deprecated(
+    version="1.0.0", reason="Use geetools.tools.imagecollection.collectionMask instead"
+)
 def allMasked(collection):
-    """Get a mask which indicates pixels that are masked in all images (0) and.
-
-    pixels that have a valid pixel in at least one image (1)
-    .
-    """
-    masks = collection.map(lambda i: i.mask())
-    masksum = ee.Image(masks.sum())
-    return ee.Image(masksum.gt(0))
+    """Get a mask which indicates pixels that are masked in all images (0) from the others"""
+    return ee.ImageCollection(collection).geetools.collectionMask()
 
 
 def containsAllBands(collection, bands):

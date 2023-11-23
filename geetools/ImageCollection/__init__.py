@@ -410,3 +410,26 @@ class ImageCollection:
                 ic.getInfo()
         """
         return self._obj.merge(ee.ImageCollection([image]))
+
+    def collectionMask(self) -> ee.Image:
+        """A binary ee.Image where only pixels that are masked in all images of the collection get masked.
+
+        Returns:
+            ee.Image of the mask. 1 where at least 1 pixel is valid 0 elswere
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ic = ee.ImageCollection('COPERNICUS/S2_SR');
+
+                var geom = ee.Geometry.Point(-122.196, 41.411);
+                ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
+                ic = ic2018.geetools.collectionMask()
+                ic.getInfo()
+        """
+        masks = self._obj.map(lambda i: i.mask())
+        return ee.Image(masks.sum().gt(0))
