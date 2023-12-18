@@ -1,3 +1,9 @@
+> :warning: **Warning** :warning:  
+> This package is under heavy refactoring.
+> If you want to access the most up-to-date version, please have a look to the `1.x` branch
+> We also start to make pre-release so people can try the latest version. Have a look to the [pypi page](https://pypi.org/project/geetools/) to stay up-to-date.  
+> :warning: **Warning** :warning:  
+
 # Google Earth Engine tools
 
 These are a set of tools for working with Google Earth Engine Python API that
