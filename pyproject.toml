@@ -112,3 +112,13 @@ testpaths = "tests"
 
 [tool.coverage.run]
 source = ["geetools"]
+
+[tool.commitizen]
+tag_format = "v$major.$minor.$patch$prerelease"
+update_changelog_on_bump = false
+version = "0.6.14"
+version_files = [
+    "pyproject.toml:version",
+    "geetools/__init__.py:__version__",
+    "docs/conf.py:release",
+]
