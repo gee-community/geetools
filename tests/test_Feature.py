@@ -22,6 +22,5 @@ class TestToFeatureCollection:
     @pytest.fixture
     def feature_instance(self):
         """Return a ``Feature`` instance."""
-        ee.Initialize()
         geoms = ee.Geometry.MultiPoint([[0, 0], [0, 1]])
         return ee.Feature(geoms).set("foo", "bar")
