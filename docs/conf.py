@@ -18,7 +18,7 @@ import httplib2
 project = "geetools"
 author = "Rodrigo E. Principe"
 copyright = f"2017-{datetime.now().year}, {author}"
-release = "0.6.14"
+release = "0.7.0a0"
 
 # -- General configuration -----------------------------------------------------
 extensions = [
