@@ -1,4 +1,4 @@
-# coding=utf-8
+"""TODO missing docstring."""
 import csv
 import json
 
@@ -9,7 +9,8 @@ from . import utils
 
 
 def fromShapefile(filename, crs=None, start=None, end=None):
-    """Convert an ESRI file (.shp and .dbf must be present) to a
+    """Convert an ESRI file (.shp and .dbf must be present) to a.
+
     ee.FeatureCollection.
 
     At the moment only works for shapes with less than 1000 records and doesn't
@@ -80,7 +81,8 @@ def fromShapefile(filename, crs=None, start=None, end=None):
 
 
 def fromGeoJSON(filename=None, data=None, crs=None):
-    """Create a list of Features from a GeoJSON file. Return a python tuple
+    """Create a list of Features from a GeoJSON file. Return a python tuple.
+
     with ee.Feature inside. This is due to failing when attempting to create a
     FeatureCollection (Broken Pipe ERROR) out of the list. You can try creating
     it yourself casting the result of this function to a ee.List or using it
@@ -139,7 +141,8 @@ def fromGeoJSON(filename=None, data=None, crs=None):
 
 
 def fromKML(filename=None, data=None, crs=None, encoding=None):
-    """Create a list of Features from a KML file. Return a python tuple
+    """Create a list of Features from a KML file. Return a python tuple.
+
     with ee.Feature inside. This is due to failing when attempting to create a
     FeatureCollection (Broken Pipe ERROR) out of the list. You can try creating
     it yourself casting the result of this function to a ee.List or using it
@@ -282,6 +285,7 @@ def toCSV(collection, filename, split_at=4000):
 
 def toLocal(collection, filename, filetype=None, selectors=None, path=None):
     """Download a FeatureCollection to a local file a CSV or geoJSON file.
+
     This uses a different method than `toGeoJSON` and `toCSV`.
 
     :param filetype: The filetype of download, either CSV or JSON.
@@ -300,6 +304,7 @@ def toLocal(collection, filename, filetype=None, selectors=None, path=None):
 
 def toAsset(table, assetPath, name=None, create=True, verbose=False, **kwargs):
     """This function can create folders and ImageCollections on the fly.
+
     The rest is the same to Export.image.toAsset. You can pass the same
     params as the original function.
 
@@ -320,7 +325,7 @@ def toAsset(table, assetPath, name=None, create=True, verbose=False, **kwargs):
         assetPath = "{}/{}".format(user, assetPath)
 
     if create:
-        # Recrusive create path
+        # Recursive create path
         path2create = assetPath  #  '/'.join(assetPath.split('/')[:-1])
         utils.createAssets([path2create], "Folder", True)
 
@@ -349,7 +354,8 @@ def _toDriveShapefile(
     verbose=True,
     **kwargs
 ):
-    """Export a FeatureCollection to a SHP in Google Drive. The advantage of
+    """Export a FeatureCollection to a SHP in Google Drive. The advantage of.
+
     this over the one provided by GEE is that this function takes care of the
     geometries and exports one shapefile per geometry, so at the end you could
     get many shapefiles
@@ -387,7 +393,8 @@ def _toDriveShapefileGeomCol(
     verbose=True,
     **kwargs
 ):
-    """Export a FeatureCollection to a SHP in Google Drive. The advantage of
+    """Export a FeatureCollection to a SHP in Google Drive. The advantage of.
+
     this over the one provided by GEE is that this function takes care of the
     geometries and exports one shapefile per geometry, so at the end you could
     get many shapefiles
@@ -427,7 +434,8 @@ def toDriveShapefile(
     verbose=True,
     **kwargs
 ):
-    """Export a FeatureCollection to a SHP in Google Drive. The advantage of
+    """Export a FeatureCollection to a SHP in Google Drive. The advantage of.
+
     this over the one provided by GEE is that this function takes care of the
     geometries and exports one shapefile per geometry, so at the end you could
     get many shapefiles

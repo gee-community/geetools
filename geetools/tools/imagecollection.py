@@ -25,7 +25,8 @@ def add(collection, image):
 
 
 def allMasked(collection):
-    """Get a mask which indicates pixels that are masked in all images (0) and
+    """Get a mask which indicates pixels that are masked in all images (0) and.
+
     pixels that have a valid pixel in at least one image (1)
     .
     """
@@ -35,7 +36,8 @@ def allMasked(collection):
 
 
 def containsAllBands(collection, bands):
-    """Filter a collection with images containing all bands specified in
+    """Filter a collection with images containing all bands specified in.
+
     parameter `bands`
     .
     """
@@ -61,7 +63,8 @@ def containsAllBands(collection, bands):
 
 
 def containsAnyBand(collection, bands):
-    """Filter a collection with images cotaining any of the bands specified in
+    """Filter a collection with images cotaining any of the bands specified in.
+
     parameter `bands`
     .
     """
@@ -105,7 +108,8 @@ def getImage(collection, index):
 
 
 def wrapper(f, *arg, **kwargs):
-    """Wrap a function and its arguments into a mapping function for
+    """Wrap a function and its arguments into a mapping function for.
+
     ImageCollections. The first parameter of the functions must be an Image,
     and it must return an Image.
 
@@ -122,7 +126,7 @@ def wrapper(f, *arg, **kwargs):
 
 
 def enumerateProperty(collection, name="enumeration"):
-    """
+    """Missing docstring.
 
     :param collection:
     :param name:
@@ -141,7 +145,8 @@ def enumerateProperty(collection, name="enumeration"):
 
 
 def enumerateSimple(collection, name="ENUM"):
-    """Simple enumeration of features inside a collection. Each feature stores
+    """Simple enumeration of features inside a collection. Each feature stores.
+
     its enumeration, so if the order of features changes over time, the numbers
     will not be in order
     .
@@ -162,6 +167,7 @@ def enumerateSimple(collection, name="ENUM"):
 
 def fillWithLast(collection, reverse=False, proxy=-999):
     """Fill each masked pixels with the last available not masked pixel. If reverse, it goes backwards.
+
     Images must contain a valid date (system:time_start property by default)
     .
     """
@@ -169,9 +175,9 @@ def fillWithLast(collection, reverse=False, proxy=-999):
 
     def shift(array):
         if reverse:
-            rigth = array.arraySlice(axis, 1)
+            right = array.arraySlice(axis, 1)
             last = array.arraySlice(axis, -1)
-            return rigth.arrayCat(last, axis)
+            return right.arrayCat(last, axis)
         else:
             left = array.arraySlice(axis, 0, -1)
             first = array.arraySlice(axis, 0, 1)
@@ -241,7 +247,7 @@ def mosaicSameDay(collection, qualityBand=None):
     """Return a collection where images from the same day are mosaicked.
 
     :param qualityBand: the band that holds the quality score for mosaiking.
-        If None it will use the simplier mosaic() function
+        If None it will use the simpler mosaic() function
     :type qualityBand: str
     :return: a new image collection with 1 image per day. The only property
         kept is `system:time_start`
@@ -310,7 +316,8 @@ def mosaicSameDay(collection, qualityBand=None):
 def reduceEqualInterval(
     collection, interval=30, unit="day", reducer=None, start_date=None, end_date=None
 ):
-    """Reduce an ImageCollection into a new one that has one image per
+    """Reduce an ImageCollection into a new one that has one image per.
+
         reduced interval, for example, one image per month.
 
     :param collection: the collection
@@ -374,7 +381,8 @@ def reduceEqualInterval(
 
 
 def makeEqualInterval(collection, interval=1, unit="month"):
-    """Make a list of image collections filtered by the given interval,
+    """Make a list of image collections filtered by the given interval.
+
     for example, one month. Starts from the end of the parsed collection.
 
     :param collection: the collection
@@ -455,7 +463,8 @@ def getValues(
     bestEffort=False,
     tileScale=1,
 ):
-    """Return all values of all bands of an image collection in the
+    """Return all values of all bands of an image collection in the.
+
         specified geometry.
 
     :param geometry: Point from where to get the info
@@ -470,7 +479,7 @@ def getValues(
     :type properties: list
     :param side: 'server' or 'client' side
     :type side: str
-    :return: Values of all bands in the ponit
+    :return: Values of all bands in the point
     :rtype: dict
     """
     if reducer is None:
@@ -523,7 +532,7 @@ def getValues(
 
 
 def outliers(collection, bands, sigma=2, updateMask=False):
-    """Compute outliers by:
+    """Compute outliers by.
 
     outlier = value > mean+(sigma*stddev)
     outlier = value < mean-(sigma*stddev)
@@ -571,8 +580,8 @@ def outliers(collection, bands, sigma=2, updateMask=False):
 
 
 def data2pandas(data):
-    """
-    Convert data coming from tools.imagecollection.get_values to a
+    """Convert data coming from tools.imagecollection.get_values to a.
+
     pandas DataFrame.
 
     :type data: dict
@@ -656,7 +665,8 @@ def linearFunctionBand(
     output_max=None,
     name="linear_function",
 ):
-    """Apply a linear function over the bands across every image of the
+    """Apply a linear function over the bands across every image of the.
+
     ImageCollection using the following formula:
 
     - a = abs(val-mean)
@@ -713,7 +723,8 @@ def linearFunctionProperty(
     output_max=None,
     name="LINEAR_FUNCTION",
 ):
-    """Apply a linear function over the properties across every image of the
+    """Apply a linear function over the properties across every image of the.
+
     ImageCollection using the following formula:
 
     - a = abs(val-mean)
@@ -785,6 +796,8 @@ def linearFunctionProperty(
 
 
 def linearInterpolation(collection, date_property="system:time_start"):
+    """TODO missing docstring."""
+
     def _addTime(collection):
         def wrap(i):
             sec = ee.Number(i.get(date_property))
@@ -890,7 +903,8 @@ def gaussFunctionBand(
     stretch=1,
     name="gauss",
 ):
-    """Compute a Guass function using a specified band over an
+    """Compute a Gauss function using a specified band over an.
+
         ImageCollection. See: https://en.wikipedia.org/wiki/Gaussian_function.
 
     :param band: the name of the band to use
@@ -958,7 +972,8 @@ def gaussFunctionProperty(
     stretch=1,
     name="GAUSS",
 ):
-    """Compute a Guass function using a specified property over an
+    """Compute a Gauss function using a specified property over an.
+
         ImageCollection. See: https://en.wikipedia.org/wiki/Gaussian_function.
 
     :param collection:
@@ -1033,7 +1048,8 @@ def gaussFunctionProperty(
 def normalDistributionProperty(
     collection, property, mean=None, std=None, name="NORMAL_DISTRIBUTION"
 ):
-    """Compute a normal distribution using a specified property, over an
+    """Compute a normal distribution using a specified property, over an.
+
     ImageCollection. For more see:
     https://en.wikipedia.org/wiki/Normal_distribution.
 
@@ -1066,7 +1082,8 @@ def normalDistributionProperty(
 def normalDistributionBand(
     collection, band, mean=None, std=None, name="normal_distribution"
 ):
-    """Compute a normal distribution using a specified band, over an
+    """Compute a normal distribution using a specified band, over an.
+
     ImageCollection. For more see:
     https://en.wikipedia.org/wiki/Normal_distribution.
 
@@ -1099,7 +1116,8 @@ def normalDistributionBand(
 
 
 def maskedSize(collection):
-    """return an image with the percentage of masked pixels. 100% means all
+    """Return an image with the percentage of masked pixels. 100% means all.
+
     pixels are masked
     .
     """
@@ -1116,7 +1134,8 @@ def maskedSize(collection):
 
 
 def area_under_curve(collection, band, x_property=None, name="area_under"):
-    """Compute the area under the curve taking the x axis from an image
+    """Compute the area under the curve taking the x axis from an image.
+
     property. If not specified, it'll use `system:time_start`
     .
     """
@@ -1125,7 +1144,7 @@ def area_under_curve(collection, band, x_property=None, name="area_under"):
     min_x = collection.aggregate_min(x_property)
     total_lapsed = ee.Number(max_x).subtract(ee.Number(min_x))
 
-    def cummulative(image, cumm):
+    def cumulative(image, cumm):
         cumm = ee.List(cumm)
 
         def true(i, c):
@@ -1149,7 +1168,7 @@ def area_under_curve(collection, band, x_property=None, name="area_under"):
             ee.Algorithms.If(cumm.size(), true(image, cumm), false(image, cumm))
         )
 
-    final = ee.List(collection.iterate(cummulative, ee.List([])))
+    final = ee.List(collection.iterate(cumulative, ee.List([])))
     final_ic = ee.ImageCollection.fromImages(final).select(name)
     return ee.Image(final_ic.reduce(ee.Reducer.sum()))
 
@@ -1240,7 +1259,8 @@ def aggregate_array_all(collection):
 
 
 def toBands(collection):
-    """Convert an ImageCollection into an Image. The bands of the images
+    """Convert an ImageCollection into an Image. The bands of the images.
+
     inside the collection MUST be renamed. Similar to
     ee.ImageCollection.toBands but it does not add a suffix
     .

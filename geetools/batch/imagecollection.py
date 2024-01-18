@@ -1,4 +1,4 @@
-# coding=utf-8
+"""TODO missing docstring."""
 import os
 
 import ee
@@ -20,7 +20,8 @@ def toDrive(
     verbose=False,
     **kwargs
 ):
-    """Upload all images from one collection to Google Drive. You can use
+    """Upload all images from one collection to Google Drive. You can use.
+
     the same arguments as the original function
     ee.batch.export.image.toDrive.
 
@@ -32,7 +33,7 @@ def toDrive(
         See geetools.tools.image.make_name function and also
         geetools.tools.string.format function
     :type namePattern: str
-    :param scale: scale of the image (side of one pixel). Defults to 30
+    :param scale: scale of the image (side of one pixel). Defaults to 30
         (Landsat resolution)
     :type scale: int
     :param dataType: as downloaded images **must** have the same data type
@@ -115,7 +116,8 @@ def toCloudStorage(
     extra=None,
     **kwargs
 ):
-    """Upload all images from one collection to Google Cloud Storage. You can
+    """Upload all images from one collection to Google Cloud Storage. You can.
+
     use the same arguments as the original function
     ee.batch.export.image.toCloudStorage.
 
@@ -127,10 +129,10 @@ def toCloudStorage(
     :type folder: str
     :param namePattern: pattern for the name. See make_name function
     :type namePattern: str
-    :param region: area to upload. Defualt to the footprint of the first
+    :param region: area to upload. default to the footprint of the first
         image in the collection
     :type region: ee.Geometry.Rectangle or ee.Feature
-    :param scale: scale of the image (side of one pixel). Defults to 30
+    :param scale: scale of the image (side of one pixel). Defaults to 30
         (Landsat resolution)
     :type scale: int
     :param dataType: as downloaded images **must** have the same data type
@@ -204,6 +206,7 @@ def toAsset(
     **kwargs
 ):
     """Upload all images from one collection to a Earth Engine Asset.
+
     You can use the same arguments as the original function
     ee.batch.export.image.toDrive.
 
@@ -211,15 +214,15 @@ def toAsset(
     :type collection: ee.ImageCollection
     :param assetPath: path of the asset where images will go
     :type assetPath: str
-    :param namePattern: pattern for the name. If None, it uses the posion
+    :param namePattern: pattern for the name. If None, it uses the position
         of the image in the image collection as the name. Otherwise see
         geetools.tools.image.make_name function and also
         geetools.tools.string.format function
     :type namePattern: str
-    :param region: area to upload. Defualt to the footprint of the first
+    :param region: area to upload. default to the footprint of the first
         image in the collection
     :type region: ee.Geometry.Rectangle or ee.Feature
-    :param scale: scale of the image (side of one pixel). Defults to 30
+    :param scale: scale of the image (side of one pixel). Defaults to 30
         (Landsat resolution)
     :type scale: int
     :return: list of tasks
@@ -309,6 +312,7 @@ def toAsset(
 
 
 def qgisCode(collection, visParams=None, name=None, datePattern=None, verbose=False):
+    """Missing docstring."""
     QGIS_COL_CODE = """names={names}
 urls={urls}
 for name, url in zip(names, urls):
@@ -365,8 +369,8 @@ def toQGIS(
     else:
         filename = "qgis2ee"
     # add _qgis_ to filename
-    splitted = filename.split(".")[:-1]
-    noext = ".".join(splitted)
+    split = filename.split(".")[:-1]
+    noext = ".".join(split)
     filename = "{}_qgis_".format(noext)
     # process
     finalpath = os.path.join(path, filename)

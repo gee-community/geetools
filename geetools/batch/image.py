@@ -1,4 +1,4 @@
-# coding=utf-8
+"""TODO missing docstring."""
 import os
 
 import ee
@@ -30,7 +30,7 @@ def toLocal(
     # TODO: checkExist
     try:
         import zipfile
-    except:
+    except Exception:
         raise ValueError(
             "zipfile module not found, install it using " "`pip install zipfile`"
         )
@@ -92,6 +92,7 @@ def toAsset(
     **kwargs
 ):
     """This function can create folders and ImageCollections on the fly.
+
     The rest is the same to Export.image.toAsset. You can pass the same
     params as the original function.
 
@@ -104,7 +105,7 @@ def toAsset(
     :type name: str
     :param to: where to save the image. Options: 'Folder' or
         'ImageCollection'
-    :param region: area to upload. Defualt to the footprint of the first
+    :param region: area to upload. default to the footprint of the first
         image in the collection
     :type region: ee.Geometry.Rectangle or ee.Feature
     :param scale: scale of the image (side of one pixel)
@@ -134,7 +135,7 @@ def toAsset(
     scale = scale if scale else int(tools.image.minscale(image).getInfo())
 
     if create:
-        # Recrusive create path
+        # Recursive create path
         path2create = assetPath  #  '/'.join(assetPath.split('/')[:-1])
         utils.createAssets([path2create], to, True)
 
@@ -173,7 +174,8 @@ def toDriveByFeature(
     verbose=False,
     **kwargs
 ):
-    """Export an image clipped by features (Polygons). You can use the
+    """Export an image clipped by features (Polygons). You can use the.
+
     same arguments as the original function ee.batch.export.image.toDrive.
 
     :Parameters:
@@ -184,7 +186,7 @@ def toDriveByFeature(
     :param folder: same as ee.Export
     :type folder: str
     :param namePattern: a name pattern using image and/or feature properties between
-        brakets. Example: '{ID} {a_feat_prop} {an_image_prop}'
+        brackets. Example: '{ID} {a_feat_prop} {an_image_prop}'
     :type namePattern: str
     :param datePattern: a date pattern to use for {system_date} pattern in name
     :type datePattern: str
@@ -244,6 +246,7 @@ def toDriveByFeature(
 
 
 def qgisCode(image, visParams=None, name=None, namePattern=None, datePattern=None):
+    """Missing docstring."""
     QGIS_IMG_CODE = """name = '{name}'
 url = '{url}'
 urlWithParams = "type=xyz&url={{}}".format(url)
@@ -281,8 +284,8 @@ def toQGIS(
     else:
         filename = "qgis2ee"
     # add _qgis_ to filename
-    splitted = filename.split(".")[:-1]
-    noext = ".".join(splitted)
+    split = filename.split(".")[:-1]
+    noext = ".".join(split)
     filename = "{}_qgis_".format(noext)
     # process
     finalpath = os.path.join(path, filename)

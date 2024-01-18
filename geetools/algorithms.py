@@ -176,7 +176,8 @@ def maskCover(
 
 
 def euclideanDistance(image1, image2, bands=None, discard_zeros=False, name="distance"):
-    """Compute the Euclidean distance between two images. The image's bands
+    """Compute the Euclidean distance between two images. The image's bands.
+
     is the dimension of the arrays.
 
     :param image1:
@@ -221,7 +222,8 @@ def euclideanDistance(image1, image2, bands=None, discard_zeros=False, name="dis
 
 
 def sumDistance(image, collection, bands=None, discard_zeros=False, name="sumdist"):
-    """Compute de sum of all distances between the given image and the
+    """Compute de sum of all distances between the given image and the.
+
     collection passed.
 
     :param image:
@@ -245,8 +247,8 @@ def sumDistance(image, collection, bands=None, discard_zeros=False, name="sumdis
 
 
 def pansharpenKernel(image, pan, rgb=None, kernel=None):
-    """
-    Compute the per-pixel means of the unsharpened bands
+    """Compute the per-pixel means of the unsharpened bands.
+
     source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine.
 
     :param pan: the name of the panchromatic band
@@ -280,8 +282,8 @@ def pansharpenKernel(image, pan, rgb=None, kernel=None):
 
 
 def pansharpenIhsFusion(image, pan=None, rgb=None):
-    """
-    HSV-based Pan-Sharpening
+    """HSV-based Pan-Sharpening.
+
     source: https://gis.stackexchange.com/questions/296615/pansharpen-landsat-mosaic-in-google-earth-engine.
 
     :param image:
@@ -307,6 +309,8 @@ def pansharpenIhsFusion(image, pan=None, rgb=None):
 
 
 class Landsat(object):
+    """TODO add docstring."""
+
     @staticmethod
     def unmask_slc_off(image, optical_bands="B.+"):
         """Unmask pixels that were affected by scl-off  error in Landsat 7.
@@ -375,7 +379,8 @@ class Landsat(object):
 
     @staticmethod
     def rescaleToaSr(image, bands=None, thermal_bands=None):
-        """Re-scale a TOA Landsat image to match the data type of SR Landsat
+        """Re-scale a TOA Landsat image to match the data type of SR Landsat.
+
         image.
 
         :param image: a Landsat TOA image
@@ -392,7 +397,8 @@ class Landsat(object):
 
     @staticmethod
     def rescaleSrToa(image, bands=None, thermal_bands=None):
-        """Re-scale a TOA Landsat image to match the data type of SR Landsat
+        """Re-scale a TOA Landsat image to match the data type of SR Landsat.
+
         image.
 
         :param image: a Landsat TOA image
@@ -418,7 +424,8 @@ class Landsat(object):
         swir2="B7",
         max_value=None,
     ):
-        """Harmonization of Landsat 8 images to be consistant with
+        """Harmonization of Landsat 8 images to be consistent with.
+
         Landsat 7 images.
 
         Roy, D.P., Kovalskyy, V., Zhang, H.K., Vermote, E.F., Yan, L.,
@@ -500,8 +507,8 @@ class Landsat(object):
             return string.format(**allArgs)
 
         def toImage(img, band, args=None):
-            """
-            compute an expression passed in band if it's a str.
+            """compute an expression passed in band if it's a str.
+
             formats the expression in band using format_str if necessary
             :return: one band image.
             """
@@ -520,14 +527,16 @@ class Landsat(object):
             return ee.Image(band)
 
         def set_name(img, name, toAdd, args=None):
-            """
-            compute the band (toAdd) with toImage.
+            """compute the band (toAdd) with toImage.
+
             add the band to the passed image and rename it.
             """
             toAdd = toImage(img, toAdd, args)
             return img.addBands(toAdd.rename(name), None, True)
 
         def setIf(img, name, condition=None, trueValue=None, falseValue=None):
+            """TODO missing docstring."""
+
             def invertMask(mask):
                 # return mask.multiply(-1).add(1)
                 return mask.Not()
@@ -539,6 +548,7 @@ class Landsat(object):
             return set_name(img, name, value)
 
         def x(point):
+            """TODO missing docstring."""
             return ee.Number(ee.List(point).get(0))
 
         def y(point):

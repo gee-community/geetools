@@ -10,7 +10,9 @@ from . import algorithms, tools
 def medoidScore(
     collection, bands=None, discard_zeros=False, bandname="sumdist", normalize=True
 ):
-    """Compute a score to reflect 'how far' is from the medoid. Same params
+    """Compute a score to reflect 'how far' is from the medoid.
+
+    Same params
     as medoid()
     .
     """
@@ -97,7 +99,8 @@ def medoid(collection, bands=None, discard_zeros=False):
 
 
 def closestDate(col, clip_to_first=False):
-    """Make a composite in which masked pixels are filled with the
+    """Make a composite in which masked pixels are filled with the.
+
     last available pixel. Make sure all image bands are casted.
 
     :param clip_to_first: whether to clip with the 'first' image
@@ -141,7 +144,8 @@ def compositeRegularIntervals(
     composite_args=None,
     composite_kwargs=None,
 ):
-    """Make a composite at regular intervals parsing a composite
+    """Make a composite at regular intervals parsing a composite.
+
     function. This function MUST return an ImageCollection and its first
     argument must be the input collection. The default function
     (if the argument is None) is `lambda col: col.median()`.
@@ -167,8 +171,8 @@ def compositeRegularIntervals(
         start_date, end_date, interval, unit, date_range, date_range_unit, direction
     )
 
-    def wrap(dr, l):
-        l = ee.List(l)
+    def wrap(dr, li):
+        li = ee.List(li)
         dr = ee.DateRange(dr)
         middle = ee.Number(dr.end().difference(dr.start(), "day")).divide(2).floor()
         filtered = collection.filterDate(dr.start(), dr.end().advance(1, "day"))
@@ -196,7 +200,7 @@ def compositeRegularIntervals(
             )
             return ll.add(comp)
 
-        return ee.Algorithms.If(filtered.size(), true(filtered, l), l)
+        return ee.Algorithms.If(filtered.size(), true(filtered, li), li)
 
     return ee.ImageCollection.fromImages(
         ee.List(date_ranges.iterate(wrap, ee.List([])))
@@ -206,7 +210,8 @@ def compositeRegularIntervals(
 def compositeByMonth(
     collection, composite_function=None, composite_args=None, composite_kwargs=None
 ):
-    """Make a composite at regular intervals parsing a composite
+    """Make a composite at regular intervals parsing a composite.
+
     function. This function MUST return an ImageCollection and its first
     argument must be the input collection. The default function
     (if the argument is None) is `lambda col: col.median()`.
