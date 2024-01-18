@@ -1,0 +1,23 @@
+columns:
+  foo: String
+  system:index: String
+features:
+- geometry:
+    coordinates:
+    - 0
+    - 0
+    type: Point
+  id: '0'
+  properties:
+    foo: bar
+  type: Feature
+- geometry:
+    coordinates:
+    - 0
+    - 1
+    type: Point
+  id: '1'
+  properties:
+    foo: bar
+  type: Feature
+type: FeatureCollection

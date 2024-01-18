@@ -1,23 +1,24 @@
 # coding=utf-8
-import ee
 import os
 
+import ee
+
 GEOMETRY_TYPES = {
-    'BBox': ee.geometry.Geometry.BBox,
-    'LineString': ee.geometry.Geometry.LineString,
-    'LineRing': ee.geometry.Geometry.LinearRing,
-    'MultiLineString': ee.geometry.Geometry.MultiLineString,
-    'MultiPolygon': ee.geometry.Geometry.MultiPolygon,
-    'MultiPoint': ee.geometry.Geometry.MultiPoint,
-    'Point': ee.geometry.Geometry.Point,
-    'Polygon': ee.geometry.Geometry.Polygon,
-    'Rectangle': ee.geometry.Geometry.Rectangle,
-    'GeometryCollection': ee.geometry.Geometry,
+    "BBox": ee.geometry.Geometry.BBox,
+    "LineString": ee.geometry.Geometry.LineString,
+    "LineRing": ee.geometry.Geometry.LinearRing,
+    "MultiLineString": ee.geometry.Geometry.MultiLineString,
+    "MultiPolygon": ee.geometry.Geometry.MultiPolygon,
+    "MultiPoint": ee.geometry.Geometry.MultiPoint,
+    "Point": ee.geometry.Geometry.Point,
+    "Polygon": ee.geometry.Geometry.Polygon,
+    "Rectangle": ee.geometry.Geometry.Rectangle,
+    "GeometryCollection": ee.geometry.Geometry,
 }
 
 
 def getProjection(filename, path=None):
-    """ Get EPSG from a shapefile using pycrs
+    """Get EPSG from a shapefile using pycrs.
 
     :param filename: an ESRI shapefile (.shp)
     :type filename: str
@@ -25,35 +26,37 @@ def getProjection(filename, path=None):
     try:
         import pycrs
     except ModuleNotFoundError as e:
-        print('Install pycrs mode by `pip install pycrs`')
+        print("Install pycrs mode by `pip install pycrs`")
         raise e
     except Exception as e:
         raise e
-    import requests
     import os
+
+    import requests
 
     if not path:
         path = os.getcwd()
 
-    BASEURL = 'http://prj2epsg.org/search.json'
-    fname = filename.split('.')[0]
-    prjname = '{}.prj'.format(fname)
+    BASEURL = "http://prj2epsg.org/search.json"
+    fname = filename.split(".")[0]
+    prjname = "{}.prj".format(fname)
     fpath = os.path.join(path, prjname)
     if not os.path.exists(prjname):
-        raise ValueError('{} does not exist'.format(fpath))
+        raise ValueError("{} does not exist".format(fpath))
     crs = pycrs.load.from_file(fpath)
     wkt = crs.to_ogc_wkt()
-    params = dict(mode='wkt', terms=wkt)
+    params = dict(mode="wkt", terms=wkt)
     response = requests.get(BASEURL, params)
     rjson = response.json()
-    return rjson['codes'][0]['code']
+    return rjson["codes"][0]["code"]
 
 
 def kmlToGeoJsonDict(kmlfile=None, data=None, encoding=None):
-    """ Convert a KML file to a GeoJSON dict """
+    """Convert a KML file to a GeoJSON dict."""
     import xml.dom.minidom as md
-    from fastkml import kml
+
     import kml2geojson
+    from fastkml import kml
 
     k = kml.KML()
 
@@ -64,10 +67,11 @@ def kmlToGeoJsonDict(kmlfile=None, data=None, encoding=None):
     if not encoding:
         try:
             import re
+
             match = re.search('encoding=".+"', kmlf).group()
-            encoding = match.split('=')[1][1:-1]
+            encoding = match.split("=")[1][1:-1]
         except:
-            encoding = 'utf-8'
+            encoding = "utf-8"
 
     kmlf = kmlf.encode(encoding)
     k.from_string(kmlf)
@@ -81,18 +85,20 @@ def kmlToGeoJsonDict(kmlfile=None, data=None, encoding=None):
 
 
 def isPoint(pointlist):
-    """ Verify is a list is a list of points """
+    """Verify is a list is a list of points."""
     if len(pointlist) in [2, 3]:
-        if isinstance(pointlist[0], (int, float))\
-                and isinstance(pointlist[1], (int, float)):
+        if isinstance(pointlist[0], (int, float)) and isinstance(
+            pointlist[1], (int, float)
+        ):
             return True
         else:
             return False
     else:
         return False
 
+
 def hasZ(pointlist):
-    """ determine if points inside coordinates have Z values """
+    """determine if points inside coordinates have Z values."""
     points = pointlist[0]
     first = points[0]
     if len(first) == 3:
@@ -102,7 +108,7 @@ def hasZ(pointlist):
 
 
 def removeZ(coords):
-    """ Remove Z values from coordinates """
+    """Remove Z values from coordinates."""
     newcoords = coords.copy()
     for p in newcoords[0]:
         p.pop(2)
@@ -112,13 +118,13 @@ def removeZ(coords):
 def recrusiveDeleteAsset(assetId):
     info = ee.data.getInfo(assetId)
     if info:
-        ty = info['type']
-        if ty in ['Image', 'FeatureCollection']:
+        ty = info["type"]
+        if ty in ["Image", "FeatureCollection"]:
             # setting content to 0 will delete the assetId
             content = 0
-        elif ty in ['Folder', 'ImageCollection']:
+        elif ty in ["Folder", "ImageCollection"]:
             try:
-                content = ee.data.getList({'id':assetId})
+                content = ee.data.getList({"id": assetId})
             except Exception as e:
                 print(str(e))
                 return
@@ -130,9 +136,9 @@ def recrusiveDeleteAsset(assetId):
             ee.data.deleteAsset(assetId)
         else:
             for asset in content:
-                path = asset['id']
-                ty = asset['type']
-                if ty == 'Image':
+                path = asset["id"]
+                ty = asset["type"]
+                if ty == "Image":
                     # print('deleting {}'.format(path))
                     ee.data.deleteAsset(path)
                 else:
@@ -140,11 +146,11 @@ def recrusiveDeleteAsset(assetId):
             # delete empty collection and/or folder
             ee.data.deleteAsset(assetId)
     else:
-        print('{} does not exists or there is another problem'.format(assetId))
+        print("{} does not exists or there is another problem".format(assetId))
 
 
 def convertDataType(newtype):
-    """ Convert an image to the specified data type
+    """Convert an image to the specified data type.
 
     :param newtype: the data type. One of 'float', 'int', 'byte', 'double',
         'Uint8','int8','Uint16', 'int16', 'Uint32','int32'
@@ -153,52 +159,53 @@ def convertDataType(newtype):
     :rtype: function
     """
     newtype = newtype.lower()
+
     def wrap(image):
-        TYPES = {'float': image.toFloat,
-                 'int': image.toInt,
-                 'byte': image.toByte,
-                 'double': image.toDouble,
-                 'uint8': image.toUint8,
-                 'int8': image.toInt8,
-                 'uint16': image.toUint16,
-                 'int16': image.toInt16,
-                 'uint32': image.toUint32,
-                 'int32': image.toInt32}
+        TYPES = {
+            "float": image.toFloat,
+            "int": image.toInt,
+            "byte": image.toByte,
+            "double": image.toDouble,
+            "uint8": image.toUint8,
+            "int8": image.toInt8,
+            "uint16": image.toUint16,
+            "int16": image.toInt16,
+            "uint32": image.toUint32,
+            "int32": image.toInt32,
+        }
         return TYPES[newtype]()
+
     return wrap
 
 
 def create_asset(asset_id, asset_type, mk_parents=True):
-    """ Create an Asset """
-    types = {
-        'ImageCollection': 'IMAGE_COLLECTION',
-        'Folder': 'FOLDER'
-    }
+    """Create an Asset."""
+    types = {"ImageCollection": "IMAGE_COLLECTION", "Folder": "FOLDER"}
 
     already = ee.data.getInfo(asset_id)
     if already:
-        ty = already['type']
+        ty = already["type"]
         if ty != types[asset_type]:
             raise ValueError("{} is a {}. Can't create asset".format(asset_id, ty))
         else:
             return None
 
     if mk_parents:
-        parts = asset_id.split('/')
+        parts = asset_id.split("/")
         root = "/".join(parts[:2])
         root += "/"
         for part in parts[2:-1]:
             root += part
             if ee.data.getInfo(root) is None:
-                ee.data.createAsset({'type': 'Folder'}, root)
-            root += '/'
-    return ee.data.createAsset({'type': asset_type}, asset_id)
+                ee.data.createAsset({"type": "Folder"}, root)
+            root += "/"
+    return ee.data.createAsset({"type": asset_type}, asset_id)
 
 
 def createAssets(asset_ids, asset_type, mk_parents):
     """Creates the specified assets if they do not exist.
     This is a fork of the original function in 'ee.data' module with the
-    difference that
+    difference that.
 
     - If the asset already exists but the type is different that the one we
       want, raise an error
@@ -219,25 +226,25 @@ def createAssets(asset_ids, asset_type, mk_parents):
     for asset_id in asset_ids:
         already = ee.data.getInfo(asset_id)
         if already:
-            ty = already['type']
+            ty = already["type"]
             if ty != asset_type:
                 raise ValueError("{} is a {}. Can't create asset".format(asset_id, ty))
-            print('Asset %s already exists' % asset_id)
+            print("Asset %s already exists" % asset_id)
             continue
         if mk_parents:
-            parts = asset_id.split('/')
+            parts = asset_id.split("/")
             root = "/".join(parts[:2])
             root += "/"
             for part in parts[2:-1]:
                 root += part
                 if ee.data.getInfo(root) is None:
-                    ee.data.createAsset({'type': 'Folder'}, root)
-                root += '/'
-        return ee.data.createAsset({'type': asset_type}, asset_id)
+                    ee.data.createAsset({"type": "Folder"}, root)
+                root += "/"
+        return ee.data.createAsset({"type": asset_type}, asset_id)
 
 
 def downloadFile(url, name, extension, path=None):
-    """ Download a file from a given url
+    """Download a file from a given url.
 
     :param url: full url
     :type url: str
@@ -249,6 +256,7 @@ def downloadFile(url, name, extension, path=None):
     :rtype: file
     """
     import requests
+
     response = requests.get(url, stream=True)
     code = response.status_code
 
@@ -262,10 +270,11 @@ def downloadFile(url, name, extension, path=None):
             return None
         response = requests.get(url, stream=True)
         code = response.status_code
-        size = response.headers.get('content-length',0)
-        if size: print('size:', size)
+        size = response.headers.get("content-length", 0)
+        if size:
+            print("size:", size)
 
-    with open('{}.{}'.format(pathname, extension), "wb") as handle:
+    with open("{}.{}".format(pathname, extension), "wb") as handle:
         for data in response.iter_content():
             handle.write(data)
 
@@ -273,32 +282,58 @@ def downloadFile(url, name, extension, path=None):
 
 
 def matchDescription(name, custom=None):
-    """ Format a name to be accepted as a desciption.
+    """Format a name to be accepted as a desciption.
     The rule is:
 
     The description must contain only the following characters: a..z, A..Z,
     0..9, ".", ",", ":", ";", "_" or "-". The description must be at most 100
     characters long.
     """
-    letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-               'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-    numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    letters = [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "i",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "w",
+        "x",
+        "y",
+        "z",
+    ]
+    numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     upper = [s.capitalize() for s in letters]
-    chars = ['.', ',', ':', ';', '_', '-']
-    allchars  = letters+upper+chars+numbers
+    chars = [".", ",", ":", ";", "_", "-"]
+    allchars = letters + upper + chars + numbers
 
     replacements = [
-        [' ', [' ']],
-        ['-', ['/']],
-        ['.', ['?', '!', '¿', '*']],
-        [':', ['(', ')','[', ']', '{', '}']],
-        ['a', ['á', 'ä', 'à', 'æ']],
-        ['e', ['é', 'ë', 'è']],
-        ['i', ['í', 'ï', 'ì']],
-        ['o', ['ó', 'ö', 'ò', 'ø']],
-        ['u', ['ú', 'ü', 'ù']],
-        ['c', ['¢', 'ç']],
-        ['n', ['ñ']]
+        [" ", [" "]],
+        ["-", ["/"]],
+        [".", ["?", "!", "¿", "*"]],
+        [":", ["(", ")", "[", "]", "{", "}"]],
+        ["a", ["á", "ä", "à", "æ"]],
+        ["e", ["é", "ë", "è"]],
+        ["i", ["í", "ï", "ì"]],
+        ["o", ["ó", "ö", "ò", "ø"]],
+        ["u", ["ú", "ü", "ù"]],
+        ["c", ["¢", "ç"]],
+        ["n", ["ñ"]],
     ]
 
     replacementupper = []
@@ -312,7 +347,7 @@ def matchDescription(name, custom=None):
         replacementupper.append(row)
 
     replacements_dict = dict()
-    for replacement in replacements+replacementupper:
+    for replacement in replacements + replacementupper:
         letter = replacement[0]
         repl = replacement[1]
         for char in repl:
@@ -322,13 +357,13 @@ def matchDescription(name, custom=None):
     if custom:
         replacements_dict.update(custom)
 
-    description = ''
+    description = ""
     for letter in name:
         if letter not in allchars:
             if letter in replacements_dict:
                 description += replacements_dict[letter]
             else:
-                description += ''
+                description += ""
         else:
             description += letter
 
