@@ -6,6 +6,9 @@ on:
       - main
   pull_request:
 
+env:
+  EARTHENGINE_TOKEN: ${{ secrets.EARTHENGINE_TOKEN }}
+
 jobs:
   lint:
     runs-on: ubuntu-latest
