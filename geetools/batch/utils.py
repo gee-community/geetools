@@ -1,4 +1,4 @@
-# coding=utf-8
+"""Missing docstring."""
 import os
 
 import ee
@@ -70,7 +70,7 @@ def kmlToGeoJsonDict(kmlfile=None, data=None, encoding=None):
 
             match = re.search('encoding=".+"', kmlf).group()
             encoding = match.split("=")[1][1:-1]
-        except:
+        except Exception:
             encoding = "utf-8"
 
     kmlf = kmlf.encode(encoding)
@@ -98,7 +98,7 @@ def isPoint(pointlist):
 
 
 def hasZ(pointlist):
-    """determine if points inside coordinates have Z values."""
+    """Determine if points inside coordinates have Z values."""
     points = pointlist[0]
     first = points[0]
     if len(first) == 3:
@@ -116,6 +116,7 @@ def removeZ(coords):
 
 
 def recrusiveDeleteAsset(assetId):
+    """TODO missing docstring."""
     info = ee.data.getInfo(assetId)
     if info:
         ty = info["type"]
@@ -132,7 +133,7 @@ def recrusiveDeleteAsset(assetId):
             print("Can't handle {} type yet".format(ty))
 
         if content == 0:
-            # delete empty colletion and/or folder
+            # delete empty collection and/or folder
             ee.data.deleteAsset(assetId)
         else:
             for asset in content:
@@ -204,6 +205,7 @@ def create_asset(asset_id, asset_type, mk_parents=True):
 
 def createAssets(asset_ids, asset_type, mk_parents):
     """Creates the specified assets if they do not exist.
+
     This is a fork of the original function in 'ee.data' module with the
     difference that.
 
@@ -282,7 +284,8 @@ def downloadFile(url, name, extension, path=None):
 
 
 def matchDescription(name, custom=None):
-    """Format a name to be accepted as a desciption.
+    """Format a name to be accepted as a description.
+
     The rule is:
 
     The description must contain only the following characters: a..z, A..Z,

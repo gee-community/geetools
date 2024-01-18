@@ -3,7 +3,7 @@ import ee
 
 
 def binaryRasterAccuracy(truth, classified, region=None):
-    """Get a class raster with the following classes:
+    """Get a class raster with the following classes.
 
     band "classes":
     0: no change detected and no real change (true negative)
@@ -54,7 +54,7 @@ def binaryRasterAccuracy(truth, classified, region=None):
 
 
 def binaryMetrics(truth, classified, scale, region=None):
-    """get accuracy from a truth image and a classified image.
+    """Get accuracy from a truth image and a classified image.
 
     names from: https://en.wikipedia.org/wiki/Evaluation_of_binary_classifiers
 
@@ -98,7 +98,7 @@ def binaryMetrics(truth, classified, scale, region=None):
     if region:
         params["geometry"] = region
 
-    # get frecuency histogram (classes)
+    # get frequency histogram (classes)
     matrix = classes.reduceRegion(**params)
     matrix = ee.Dictionary(matrix.get("classes"))  # cast
 

@@ -1,0 +1,87 @@
+
+Traceback (most recent call last):
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/config.py", line 358, in eval_config_file
+    exec(code, namespace)  # NoQA: S102
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/docs/conf.py", line 118, in <module>
+    gee_configure()
+  File "/workspaces/gee_tools/docs/conf.py", line 115, in gee_configure
+    ee.Initialize(http_transport=httplib2.Http())
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/_utils.py", line 39, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/__init__.py", line 139, in Initialize
+    credentials = data.get_persistent_credentials()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/data.py", line 269, in get_persistent_credentials
+    raise ee_exception.EEException(  # pylint: disable=raise-missing-from
+ee.ee_exception.EEException: Please authorize access to your Earth Engine account by running
+
+earthengine authenticate
+
+in your command line, or ee.Authenticate() in Python, and then retry.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/cmd/build.py", line 293, in build_main
+    app = Sphinx(args.sourcedir, args.confdir, args.outputdir,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/application.py", line 211, in __init__
+    self.config = Config.read(self.confdir, confoverrides or {}, self.tags)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/config.py", line 181, in read
+    namespace = eval_config_file(filename, tags)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/config.py", line 371, in eval_config_file
+    raise ConfigError(msg % traceback.format_exc()) from exc
+sphinx.errors.ConfigError: There is a programmable error in your configuration file:
+
+Traceback (most recent call last):
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/config.py", line 358, in eval_config_file
+    exec(code, namespace)  # NoQA: S102
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/docs/conf.py", line 118, in <module>
+    gee_configure()
+  File "/workspaces/gee_tools/docs/conf.py", line 115, in gee_configure
+    ee.Initialize(http_transport=httplib2.Http())
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/_utils.py", line 39, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/__init__.py", line 139, in Initialize
+    credentials = data.get_persistent_credentials()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/data.py", line 269, in get_persistent_credentials
+    raise ee_exception.EEException(  # pylint: disable=raise-missing-from
+ee.ee_exception.EEException: Please authorize access to your Earth Engine account by running
+
+earthengine authenticate
+
+in your command line, or ee.Authenticate() in Python, and then retry.
+
+
+[91mConfiguration error:[39;49;00m
+There is a programmable error in your configuration file:
+
+Traceback (most recent call last):
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/config.py", line 358, in eval_config_file
+    exec(code, namespace)  # NoQA: S102
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/docs/conf.py", line 118, in <module>
+    gee_configure()
+  File "/workspaces/gee_tools/docs/conf.py", line 115, in gee_configure
+    ee.Initialize(http_transport=httplib2.Http())
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/_utils.py", line 39, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/__init__.py", line 139, in Initialize
+    credentials = data.get_persistent_credentials()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/data.py", line 269, in get_persistent_credentials
+    raise ee_exception.EEException(  # pylint: disable=raise-missing-from
+ee.ee_exception.EEException: Please authorize access to your Earth Engine account by running
+
+earthengine authenticate
+
+in your command line, or ee.Authenticate() in Python, and then retry.
+

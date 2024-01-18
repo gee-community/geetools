@@ -18,8 +18,8 @@ classifiers = [
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Build Tools",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
+    # "Programming Language :: Python :: 3.8", TODO not working
+    # "Programming Language :: Python :: 3.9", TODO not working
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
@@ -96,6 +96,7 @@ force-exclude = true # to make sure exclude is respected when used via pre-commi
 ignore = [
   "E501",  # line too long | Black take care of it
   "D213",  # Multi-line docstring | We use D212
+  "E741",  # Ambiguous variable name: `l` | TODO
 ]
 
 [tool.ruff.flake8-quotes]
@@ -122,3 +123,6 @@ version_files = [
     "geetools/__init__.py:__version__",
     "docs/conf.py:release",
 ]
+
+[tool.codespell]
+skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb"

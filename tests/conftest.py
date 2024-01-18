@@ -1,6 +1,8 @@
 """Pytest session configuration."""
 
+import json
 import os
+import tempfile
 from pathlib import Path
 
 import ee
@@ -14,21 +16,22 @@ def pytest_configure() -> None:
     It will use the creddential file if the EARTHENGINE_TOKEN env variable exist.
     Otherwise it use the simple Initialize command (asking the user to register if necessary).
     """
-    # only do the initialization if the credential are missing
-    if not ee.data._credentials:
+    # if the credentials token is asved in the environment use it
+    if "EARTHENGINE_TOKEN" in os.environ:
+        # extract data from the key
+        ee_token = json.loads(os.environ["EARTHENGINE_TOKEN"])
+        username, key = ee_token["username"], ee_token["key"]
 
-        # if the credentials token is asved in the environment use it
-        if "EARTHENGINE_TOKEN" in os.environ:
+        # Use them to init EE
+        with tempfile.TemporaryDirectory() as d:
+            file = Path(d) / "token.json"
+            file.write_text(json.dumps(key))
+            credentials = ee.ServiceAccountCredentials(username, str(file))
+            ee.Initialize(credentials)
 
-            # write the token to the appropriate folder
-            ee_token = os.environ["EARTHENGINE_TOKEN"]
-            credential_folder_path = Path.home() / ".config" / "earthengine"
-            credential_folder_path.mkdir(parents=True, exist_ok=True)
-            credential_file_path = credential_folder_path / "credentials"
-            credential_file_path.write_text(ee_token)
-
-        # if the user is in local development the authentication should
-        # already be available
+    # if the user is in local development the authentication should
+    # already be available
+    else:
         ee.Initialize(http_transport=httplib2.Http())
 
 

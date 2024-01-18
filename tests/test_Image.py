@@ -1,6 +1,7 @@
 """Test the ``Image`` class."""
 import zipfile
-from tempfile import NamedTemporaryFile
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from urllib.request import urlretrieve
 
 import ee
@@ -695,9 +696,10 @@ class TestIsletMask:
             }
         )
 
-        with NamedTemporaryFile() as tmp:
-            urlretrieve(link, tmp.name)
-            with zipfile.ZipFile(tmp.name, "r") as zip_:
+        with TemporaryDirectory() as dir:
+            tmp = Path(dir) / "tmp.zip"
+            urlretrieve(link, tmp)
+            with zipfile.ZipFile(tmp, "r") as zip_:
                 dst.write_bytes(zip_.read(zip_.namelist()[0]))
 
         return dst

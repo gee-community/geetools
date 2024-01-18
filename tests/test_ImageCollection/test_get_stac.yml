@@ -69,7 +69,7 @@ extent:
   temporal:
     interval:
     - - '2017-03-28T00:00:00Z'
-      - '2023-11-09T19:01:18'
+      - '2024-01-17T18:25:17'
 gee:interval:
   interval: 5
   type: revisit_interval
