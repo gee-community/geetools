@@ -1,6 +1,6 @@
 > :warning: **Warning** :warning:  
 > This package is under heavy refactoring.
-> If you want to access the most up-to-date version, please have a look to the `1.x` branch
+> If you want to access the previous version, please have a look to the `0.x` branch
 > We also start to make pre-release so people can try the latest version. Have a look to the [pypi page](https://pypi.org/project/geetools/) to stay up-to-date.  
 > :warning: **Warning** :warning:  
 
