@@ -1,7 +1,7 @@
-> :warning: **Warning** :warning:  
+> :warning: **Warning** :warning:
 > This package is under heavy refactoring.
 > If you want to access the previous version, please have a look to the `0.x` branch
-> We also start to make pre-release so people can try the latest version. Have a look to the [pypi page](https://pypi.org/project/geetools/) to stay up-to-date.  
+> We also start to make pre-release so people can try the latest version. Have a look to the [pypi page](https://pypi.org/project/geetools/) to stay up-to-date.
 > :warning: **Warning** :warning:
 
 # Google Earth Engine tools
@@ -11,25 +11,6 @@ may help to solve or automate some processes.
 
 There is JavaScript module that you can import from the code editor that has
 similar functions (not exactly the same) and it's available [here](https://github.com/fitoprincipe/geetools-code-editor)
-
-### Note for old users
-
-#### New version 0.3.0
-
-I have split this package in two. This `geetools` will contain functions and
-methods related to Google Earth Engine exclusively, so you can use this module
-in any python environment you like. For working in Jupyter I have made another
-package called `ipygee` available [here](http://www.github.com/fitoprincipe/ipygee)
-
-#### New version 0.5.0 (breaking changes)
-
-I have split this package in two (again). Now the functions to make a strip
-of images using Pillow is available as a different package called [`geepillow`](https://github.com/fitoprincipe/geepillow)
-
-#### New version 0.6.0 (breaking changes)
-
-I have split this package in two (again x2). The module `geetools.collection`
-in an independent package called [geedataset](https://github.com/fitoprincipe/geedatasets)
 
 ## Installation
 
