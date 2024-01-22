@@ -68,7 +68,7 @@ Basic Usage
 Export every image in a ``ee.ImageCollection``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-blcok:: python
+.. code-block:: python
 
     import ee
     import geetools
