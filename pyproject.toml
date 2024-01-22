@@ -113,6 +113,7 @@ testpaths = "tests"
 
 [tool.coverage.run]
 source = ["geetools"]
+branch = true
 
 [tool.commitizen]
 tag_format = "v$major.$minor.$patch$prerelease"
