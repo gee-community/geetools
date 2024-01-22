@@ -11,4 +11,4 @@ class TestInteger:
             ee.Integer()
 
     def test_name(self):
-        ee.Integer.__name__ == "Integer"
+        assert ee.Integer.__name__ == "Integer"

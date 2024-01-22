@@ -11,4 +11,4 @@ class TestFloat:
             ee.Float()
 
     def test_name(self):
-        ee.Float.__name__ == "Float"
+        assert ee.Float.__name__ == "Float"
