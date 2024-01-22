@@ -14,9 +14,7 @@ class TestToFeatureCollection:
 
     def test_deprecated_to_feature_collection(self, feature_instance, data_regression):
         with pytest.deprecated_call():
-            fc = geetools.feature.GeometryCollection_to_FeatureCollection(
-                feature_instance
-            )
+            fc = geetools.feature.GeometryCollection_to_FeatureCollection(feature_instance)
             data_regression.check(fc.getInfo())
 
     @pytest.fixture

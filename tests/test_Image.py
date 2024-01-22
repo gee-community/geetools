@@ -19,9 +19,7 @@ class TestAddDate:
         values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
         data_regression.check(values.getInfo())
 
-    def test_deprecated_make_date_band(
-        self, s2_sr_vatican_2020, vatican_buffer, data_regression
-    ):
+    def test_deprecated_make_date_band(self, s2_sr_vatican_2020, vatican_buffer, data_regression):
         with pytest.deprecated_call():
             image = geetools.tools.date.makeDateBand(s2_sr_vatican_2020)
             values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
@@ -41,9 +39,7 @@ class TestAddSuffix:
 
     def test_deprecated_add_suffix(self, s2_sr_vatican_2020, data_regression):
         with pytest.deprecated_call():
-            image = geetools.tools.image.addSuffix(
-                s2_sr_vatican_2020, "_suffix", ["B1", "B2"]
-            )
+            image = geetools.tools.image.addSuffix(s2_sr_vatican_2020, "_suffix", ["B1", "B2"])
             data_regression.check(image.bandNames().getInfo())
 
 
@@ -60,9 +56,7 @@ class TestAddPrefix:
 
     def test_deprecated_add_prefix(self, s2_sr_vatican_2020, data_regression):
         with pytest.deprecated_call():
-            image = geetools.tools.image.addPrefix(
-                s2_sr_vatican_2020, "prefix_", ["B1", "B2"]
-            )
+            image = geetools.tools.image.addPrefix(s2_sr_vatican_2020, "prefix_", ["B1", "B2"])
             data_regression.check(image.bandNames().getInfo())
 
 
@@ -73,21 +67,13 @@ class TestGetValues:
         values = s2_sr_vatican_2020.geetools.getValues(vatican_buffer.centroid())
         data_regression.check(values.getInfo())
 
-    def test_get_values_with_scale(
-        self, s2_sr_vatican_2020, vatican_buffer, data_regression
-    ):
-        values = s2_sr_vatican_2020.geetools.getValues(
-            vatican_buffer.centroid(), scale=100
-        )
+    def test_get_values_with_scale(self, s2_sr_vatican_2020, vatican_buffer, data_regression):
+        values = s2_sr_vatican_2020.geetools.getValues(vatican_buffer.centroid(), scale=100)
         data_regression.check(values.getInfo())
 
-    def test_deprecated_get_value(
-        self, s2_sr_vatican_2020, vatican_buffer, data_regression
-    ):
+    def test_deprecated_get_value(self, s2_sr_vatican_2020, vatican_buffer, data_regression):
         with pytest.deprecated_call():
-            values = geetools.tools.image.getValue(
-                s2_sr_vatican_2020, vatican_buffer.centroid()
-            )
+            values = geetools.tools.image.getValue(s2_sr_vatican_2020, vatican_buffer.centroid())
             data_regression.check(values.getInfo())
 
 
@@ -108,23 +94,17 @@ class TestMerge:
     """Test the ``merge`` method."""
 
     def test_merge(self, s2_sr_vatican_2020, data_regression):
-        image = s2_sr_vatican_2020.geetools.merge(
-            [s2_sr_vatican_2020, s2_sr_vatican_2020]
-        )
+        image = s2_sr_vatican_2020.geetools.merge([s2_sr_vatican_2020, s2_sr_vatican_2020])
         data_regression.check(image.bandNames().getInfo())
 
     def test_deprecated_add_multi_band(self, s2_sr_vatican_2020, data_regression):
         with pytest.deprecated_call():
-            image = geetools.tools.image.addMultiBands(
-                [s2_sr_vatican_2020, s2_sr_vatican_2020]
-            )
+            image = geetools.tools.image.addMultiBands([s2_sr_vatican_2020, s2_sr_vatican_2020])
             data_regression.check(image.bandNames().getInfo())
 
     def test_deprecated_mix_bands(self, s2_sr_vatican_2020, data_regression):
         with pytest.deprecated_call():
-            image = geetools.tools.image.mixBands(
-                [s2_sr_vatican_2020, s2_sr_vatican_2020]
-            )
+            image = geetools.tools.image.mixBands([s2_sr_vatican_2020, s2_sr_vatican_2020])
             data_regression.check(image.bandNames().getInfo())
 
 
@@ -165,13 +145,9 @@ class TestToGrid:
         grid = {f"geometry_{i}": np.array(c) for i, c in enumerate(grid)}
         ndarrays_regression.check(grid)
 
-    def test_deprecated_to_grid(
-        self, s2_sr_vatican_2020, vatican_buffer, ndarrays_regression
-    ):
+    def test_deprecated_to_grid(self, s2_sr_vatican_2020, vatican_buffer, ndarrays_regression):
         with pytest.deprecated_call():
-            grid = geetools.tools.image.toGrid(
-                s2_sr_vatican_2020, 1, "B2", vatican_buffer
-            )
+            grid = geetools.tools.image.toGrid(s2_sr_vatican_2020, 1, "B2", vatican_buffer)
             grid = [f["geometry"]["coordinates"] for f in grid.getInfo()["features"]]
             grid = {f"geometry_{i}": np.array(c) for i, c in enumerate(grid)}
             ndarrays_regression.check(grid)
@@ -184,9 +160,7 @@ class TestClipOnCollection:
         clipped = s2_sr_vatican_2020.geetools.clipOnCollection(fc_instance)
         name = "test_clip_on_collection"
         data_regression.check(clipped.first().bandNames().getInfo(), f"{name}_bands")
-        data_regression.check(
-            clipped.first().propertyNames().getInfo(), f"{name}_property"
-        )
+        data_regression.check(clipped.first().propertyNames().getInfo(), f"{name}_property")
 
     def test_clip_on_collection_without_properties(
         self, s2_sr_vatican_2020, fc_instance, data_regression
@@ -194,24 +168,14 @@ class TestClipOnCollection:
         clipped = s2_sr_vatican_2020.geetools.clipOnCollection(fc_instance, 0)
         name = "test_clip_on_collection_without_properties"
         data_regression.check(clipped.first().bandNames().getInfo(), f"{name}_bands")
-        data_regression.check(
-            clipped.first().propertyNames().getInfo(), f"{name}_property"
-        )
+        data_regression.check(clipped.first().propertyNames().getInfo(), f"{name}_property")
 
-    def test_deprecated_clip_to_collection(
-        self, s2_sr_vatican_2020, fc_instance, data_regression
-    ):
+    def test_deprecated_clip_to_collection(self, s2_sr_vatican_2020, fc_instance, data_regression):
         with pytest.deprecated_call():
-            clipped = geetools.tools.image.clipToCollection(
-                s2_sr_vatican_2020, fc_instance
-            )
+            clipped = geetools.tools.image.clipToCollection(s2_sr_vatican_2020, fc_instance)
             name = "test_deprecated_clip_to_collection"
-            data_regression.check(
-                clipped.first().bandNames().getInfo(), f"{name}_bands"
-            )
-            data_regression.check(
-                clipped.first().propertyNames().getInfo(), f"{name}_property"
-            )
+            data_regression.check(clipped.first().bandNames().getInfo(), f"{name}_bands")
+            data_regression.check(clipped.first().propertyNames().getInfo(), f"{name}_property")
 
     @pytest.fixture
     def fc_instance(self):
@@ -219,9 +183,7 @@ class TestClipOnCollection:
         return ee.FeatureCollection(
             [
                 ee.Feature(ee.Geometry.Point([12.4534, 41.9029]).buffer(50), {"Id": 1}),
-                ee.Feature(
-                    ee.Geometry.Point([12.4534, 41.9029]).buffer(100), {"Id": 2}
-                ),
+                ee.Feature(ee.Geometry.Point([12.4534, 41.9029]).buffer(100), {"Id": 2}),
             ]
         )
 
@@ -285,9 +247,7 @@ class TestFullLike:
         values = image.geetools.getValues(ee.Geometry.Point(0, 0))
         data_regression.check(values.getInfo())
 
-    def test_deprecated_empty_copy(
-        self, vatican_buffer, s2_sr_vatican_2020, data_regression
-    ):
+    def test_deprecated_empty_copy(self, vatican_buffer, s2_sr_vatican_2020, data_regression):
         with pytest.deprecated_call():
             image = geetools.tools.image.emptyCopy(s2_sr_vatican_2020)
             values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
@@ -302,32 +262,20 @@ class TestReduceBands:
         values = image.select("sum").reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
         data_regression.check(values.getInfo())
 
-    def test_reduce_bands_with_bands(
-        self, s2_sr_vatican_2020, vatican_buffer, data_regression
-    ):
+    def test_reduce_bands_with_bands(self, s2_sr_vatican_2020, vatican_buffer, data_regression):
         image = s2_sr_vatican_2020.geetools.reduceBands("sum", ["B1", "B2"])
         values = image.select("sum").reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
         data_regression.check(values.getInfo())
 
-    def test_reduce_bands_with_name(
-        self, s2_sr_vatican_2020, vatican_buffer, data_regression
-    ):
+    def test_reduce_bands_with_name(self, s2_sr_vatican_2020, vatican_buffer, data_regression):
         image = s2_sr_vatican_2020.geetools.reduceBands("sum", name="toto")
-        values = image.select("toto").reduceRegion(
-            ee.Reducer.mean(), vatican_buffer, 10
-        )
+        values = image.select("toto").reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
         data_regression.check(values.getInfo())
 
-    def test_deprecated_sum_bands(
-        self, s2_sr_vatican_2020, vatican_buffer, data_regression
-    ):
+    def test_deprecated_sum_bands(self, s2_sr_vatican_2020, vatican_buffer, data_regression):
         with pytest.deprecated_call():
-            image = geetools.tools.image.sumBands(
-                s2_sr_vatican_2020, "sum", ["B1", "B2"]
-            )
-            values = image.select("sum").reduceRegion(
-                ee.Reducer.mean(), vatican_buffer, 10
-            )
+            image = geetools.tools.image.sumBands(s2_sr_vatican_2020, "sum", ["B1", "B2"])
+            values = image.select("sum").reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
             data_regression.check(values.getInfo())
 
 
@@ -349,9 +297,7 @@ class testFormat:
 
     def test_deprecated_make_name(self, s2_sr_vatican_2020):
         with pytest.deprecated_call():
-            string = geetools.tools.image.makeName(
-                s2_sr_vatican_2020, "date: {system_date}"
-            )
+            string = geetools.tools.image.makeName(s2_sr_vatican_2020, "date: {system_date}")
             assert string.getInfo() == "date: 2020-01-01"
 
 
@@ -368,9 +314,7 @@ class TestPrefixSuffix:
 
     def test_deprecated_rename_pattern(self, s2_sr_vatican_2020, data_regression):
         with pytest.deprecated_call():
-            image = geetools.tools.image.renamePattern(
-                s2_sr_vatican_2020, "prefix_{band}_suffix"
-            )
+            image = geetools.tools.image.renamePattern(s2_sr_vatican_2020, "prefix_{band}_suffix")
             data_regression.check(image.bandNames().getInfo())
 
 
@@ -387,9 +331,7 @@ class TestGauss:
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
         data_regression.check(values.getInfo())
 
-    def test_deprecated_gauss_function(
-        self, s2_sr_vatican_2020, vatican_buffer, data_regression
-    ):
+    def test_deprecated_gauss_function(self, s2_sr_vatican_2020, vatican_buffer, data_regression):
         with pytest.deprecated_call():
             image = geetools.tools.image.gaussFunction(s2_sr_vatican_2020, "B2")
             values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
@@ -443,9 +385,7 @@ class TestRepeat:
 class TestmatchHistogram:
     """Test the ``histogramMatch`` method."""
 
-    def test_histogram_match(
-        self, image_source, image_target, vatican_buffer, data_regression
-    ):
+    def test_histogram_match(self, image_source, image_target, vatican_buffer, data_regression):
         bands = {"R": "R", "G": "G", "B": "B"}
         image = image_source.geetools.matchHistogram(image_target, bands)
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
@@ -509,17 +449,13 @@ class TestInterpolateBands:
         values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
         data_regression.check(values.getInfo())
 
-    def test_deprecated_parametrize(
-        self, image_instance, vatican_buffer, data_regression
-    ):
+    def test_deprecated_parametrize(self, image_instance, vatican_buffer, data_regression):
         with pytest.deprecated_call():
             image = geetools.tools.image.parametrize(image_instance, [0, 3000], [0, 30])
             values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
             data_regression.check(values.getInfo())
 
-    def test_deprecated_linear_function(
-        self, image_instance, vatican_buffer, data_regression
-    ):
+    def test_deprecated_linear_function(self, image_instance, vatican_buffer, data_regression):
         with pytest.deprecated_call():
             band = image_instance.bandNames().get(0)
             image = geetools.tools.image.linearFunction(
@@ -532,12 +468,7 @@ class TestInterpolateBands:
     def image_instance(self, vatican_buffer):
         """A sentinel 2 single image centered on the vatican."""
         src = "COPERNICUS/S2_SR_HARMONIZED"
-        return (
-            ee.ImageCollection(src)
-            .filterBounds(vatican_buffer)
-            .first()
-            .select(["B4", "B2"])
-        )
+        return ee.ImageCollection(src).filterBounds(vatican_buffer).first().select(["B4", "B2"])
 
 
 class TestIsletMask:
@@ -598,9 +529,7 @@ class TestIndicexList:
 class TestSpectralIndices:
     """Test the ``spectralIndices`` method."""
 
-    def test_default_spectral_indices(
-        self, s2_sr_vatican_2020, vatican_buffer, data_regression
-    ):
+    def test_default_spectral_indices(self, s2_sr_vatican_2020, vatican_buffer, data_regression):
         image = s2_sr_vatican_2020.geetools.spectralIndices("all")
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
         data_regression.check(values.getInfo())
@@ -634,9 +563,7 @@ class TestGetOffsetParams:
 class TestScaleAndOffset:
     """Test the ``scaleAndOffset`` method."""
 
-    def test_scale_and_offset(
-        self, vatican_buffer, s2_sr_vatican_2020, data_regression
-    ):
+    def test_scale_and_offset(self, vatican_buffer, s2_sr_vatican_2020, data_regression):
         image = s2_sr_vatican_2020.geetools.scaleAndOffset()
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
         data_regression.check(values.getInfo())
@@ -681,9 +608,7 @@ class TestPanSharpen:
 
     def test_pan_sharpen(self, data_regression):
         source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
-        sharp = source.geetools.panSharpen(
-            method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13
-        )
+        sharp = source.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         centroid = sharp.geometry().centroid().buffer(100)
         values = sharp.reduceRegion(ee.Reducer.mean(), centroid, 1)
         data_regression.check(values.getInfo())

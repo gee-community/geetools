@@ -58,9 +58,7 @@ class FeatureCollection:
         indexes = ee.List(self._obj.aggregate_array("system:index"))
         ids = ee.List.sequence(start, start.add(self._obj.size()).subtract(1))
         idByIndex = ee.Dictionary.fromLists(indexes, ids)
-        return self._obj.map(
-            lambda f: f.set(name, idByIndex.get(f.get("system:index")))
-        )
+        return self._obj.map(lambda f: f.set(name, idByIndex.get(f.get("system:index"))))
 
     def mergeGeometries(self) -> ee.Geometry:
         """Merge the geometries the included features.

@@ -82,9 +82,7 @@ def toGrid(image, size=1, band=None, geometry=None):
 @deprecated(version="1.0.0", reason="Use ee.Image.geetools.clipOnCollection instead")
 def clipToCollection(image, featureCollection, keepFeatureProperties=True):
     """Clip an image using each feature of a collection and return an. image collection."""
-    return ee.Image(image).geetools.clipOnCollection(
-        featureCollection, int(keepFeatureProperties)
-    )
+    return ee.Image(image).geetools.clipOnCollection(featureCollection, int(keepFeatureProperties))
 
 
 @deprecated(version="1.0.0", reason="Use ee.Image.geetools.bufferMask instead")
@@ -139,9 +137,7 @@ def regionCover(*args, **kwargs):
     )
 
 
-@deprecated(
-    version="1.0.0", reason="Use ee.Image.updateMask(mask).Not() instead instead"
-)
+@deprecated(version="1.0.0", reason="Use ee.Image.updateMask(mask).Not() instead instead")
 def applyMask(image, mask, bands=None, negative=True):
     """Apply a passed positive mask."""
     return ee.Image(image).updateMask(mask.Not())
@@ -165,9 +161,7 @@ def passProperty(image, to, properties=[]):
     return ee.Image(to).copyProperties(image, properties)
 
 
-@deprecated(
-    version="1.0.0", reason="The method was not doing what it was supposed to do"
-)
+@deprecated(version="1.0.0", reason="The method was not doing what it was supposed to do")
 def deleteProperties(image, delete, keep, proxy_name):
     """Delete properties from an image."""
     return ee.Image().addBands(image).copyProperties(image, exclude=[delete])
@@ -181,9 +175,7 @@ def emptyBackground(image, value=0):
     )
 
 
-@deprecated(
-    version="1.0.0", reason="Carefully create your mask with vanilla GEE instead"
-)
+@deprecated(version="1.0.0", reason="Carefully create your mask with vanilla GEE instead")
 def goodPix(image, retain, drop, name):
     """Get a 'good pixels' bands from the image's bands that retain the good."""
     raise Exception(
@@ -191,17 +183,13 @@ def goodPix(image, retain, drop, name):
     )
 
 
-@deprecated(
-    version="1.0.0", reason="Use ee.Image.geetools.addPrefix/addSuffix instead instead"
-)
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.addPrefix/addSuffix instead instead")
 def renamePattern(image, pattern, bands=[]):
     """Rename bands using a pattern."""
     prefix, suffix = pattern.split("{band}")
     prefixed_band = bands if bands == [] else [prefix + b for b in bands]
     return (
-        ee.Image(image)
-        .geetools.addPrefix(prefix, bands)
-        .geetools.addSuffix(suffix, prefixed_band)
+        ee.Image(image).geetools.addPrefix(prefix, bands).geetools.addSuffix(suffix, prefixed_band)
     )
 
 
@@ -211,16 +199,12 @@ def gaussFunction(image, band, **kwargs):
     return ee.Image(image).geetools.gauss(band or "")
 
 
-@deprecated(
-    version="1.0.0", reason="Use ee.Image.geetools.gauss instead andrescale it manually"
-)
+@deprecated(version="1.0.0", reason="Use ee.Image.geetools.gauss instead andrescale it manually")
 def normalDistribution(image, band, **kwargs):
     """Compute a Normal Distribution using the Gaussian Function."""
     params = {"geometry": image.geometry(), "bestEffort": True}
     std = image.reduceRegion(ee.Reducer.stdDev(), **params).get(band)
-    ouptut_max = ee.Image(1).divide(
-        ee.Image(std).multiply(ee.Image(2).multiply(pi).sqrt())
-    )
+    ouptut_max = ee.Image(1).divide(ee.Image(std).multiply(ee.Image(2).multiply(pi).sqrt()))
     return ee.Image(image).geetools.gauss(band).multiply(ouptut_max)
 
 
@@ -250,9 +234,7 @@ def paint(image, featurecollection, color="black", width=1, *args, **kwargs):
 
 
 @deprecated(version="1.0.0", reason="Use ee.Image.geetools.histogramMatch instead")
-def histogramMatch(
-    sourceImg, targetImg, geometry=None, scale=None, tiles=4, bestEffort=True
-):
+def histogramMatch(sourceImg, targetImg, geometry=None, scale=None, tiles=4, bestEffort=True):
     """Histogram Matching. From https://medium.com/google-earth/histogram-matching-c7153c85066d."""
     return sourceImg.geetools.histogramMatch(targetImg)
 
@@ -285,6 +267,4 @@ def linearFunction(
     """Apply a linear function over one image band using the following."""
     range_from = [range_min, range_max]
     range_to = [output_min, output_max]
-    return (
-        ee.Image(image).select([band]).geetools.interpolateBands(range_from, range_to)
-    )
+    return ee.Image(image).select([band]).geetools.interpolateBands(range_from, range_to)

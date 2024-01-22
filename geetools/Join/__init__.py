@@ -55,9 +55,7 @@ class Join:
 
         """
         field = ee.String(field)
-        primary, secondary = ee.FeatureCollection(primary), ee.FeatureCollection(
-            secondary
-        )
+        primary, secondary = ee.FeatureCollection(primary), ee.FeatureCollection(secondary)
         Filter = ee.Filter.equals(leftField=field, rightField=field)
         join = ee.Join.saveFirst(matchKey="match", outer=outer)
         joined = join.apply(primary, secondary, Filter)

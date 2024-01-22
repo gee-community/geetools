@@ -8,9 +8,7 @@ from ..utils import makeName
 from . import utils
 
 
-def toLocal(
-    image, name=None, path=None, scale=None, region=None, dimensions=None, toFolder=True
-):
+def toLocal(image, name=None, path=None, scale=None, region=None, dimensions=None, toFolder=True):
     """Download an Image to your hard drive.
 
     :param image: the image to download
@@ -31,9 +29,7 @@ def toLocal(
     try:
         import zipfile
     except Exception:
-        raise ValueError(
-            "zipfile module not found, install it using " "`pip install zipfile`"
-        )
+        raise ValueError("zipfile module not found, install it using " "`pip install zipfile`")
 
     name = name if name else image.id().getInfo()
 
@@ -149,12 +145,7 @@ def toAsset(
     description = utils.matchDescription(name)
     # Init task
     task = ee.batch.Export.image.toAsset(
-        image,
-        assetId=assetId,
-        region=region,
-        scale=scale,
-        description=description,
-        **kwargs
+        image, assetId=assetId, region=region, scale=scale, description=description, **kwargs
     )
     task.start()
     if verbose:

@@ -272,13 +272,9 @@ def pansharpenKernel(image, pan, rgb=None, kernel=None):
     bgr_mean = bgr.reduce("mean").rename("mean")
     # Compute the aggregate mean of the unsharpened bands and the pan band
     mean_values = pani.addBands(bgr_mean).reduceNeighborhood(ee.Reducer.mean(), kernel)
-    gain = mean_values.select("mean_mean").divide(
-        mean_values.select("{}_mean".format(pan))
-    )
+    gain = mean_values.select("mean_mean").divide(mean_values.select("{}_mean".format(pan)))
     sharpen = bgr.divide(bgr_mean).multiply(pani).multiply(gain)
-    return ee.Image(
-        sharpen.copyProperties(source=image, properties=image.propertyNames())
-    )
+    return ee.Image(sharpen.copyProperties(source=image, properties=image.propertyNames()))
 
 
 def pansharpenIhsFusion(image, pan=None, rgb=None):
@@ -338,9 +334,7 @@ class Landsat(object):
         return ee.Image(ee.Algorithms.If(condition, compute(image), image))
 
     @staticmethod
-    def _rescale(
-        image, bands=None, thermal_bands=None, original="TOA", to="SR", number="all"
-    ):
+    def _rescale(image, bands=None, thermal_bands=None, original="TOA", to="SR", number="all"):
         """Rescaling logic."""
         if not bands:
             bands = ["B1", "B2", "B3", "B4", "B5", "B6", "B7"]
@@ -514,11 +508,7 @@ class Landsat(object):
             """
             if isinstance(band, str):
                 # print('band:', band)
-                if (
-                    (band.find(".") > -1)
-                    or (band.find(" ") > -1)
-                    or (band.find("{") > -1)
-                ):
+                if (band.find(".") > -1) or (band.find(" ") > -1) or (band.find("{") > -1):
                     # print('formatted:', format_str(band, args), '\n')
                     band = img.expression(format_str(band, args), {"i": img})
                 else:
@@ -558,9 +548,7 @@ class Landsat(object):
             return ee.Geometry.LineString([pointA, pointB]).centroid().coordinates()
 
         def slopeBetween(pointA, pointB):
-            return ((y(pointA)).subtract(y(pointB))).divide(
-                (x(pointA)).subtract(x(pointB))
-            )
+            return ((y(pointA)).subtract(y(pointB))).divide((x(pointA)).subtract(x(pointB)))
 
         def toLine(pointA, pointB):
             return ee.Geometry.LineString([pointA, pointB])
@@ -633,12 +621,8 @@ class Landsat(object):
 
             leftLine = toLine(corners["upperLeft"], corners["lowerLeft"])
             rightLine = toLine(corners["upperRight"], corners["lowerRight"])
-            leftDistance = ee.FeatureCollection(leftLine).distance(
-                maxDistanceToSceneEdge
-            )
-            rightDistance = ee.FeatureCollection(rightLine).distance(
-                maxDistanceToSceneEdge
-            )
+            leftDistance = ee.FeatureCollection(leftLine).distance(maxDistanceToSceneEdge)
+            rightDistance = ee.FeatureCollection(rightLine).distance(maxDistanceToSceneEdge)
             viewZenith = (
                 rightDistance.multiply(maxSatelliteZenith * 2)
                 .divide(rightDistance.add(leftDistance))
@@ -668,13 +652,9 @@ class Landsat(object):
                 ee.Number(date.getRelative("second", "day")).divide(secondsInHour),
             )
 
-            img = set_name(
-                img, "jdp", date.getFraction("year")  # Julian Date Proportion
-            )
+            img = set_name(img, "jdp", date.getFraction("year"))  # Julian Date Proportion
 
-            img = set_name(
-                img, "jdpr", "i.jdp * 2 * {pi}"  # Julian Date Proportion in Radians
-            )
+            img = set_name(img, "jdpr", "i.jdp * 2 * {pi}")  # Julian Date Proportion in Radians
 
             img = set_name(img, "meanSolarTime", "i.hourGMT + i.longDeg / 15")
 
@@ -686,9 +666,7 @@ class Landsat(object):
                 + "* 12 * 60 / {pi}",
             )
 
-            img = set_name(
-                img, "trueSolarTime", "i.meanSolarTime + i.localSolarDiff / 60 - 12"
-            )
+            img = set_name(img, "trueSolarTime", "i.meanSolarTime + i.localSolarDiff / 60 - 12")
 
             img = set_name(img, "angleHour", "i.trueSolarTime * 15 * {pi} / 180")
 
@@ -713,9 +691,7 @@ class Landsat(object):
             img = set_name(
                 img,
                 "sinSunAzSW",
-                toImage(img, "cos(i.delta) * sin(i.angleHour) / sin(i.sunZen)").clamp(
-                    -1, 1
-                ),
+                toImage(img, "cos(i.delta) * sin(i.angleHour) / sin(i.sunZen)").clamp(-1, 1),
             )
 
             img = set_name(
@@ -727,9 +703,7 @@ class Landsat(object):
 
             img = set_name(img, "sunAzSW", "asin(i.sinSunAzSW)")
 
-            img = setIf(
-                img, "sunAzSW", "i.cosSunAzSW <= 0", "{pi} - i.sunAzSW", "i.sunAzSW"
-            )
+            img = setIf(img, "sunAzSW", "i.cosSunAzSW <= 0", "{pi} - i.sunAzSW", "i.sunAzSW")
 
             img = setIf(
                 img,
@@ -741,9 +715,7 @@ class Landsat(object):
 
             img = set_name(img, "sunAz", "i.sunAzSW + {pi}")
 
-            img = setIf(
-                img, "sunAz", "i.sunAz > 2 * {pi}", "i.sunAz - 2 * {pi}", "i.sunAz"
-            )
+            img = setIf(img, "sunAz", "i.sunAz > 2 * {pi}", "i.sunAz - 2 * {pi}", "i.sunAz")
 
             return img
 
@@ -807,9 +779,7 @@ class Landsat(object):
                 "relativeSunViewAz": relativeSunViewAz,
             }
 
-            img = cosPhaseAngle(
-                img, "cosPhaseAngle", sunZen, viewZen, relativeSunViewAz
-            )
+            img = cosPhaseAngle(img, "cosPhaseAngle", sunZen, viewZen, relativeSunViewAz)
             img = set_name(img, "phaseAngle", "acos(i.cosPhaseAngle)")
 
             img = set_name(
@@ -871,9 +841,7 @@ class Landsat(object):
                 ).clamp(-1, 1),
             )
             img = set_name(img, "t", "acos(i.cosT)")
-            img = set_name(
-                img, "overlap", "(1/{pi}) * (i.t - sin(i.t) * i.cosT) * (i.temp)"
-            )
+            img = set_name(img, "overlap", "(1/{pi}) * (i.t - sin(i.t) * i.cosT) * (i.temp)")
             img = setIf(img, "overlap", "i.overlap > 0", 0)
             img = set_name(
                 img,
@@ -898,18 +866,14 @@ class Landsat(object):
                 },
             )
 
-            img = set_name(
-                img, bandName, "{fiso} + {fvol} * {kvol} + {fgeo} * {kvol}", args
-            )
+            img = set_name(img, bandName, "{fiso} + {fvol} * {kvol} + {fgeo} * {kvol}", args)
             return img
 
         def applyCFactor(img, bandName, coefficients):
             img = brdf(img, "brdf", "kvol", "kgeo", coefficients)
             img = brdf(img, "brdf0", "kvol0", "kgeo0", coefficients)
             img = set_name(img, "cFactor", "i.brdf0 / i.brdf", coefficients)
-            img = set_name(
-                img, bandName, "{bandName} * i.cFactor", {"bandName": "i." + bandName}
-            )
+            img = set_name(img, bandName, "{bandName} * i.cFactor", {"bandName": "i." + bandName})
             return img
 
         def adjustBands(img):

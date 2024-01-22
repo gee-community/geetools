@@ -29,17 +29,13 @@ class TestComplement:
         complement_list = letter_list.geetools.complement(letter_list)
         data_regression.check(complement_list.getInfo())
 
-    def test_complement_with_different_type(
-        self, letter_list, int_list, data_regression
-    ):
+    def test_complement_with_different_type(self, letter_list, int_list, data_regression):
         complement_list = letter_list.geetools.complement(int_list)
         data_regression.check(complement_list.getInfo())
 
     def test_deprecated_difference(self, letter_list, data_regression):
         with pytest.deprecated_call():
-            complement_list = geetools.tools.ee_list.difference(
-                letter_list, letter_list
-            )
+            complement_list = geetools.tools.ee_list.difference(letter_list, letter_list)
             data_regression.check(complement_list.getInfo())
 
 
@@ -50,17 +46,13 @@ class TestIntersection:
         intersection_list = letter_list.geetools.intersection(letter_list)
         data_regression.check(intersection_list.getInfo())
 
-    def test_intersection_with_different_type(
-        self, letter_list, int_list, data_regression
-    ):
+    def test_intersection_with_different_type(self, letter_list, int_list, data_regression):
         intersection_list = letter_list.geetools.intersection(int_list)
         data_regression.check(intersection_list.getInfo())
 
     def test_deprecated_intersection(self, letter_list, data_regression):
         with pytest.deprecated_call():
-            intersection_list = geetools.tools.ee_list.intersection(
-                letter_list, letter_list
-            )
+            intersection_list = geetools.tools.ee_list.intersection(letter_list, letter_list)
             data_regression.check(intersection_list.getInfo())
 
 

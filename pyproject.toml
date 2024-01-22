@@ -126,3 +126,6 @@ version_files = [
 
 [tool.codespell]
 skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb"
+
+[tool.black]
+line-length = 100

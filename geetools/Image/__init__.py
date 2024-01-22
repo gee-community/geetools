@@ -77,9 +77,7 @@ class Image:
         )
         return self._obj.rename(bandNames)
 
-    def addPrefix(
-        self, prefix: Union[str, ee.String], bands: Union[ee.List, list] = []
-    ):
+    def addPrefix(self, prefix: Union[str, ee.String], bands: Union[ee.List, list] = []):
         """Add a prefix to the image selected band.
 
         Add a prefix to the selected band. If no band is specified, the prefix is added to all bands.
@@ -234,11 +232,7 @@ class Image:
                 value = image.geetools.getValues(point, 10)
                 print(value.getInfo())
         """
-        scale = (
-            self._obj.select(0).projection().nominalScale()
-            if scale == 0
-            else ee.Number(scale)
-        )
+        scale = self._obj.select(0).projection().nominalScale() if scale == 0 else ee.Number(scale)
         return self._obj.reduceRegion(ee.Reducer.mean(), point, scale)
 
     def minScale(self) -> ee.Number:
@@ -260,9 +254,7 @@ class Image:
                 image.geetools.minScale().getInfo()
         """
         bandNames = self._obj.bandNames()
-        scales = bandNames.map(
-            lambda b: self._obj.select(ee.String(b)).projection().nominalScale()
-        )
+        scales = bandNames.map(lambda b: self._obj.select(ee.String(b)).projection().nominalScale())
         return ee.Number(scales.sort().get(0))
 
     def merge(self, images: Union[ee.List, list]) -> ee.Image:
@@ -541,9 +533,7 @@ class Image:
         reduceImage = self._obj.select(ee.List(bands)).reduce(reducer).rename([name])
         return self._obj.addBands(reduceImage)
 
-    def negativeClip(
-        self, geometry: Union[ee.FeatureCollection, ee.Geometry]
-    ) -> ee.Image:
+    def negativeClip(self, geometry: Union[ee.FeatureCollection, ee.Geometry]) -> ee.Image:
         """The opposite of the clip method.
 
         The inside of the geometry will be masked from the image.
@@ -718,9 +708,7 @@ class Image:
 
         return ee.ImageCollection(bands.map(remove)).toBands().rename(bands)
 
-    def interpolateBands(
-        self, src: Union[list, ee.List], to: Union[list, ee.List]
-    ) -> ee.Image:
+    def interpolateBands(self, src: Union[list, ee.List], to: Union[list, ee.List]) -> ee.Image:
         """Interpolate bands from the "src" value range to the "to" value range.
 
         The Interpolation is performed linearly using the "extrapolate" option of the "interpolate" method.
@@ -783,11 +771,7 @@ class Image:
         pixelsLimit = offset.multiply(2).sqrt().divide(scale).max(ee.Number(2)).toInt()
         area = ee.Image.pixelArea().rename("area")
         isletArea = (
-            self._obj.select(0)
-            .mask()
-            .toInt()
-            .connectedPixelCount(pixelsLimit)
-            .multiply(area)
+            self._obj.select(0).mask().toInt().connectedPixelCount(pixelsLimit).multiply(area)
         )
         return isletArea.lt(offset).rename("mask").selfMask()
 

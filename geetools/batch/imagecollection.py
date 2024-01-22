@@ -257,9 +257,7 @@ def toAsset(
                 description = utils.matchDescription(name)
                 assetId = assetPath + "/" + name
 
-                params = dict(
-                    image=img, assetId=assetId, description=description, scale=scale
-                )
+                params = dict(image=img, assetId=assetId, description=description, scale=scale)
                 if region:
                     params["region"] = region
                 if kwargs:

@@ -318,9 +318,7 @@ class ImageCollection:
         """
         return ee_extra.STAC.core.getCitation(self._obj)
 
-    def panSharpen(
-        self, method: str = "SFIM", qa: str = "", **kwargs
-    ) -> ee.ImageCollection:
+    def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.ImageCollection:
         """Apply panchromatic sharpening to the ImageCollection images.
 
         Optionally, run quality assessments between the original and sharpened Image to

@@ -87,9 +87,7 @@ def kmlToGeoJsonDict(kmlfile=None, data=None, encoding=None):
 def isPoint(pointlist):
     """Verify is a list is a list of points."""
     if len(pointlist) in [2, 3]:
-        if isinstance(pointlist[0], (int, float)) and isinstance(
-            pointlist[1], (int, float)
-        ):
+        if isinstance(pointlist[0], (int, float)) and isinstance(pointlist[1], (int, float)):
             return True
         else:
             return False

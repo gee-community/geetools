@@ -42,9 +42,7 @@ class List:
         l1 = ee.List(self._obj).map(lambda e: ee.String(e))
         l2 = ee.List(other).map(lambda e: ee.String(e))
         product = l1.map(
-            lambda e: l2.map(
-                lambda f: ee.Algorithms.String(e).cat(ee.Algorithms.String(f))
-            )
+            lambda e: l2.map(lambda f: ee.Algorithms.String(e).cat(ee.Algorithms.String(f)))
         )
         return product.flatten()
 
@@ -205,9 +203,7 @@ class List:
         """
         replace = ee.Dictionary(replace)
         keys = replace.keys()
-        list = keys.iterate(
-            lambda k, p: ee.List(p).replace(k, replace.get(k)), self._obj
-        )
+        list = keys.iterate(lambda k, p: ee.List(p).replace(k, replace.get(k)), self._obj)
         return ee.List(list)  # to avoid returning a COmputedObject
 
     def join(self, separator: Union[str, ee.String] = ", ") -> ee.string:

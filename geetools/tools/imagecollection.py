@@ -43,9 +43,7 @@ def containsAllBands(collection, bands):
     """
     bands = ee.List(bands)
     # add bands as metadata
-    collection = collection.map(
-        lambda i: ee.Image(i).set("_BANDS_", ee.Image(i).bandNames())
-    )
+    collection = collection.map(lambda i: ee.Image(i).set("_BANDS_", ee.Image(i).bandNames()))
 
     band0 = ee.String(bands.get(0))
     rest = ee.List(bands.slice(1))
@@ -70,9 +68,7 @@ def containsAnyBand(collection, bands):
     """
     bands = ee.List(bands)
     # add bands as metadata
-    collection = collection.map(
-        lambda i: ee.Image(i).set("_BANDS_", ee.Image(i).bandNames())
-    )
+    collection = collection.map(lambda i: ee.Image(i).set("_BANDS_", ee.Image(i).bandNames()))
 
     band0 = ee.String(bands.get(0))
     rest = ee.List(bands.slice(1))
@@ -297,9 +293,7 @@ def mosaicSameDay(collection, qualityBand=None):
             newmos = ee.Image(
                 ee.Algorithms.If(
                     mos_bnames.contains(bname),
-                    image_module.replace(
-                        mos, bname, mos.select(bname).setDefaultProjection(proj)
-                    ),
+                    image_module.replace(mos, bname, mos.select(bname).setDefaultProjection(proj)),
                     mos,
                 )
             )
@@ -435,9 +429,7 @@ def makeDayIntervals(collection, interval=30, reverse=False, buffer="second"):
     return imlist
 
 
-def reduceDayIntervals(
-    collection, reducer, interval=30, reverse=False, buffer="second"
-):
+def reduceDayIntervals(collection, reducer, interval=30, reverse=False, buffer="second"):
     """Reduce Day Intervals.
 
     :param reducer: a function that takes as only argument a collection
@@ -627,9 +619,7 @@ def parametrizeProperty(
     """
     name = pattern.replace("{property}", property)
 
-    original_range = (
-        range_from if isinstance(range_from, ee.List) else ee.List(range_from)
-    )
+    original_range = range_from if isinstance(range_from, ee.List) else ee.List(range_from)
 
     final_range = range_to if isinstance(range_to, ee.List) else ee.List(range_to)
 
@@ -1079,9 +1069,7 @@ def normalDistributionProperty(
     )
 
 
-def normalDistributionBand(
-    collection, band, mean=None, std=None, name="normal_distribution"
-):
+def normalDistributionBand(collection, band, mean=None, std=None, name="normal_distribution"):
     """Compute a normal distribution using a specified band, over an.
 
     ImageCollection. For more see:
@@ -1110,9 +1098,7 @@ def normalDistributionBand(
 
     imax = ee.Image(1).divide(istd.multiply(ee.Image.constant(2).multiply(ipi).sqrt()))
 
-    return gaussFunctionBand(
-        collection, band, mean=imean, output_max=imax, std=istd, name=name
-    )
+    return gaussFunctionBand(collection, band, mean=imean, output_max=imax, std=istd, name=name)
 
 
 def maskedSize(collection):
@@ -1150,23 +1136,17 @@ def area_under_curve(collection, band, x_property=None, name="area_under"):
         def true(i, c):
             c = ee.List(c)
             last = ee.Image(c.get(-1))
-            lapsed = ee.Number(image.get(x_property)).subtract(
-                ee.Number(last.get(x_property))
-            )
+            lapsed = ee.Number(image.get(x_property)).subtract(ee.Number(last.get(x_property)))
             lapsed_percent = lapsed.divide(total_lapsed)
             rise = i.select(band).subtract(last.select(band)).divide(2)
-            toadd = (
-                i.select(band).add(rise).multiply(lapsed_percent).rename(name).toFloat()
-            )
+            toadd = i.select(band).add(rise).multiply(lapsed_percent).rename(name).toFloat()
             return c.add(i.addBands(toadd))
 
         def false(i, c):
             toadd = i.addBands(ee.Image(0).rename(name).toFloat())
             return c.add(toadd)
 
-        return ee.List(
-            ee.Algorithms.If(cumm.size(), true(image, cumm), false(image, cumm))
-        )
+        return ee.List(ee.Algorithms.If(cumm.size(), true(image, cumm), false(image, cumm)))
 
     final = ee.List(collection.iterate(cumulative, ee.List([])))
     final_ic = ee.ImageCollection.fromImages(final).select(name)
@@ -1202,9 +1182,7 @@ def moving_average(collection, back=5, reducer=None, use_original=True):
             stats = tempcol.reduce(reducer)
             stats = stats.rename(im.bandNames())
             stats = ee.Image(stats.copyProperties(im, properties=im.propertyNames()))
-            return ee.Dictionary(
-                {"original": original_true, "stats": stats_true.add(stats)}
-            )
+            return ee.Dictionary({"original": original_true, "stats": stats_true.add(stats)})
 
         def false(im, di):
             original2 = ee.List(di.get("original"))
@@ -1219,12 +1197,8 @@ def moving_average(collection, back=5, reducer=None, use_original=True):
                 tempcol2 = ee.ImageCollection.fromImages(tocompute)
                 stats2 = tempcol2.reduce(reducer)
                 stats2 = stats2.rename(ima.bandNames())
-                stats2 = ee.Image(
-                    stats2.copyProperties(ima, properties=ima.propertyNames())
-                )
-                return ee.Dictionary(
-                    {"original": original_true2, "stats": stats_true2.add(stats2)}
-                )
+                stats2 = ee.Image(stats2.copyProperties(ima, properties=ima.propertyNames()))
+                return ee.Dictionary({"original": original_true2, "stats": stats_true2.add(stats2)})
 
             def false2(ima, dic):
                 # first element
@@ -1237,16 +1211,12 @@ def moving_average(collection, back=5, reducer=None, use_original=True):
                     }
                 )
 
-            return ee.Dictionary(
-                ee.Algorithms.If(condition2, true2(im, di), false2(im, di))
-            )
+            return ee.Dictionary(ee.Algorithms.If(condition2, true2(im, di), false2(im, di)))
 
         condition = original.size().gte(back)
         return ee.Dictionary(ee.Algorithms.If(condition, true(i, d), false(i, d)))
 
-    final = ee.Dictionary(
-        collection.iterate(wrap, ee.Dictionary({"original": [], "stats": []}))
-    )
+    final = ee.Dictionary(collection.iterate(wrap, ee.Dictionary({"original": [], "stats": []})))
     return ee.ImageCollection.fromImages(ee.List(final.get("stats")))
 
 

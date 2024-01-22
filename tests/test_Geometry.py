@@ -13,21 +13,15 @@ class TestKeepType:
 
     def test_deprecated_point(self, geom_instance, data_regression):
         with pytest.deprecated_call():
-            geom = geetools.tools.geometry.GeometryCollection_to_MultiPoint(
-                geom_instance
-            )
+            geom = geetools.tools.geometry.GeometryCollection_to_MultiPoint(geom_instance)
             data_regression.check(geom.getInfo())
 
     def test_deprecated_line(self, geom_instance, data_regression):
         with pytest.deprecated_call():
-            geom = geetools.tools.geometry.GeometryCollection_to_MultiLineString(
-                geom_instance
-            )
+            geom = geetools.tools.geometry.GeometryCollection_to_MultiLineString(geom_instance)
             data_regression.check(geom.getInfo())
 
     def test_deprecated_polygon(self, geom_instance, data_regression):
         with pytest.deprecated_call():
-            geom = geetools.tools.geometry.GeometryCollection_to_MultiPolygon(
-                geom_instance
-            )
+            geom = geetools.tools.geometry.GeometryCollection_to_MultiPolygon(geom_instance)
             data_regression.check(geom.getInfo())
