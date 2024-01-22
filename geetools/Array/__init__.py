@@ -1,11 +1,10 @@
 """Extra methods for the ``ee.Array`` class."""
 from __future__ import annotations
 
-from typing import Union
-
 import ee
 
 from geetools.accessors import geetools_accessor
+from geetools.types import ee_int, ee_number
 
 # hack to have the generated Array class available
 # it might create issues in the future with libs that have exotic init methods
@@ -23,9 +22,9 @@ class Array:
     # -- alternative constructor -----------------------------------------------
     def full(
         self,
-        width: Union[int, float, ee.Number],
-        height: Union[int, float, ee.Number],
-        value: Union[int, ee.Number, float],
+        width: ee_number,
+        height: ee_number,
+        value: ee_number,
     ) -> ee.Array:
         """Create an array with the given dimensions, initialized to the given value.
 
@@ -53,9 +52,9 @@ class Array:
     # -- data maniputlation ----------------------------------------------------
     def set(
         self,
-        x: Union[int, ee.number],
-        y: Union[int, ee.number],
-        value: Union[int, float, ee.Number],
+        x: ee_int,
+        y: ee_int,
+        value: ee_number,
     ) -> ee.Array:
         """Set the value of a cell in an array.
 

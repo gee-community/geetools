@@ -1,11 +1,10 @@
 """Extra methods for the ``ee.String`` class."""
 from __future__ import annotations
 
-from typing import Union
-
 import ee
 
 from geetools.accessors import geetools_accessor
+from geetools.types import ee_dict, ee_str
 
 
 @geetools_accessor(ee.String)
@@ -16,7 +15,7 @@ class String:
         """Initialize the String class."""
         self._obj = obj
 
-    def eq(self, other: Union[str, ee.String]) -> ee.Number:
+    def eq(self, other: ee_str) -> ee.Number:
         """Compare two strings and return a ``ee.Number``.
 
         Parameters:
@@ -37,7 +36,7 @@ class String:
         """
         return self._obj.compareTo(ee.String(other)).Not()
 
-    def format(self, template: Union[ee.Dictionary, dict]) -> ee.String:
+    def format(self, template: ee_dict) -> ee.String:
         """Format a string with a dictionary.
 
         Replace the keys in the string using the values provided in the dictionary. Follow the same pattern: value format as Python string.format method.

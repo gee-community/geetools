@@ -7,6 +7,7 @@ import ee
 import ee_extra
 
 from geetools.accessors import geetools_accessor
+from geetools.types import number
 
 
 @geetools_accessor(ee.ImageCollection)
@@ -106,28 +107,28 @@ class ImageCollection:
     def spectralIndices(
         self,
         index: str = "NDVI",
-        G: Union[float, int] = 2.5,
-        C1: Union[float, int] = 6.0,
-        C2: Union[float, int] = 7.5,
-        L: Union[float, int] = 1.0,
-        cexp: Union[float, int] = 1.16,
-        nexp: Union[float, int] = 2.0,
-        alpha: Union[float, int] = 0.1,
-        slope: Union[float, int] = 1.0,
-        intercept: Union[float, int] = 0.0,
-        gamma: Union[float, int] = 1.0,
-        omega: Union[float, int] = 2.0,
-        beta: Union[float, int] = 0.05,
-        k: Union[float, int] = 0.0,
-        fdelta: Union[float, int] = 0.581,
+        G: number = 2.5,
+        C1: number = 6.0,
+        C2: number = 7.5,
+        L: number = 1.0,
+        cexp: number = 1.16,
+        nexp: number = 2.0,
+        alpha: number = 0.1,
+        slope: number = 1.0,
+        intercept: number = 0.0,
+        gamma: number = 1.0,
+        omega: number = 2.0,
+        beta: number = 0.05,
+        k: number = 0.0,
+        fdelta: number = 0.581,
         kernel: str = "RBF",
         sigma: str = "0.5 * (a + b)",
-        p: Union[float, int] = 2.0,
-        c: Union[float, int] = 1.0,
-        lambdaN: Union[float, int] = 858.5,
-        lambdaR: Union[float, int] = 645.0,
-        lambdaG: Union[float, int] = 555.0,
-        online: Union[float, int] = False,
+        p: number = 2.0,
+        c: number = 1.0,
+        lambdaN: number = 858.5,
+        lambdaR: number = 645.0,
+        lambdaG: number = 555.0,
+        online: number = False,
     ) -> ee.ImageCollection:
         """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
 

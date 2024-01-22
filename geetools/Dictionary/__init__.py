@@ -1,11 +1,10 @@
 """Extra methods for the ``ee.Dictionary`` class."""
 from __future__ import annotations
 
-from typing import Union
-
 import ee
 
 from geetools.accessors import geetools_accessor
+from geetools.types import ee_list
 
 
 @geetools_accessor(ee.Dictionary)
@@ -17,7 +16,7 @@ class Dictionary:
         self._obj = obj
 
     # -- alternative constructor -----------------------------------------------
-    def fromPairs(self, list: Union[list, ee.List]) -> ee.Dictionary:
+    def fromPairs(self, list: ee_list) -> ee.Dictionary:
         """Create a dictionary from a list of [[key, value], ...]] pairs.
 
         Parameters:
@@ -62,7 +61,7 @@ class Dictionary:
         values = orderededKeys.map(lambda key: self._obj.get(key))
         return ee.Dictionary.fromLists(orderededKeys, values)
 
-    def getMany(self, list: Union[ee.List, list]) -> ee.List:
+    def getMany(self, list: ee_list) -> ee.List:
         """Extract values from a list of keys.
 
         Parameters:

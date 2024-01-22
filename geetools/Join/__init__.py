@@ -1,11 +1,10 @@
 """Extra methods for the ``ee.Join`` class."""
 from __future__ import annotations
 
-from typing import Union
-
 import ee
 
 from geetools.accessors import geetools_accessor
+from geetools.types import ee_str
 
 
 @geetools_accessor(ee.Join)
@@ -20,7 +19,7 @@ class Join:
     def byProperty(
         primary: ee.Collection,
         secondary: ee.Collection,
-        field: Union[ee.String, str],
+        field: ee_str,
         outer: bool = False,
     ) -> ee.Collection:
         """Join 2 collections by a given property field.
