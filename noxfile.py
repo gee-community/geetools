@@ -23,9 +23,8 @@ def test(session):
     session.run(
         "pytest",
         "--color=yes",
-        "--cov=.",
+        "--cov",
         "--cov-report=xml",
-        "--cov-branch",
         *test_files,
     )
 
