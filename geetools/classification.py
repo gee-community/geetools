@@ -108,9 +108,7 @@ def binaryMetrics(truth, classified, scale, region=None):
         cond = d.contains(clas)
         return ee.Dictionary(ee.Algorithms.If(cond, d, d.set(clas, 0)))
 
-    class_dict = ee.Dictionary(class_list.iterate(fillDict, matrix)).rename(
-        class_list, names_list
-    )
+    class_dict = ee.Dictionary(class_list.iterate(fillDict, matrix)).rename(class_list, names_list)
 
     TP = ee.Number(class_dict.get("TP"))
     TN = ee.Number(class_dict.get("TN"))

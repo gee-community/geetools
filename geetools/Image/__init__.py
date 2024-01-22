@@ -237,11 +237,7 @@ class Image:
                 value = image.geetools.getValues(point, 10)
                 print(value.getInfo())
         """
-        scale = (
-            self._obj.select(0).projection().nominalScale()
-            if scale == 0
-            else ee.Number(scale)
-        )
+        scale = self._obj.select(0).projection().nominalScale() if scale == 0 else ee.Number(scale)
         return self._obj.reduceRegion(ee.Reducer.mean(), point, scale)
 
     def minScale(self) -> ee.Number:
@@ -263,9 +259,7 @@ class Image:
                 image.geetools.minScale().getInfo()
         """
         bandNames = self._obj.bandNames()
-        scales = bandNames.map(
-            lambda b: self._obj.select(ee.String(b)).projection().nominalScale()
-        )
+        scales = bandNames.map(lambda b: self._obj.select(ee.String(b)).projection().nominalScale())
         return ee.Number(scales.sort().get(0))
 
     def merge(self, images: ee_list) -> ee.Image:
@@ -782,11 +776,7 @@ class Image:
         pixelsLimit = offset.multiply(2).sqrt().divide(scale).max(ee.Number(2)).toInt()
         area = ee.Image.pixelArea().rename("area")
         isletArea = (
-            self._obj.select(0)
-            .mask()
-            .toInt()
-            .connectedPixelCount(pixelsLimit)
-            .multiply(area)
+            self._obj.select(0).mask().toInt().connectedPixelCount(pixelsLimit).multiply(area)
         )
         return isletArea.lt(offset).rename("mask").selfMask()
 

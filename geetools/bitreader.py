@@ -86,8 +86,7 @@ class BitReader(object):
                     end = int(bits[1])
             except Exception:
                 mje = (
-                    'keys must be with the following format "bit-bit", '
-                    'example "0-1" (found {})'
+                    'keys must be with the following format "bit-bit", ' 'example "0-1" (found {})'
                 )
                 raise ValueError(mje.format(key))
 
@@ -130,9 +129,7 @@ class BitReader(object):
         all_values = allBits()
 
         self.bit_length = (
-            len(range(min(all_values), max(all_values) + 1))
-            if not bit_length
-            else bit_length
+            len(range(min(all_values), max(all_values) + 1)) if not bit_length else bit_length
         )
 
         self.max = 2**self.bit_length

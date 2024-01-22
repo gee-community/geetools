@@ -56,20 +56,14 @@ class TestAddId:
 class TestMergeGeometries:
     """Test the ``mergeGeometries`` method."""
 
-    def test_merge_geometries(self, fc_instance, data_regression):
-        geom = fc_instance.geetools.mergeGeometries()
+    def test_merge_geometries(self, gaul_3_countries, data_regression):
+        geom = gaul_3_countries.geetools.mergeGeometries()
         data_regression.check(geom.getInfo())
 
-    def test_deprecated_merge(self, fc_instance, data_regression):
+    def test_deprecated_merge(self, gaul_3_countries, data_regression):
         with pytest.deprecated_call():
-            geom = geetools.tools.featurecollection.mergeGeometries(fc_instance)
+            geom = geetools.tools.featurecollection.mergeGeometries(gaul_3_countries)
             data_regression.check(geom.getInfo())
-
-    @pytest.fixture
-    def fc_instance(self):
-        """Return Italy switzerland and France."""
-        fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
-        return fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))
 
 
 class TestToPolygons:
@@ -83,20 +77,3 @@ class TestToPolygons:
         with pytest.deprecated_call():
             fc = geetools.tools.featurecollection.clean(fc_instance)
             data_regression.check(fc.getInfo())
-
-    @pytest.fixture
-    def fc_instance(self):
-        """Return a fc collection containing 1 single geometryCollection."""
-        point0 = ee.Geometry.Point([0, 0], proj="EPSG:4326")
-        point1 = ee.Geometry.Point([0, 1], proj="EPSG:4326")
-        poly0 = point0.buffer(1, proj="EPSG:4326")
-        poly1 = point1.buffer(1, proj="EPSG:4326").bounds(proj="EPSG:4326")
-        line = ee.Geometry.LineString([point1, point0], proj="EPSG:4326")
-        multiPoly = ee.Geometry.MultiPolygon([poly0, poly1], proj="EPSG:4326")
-        geometryCollection = ee.Algorithms.GeometryConstructors.MultiGeometry(
-            [multiPoly, poly0, poly1, point0, line],
-            crs="EPSG:4326",
-            geodesic=True,
-            maxError=1,
-        )
-        return ee.FeatureCollection([geometryCollection])

@@ -14,9 +14,7 @@ def getReducerName(reducer):
 
 
 @deprecated(version="1.0.0", reason="Use geopandas instead")
-def reduceRegionsPandas(
-    data, index="system:index", add_coordinates=False, duplicate_index=False
-):
+def reduceRegionsPandas(data, index="system:index", add_coordinates=False, duplicate_index=False):
     """Transform data coming from Image.reduceRegions to a pandas dataframe."""
     raise NotImplementedError("Use geopandas.GeoDataFrame(data.getInfo()) instead")
 

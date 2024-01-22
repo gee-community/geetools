@@ -334,9 +334,7 @@ def toAsset(table, assetPath, name=None, create=True, verbose=False, **kwargs):
     # Description
     description = utils.matchDescription(name)
     # Init task
-    task = ee.batch.Export.table.toAsset(
-        table, assetId=assetId, description=description, **kwargs
-    )
+    task = ee.batch.Export.table.toAsset(table, assetId=assetId, description=description, **kwargs)
     task.start()
     if verbose:
         print("Exporting {} to {}".format(name, assetPath))
@@ -366,9 +364,7 @@ def _toDriveShapefile(
     for gtype, _ in gtypes.items():
         if gtype not in types or gtype == "GeometryCollection":
             continue
-        collection = collection.map(
-            lambda feat: feat.set("GTYPE", feat.geometry().type())
-        )
+        collection = collection.map(lambda feat: feat.set("GTYPE", feat.geometry().type()))
         onlytype = collection.filter(ee.Filter.eq("GTYPE", gtype))
         size = onlytype.size().getInfo()
         if size == 0:
@@ -413,15 +409,9 @@ def _toDriveShapefileGeomCol(
         multip = multip.merge(fc.filter(ee.Filter.eq("GTYPE", "MultiPoint")))
 
     name = "{}_GC".format(fileNamePrefix)
-    _toDriveShapefile(
-        multipol, description, folder, name, selectors, types, verbose, **kwargs
-    )
-    _toDriveShapefile(
-        multils, description, folder, name, selectors, types, verbose, **kwargs
-    )
-    _toDriveShapefile(
-        multip, description, folder, name, selectors, types, verbose, **kwargs
-    )
+    _toDriveShapefile(multipol, description, folder, name, selectors, types, verbose, **kwargs)
+    _toDriveShapefile(multils, description, folder, name, selectors, types, verbose, **kwargs)
+    _toDriveShapefile(multip, description, folder, name, selectors, types, verbose, **kwargs)
 
 
 def toDriveShapefile(
@@ -445,22 +435,8 @@ def toDriveShapefile(
     notGeomCol = collection.filter(ee.Filter.neq("GTYPE", "GeometryCollection"))
     GeomCol = collection.filter(ee.Filter.eq("GTYPE", "GeometryCollection"))
     _toDriveShapefile(
-        notGeomCol,
-        description,
-        folder,
-        fileNamePrefix,
-        selectors,
-        types,
-        verbose,
-        **kwargs
+        notGeomCol, description, folder, fileNamePrefix, selectors, types, verbose, **kwargs
     )
     _toDriveShapefileGeomCol(
-        GeomCol,
-        description,
-        folder,
-        fileNamePrefix,
-        selectors,
-        types,
-        verbose,
-        **kwargs
+        GeomCol, description, folder, fileNamePrefix, selectors, types, verbose, **kwargs
     )

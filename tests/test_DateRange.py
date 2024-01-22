@@ -43,8 +43,3 @@ class TestSplit:
             assert list.size().getInfo() == 30
             assert first.format("YYYY-MM-dd").getInfo() == "2020-01-01"
             assert last.format("YYYY-MM-dd").getInfo() == "2020-01-31"
-
-    @pytest.fixture
-    def daterange_instance(self):
-        """Return a DateRange instance."""
-        return ee.DateRange("2020-01-01", "2020-01-31")

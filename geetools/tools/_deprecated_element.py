@@ -2,11 +2,7 @@
 from deprecated.sphinx import deprecated
 
 
-@deprecated(
-    version="1.0.0", reason="Don't use this method it's considered bad practice."
-)
+@deprecated(version="1.0.0", reason="Don't use this method it's considered bad practice.")
 def fillNull(Element, proxy=-999):
     """Fill null values of an Element's properties with a proxy value."""
-    raise Exception(
-        "This method is deprecated. Use ee.FeatureCollection.fill() instead"
-    )
+    raise Exception("This method is deprecated. Use ee.FeatureCollection.fill() instead")

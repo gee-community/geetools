@@ -48,9 +48,7 @@ class DateRange:
         indexList = ee.List.sequence(0, timestampList.size().subtract(2))
 
         return indexList.map(
-            lambda i: ee.DateRange(
-                timestampList.get(i), timestampList.get(ee.Number(i).add(1))
-            )
+            lambda i: ee.DateRange(timestampList.get(i), timestampList.get(ee.Number(i).add(1)))
         )
 
     # -- utils -----------------------------------------------------------------

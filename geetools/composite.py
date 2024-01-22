@@ -7,9 +7,7 @@ import ee
 from . import algorithms, tools
 
 
-def medoidScore(
-    collection, bands=None, discard_zeros=False, bandname="sumdist", normalize=True
-):
+def medoidScore(collection, bands=None, discard_zeros=False, bandname="sumdist", normalize=True):
     """Compute a score to reflect 'how far' is from the medoid.
 
     Same params
@@ -119,9 +117,7 @@ def closestDate(col, clip_to_first=False):
 
     # add millis band (for compositing)
     col = col.map(
-        lambda img: img.addBands(
-            ee.Image.constant(img.date().millis()).rename(tempname).toInt()
-        )
+        lambda img: img.addBands(ee.Image.constant(img.date().millis()).rename(tempname).toInt())
     )
 
     col = col.sort("system:time_start")
@@ -190,9 +186,7 @@ def compositeRegularIntervals(
             else:
                 comp = composite_function(filtered, *composite_args, **composite_kwargs)
 
-            comp = comp.set(
-                "system:time_start", dr.start().advance(middle, "day").millis()
-            )
+            comp = comp.set("system:time_start", dr.start().advance(middle, "day").millis())
             comp = (
                 comp.set("dates", dates)
                 .set("composite:time_start", dr.start().format())
@@ -202,9 +196,7 @@ def compositeRegularIntervals(
 
         return ee.Algorithms.If(filtered.size(), true(filtered, li), li)
 
-    return ee.ImageCollection.fromImages(
-        ee.List(date_ranges.iterate(wrap, ee.List([])))
-    )
+    return ee.ImageCollection.fromImages(ee.List(date_ranges.iterate(wrap, ee.List([]))))
 
 
 def compositeByMonth(
@@ -247,9 +239,7 @@ def compositeByMonth(
                 elif composite_kwargs and not composite_args:
                     comp = composite_function(filtered, **composite_kwargs)
                 else:
-                    comp = composite_function(
-                        filtered, *composite_args, **composite_kwargs
-                    )
+                    comp = composite_function(filtered, *composite_args, **composite_kwargs)
 
                 comp = comp.set("system:time_start", date.millis())
                 return ee.List(ll).add(comp)
