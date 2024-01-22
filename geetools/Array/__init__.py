@@ -37,7 +37,7 @@ class Array:
             An array with the given dimensions, initialized to the given value.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -67,7 +67,7 @@ class Array:
             The array with the cell set to the given value.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

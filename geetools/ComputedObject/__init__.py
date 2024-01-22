@@ -23,7 +23,7 @@ def isInstance(self, klass: Type) -> ee.Number:
         ``1`` if the element is the passed type or ``0`` if not.
 
     Examples:
-        .. jupyter-execute::
+        .. code-block:: python
 
             import ee, geetools
 
@@ -49,7 +49,7 @@ def save(self, path: pathlike) -> Path:
         The path to the saved file.
 
     Examples:
-        .. jupyter-execute::
+        .. code-block:: python
 
             import ee, geetools
             from tempfile import TemporaryDirectory
@@ -80,7 +80,7 @@ def open(cls, path: pathlike) -> ee.ComputedObject:
         The ComputedObject instance.
 
     Examples:
-        .. jupyter-execute::
+        .. code-block:: python
 
             import ee, geetools
             from tempfile import TemporaryDirectory

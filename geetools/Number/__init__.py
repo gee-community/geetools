@@ -25,7 +25,7 @@ class Number:
             The truncated number.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

@@ -41,7 +41,7 @@ class FeatureCollection:
             The parsed collection with a new id property
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -68,7 +68,7 @@ class FeatureCollection:
             the dissolved geometry
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -93,7 +93,7 @@ class FeatureCollection:
             The parsed collection with only polygon/MultiPolygon geometries
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools

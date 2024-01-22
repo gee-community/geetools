@@ -55,7 +55,7 @@ class ImageCollection:
             This method may mask water as well as clouds for the Sentinel-3 Radiance product.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -94,7 +94,7 @@ class ImageCollection:
             Closest images to the specified date.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -175,7 +175,7 @@ class ImageCollection:
             Image with the computed spectral index, or indices, as new bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -199,7 +199,7 @@ class ImageCollection:
 
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -217,7 +217,7 @@ class ImageCollection:
             Dictionary with the offset parameters for each band.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
             import ee
             import geetools
@@ -255,7 +255,7 @@ class ImageCollection:
             Pre-processed image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
             import ee
             import geetools
@@ -272,7 +272,7 @@ class ImageCollection:
             STAC of the image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
             import ee
             import geetools
@@ -290,7 +290,7 @@ class ImageCollection:
             DOI of the ee.Image dataset.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -308,7 +308,7 @@ class ImageCollection:
             Citation of the ee.Image dataset.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -336,7 +336,7 @@ class ImageCollection:
             The ImageCollections with all sharpenable bands sharpened to the panchromatic resolution and quality assessments run and set as properties.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -374,7 +374,7 @@ class ImageCollection:
             ImageCollections with the tasseled cap components as new bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
