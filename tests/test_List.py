@@ -8,129 +8,85 @@ import geetools
 class TestProduct:
     """Test the product method."""
 
-    def test_product_with_same_type(self, list_instance):
-        product_list = list_instance.geetools.product(list_instance)
-        expected = ["aa", "ab", "ac", "ba", "bb", "bc", "ca", "cb", "cc"]
-        assert product_list.getInfo() == expected
+    def test_product_with_same_type(self, letter_list, data_regression):
+        product_list = letter_list.geetools.product(letter_list)
+        data_regression.check(product_list.getInfo())
 
-    def test_product_with_different_type(self, list_instance, list_int):
-        product_list = list_instance.geetools.product(list_int)
-        expected = ["a1", "a2", "a3", "b1", "b2", "b3", "c1", "c2", "c3"]
-        assert product_list.getInfo() == expected
+    def test_product_with_different_type(self, letter_list, int_list, data_regression):
+        product_list = letter_list.geetools.product(int_list)
+        data_regression.check(product_list.getInfo())
 
-    def test_deprecated_method(self, list_instance):
+    def test_deprecated_mix(self, letter_list, data_regression):
         with pytest.deprecated_call():
-            product_list = geetools.string.mix([list_instance, list_instance])
-            expected = ["aa", "ab", "ac", "ba", "bb", "bc", "ca", "cb", "cc"]
-            assert product_list.getInfo() == expected
-
-    @pytest.fixture
-    def list_instance(self):
-        """Return a defined list instance."""
-        return ee.List(["a", "b", "c"])
-
-    @pytest.fixture
-    def list_int(self):
-        """Return a defined list instance."""
-        return ee.List([1, 2, 3])
+            product_list = geetools.string.mix([letter_list, letter_list])
+            data_regression.check(product_list.getInfo())
 
 
 class TestComplement:
     """Test the complement method."""
 
-    def test_complement_with_same_type(self, list_instance):
-        complement_list = list_instance.geetools.complement(list_instance)
-        assert complement_list.getInfo() == []
+    def test_complement_with_same_type(self, letter_list, data_regression):
+        complement_list = letter_list.geetools.complement(letter_list)
+        data_regression.check(complement_list.getInfo())
 
-    def test_complement_with_different_type(self, list_instance, list_int):
-        complement_list = list_instance.geetools.complement(list_int)
-        assert complement_list.getInfo() == ["a", "b", "c", 1, 2, 3]
+    def test_complement_with_different_type(
+        self, letter_list, int_list, data_regression
+    ):
+        complement_list = letter_list.geetools.complement(int_list)
+        data_regression.check(complement_list.getInfo())
 
-    def test_deprecated_method(self, list_instance):
+    def test_deprecated_difference(self, letter_list, data_regression):
         with pytest.deprecated_call():
             complement_list = geetools.tools.ee_list.difference(
-                list_instance, list_instance
+                letter_list, letter_list
             )
-            assert complement_list.getInfo() == []
-
-    @pytest.fixture
-    def list_instance(self):
-        """Return a defined list instance."""
-        return ee.List(["a", "b", "c"])
-
-    @pytest.fixture
-    def list_int(self):
-        """Return a defined list instance."""
-        return ee.List([1, 2, 3])
+            data_regression.check(complement_list.getInfo())
 
 
 class TestIntersection:
     """Test the intersection method."""
 
-    def test_intersection_with_same_type(self, list_instance):
-        intersection_list = list_instance.geetools.intersection(list_instance)
-        assert intersection_list.getInfo() == ["a", "b", "c"]
+    def test_intersection_with_same_type(self, letter_list, data_regression):
+        intersection_list = letter_list.geetools.intersection(letter_list)
+        data_regression.check(intersection_list.getInfo())
 
-    def test_intersection_with_different_type(self, list_instance, list_int):
-        intersection_list = list_instance.geetools.intersection(list_int)
-        assert intersection_list.getInfo() == []
+    def test_intersection_with_different_type(
+        self, letter_list, int_list, data_regression
+    ):
+        intersection_list = letter_list.geetools.intersection(int_list)
+        data_regression.check(intersection_list.getInfo())
 
-    def test_deprecated_method(self, list_instance):
+    def test_deprecated_intersection(self, letter_list, data_regression):
         with pytest.deprecated_call():
             intersection_list = geetools.tools.ee_list.intersection(
-                list_instance, list_instance
+                letter_list, letter_list
             )
-            assert intersection_list.getInfo() == ["a", "b", "c"]
-
-    @pytest.fixture
-    def list_instance(self):
-        """Return a defined list instance."""
-        return ee.List(["a", "b", "c"])
-
-    @pytest.fixture
-    def list_int(self):
-        """Return a defined list instance."""
-        return ee.List([1, 2, 3])
+            data_regression.check(intersection_list.getInfo())
 
 
 class TestUnion:
     """Test the union method."""
 
-    def test_union_with_duplicate(self, list_instance):
-        union_list = list_instance.geetools.union(list_instance)
-        assert union_list.getInfo() == ["a", "b", "c"]
+    def test_union_with_duplicate(self, letter_list, data_regression):
+        union_list = letter_list.geetools.union(letter_list)
+        data_regression.check(union_list.getInfo())
 
-    def test_union_without_dupplicates(self, list_instance, list_int):
-        union_list = list_instance.geetools.union(list_int)
-        assert union_list.getInfo() == ["a", "b", "c", 1, 2, 3]
-
-    @pytest.fixture
-    def list_instance(self):
-        """Return a defined list instance."""
-        return ee.List(["a", "b", "c"])
-
-    @pytest.fixture
-    def list_int(self):
-        """Return a defined list instance."""
-        return ee.List([1, 2, 3])
+    def test_union_without_dupplicates(self, letter_list, int_list, data_regression):
+        union_list = letter_list.geetools.union(int_list)
+        data_regression.check(union_list.getInfo())
 
 
 class TestDelete:
     """Test the delete method."""
 
-    def test_delete(self, list_instance):
-        deleted_list = list_instance.geetools.delete(1)
-        assert deleted_list.getInfo() == ["a", "c"]
+    def test_delete(self, letter_list, data_regression):
+        deleted_list = letter_list.geetools.delete(1)
+        data_regression.check(deleted_list.getInfo())
 
-    def test_deprecated_method(self, list_instance):
+    def test_deprecated_remove_index(self, letter_list, data_regression):
         with pytest.deprecated_call():
-            deleted_list = geetools.tools.ee_list.removeIndex(list_instance, 1)
-            assert deleted_list.getInfo() == ["a", "c"]
-
-    @pytest.fixture
-    def list_instance(self):
-        """Return a defined list instance."""
-        return ee.List(["a", "b", "c"])
+            deleted_list = geetools.tools.ee_list.removeIndex(letter_list, 1)
+            data_regression.check(deleted_list.getInfo())
 
 
 class TestSequence:
@@ -161,76 +117,57 @@ class TestSequence:
 class TestReplaceMany:
     """Test the replaceMany method."""
 
-    def test_replace_many(self, list_instance):
-        replaced_list = list_instance.geetools.replaceMany({"a": "foo", "c": "bar"})
-        assert replaced_list.getInfo() == ["foo", "b", "bar"]
+    def test_replace_many(self, letter_list, data_regression):
+        replaced_list = letter_list.geetools.replaceMany({"a": "foo", "c": "bar"})
+        data_regression.check(replaced_list.getInfo())
 
-    def test_deprecated_method(self, list_instance):
+    def test_deprecated_replace_dict(self, letter_list, data_regression):
         with pytest.deprecated_call():
             replaced_list = geetools.tools.ee_list.replaceDict(
-                list_instance, {"a": "foo", "c": "bar"}
+                letter_list, {"a": "foo", "c": "bar"}
             )
-            assert replaced_list.getInfo() == ["foo", "b", "bar"]
-
-    @pytest.fixture
-    def list_instance(self):
-        """Return a defined list instance."""
-        return ee.List(["a", "b", "c"])
+            data_regression.check(replaced_list.getInfo())
 
 
 class TestZip:
     """Test the zip method."""
 
-    def test_zip(self, list_instance):
-        zipped_list = list_instance.geetools.zip()
-        assert zipped_list.getInfo() == [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
+    def test_zip(self, letter_list, data_regression):
+        zipped_list = ee.List([letter_list, letter_list]).geetools.zip()
+        data_regression.check(zipped_list.getInfo())
 
-    def test_deprecated_method(self, list_instance):
+    def test_deprecated_zip(self, letter_list, data_regression):
         with pytest.deprecated_call():
-            zipped_list = geetools.tools.ee_list.zip(list_instance)
-            assert zipped_list.getInfo() == [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
-
-    @pytest.fixture
-    def list_instance(self):
-        """Return a defined list instance."""
-        return ee.List([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+            list = ee.List([letter_list, letter_list])
+            zipped_list = geetools.tools.ee_list.zip(list)
+            data_regression.check(zipped_list.getInfo())
 
 
 class TestToStrings:
     """Test the toStrings method."""
 
-    def test_to_strings(self, list_instance):
-        strings = list_instance.geetools.toStrings()
-        assert strings.getInfo() == ["a", "1", "Image"]
+    def test_to_strings(self, mix_list, data_regression):
+        strings = mix_list.geetools.toStrings()
+        data_regression.check(strings.getInfo())
 
-    def test_deprecated_method(self, list_instance):
+    def test_deprecated_to_string(self, mix_list, data_regression):
         with pytest.deprecated_call():
-            strings = geetools.tools.ee_list.toString(list_instance)
-            assert strings.getInfo() == ["a", "1", "Image"]
-
-    @pytest.fixture
-    def list_instance(self):
-        """Return a defined list instance."""
-        return ee.List(["a", 1, ee.Image(1)])
+            strings = geetools.tools.ee_list.toString(mix_list)
+            data_regression.check(strings.getInfo())
 
 
 class TestJoin:
     """Test the join method."""
 
-    def test_join(self, list_instance):
-        formatted = list_instance.geetools.join()
+    def test_join(self, mix_list):
+        formatted = mix_list.geetools.join()
         assert formatted.getInfo() == "a, 1, Image"
 
-    def test_join_with_separator(self, list_instance):
-        formatted = list_instance.geetools.join(separator="; ")
+    def test_join_with_separator(self, mix_list):
+        formatted = mix_list.geetools.join(separator="; ")
         assert formatted.getInfo() == "a; 1; Image"
 
-    def test_deprecated_method(self, list_instance):
+    def test_deprecated_format(self, mix_list):
         with pytest.deprecated_call():
-            formatted = geetools.tools.ee_list.format(list_instance)
+            formatted = geetools.tools.ee_list.format(mix_list)
             assert formatted.getInfo() == "[a,1,Image]"
-
-    @pytest.fixture
-    def list_instance(self):
-        """Return a defined list instance."""
-        return ee.List(["a", 1, ee.Image(1)])

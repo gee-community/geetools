@@ -1,5 +1,4 @@
 """Test the String class methods."""
-import ee
 import pytest
 
 import geetools
@@ -21,29 +20,17 @@ class TestEq:
             eq_number = geetools.string.eq(string_instance, "foo")
             assert eq_number.getInfo() == 1
 
-    @pytest.fixture
-    def string_instance(self):
-        """Return a defined string instance."""
-        return ee.String("foo")
-
 
 class TestFormat:
     """test the format method."""
 
-    def test_format_with_dictionary(self, string_instance):
-        formatted_string = string_instance.geetools.format(
-            {"greeting": "Hello", "name": "bob"}
-        )
+    def test_format_with_dictionary(self, format_string_instance):
+        params = {"greeting": "Hello", "name": "bob"}
+        formatted_string = format_string_instance.geetools.format(params)
         assert formatted_string.getInfo() == "Hello bob !"
 
-    def test_deprecated_method(self, string_instance):
+    def test_deprecated_format(self, format_string_instance):
         with pytest.deprecated_call():
-            formatted_string = geetools.string.format(
-                string_instance, {"greeting": "Hello", "name": "bob"}
-            )
+            params = {"greeting": "Hello", "name": "bob"}
+            formatted_string = geetools.string.format(format_string_instance, params)
             assert formatted_string.getInfo() == "Hello bob !"
-
-    @pytest.fixture
-    def string_instance(self):
-        """Return a defined string instance."""
-        return ee.String("{greeting} {name} !")

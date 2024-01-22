@@ -21,11 +21,6 @@ class TestToDatetime:
             assert datetime.month == 1
             assert datetime.day == 1
 
-    @pytest.fixture
-    def date_instance(self):
-        """Return a defined date instance."""
-        return ee.Date("2020-01-01")
-
 
 class TestGetUnitSinceEpoch:
     """Test the getUnitSinceEpoch method."""
@@ -42,11 +37,6 @@ class TestGetUnitSinceEpoch:
         with pytest.deprecated_call():
             unit = geetools.tools.date.unitSinceEpoch(date_instance, "year")
             assert unit.getInfo() >= 49
-
-    @pytest.fixture
-    def date_instance(self):
-        """Return a defined date instance."""
-        return ee.Date("2020-01-01")
 
 
 class TestFromEpoch:

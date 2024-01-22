@@ -1,5 +1,4 @@
 """test the Number class methods."""
-import ee
 import pytest
 
 import geetools
@@ -28,8 +27,3 @@ class TestTruncate:
         with pytest.deprecated_call():
             truncated_number = geetools.number.trimDecimals(number_instance, 2)
             assert truncated_number.getInfo() == 1234.56
-
-    @pytest.fixture
-    def number_instance(self):
-        """Return a defined number instance."""
-        return ee.Number(1234.56785678)
