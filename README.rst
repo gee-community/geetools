@@ -7,7 +7,7 @@
 Google Earth Engine tools
 -------------------------
 
-.. image:: docs/_static/logo.png
+.. image:: docs/_static/logo.svg
     :width: 20%
     :align: right
 
