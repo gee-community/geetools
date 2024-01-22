@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 from urllib.request import urlretrieve
 
 import ee
+import numpy as np
 import pytest
 
 import geetools
@@ -224,14 +225,18 @@ class TestRemove:
 class TestToGrid:
     """Test the ``toGrid`` method."""
 
-    def test_to_grid(self, image_instance, vatican, data_regression):
+    def test_to_grid(self, image_instance, vatican, ndarrays_regression):
         grid = image_instance.geetools.toGrid(1, "B2", vatican)
-        data_regression.check(grid.getInfo())
+        grid = [f["geometry"]["coordinates"] for f in grid.getInfo()["features"]]
+        grid = {f"geometry_{i}": np.array(c) for i, c in enumerate(grid)}
+        ndarrays_regression.check(grid)
 
-    def test_deprecated_method(self, image_instance, vatican, data_regression):
+    def test_deprecated_method(self, image_instance, vatican, ndarrays_regression):
         with pytest.deprecated_call():
             grid = geetools.tools.image.toGrid(image_instance, 1, "B2", vatican)
-            data_regression.check(grid.getInfo())
+            grid = [f["geometry"]["coordinates"] for f in grid.getInfo()["features"]]
+            grid = {f"geometry_{i}": np.array(c) for i, c in enumerate(grid)}
+            ndarrays_regression.check(grid)
 
     @pytest.fixture
     def image_instance(self):
@@ -823,6 +828,7 @@ class TestGetSTAC:
 
     def test_get_stac(self, data_regression):
         stac = ee.ImageCollection("COPERNICUS/S2_SR").first().geetools.getSTAC()
+        stac["extent"].pop("temporal")  # it will change all the time
         data_regression.check(stac)
 
 

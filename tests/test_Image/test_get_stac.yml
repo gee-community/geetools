@@ -66,10 +66,6 @@ extent:
       - -56
       - 180
       - 83
-  temporal:
-    interval:
-    - - '2017-03-28T00:00:00Z'
-      - '2024-01-17T18:25:17'
 gee:interval:
   interval: 5
   type: revisit_interval

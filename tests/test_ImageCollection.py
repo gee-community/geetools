@@ -73,6 +73,7 @@ class TestGetSTAC:
 
     def test_get_stac(self, s2_sr, data_regression):
         stac = s2_sr.geetools.getSTAC()
+        stac["extent"].pop("temporal")  # it will change all the time
         data_regression.check(stac)
 
 
