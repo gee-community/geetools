@@ -129,3 +129,10 @@ skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb"
 
 [tool.black]
 line-length = 100
+
+[tool.mypy]
+scripts_are_modules = true
+ignore_missing_imports = true
+install_types = true
+non_interactive = true
+warn_redundant_casts = true
