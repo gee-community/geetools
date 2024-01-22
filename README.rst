@@ -7,6 +7,10 @@
 Google Earth Engine tools
 -------------------------
 
+.. image:: docs/_static/logo.png
+    :width: 20%
+    :align: right
+
 These are a set of tools for working with Google Earth Engine Python API that may help to solve or automate some processes.
 
 There is JavaScript module that you can import from the code editor that has
