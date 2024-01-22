@@ -77,11 +77,13 @@ jobs:
         with:
           python-version: "3.10"
       - name: Install deps
-        run: pip install nox
+        run: pip install nox coverage[toml]
       - name: test with pytest
         run: nox -s test
       - name: assess dead fixtures
         run: nox -s dead-fixtures
+      - name: coverage
+        run: coverage xml
       - name: codecov
         uses: codecov/codecov-action@v3
         with:
