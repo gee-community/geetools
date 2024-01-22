@@ -160,7 +160,7 @@ class User:
             credential_path: The path to the folder where the credentials are stored. If not set, it uses the default path
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools

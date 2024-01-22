@@ -27,7 +27,7 @@ class Dictionary:
             A dictionary using the pairs.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -49,7 +49,7 @@ class Dictionary:
             The sorted dictionary.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -72,7 +72,7 @@ class Dictionary:
             A list of values.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

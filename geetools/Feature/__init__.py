@@ -21,7 +21,7 @@ class Feature:
             The FeatureCollection
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                     import ee
                     import geetools

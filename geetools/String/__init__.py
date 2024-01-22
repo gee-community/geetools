@@ -26,7 +26,7 @@ class String:
             ``1`` if the strings are equal, ``0`` otherwise.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -49,7 +49,7 @@ class String:
             The formatted string.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

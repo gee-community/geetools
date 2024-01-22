@@ -90,7 +90,8 @@ def gee_configure() -> None:
     Otherwise it use the simple Initialize command (asking the user to register if necessary).
     """
     # only do the initialization if the credential are missing
-    if not ee.data._credentials:
+    if False:
+        # if not ee.data._credentials:
 
         # if the credentials token is asved in the environment use it
         if "EARTHENGINE_TOKEN" in os.environ:

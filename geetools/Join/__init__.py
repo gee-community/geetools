@@ -38,7 +38,7 @@ class Join:
 
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools

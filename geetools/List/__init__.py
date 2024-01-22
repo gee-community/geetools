@@ -28,7 +28,7 @@ class List:
             A list of strings corresponding to the cartesian product.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -60,7 +60,7 @@ class List:
             A list of strings corresponding to the complement of the current list and the ``other`` list.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -86,7 +86,7 @@ class List:
             A list of strings corresponding to the intersection of the current list and the ``other`` list.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -112,7 +112,7 @@ class List:
             A list of strings corresponding to the union of the current list and the ``other`` list.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -137,7 +137,7 @@ class List:
             The list without the element at the given index.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -169,7 +169,7 @@ class List:
             A list of numbers corresponding to the sequence.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -192,7 +192,7 @@ class List:
             A list with the values replaced
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -222,7 +222,7 @@ class List:
             A string with the list elements separated by commas.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -242,7 +242,7 @@ class List:
             A list of strings corresponding to the elements of the list.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -269,7 +269,7 @@ class List:
             A list of lists with the zipped elements
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

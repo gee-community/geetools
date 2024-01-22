@@ -31,7 +31,7 @@ class DateRange:
             The list of DateRanges
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

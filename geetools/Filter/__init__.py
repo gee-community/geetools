@@ -27,7 +27,7 @@ class Filter:
             The filter to apply to a collection.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

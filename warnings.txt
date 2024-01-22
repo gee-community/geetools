@@ -1,87 +1,185 @@
+[91mWARNING: Cannot resolve import of geetools.tools.array in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.collection in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.date in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.dictionary in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.element in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.feature in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.featurecollection in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.geometry in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.number in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.string in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of unknown module geetools.utils in geetools.tools.imagecollection[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.collection in geetools.tools.imagecollection[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.date in geetools.tools.imagecollection[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.ee_list in geetools.tools.imagecollection[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.image in geetools.tools.imagecollection[39;49;00m
+[91mWARNING: Cannot resolve import of unknown module geetools.utils in geetools.batch.image[39;49;00m
+[91mWARNING: Cannot resolve import of unknown module geetools.utils in geetools.batch.imagecollection[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/Image/index.rst:478: ERROR: Unexpected indentation.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/Image/index.rst:615: WARNING: Inline strong start-string without end-string.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/Image/index.rst:779: ERROR: Unknown directive type "jupyter_execute".
 
-Traceback (most recent call last):
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/config.py", line 358, in eval_config_file
-    exec(code, namespace)  # NoQA: S102
-    ^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/docs/conf.py", line 118, in <module>
-    gee_configure()
-  File "/workspaces/gee_tools/docs/conf.py", line 115, in gee_configure
-    ee.Initialize(http_transport=httplib2.Http())
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/_utils.py", line 38, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/__init__.py", line 140, in Initialize
-    credentials = data.get_persistent_credentials()
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/data.py", line 268, in get_persistent_credentials
-    raise ee_exception.EEException(  # pylint: disable=raise-missing-from
-ee.ee_exception.EEException: Please authorize access to your Earth Engine account by running
+.. jupyter_execute::
 
-earthengine authenticate
+    import ee, geetools
 
-in your command line, or ee.Authenticate() in Python, and then retry.
+    ee.Initialize()
 
-The above exception was the direct cause of the following exception:
+    S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().scaleAndOffset()[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/Image/index.rst:795: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/Image/index.rst:819: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/ImageCollection/index.rst:158: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/ImageCollection/index.rst:242: ERROR: Unknown directive type "jupyter_execute".
 
-Traceback (most recent call last):
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/cmd/build.py", line 293, in build_main
-    app = Sphinx(args.sourcedir, args.confdir, args.outputdir,
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/application.py", line 211, in __init__
-    self.config = Config.read(self.confdir, confoverrides or {}, self.tags)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/config.py", line 181, in read
-    namespace = eval_config_file(filename, tags)
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/config.py", line 371, in eval_config_file
-    raise ConfigError(msg % traceback.format_exc()) from exc
-sphinx.errors.ConfigError: There is a programmable error in your configuration file:
+.. jupyter_execute::
 
-Traceback (most recent call last):
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/config.py", line 358, in eval_config_file
-    exec(code, namespace)  # NoQA: S102
-    ^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/docs/conf.py", line 118, in <module>
-    gee_configure()
-  File "/workspaces/gee_tools/docs/conf.py", line 115, in gee_configure
-    ee.Initialize(http_transport=httplib2.Http())
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/_utils.py", line 38, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/__init__.py", line 140, in Initialize
-    credentials = data.get_persistent_credentials()
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/data.py", line 268, in get_persistent_credentials
-    raise ee_exception.EEException(  # pylint: disable=raise-missing-from
-ee.ee_exception.EEException: Please authorize access to your Earth Engine account by running
+    import ee, geetools
 
-earthengine authenticate
+    ee.Initialize()
 
-in your command line, or ee.Authenticate() in Python, and then retry.
+    S2 = ee.ImageCollection('COPERNICUS/S2_SR').scaleAndOffset()[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/ImageCollection/index.rst:258: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/ImageCollection/index.rst:282: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/User/index.rst:50: ERROR: Unknown directive type "jupyter-execture".
 
+.. jupyter-execture::
 
-[91mConfiguration error:[39;49;00m
-There is a programmable error in your configuration file:
+    import ee
+    import geetools
 
-Traceback (most recent call last):
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/sphinx/config.py", line 358, in eval_config_file
-    exec(code, namespace)  # NoQA: S102
-    ^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/docs/conf.py", line 118, in <module>
-    gee_configure()
-  File "/workspaces/gee_tools/docs/conf.py", line 115, in gee_configure
-    ee.Initialize(http_transport=httplib2.Http())
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/_utils.py", line 38, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/__init__.py", line 140, in Initialize
-    credentials = data.get_persistent_credentials()
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/workspaces/gee_tools/.nox/docs/lib/python3.11/site-packages/ee/data.py", line 268, in get_persistent_credentials
-    raise ee_exception.EEException(  # pylint: disable=raise-missing-from
-ee.ee_exception.EEException: Please authorize access to your Earth Engine account by running
+    # cannot be displayed in the documentation as the creation
+    # of a new user requires user interaction
 
-earthengine authenticate
+    # geetools.User.create("secondary")
+    # geetools.User.set("secondary")
+    # ee.Number(1).getInfo()[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/User/index.rst:73: ERROR: Unknown directive type "jupyter-execture".
 
-in your command line, or ee.Authenticate() in Python, and then retry.
+.. jupyter-execture::
 
+    import ee
+    import geetools
+
+    # cannot be displayed in the documentation as the creation
+    # of a new user requires user interaction
+
+    # geetools.User.create("secondary")
+    # geetools.User.delete("secondary")
+    # geetools.User.set("secondary")
+    # will raise an error as the user does not exist anymore[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/User/index.rst:100: ERROR: Unknown directive type "jupyter-exectute".
+
+.. jupyter-exectute::
+
+    import ee
+    import geetools
+
+    geetools.User.list([39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/User/index.rst:141: ERROR: Unknown directive type "jupyter-execture".
+
+.. jupyter-execture::
+
+    import ee
+    import geetools
+
+    geetools.User.set()
+
+    # check that GEE is connected
+    ee.Number(1).getInfo()[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/algorithms/index.rst:215: WARNING: Field list ends without a blank line; unexpected unindent.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/batch/image/index.rst:88: WARNING: Field list ends without a blank line; unexpected unindent.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/batch/image/index.rst:92: WARNING: Definition list ends without a blank line; unexpected unindent.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/batch/image/index.rst:114: WARNING: Field list ends without a blank line; unexpected unindent.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/bitreader/index.rst:51: ERROR: Unexpected indentation.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/bitreader/index.rst:49: WARNING: Inline literal start-string without end-string.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/bitreader/index.rst:58: WARNING: Inline literal start-string without end-string.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/classification/index.rst:42: WARNING: Field list ends without a blank line; unexpected unindent.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:97: WARNING: duplicate object description of geetools.Array, other instance in autoapi/geetools/Array/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:149: WARNING: duplicate object description of geetools.Date, other instance in autoapi/geetools/Date/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:263: WARNING: duplicate object description of geetools.DateRange, other instance in autoapi/geetools/DateRange/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:307: WARNING: duplicate object description of geetools.Dictionary, other instance in autoapi/geetools/Dictionary/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:373: WARNING: duplicate object description of geetools.Feature, other instance in autoapi/geetools/Feature/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:402: WARNING: duplicate object description of geetools.FeatureCollection, other instance in autoapi/geetools/FeatureCollection/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:491: WARNING: duplicate object description of geetools.Filter, other instance in autoapi/geetools/Filter/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:522: WARNING: duplicate object description of geetools.Float, other instance in autoapi/geetools/Float/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:535: WARNING: duplicate object description of geetools.Geometry, other instance in autoapi/geetools/Geometry/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:569: WARNING: duplicate object description of geetools.Image, other instance in autoapi/geetools/Image/index, use :no-index: for one of them[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1014: ERROR: Unexpected indentation.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1151: WARNING: Inline strong start-string without end-string.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1315: ERROR: Unknown directive type "jupyter_execute".
+
+.. jupyter_execute::
+
+    import ee, geetools
+
+    ee.Initialize()
+
+    S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().scaleAndOffset()[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1331: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1355: ERROR: Unexpected indentation.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1443: WARNING: duplicate object description of geetools.ImageCollection, other instance in autoapi/geetools/ImageCollection/index, use :no-index: for one of them[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1568: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1652: ERROR: Unknown directive type "jupyter_execute".
+
+.. jupyter_execute::
+
+    import ee, geetools
+
+    ee.Initialize()
+
+    S2 = ee.ImageCollection('COPERNICUS/S2_SR').scaleAndOffset()[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1668: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1692: ERROR: Unexpected indentation.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1751: WARNING: duplicate object description of geetools.Integer, other instance in autoapi/geetools/Integer/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1764: WARNING: duplicate object description of geetools.Join, other instance in autoapi/geetools/Join/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:1804: WARNING: duplicate object description of geetools.List, other instance in autoapi/geetools/List/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:2037: WARNING: duplicate object description of geetools.Number, other instance in autoapi/geetools/Number/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:2065: WARNING: duplicate object description of geetools.String, other instance in autoapi/geetools/String/index, use :no-index: for one of them[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:2115: WARNING: duplicate object description of geetools.User, other instance in autoapi/geetools/User/index, use :no-index: for one of them[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:2132: ERROR: Unknown directive type "jupyter-execture".
+
+.. jupyter-execture::
+
+    import ee
+    import geetools
+
+    # cannot be displayed in the documentation as the creation
+    # of a new user requires user interaction
+
+    # geetools.User.create("secondary")
+    # geetools.User.set("secondary")
+    # ee.Number(1).getInfo()[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:2155: ERROR: Unknown directive type "jupyter-execture".
+
+.. jupyter-execture::
+
+    import ee
+    import geetools
+
+    # cannot be displayed in the documentation as the creation
+    # of a new user requires user interaction
+
+    # geetools.User.create("secondary")
+    # geetools.User.delete("secondary")
+    # geetools.User.set("secondary")
+    # will raise an error as the user does not exist anymore[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:2182: ERROR: Unknown directive type "jupyter-exectute".
+
+.. jupyter-exectute::
+
+    import ee
+    import geetools
+
+    geetools.User.list([39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/index.rst:2223: ERROR: Unknown directive type "jupyter-execture".
+
+.. jupyter-execture::
+
+    import ee
+    import geetools
+
+    geetools.User.set()
+
+    # check that GEE is connected
+    ee.Number(1).getInfo()[39;49;00m
+[91m/workspaces/gee_tools/CONTRIBUTING.rst:82: WARNING: duplicate label contributing-docs, other instance in /workspaces/gee_tools/docs/contribute/contribute.rst[39;49;00m
