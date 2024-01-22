@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Type, Union
+from typing import Type
 
 import ee
 
 from geetools.accessors import geetools_extend
+from geetools.types import pathlike
 
 
 # -- types management ----------------------------------------------------------
@@ -36,7 +37,7 @@ def isInstance(self, klass: Type) -> ee.Number:
 
 # -- .gee files ----------------------------------------------------------------
 @geetools_extend(ee.ComputedObject)
-def save(self, path: Union[str, Path]) -> Path:
+def save(self, path: pathlike) -> Path:
     """Save a ``ComputedObject`` to a .gee file.
 
     The file contains the JSON representation of the object. it still need to be computed via ``getInfo()`` to be used.
@@ -67,9 +68,9 @@ def save(self, path: Union[str, Path]) -> Path:
     return path
 
 
-@geetools_extend(ee.ComputedObject)
+@geetools_extend(ee.ComputedObject)  # type: ignore
 @classmethod
-def open(cls, path: Union[str, Path]) -> ee.ComputedObject:
+def open(cls, path: pathlike) -> ee.ComputedObject:
     """Open a .gee file as a ComputedObject.
 
     Parameters:

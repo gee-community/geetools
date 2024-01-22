@@ -64,8 +64,8 @@ class Date:
                 d = ee.Date.geetools.fromDOY(1, 2020)
                 d.getInfo()
         """
-        doy, year = ee.Number(doy).toInt(), ee.Number(year).toInt()
-        return ee.Date.fromYMD(year, 1, 1).advance(doy.subtract(1), "day")
+        d, y = ee.Number(doy).toInt(), ee.Number(year).toInt()
+        return ee.Date.fromYMD(y, 1, 1).advance(d.subtract(1), "day")
 
     # -- export date -----------------------------------------------------------
     def to_datetime(self) -> datetime:
