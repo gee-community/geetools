@@ -17,6 +17,14 @@ class TestVizualisation:
             geetools.visualization.stretch_percentile(None, None)
 
 
+class TestCollection:
+    """Test methods from the deprecated_collection module."""
+
+    def test_enumerate(self):
+        with pytest.raises(NotImplementedError):
+            geetools.collection.enumerate(None)
+
+
 class TestElement:
     """Test the methods from the deprecated_element module."""
 
