@@ -43,3 +43,11 @@ class TestSplit:
             assert list.size().getInfo() == 30
             assert first.format("YYYY-MM-dd").getInfo() == "2020-01-01"
             assert last.format("YYYY-MM-dd").getInfo() == "2020-01-31"
+
+
+class TestCheckUnit:
+    """Test the ``check_unit`` method exception."""
+
+    def test_check_unit(self):
+        with pytest.raises(ValueError):
+            ee.DateRange.geetools.check_unit("toto")
