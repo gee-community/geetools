@@ -50,4 +50,4 @@ class TestCheckUnit:
 
     def test_check_unit(self):
         with pytest.raises(ValueError):
-            geetools.tools.date.checkUnit("toto")
+            ee.DateRange.geetools.checkUnit("toto")
