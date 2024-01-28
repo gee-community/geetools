@@ -22,4 +22,4 @@ class TestElement:
 
     def test_fillNull(self):
         with pytest.raises(NotImplementedError):
-            geetools.tools.fillNull(None, None)
+            geetools.element.fillNull(None, None)
