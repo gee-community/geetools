@@ -23,3 +23,11 @@ class TestCollection:
     def test_enumerate(self):
         with pytest.raises(NotImplementedError):
             geetools.collection.enumerate(None)
+
+
+class TestElement:
+    """Test the methods from the deprecated_element module."""
+
+    def test_fillNull(self):
+        with pytest.raises(NotImplementedError):
+            geetools.element.fillNull(None, None)
