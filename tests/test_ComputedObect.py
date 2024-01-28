@@ -89,6 +89,10 @@ class TestOpen:
         opened = ee.Number.open(file)
         assert object.eq(opened).getInfo()
 
+    def test_open_not_correct_suffix(self):
+        with pytest.raises(ValueError):
+            ee.Number.open("file.toto")
+
     def test_deprecated_method(self, tmp_path):
         (object := ee.Number(1.1)).save((file := tmp_path / "test.gee"))
         with pytest.deprecated_call():
