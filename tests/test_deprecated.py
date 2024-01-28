@@ -15,3 +15,11 @@ class TestVizualisation:
     def test_stretch_percentile(self):
         with pytest.raises(NotImplementedError):
             geetools.visualization.stretch_percentile(None, None)
+
+
+class TestElement:
+    """Test the methods from the deprecated_element module."""
+
+    def test_fillNull(self):
+        with pytest.raises(NotImplementedError):
+            geetools.tools.fillNull(None, None)
