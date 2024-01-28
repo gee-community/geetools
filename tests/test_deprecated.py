@@ -24,7 +24,7 @@ class TestDate:
 
     def test_millis_to_datetime(self):
         with pytest.deprecated_call():
-            date = geetools.date.millisToDatetime(1527804000000)
+            date = geetools.date.millisToDatetime(1527811200000)
             assert date == datetime.strptime("2018-06-01", "%Y-%m-%d")
 
 
