@@ -300,6 +300,11 @@ class testFormat:
             string = geetools.tools.image.makeName(s2_sr_vatican_2020, "date: {system_date}")
             assert string.getInfo() == "date: 2020-01-01"
 
+    def test_deprecated_utils_make_name(self, s2_sr_vatican_2020):
+        with pytest.deprecated_call():
+            string = geetools.tools.utils.makeName(s2_sr_vatican_2020, "date: {system_date}")
+            assert string.getInfo() == "date: 2020-01-01"
+
 
 class TestPrefixSuffix:
     """Test the ``prefix`` and ``suffix`` methods."""
