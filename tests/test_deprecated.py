@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+import ee
 import pytest
 
 import geetools
@@ -42,3 +43,43 @@ class TestElement:
     def test_fillNull(self):
         with pytest.raises(NotImplementedError):
             geetools.element.fillNull(None, None)
+
+
+class TestDecisionTree:
+    """Test the methods from the deprecated_decision_tree module."""
+
+    def test_deprecated_binary(self):
+        with pytest.raises(NotImplementedError):
+            geetools.decision_tree.binary(None, None)
+
+
+class TestUtils:
+    """Test the methods from the deprecated_utils module."""
+
+    def test_get_reduce_name(self):
+        with pytest.deprecated_call():
+            name = geetools.utils.getReducerName(ee.Reducer.min)
+            assert name == "min"
+
+    def test_reduce_regions_pandas(self):
+        with pytest.raises(NotImplementedError):
+            geetools.utils.reduceRegionsPandas(None)
+
+    def test_deprecated_cast_image(self, data_regression):
+        point = ee.Geometry.Point(0, 0).buffer(10)
+        with pytest.deprecated_call():
+            image = geetools.utils.castImage(1)
+            values = image.reduceRegion(ee.Reducer.first(), point, 10)
+            data_regression.check(values.getInfo())
+
+    def test_dict_2_tuple(self):
+        with pytest.raises(NotImplementedError):
+            geetools.utils.dict2namedtuple(None)
+
+    def test_format_viz_params(self):
+        with pytest.raises(NotImplementedError):
+            geetools.utils.formatVisParams(None)
+
+    def test_evaluate(self):
+        with pytest.raises(NotImplementedError):
+            geetools.utils.evaluate(None, None, None)
