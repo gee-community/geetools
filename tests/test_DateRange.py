@@ -46,8 +46,8 @@ class TestSplit:
 
 
 class TestCheckUnit:
-    """Test the ``checkUnit`` method exception."""
+    """Test the ``check_unit`` method exception."""
 
     def test_check_unit(self):
         with pytest.raises(ValueError):
-            ee.DateRange.geetools.checkUnit("toto")
+            ee.DateRange.geetools.check_unit("toto")
