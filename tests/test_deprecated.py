@@ -26,3 +26,19 @@ class TestDate:
         with pytest.deprecated_call():
             date = geetools.date.millisToDatetime(1527804000000)
             assert date == datetime.strptime("2018-06-01", "%Y-%m-%d")
+
+
+class TestCollection:
+    """Test methods from the deprecated_collection module."""
+
+    def test_enumerate(self):
+        with pytest.raises(NotImplementedError):
+            geetools.collection.enumerate(None)
+
+
+class TestElement:
+    """Test the methods from the deprecated_element module."""
+
+    def test_fillNull(self):
+        with pytest.raises(NotImplementedError):
+            geetools.element.fillNull(None, None)
