@@ -26,7 +26,6 @@ from .tools import number
 from .tools import string
 
 # then we extend all the other classes
-from .Array import Array
 from .Date import Date
 from .DateRange import DateRange
 from .Dictionary import Dictionary
@@ -43,6 +42,10 @@ from .Number import Number
 from .String import String
 from .User import User
 from .ImageCollection import ImageCollection
+
+# Array cannot be imported directly in geetools prior to Initialisation
+# waiting for a fix in https://github.com/gee-community/gee_tools/issues/173
+# from .Array import Array
 
 
 __title__ = "geetools"
