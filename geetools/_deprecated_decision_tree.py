@@ -7,4 +7,4 @@ from deprecated.sphinx import deprecated
     reason="The method was completely undocumented and has been dropped",
 )
 def binary(conditions, classes, mask_name="dt_mask"):
-    pass
+    raise NotImplementedError("The method was completely undocumented and has been dropped")

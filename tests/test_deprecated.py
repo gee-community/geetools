@@ -42,3 +42,11 @@ class TestElement:
     def test_fillNull(self):
         with pytest.raises(NotImplementedError):
             geetools.element.fillNull(None, None)
+
+
+class TestDecisionTree:
+    """Test the methods from the deprecated_decision_tree module."""
+
+    def test_deprecated_binary(self):
+        with pytest.raises(NotImplementedError):
+            geetools.decision_tree.binary(None, None)
