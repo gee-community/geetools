@@ -68,16 +68,10 @@ def containsAnyBand(collection, bands):
     return collection.filter(filt)
 
 
+@deprecated(version="1.0.0", reason="It is error prone as some collection have no ID.")
 def getId(collection):
-    """Get the ImageCollection id.
-
-    **CLIENT SIDE**
-
-    :type collection: ee.ImageCollection
-    :return: the collection's id
-    :rtype: str
-    """
-    return collection.limit(0).getInfo()["id"]
+    """Get the ID of an ImageCollection."""
+    raise NotImplementedError("It is error prone as some collection have no ID.")
 
 
 def getImage(collection, index):

@@ -83,3 +83,11 @@ class TestUtils:
     def test_evaluate(self):
         with pytest.raises(NotImplementedError):
             geetools.utils.evaluate(None, None, None)
+
+
+class TestImageCollection:
+    """Test the deprecated_imagecollection module."""
+
+    def test_get_id(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.getId(None)
