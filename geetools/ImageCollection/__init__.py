@@ -7,6 +7,7 @@ import ee
 import ee_extra
 
 from geetools.accessors import geetools_accessor
+from geetools.types import number
 
 
 @geetools_accessor(ee.ImageCollection)
@@ -54,7 +55,7 @@ class ImageCollection:
             This method may mask water as well as clouds for the Sentinel-3 Radiance product.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -93,7 +94,7 @@ class ImageCollection:
             Closest images to the specified date.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -106,28 +107,28 @@ class ImageCollection:
     def spectralIndices(
         self,
         index: str = "NDVI",
-        G: Union[float, int] = 2.5,
-        C1: Union[float, int] = 6.0,
-        C2: Union[float, int] = 7.5,
-        L: Union[float, int] = 1.0,
-        cexp: Union[float, int] = 1.16,
-        nexp: Union[float, int] = 2.0,
-        alpha: Union[float, int] = 0.1,
-        slope: Union[float, int] = 1.0,
-        intercept: Union[float, int] = 0.0,
-        gamma: Union[float, int] = 1.0,
-        omega: Union[float, int] = 2.0,
-        beta: Union[float, int] = 0.05,
-        k: Union[float, int] = 0.0,
-        fdelta: Union[float, int] = 0.581,
+        G: number = 2.5,
+        C1: number = 6.0,
+        C2: number = 7.5,
+        L: number = 1.0,
+        cexp: number = 1.16,
+        nexp: number = 2.0,
+        alpha: number = 0.1,
+        slope: number = 1.0,
+        intercept: number = 0.0,
+        gamma: number = 1.0,
+        omega: number = 2.0,
+        beta: number = 0.05,
+        k: number = 0.0,
+        fdelta: number = 0.581,
         kernel: str = "RBF",
         sigma: str = "0.5 * (a + b)",
-        p: Union[float, int] = 2.0,
-        c: Union[float, int] = 1.0,
-        lambdaN: Union[float, int] = 858.5,
-        lambdaR: Union[float, int] = 645.0,
-        lambdaG: Union[float, int] = 555.0,
-        online: Union[float, int] = False,
+        p: number = 2.0,
+        c: number = 1.0,
+        lambdaN: number = 858.5,
+        lambdaR: number = 645.0,
+        lambdaG: number = 555.0,
+        online: number = False,
     ) -> ee.ImageCollection:
         """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
 
@@ -174,7 +175,7 @@ class ImageCollection:
             Image with the computed spectral index, or indices, as new bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -198,7 +199,7 @@ class ImageCollection:
 
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -216,7 +217,7 @@ class ImageCollection:
             Dictionary with the offset parameters for each band.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
             import ee
             import geetools
@@ -234,7 +235,7 @@ class ImageCollection:
             Scaled image.
 
         Examples:
-            .. jupyter_execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -254,7 +255,7 @@ class ImageCollection:
             Pre-processed image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
             import ee
             import geetools
@@ -271,7 +272,7 @@ class ImageCollection:
             STAC of the image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
             import ee
             import geetools
@@ -289,7 +290,7 @@ class ImageCollection:
             DOI of the ee.Image dataset.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -307,7 +308,7 @@ class ImageCollection:
             Citation of the ee.Image dataset.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -318,9 +319,7 @@ class ImageCollection:
         """
         return ee_extra.STAC.core.getCitation(self._obj)
 
-    def panSharpen(
-        self, method: str = "SFIM", qa: str = "", **kwargs
-    ) -> ee.ImageCollection:
+    def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.ImageCollection:
         """Apply panchromatic sharpening to the ImageCollection images.
 
         Optionally, run quality assessments between the original and sharpened Image to
@@ -335,7 +334,7 @@ class ImageCollection:
             The ImageCollections with all sharpenable bands sharpened to the panchromatic resolution and quality assessments run and set as properties.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -373,7 +372,7 @@ class ImageCollection:
             ImageCollections with the tasseled cap components as new bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -394,7 +393,7 @@ class ImageCollection:
             ImageCollection with the new image appended.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -402,7 +401,7 @@ class ImageCollection:
 
                 ic = ee.ImageCollection('COPERNICUS/S2_SR');
 
-                var geom = ee.Geometry.Point(-122.196, 41.411);
+                geom = ee.Geometry.Point(-122.196, 41.411);
                 ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
                 ic2021 = ic.filterBounds(geom).filterDate('2021-07-01', '2021-10-01')
 
@@ -418,7 +417,7 @@ class ImageCollection:
             ee.Image of the mask. 1 where at least 1 pixel is valid 0 elswere
 
         Examples:
-            .. jupyter-execute::
+            .. code-block::
 
                 import ee, geetools
 
@@ -426,7 +425,7 @@ class ImageCollection:
 
                 ic = ee.ImageCollection('COPERNICUS/S2_SR');
 
-                var geom = ee.Geometry.Point(-122.196, 41.411);
+                geom = ee.Geometry.Point(-122.196, 41.411);
                 ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
                 ic = ic2018.geetools.collectionMask()
                 ic.getInfo()

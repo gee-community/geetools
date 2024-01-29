@@ -6,6 +6,7 @@ from typing import Union
 import ee
 
 from geetools.accessors import geetools_accessor
+from geetools.types import ee_int, ee_str
 
 
 @geetools_accessor(ee.FeatureCollection)
@@ -18,8 +19,8 @@ class FeatureCollection:
 
     def toImage(
         self,
-        color: Union[ee.String, str, ee.Number, int] = 0,
-        width: Union[ee.String, str, ee.Number, int] = "",
+        color: Union[ee_str, ee_int] = 0,
+        width: Union[ee_str, ee_int] = "",
     ) -> ee.Image:
         """Paint the current FeatureCollection to an Image.
 
@@ -33,16 +34,14 @@ class FeatureCollection:
         width == "" or params.update(width=width)
         return ee.Image().paint(self._obj, **params)
 
-    def addId(
-        self, name: Union[str, ee.String] = "id", start: Union[int, ee.Number] = 1
-    ) -> ee.FeatureCollection:
+    def addId(self, name: ee_str = "id", start: ee_int = 1) -> ee.FeatureCollection:
         """Add a unique numeric identifier, starting from parameter ``start``.
 
         Returns:
             The parsed collection with a new id property
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -58,9 +57,7 @@ class FeatureCollection:
         indexes = ee.List(self._obj.aggregate_array("system:index"))
         ids = ee.List.sequence(start, start.add(self._obj.size()).subtract(1))
         idByIndex = ee.Dictionary.fromLists(indexes, ids)
-        return self._obj.map(
-            lambda f: f.set(name, idByIndex.get(f.get("system:index")))
-        )
+        return self._obj.map(lambda f: f.set(name, idByIndex.get(f.get("system:index"))))
 
     def mergeGeometries(self) -> ee.Geometry:
         """Merge the geometries the included features.
@@ -69,7 +66,7 @@ class FeatureCollection:
             the dissolved geometry
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -94,7 +91,7 @@ class FeatureCollection:
             The parsed collection with only polygon/MultiPolygon geometries
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools

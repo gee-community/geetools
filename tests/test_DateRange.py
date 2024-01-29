@@ -44,7 +44,10 @@ class TestSplit:
             assert first.format("YYYY-MM-dd").getInfo() == "2020-01-01"
             assert last.format("YYYY-MM-dd").getInfo() == "2020-01-31"
 
-    @pytest.fixture
-    def daterange_instance(self):
-        """Return a DateRange instance."""
-        return ee.DateRange("2020-01-01", "2020-01-31")
+
+class TestCheckUnit:
+    """Test the ``check_unit`` method exception."""
+
+    def test_check_unit(self):
+        with pytest.raises(ValueError):
+            ee.DateRange.geetools.check_unit("toto")

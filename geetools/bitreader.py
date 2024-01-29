@@ -57,13 +57,13 @@ class BitReader(object):
         if admited_shift < 0:
             mje = (
                 "the number of bits must be more than the bits"
-                " representation of the number. {} ({}) cant be"
+                " representation of the number. {} ({}) can't be"
                 " represented in {} bits"
             )
             raise ValueError(mje.format(pure, bit, nbits))
 
         if shift > admited_shift:
-            mje = "cant shift {} places for bit {} ({})"
+            mje = "can't shift {} places for bit {} ({})"
             raise ValueError(mje.format(shift, pure, bit))
 
         if shift:
@@ -84,10 +84,9 @@ class BitReader(object):
                     end = ini
                 else:
                     end = int(bits[1])
-            except:
+            except Exception:
                 mje = (
-                    'keys must be with the following format "bit-bit", '
-                    'example "0-1" (found {})'
+                    'keys must be with the following format "bit-bit", ' 'example "0-1" (found {})'
                 )
                 raise ValueError(mje.format(key))
 
@@ -98,6 +97,7 @@ class BitReader(object):
             return (value, value + 1)
 
     def __init__(self, options, bit_length=None):
+        """TODO missing docstring."""
         self.options = options
 
         def allBits():
@@ -129,9 +129,7 @@ class BitReader(object):
         all_values = allBits()
 
         self.bit_length = (
-            len(range(min(all_values), max(all_values) + 1))
-            if not bit_length
-            else bit_length
+            len(range(min(all_values), max(all_values) + 1)) if not bit_length else bit_length
         )
 
         self.max = 2**self.bit_length
@@ -158,7 +156,8 @@ class BitReader(object):
         return shifted
 
     def encodeBand(self, category, mask, name=None):
-        """Make an image in which all pixels have the value for the given
+        """Make an image in which all pixels have the value for the given.
+
         category.
 
         :param category: the category to encode
@@ -181,7 +180,8 @@ class BitReader(object):
         return image.updateMask(mask)
 
     def encodeAnd(self, *args):
-        """decodes a comination of the given categories. returns a list of
+        """Decodes a combination of the given categories. returns a list of.
+
         possible values
         .
         """
@@ -199,7 +199,8 @@ class BitReader(object):
         return result
 
     def encodeOr(self, *args):
-        """decodes a comination of the given categories. returns a list of
+        """Decodes a combination of the given categories. returns a list of.
+
         possible values
         .
         """
@@ -215,7 +216,8 @@ class BitReader(object):
         return values_first
 
     def encodeNot(self, *args):
-        """Given a set of categories return a list of values that DO NOT
+        """Given a set of categories return a list of values that DO NOT.
+
         match with any
         .
         """
@@ -297,7 +299,8 @@ class BitReader(object):
         return ee.Image(categories.iterate(eachcat, image)).select(categories)
 
     def match(self, value, category):
-        """given a value and a category return True if the value includes
+        """given a value and a category return True if the value includes.
+
         that category, else False
         .
         """

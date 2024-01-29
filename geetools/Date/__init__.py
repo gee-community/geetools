@@ -31,7 +31,7 @@ class Date:
             The date as a ``ee.Date`` object.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -55,7 +55,7 @@ class Date:
             The date as a ``ee.Date`` object.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -64,8 +64,8 @@ class Date:
                 d = ee.Date.geetools.fromDOY(1, 2020)
                 d.getInfo()
         """
-        doy, year = ee.Number(doy).toInt(), ee.Number(year).toInt()
-        return ee.Date.fromYMD(year, 1, 1).advance(doy.subtract(1), "day")
+        d, y = ee.Number(doy).toInt(), ee.Number(year).toInt()
+        return ee.Date.fromYMD(y, 1, 1).advance(d.subtract(1), "day")
 
     # -- export date -----------------------------------------------------------
     def to_datetime(self) -> datetime:
@@ -75,7 +75,7 @@ class Date:
             The ``datetime.datetime`` representation of the ``ee.Date``.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -98,7 +98,7 @@ class Date:
             The number of units since the epoch.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -117,7 +117,7 @@ class Date:
             ``1`` if the year is a leap year, ``0`` otherwise.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

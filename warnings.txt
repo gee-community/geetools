@@ -1,0 +1,29 @@
+[91mWARNING: Cannot resolve import of geetools.tools.array in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.collection in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.date in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.dictionary in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.element in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.feature in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.featurecollection in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.geometry in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.number in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.string in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of geetools.tools.imagecollection in geetools[39;49;00m
+[91mWARNING: Cannot resolve import of unknown module geetools.utils in geetools.batch.image[39;49;00m
+[91mWARNING: Cannot resolve import of unknown module geetools.utils in geetools.batch.imagecollection[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/Image/index.rst:470: ERROR: Unexpected indentation.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/Image/index.rst:607: WARNING: Inline strong start-string without end-string.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/Image/index.rst:787: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/Image/index.rst:811: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/ImageCollection/index.rst:198: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/ImageCollection/index.rst:298: ERROR: Unexpected indentation.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/ImageCollection/index.rst:322: ERROR: Unexpected indentation.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/algorithms/index.rst:215: WARNING: Field list ends without a blank line; unexpected unindent.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/batch/image/index.rst:88: WARNING: Field list ends without a blank line; unexpected unindent.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/batch/image/index.rst:92: WARNING: Definition list ends without a blank line; unexpected unindent.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/batch/image/index.rst:114: WARNING: Field list ends without a blank line; unexpected unindent.[39;49;00m
+[31m/workspaces/gee_tools/docs/autoapi/geetools/bitreader/index.rst:51: ERROR: Unexpected indentation.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/bitreader/index.rst:49: WARNING: Inline literal start-string without end-string.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/bitreader/index.rst:58: WARNING: Inline literal start-string without end-string.[39;49;00m
+[91m/workspaces/gee_tools/docs/autoapi/geetools/classification/index.rst:42: WARNING: Field list ends without a blank line; unexpected unindent.[39;49;00m
+[91m/workspaces/gee_tools/CONTRIBUTING.rst:82: WARNING: duplicate label contributing-docs, other instance in /workspaces/gee_tools/docs/contribute/contribute.rst[39;49;00m

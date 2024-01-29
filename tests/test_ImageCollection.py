@@ -7,9 +7,7 @@ import pytest
 import geetools
 
 
-def reduce(
-    collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = None
-) -> ee.Dictionary:
+def reduce(collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = None) -> ee.Dictionary:
     """Compute the mean reduction on the first image of the imageCollection."""
     first = collection.first()
     geometry = first.geometry() if geometry is None else geometry.geometry()
@@ -78,7 +76,7 @@ class TestGetSTAC:
 
     def test_get_stac(self, s2_sr, data_regression):
         stac = s2_sr.geetools.getSTAC()
-        stac["extent"].pop("temporal")
+        stac["extent"].pop("temporal")  # it will change all the time
         data_regression.check(stac)
 
 
@@ -137,6 +135,4 @@ class TestcollectionMask:
     def test_deprecated_mask(self, s2_sr, amazonas, data_regression):
         with pytest.deprecated_call():
             masked = geetools.imagecollection.allMasked(s2_sr)
-            data_regression.check(
-                reduce(ee.ImageCollection([masked]), amazonas).getInfo()
-            )
+            data_regression.check(reduce(ee.ImageCollection([masked]), amazonas).getInfo())

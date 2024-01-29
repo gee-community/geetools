@@ -1,11 +1,10 @@
 """Extra methods for the ``ee.List`` class."""
 from __future__ import annotations
 
-from typing import Union
-
 import ee
 
 from geetools.accessors import geetools_accessor
+from geetools.types import ee_dict, ee_int, ee_list, ee_str
 
 
 @geetools_accessor(ee.List)
@@ -16,7 +15,7 @@ class List:
         """Initialize the List class."""
         self._obj = obj
 
-    def product(self, other: Union[list, ee.List]) -> ee.List:
+    def product(self, other: ee_list) -> ee.List:
         """Compute the cartesian product of 2 list.
 
         Values will all be considered as string and will be joined with **no spaces**.
@@ -28,7 +27,7 @@ class List:
             A list of strings corresponding to the cartesian product.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -42,13 +41,11 @@ class List:
         l1 = ee.List(self._obj).map(lambda e: ee.String(e))
         l2 = ee.List(other).map(lambda e: ee.String(e))
         product = l1.map(
-            lambda e: l2.map(
-                lambda f: ee.Algorithms.String(e).cat(ee.Algorithms.String(f))
-            )
+            lambda e: l2.map(lambda f: ee.Algorithms.String(e).cat(ee.Algorithms.String(f)))
         )
         return product.flatten()
 
-    def complement(self, other: Union[list, ee.List]) -> ee.List:
+    def complement(self, other: ee_list) -> ee.List:
         """Compute the complement of the current list and the ``other`` list.
 
         The mthematical complement is the list of elements that are in the current list but not in the ``other`` list and vice-versa.
@@ -60,7 +57,7 @@ class List:
             A list of strings corresponding to the complement of the current list and the ``other`` list.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -74,7 +71,7 @@ class List:
         l1, l2 = ee.List(self._obj), ee.List(other)
         return l1.removeAll(l2).cat(l2.removeAll(l1))
 
-    def intersection(self, other: Union[list, ee.List]) -> ee.List:
+    def intersection(self, other: ee_list) -> ee.List:
         """Compute the intersection of the current list and the ``other`` list.
 
         The intersection is the list of elements that are in both lists.
@@ -86,7 +83,7 @@ class List:
             A list of strings corresponding to the intersection of the current list and the ``other`` list.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -100,7 +97,7 @@ class List:
         l1, l2 = ee.List(self._obj), ee.List(other)
         return l1.removeAll(l1.removeAll(l2))
 
-    def union(self, other: Union[list, ee.List]) -> ee.List:
+    def union(self, other: ee_list) -> ee.List:
         """Compute the union of the current list and the ``other`` list.
 
         This list will drop duplicated items.
@@ -112,7 +109,7 @@ class List:
             A list of strings corresponding to the union of the current list and the ``other`` list.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -127,7 +124,7 @@ class List:
         return l1.cat(l2).distinct()
 
     # this method is simply a del but the name is protected in the GEE context
-    def delete(self, index: Union[int, ee.Number]) -> ee.List:
+    def delete(self, index: ee_int) -> ee.List:
         """Delete an element from a list.
 
         Parameters:
@@ -137,7 +134,7 @@ class List:
             The list without the element at the given index.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -152,9 +149,9 @@ class List:
     @classmethod
     def sequence(
         cls,
-        ini: Union[int, ee.Number],
-        end: Union[int, ee.Number],
-        step: Union[int, ee.Number] = 1,
+        ini: ee_int,
+        end: ee_int,
+        step: ee_int = 1,
     ) -> ee.List:
         """Create a sequence from ini to end by step.
 
@@ -169,7 +166,7 @@ class List:
             A list of numbers corresponding to the sequence.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -182,7 +179,7 @@ class List:
         step = ee.Number(step).toInt().max(1)
         return ee.List.sequence(ini, end, step).add(end.toFloat()).distinct()
 
-    def replaceMany(self, replace: Union[ee.Dictionary, dict]) -> ee.List:
+    def replaceMany(self, replace: ee_dict) -> ee.List:
         """Replace many values in a list.
 
         Parameters:
@@ -192,7 +189,7 @@ class List:
             A list with the values replaced
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -205,12 +202,10 @@ class List:
         """
         replace = ee.Dictionary(replace)
         keys = replace.keys()
-        list = keys.iterate(
-            lambda k, p: ee.List(p).replace(k, replace.get(k)), self._obj
-        )
+        list = keys.iterate(lambda k, p: ee.List(p).replace(k, replace.get(k)), self._obj)
         return ee.List(list)  # to avoid returning a COmputedObject
 
-    def join(self, separator: Union[str, ee.String] = ", ") -> ee.string:
+    def join(self, separator: ee_str = ", ") -> ee.string:
         """Format a list to a string.
 
         Same as the join method but elements that cannot be stringified will be returned as the object type.
@@ -222,7 +217,7 @@ class List:
             A string with the list elements separated by commas.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -242,7 +237,7 @@ class List:
             A list of strings corresponding to the elements of the list.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -269,7 +264,7 @@ class List:
             A list of lists with the zipped elements
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

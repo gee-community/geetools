@@ -18,7 +18,7 @@ import httplib2
 project = "geetools"
 author = "Rodrigo E. Principe"
 copyright = f"2017-{datetime.now().year}, {author}"
-release = "0.6.14"
+release = "1.0.0a3"
 
 # -- General configuration -----------------------------------------------------
 extensions = [
@@ -76,7 +76,6 @@ autoapi_options = [
     "show-inheritance",
     "show-module-summary",
     "special-members",
-    "imported-members",
 ]
 
 # -- Options for intersphinx output --------------------------------------------
@@ -90,7 +89,8 @@ def gee_configure() -> None:
     Otherwise it use the simple Initialize command (asking the user to register if necessary).
     """
     # only do the initialization if the credential are missing
-    if not ee.data._credentials:
+    if False:
+        # if not ee.data._credentials:
 
         # if the credentials token is asved in the environment use it
         if "EARTHENGINE_TOKEN" in os.environ:

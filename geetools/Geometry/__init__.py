@@ -21,7 +21,7 @@ class Geometry:
             type: The type of geometries to keep. Can be one of: Point, LineString, LineRing Polygon.
 
         Returns:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools

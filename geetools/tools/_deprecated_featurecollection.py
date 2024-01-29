@@ -2,9 +2,7 @@
 from deprecated.sphinx import deprecated
 
 
-@deprecated(
-    version="1.0.0", reason="Use ee.FeatureCollection.aggregate_array.distinct instead"
-)
+@deprecated(version="1.0.0", reason="Use ee.FeatureCollection.aggregate_array.distinct instead")
 def listOptions(collection, propertyName):
     """List all available values of `propertyName` in a feature collection."""
     return collection.aggregate_array(propertyName).distinct()
@@ -16,9 +14,7 @@ def addId(collection, name="id", start=1):
     return collection.geetools.addId(name, start)
 
 
-@deprecated(
-    version="1.0.0", reason="Use ee.FeatureCollection.geetools.mergeGeometries instead"
-)
+@deprecated(version="1.0.0", reason="Use ee.FeatureCollection.geetools.mergeGeometries instead")
 def mergeGeometries(collection):
     """Merge the geometries of many features. Return ee.Geometry."""
     return collection.geetools.mergeGeometries()
@@ -30,9 +26,7 @@ def enumerateSimple(collection, name="ENUM"):
     return collection.geetools.addId(name)
 
 
-@deprecated(
-    version="1.0.0", reason="Use ee.FeatureCollection.geetools.toPolygons instead"
-)
+@deprecated(version="1.0.0", reason="Use ee.FeatureCollection.geetools.toPolygons instead")
 def clean(collection):
     """Convert Features that have a Geometry of type `GeometryCollection` into the inner geometries."""
     return collection.geetools.toPolygons()

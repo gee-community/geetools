@@ -16,17 +16,17 @@ class User:
     """CRUD system to manage multiple user accounts on the same machine."""
 
     @staticmethod
-    def set(name: str = "", credential_path: str = "") -> None:
+    def set(name: str = "", credential_pathname: str = "") -> None:
         """Set the current user.
 
         Equivalent to the ``ee.initialize`` function but with a specific credential file stored in the machine.
 
         Args:
             name: The name of the user as saved when created. use default if not set
-            credential_path: The path to the folder where the credentials are stored. If not set, it uses the default path
+            credential_pathname: The path to the folder where the credentials are stored. If not set, it uses the default path
 
         Example:
-            .. jupyter-execture::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -37,8 +37,8 @@ class User:
                 ee.Number(1).getInfo()
         """
         name = f"credentials{name}"
-        credential_path = credential_path or ee.oauth.get_credentials_path()
-        credential_path = Path(credential_path).parent
+        credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
+        credential_path = Path(credential_pathname).parent
 
         try:
             tokens = json.loads((credential_path / name).read_text())
@@ -61,17 +61,17 @@ class User:
         ee.Initialize(credentials)
 
     @staticmethod
-    def create(name: str = "", credential_path: str = "") -> None:
+    def create(name: str = "", credential_pathname: str = "") -> None:
         """Create a new user.
 
         Equivalent to ee.Authenticate but where the registered user will not be the default one (the one you get when running ee.initialize())
 
         Args:
             name: The name of the user. If not set, it will reauthenticate default.
-            credential_path: The path to the folder where the credentials are stored. If not set, it uses the default path
+            credential_pathname: The path to the folder where the credentials are stored. If not set, it uses the default path
 
         Example:
-            .. jupyter-execture::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -84,8 +84,8 @@ class User:
                 # ee.Number(1).getInfo()
         """
         name = f"credentials{name}"
-        credential_path = credential_path or ee.oauth.get_credentials_path()
-        credential_path = Path(credential_path).parent
+        credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
+        credential_path = Path(credential_pathname).parent
 
         # the authenticate method will write the credentials in the default
         # folder and with the default name. We to save the existing one in tmp,
@@ -99,15 +99,15 @@ class User:
             suppress(move(Path(dir) / default.name, default))
 
     @staticmethod
-    def delete(name: str = "", credential_path: str = "") -> None:
+    def delete(name: str = "", credential_pathname: str = "") -> None:
         """Delete a user.
 
         Args:
             name: The name of the user. If not set, it will delete the default user
-            credential_path: The path to the folder where the credentials are stored. If not set, it uses the default path
+            credential_pathname: The path to the folder where the credentials are stored. If not set, it uses the default path
 
         Example:
-            .. jupyter-execture::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -121,46 +121,47 @@ class User:
                 # will raise an error as the user does not exist anymore
         """
         name = f"credentials{name}"
-        credential_path = credential_path or ee.oauth.get_credentials_path()
-        credential_path = Path(credential_path).parent
-        suppress((credential_path / name).unlink())
+        credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
+        credential_path = Path(credential_pathname).parent
+        with suppress(FileNotFoundError):
+            (credential_path / name).unlink()
 
     @staticmethod
-    def list(credential_path: str = "") -> list:
+    def list(credential_pathname: str = "") -> list:
         """return all the available users in the set folder.
 
         To reach "default" simply omit the ``name`` parameter in the User methods
 
         Args:
-            credential_path: The path to the folder where the credentials are stored. If not set, it uses the default path
+            credential_pathname: The path to the folder where the credentials are stored. If not set, it uses the default path
 
         Returns:
             A list of strings with the names of the users
 
         Example:
-            .. jupyter-exectute::
+            .. code-block:: python
 
                 import ee
                 import geetools
 
                 geetools.User.list(
         """
-        credential_path = credential_path or ee.oauth.get_credentials_path()
-        credential_path = Path(credential_path).parent
+        credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
+        credential_path = Path(credential_pathname).parent
         files = [f for f in credential_path.glob("credentials*") if f.is_file()]
         return [f.name.replace("credentials", "") or "default" for f in files]
 
     @staticmethod
-    def rename(new: str, old: str = "", credential_path: str = "") -> None:
+    def rename(new: str, old: str = "", credential_pathname: str = "") -> None:
         """Rename a user without changing the credentials.
 
         Args:
             new: The new name of the user
             old: The name of the user to rename
-            credential_path: The path to the folder where the credentials are stored. If not set, it uses the default path
+            credential_pathname: The path to the folder where the credentials are stored. If not set, it uses the default path
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -171,6 +172,7 @@ class User:
         """
         old = f"credentials{old}"
         new = f"credentials{new}"
-        credential_path = credential_path or ee.oauth.get_credentials_path()
-        credential_path = Path(credential_path).parent
-        suppress((credential_path / old).rename(credential_path / new))
+        credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
+        credential_path = Path(credential_pathname).parent
+        with suppress(FileNotFoundError):
+            (credential_path / old).rename(credential_path / new)

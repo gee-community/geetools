@@ -1,11 +1,10 @@
 """Extra tools for the ``ee.DateRange`` class."""
 from __future__ import annotations
 
-from typing import Union
-
 import ee
 
 from geetools.accessors import geetools_accessor
+from geetools.types import ee_int
 
 
 @geetools_accessor(ee.DateRange)
@@ -17,7 +16,7 @@ class DateRange:
         self._obj = obj
 
     # -- date range operations -------------------------------------------------
-    def split(self, interval: Union[int, ee.Number], unit: str = "day") -> ee.List:
+    def split(self, interval: ee_int, unit: str = "day") -> ee.List:
         """Convert a ``ee.DateRange`` to a list of ``ee.DateRange``.
 
         The DateRange will be split in multiple DateRanges of the specified interval and Unit.
@@ -31,7 +30,7 @@ class DateRange:
             The list of DateRanges
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -49,9 +48,7 @@ class DateRange:
         indexList = ee.List.sequence(0, timestampList.size().subtract(2))
 
         return indexList.map(
-            lambda i: ee.DateRange(
-                timestampList.get(i), timestampList.get(ee.Number(i).add(1))
-            )
+            lambda i: ee.DateRange(timestampList.get(i), timestampList.get(ee.Number(i).add(1)))
         )
 
     # -- utils -----------------------------------------------------------------

@@ -1,13 +1,22 @@
 """Toolbox for the ``ee.Image`` class."""
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Optional
 
 import ee
 import ee_extra
 import ee_extra.Algorithms.core
 
 from geetools.accessors import geetools_accessor
+from geetools.types import (
+    ee_dict,
+    ee_geomlike,
+    ee_int,
+    ee_list,
+    ee_number,
+    ee_str,
+    number,
+)
 
 
 @geetools_accessor(ee.Image)
@@ -28,7 +37,7 @@ class Image:
             The image with the date band added.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -44,9 +53,7 @@ class Image:
         date = self._obj.date().millis()
         return self._obj.addBands(ee.Image.constant(date).rename("date"))
 
-    def addSuffix(
-        self, suffix: Union[str, ee.String], bands: Union[ee.List, list] = []
-    ) -> ee.Image:
+    def addSuffix(self, suffix: ee_str, bands: ee_list = []) -> ee.Image:
         """Add a suffix to the image selected band.
 
         Add a suffix to the selected band. If no band is specified, the suffix is added to all bands.
@@ -59,7 +66,7 @@ class Image:
             The image with the suffix added to the selected bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -77,9 +84,7 @@ class Image:
         )
         return self._obj.rename(bandNames)
 
-    def addPrefix(
-        self, prefix: Union[str, ee.String], bands: Union[ee.List, list] = []
-    ):
+    def addPrefix(self, prefix: ee_str, bands: ee_list = []):
         """Add a prefix to the image selected band.
 
         Add a prefix to the selected band. If no band is specified, the prefix is added to all bands.
@@ -92,7 +97,7 @@ class Image:
             The image with the prefix added to the selected bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -110,7 +115,7 @@ class Image:
         )
         return self._obj.rename(bandNames)
 
-    def rename(self, names: Union[ee.Dictionary, dict]) -> ee.Image:
+    def rename(self, names: ee_dict) -> ee.Image:
         """Rename the bands of the image.
 
         It's the same function as the one from GEE but it takes a dictionary as input.
@@ -123,7 +128,7 @@ class Image:
             The image with the new band names.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -140,7 +145,7 @@ class Image:
         )
         return self._obj.rename(bands)
 
-    def remove(self, bands: Union[list, ee.List]) -> ee.Image:
+    def remove(self, bands: ee_list) -> ee.Image:
         """Remove bands from the image.
 
         Parameters:
@@ -150,7 +155,7 @@ class Image:
             The image without the specified bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -167,8 +172,8 @@ class Image:
     def doyToDate(
         self,
         year,
-        dateFormat: Union[str, ee.String] = "yyyyMMdd",
-        band: Union[ee.String, str] = "",
+        dateFormat: ee_str = "yyyyMMdd",
+        band: ee_str = "",
     ) -> ee.Image:
         """Convert the DOY band to a date band.
 
@@ -183,7 +188,7 @@ class Image:
             The original image with the DOY band converted to a date band.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -209,9 +214,7 @@ class Image:
 
     # -- the rest --------------------------------------------------------------
 
-    def getValues(
-        self, point: ee.Geometry.Point, scale: Union[ee.Number, int] = 0
-    ) -> ee.Dictionary:
+    def getValues(self, point: ee.Geometry.Point, scale: ee_int = 0) -> ee.Dictionary:
         """Get the value of the image at the given point using specified geometry.
 
         The result is presented as a dictionary where the keys are the bands name and the value the mean value of the band at the given point.
@@ -223,7 +226,7 @@ class Image:
             A dictionary with the band names and the value at the given point.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -234,11 +237,7 @@ class Image:
                 value = image.geetools.getValues(point, 10)
                 print(value.getInfo())
         """
-        scale = (
-            self._obj.select(0).projection().nominalScale()
-            if scale == 0
-            else ee.Number(scale)
-        )
+        scale = self._obj.select(0).projection().nominalScale() if scale == 0 else ee.Number(scale)
         return self._obj.reduceRegion(ee.Reducer.mean(), point, scale)
 
     def minScale(self) -> ee.Number:
@@ -250,7 +249,7 @@ class Image:
             The minimum scale of the image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -260,12 +259,10 @@ class Image:
                 image.geetools.minScale().getInfo()
         """
         bandNames = self._obj.bandNames()
-        scales = bandNames.map(
-            lambda b: self._obj.select(ee.String(b)).projection().nominalScale()
-        )
+        scales = bandNames.map(lambda b: self._obj.select(ee.String(b)).projection().nominalScale())
         return ee.Number(scales.sort().get(0))
 
-    def merge(self, images: Union[ee.List, list]) -> ee.Image:
+    def merge(self, images: ee_list) -> ee.Image:
         """Merge images into a single image.
 
         Parameters:
@@ -275,7 +272,7 @@ class Image:
             The merged image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -293,8 +290,8 @@ class Image:
 
     def toGrid(
         self,
-        size: Union[ee.Number, int] = 1,
-        band: Union[str, ee.String] = "",
+        size: ee_int = 1,
+        band: ee_str = "",
         geometry: Optional[ee.Geometry] = None,
     ) -> ee.FeatureCollection:
         """Convert an image to a grid of polygons.
@@ -313,7 +310,7 @@ class Image:
             The method has a known bug when the projection of the image is different than 3857. As we use a buffer, the grid cells can slightly overlap. Feel free to open a Issue and contribute if you feel it needs improvements.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -352,7 +349,7 @@ class Image:
         return ee.FeatureCollection(features)
 
     def clipOnCollection(
-        self, fc: ee.FeatureCollection, keepProperties: Union[ee.Number, int] = 1
+        self, fc: ee.FeatureCollection, keepProperties: ee_int = 1
     ) -> ee.ImageCollection:
         """Clip an image to a FeatureCollection.
 
@@ -366,7 +363,7 @@ class Image:
             The clipped imageCollection.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -389,9 +386,9 @@ class Image:
 
     def bufferMask(
         self,
-        radius: Union[int, ee.Number] = 1.5,
-        kernelType: Union[ee.String, str] = "square",
-        units: Union[ee.String, str] = "pixels",
+        radius: ee_int = 1.5,
+        kernelType: ee_str = "square",
+        units: ee_str = "pixels",
     ) -> ee.Image:
         """Make a buffer around every masked pixel of the Image.
 
@@ -406,7 +403,7 @@ class Image:
             The image with the buffer mask applied.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -426,8 +423,8 @@ class Image:
     @classmethod
     def full(
         self,
-        values: Union[list, ee.List] = [0],
-        names: Union[list, ee.List] = ["constant"],
+        values: ee_list = [0],
+        names: ee_list = ["constant"],
     ) -> ee.Image:
         """Create an image with the given values and names.
 
@@ -439,7 +436,7 @@ class Image:
             An image with the given values and names.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -462,9 +459,9 @@ class Image:
 
     def fullLike(
         self,
-        fillValue: Union[int, float, ee.Number],
-        copyProperties: Union[ee.Number, int] = 0,
-        keepMask: Union[ee.Number, int] = 0,
+        fillValue: ee_number,
+        copyProperties: ee_int = 0,
+        keepMask: ee_int = 0,
     ) -> ee.Image:
         """Create an image with the same band names, projection and scale as the original image.
 
@@ -480,7 +477,7 @@ class Image:
             An image with the same band names, projection and scale as the original image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -506,9 +503,9 @@ class Image:
 
     def reduceBands(
         self,
-        reducer: Union[str, ee.String],
-        bands: Union[list, ee.List] = [],
-        name: Union[str, ee.String] = "",
+        reducer: ee_str,
+        bands: ee_list = [],
+        name: ee_str = "",
     ) -> ee.Image:
         """Reduce the image using the selected reducer and adding the result as a band using the selected name.
 
@@ -521,7 +518,7 @@ class Image:
             The image with the new reduced band added
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -541,9 +538,7 @@ class Image:
         reduceImage = self._obj.select(ee.List(bands)).reduce(reducer).rename([name])
         return self._obj.addBands(reduceImage)
 
-    def negativeClip(
-        self, geometry: Union[ee.FeatureCollection, ee.Geometry]
-    ) -> ee.Image:
+    def negativeClip(self, geometry: ee_geomlike) -> ee.Image:
         """The opposite of the clip method.
 
         The inside of the geometry will be masked from the image.
@@ -555,7 +550,7 @@ class Image:
             The image with the geometry masked.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -572,8 +567,8 @@ class Image:
 
     def format(
         self,
-        string: Union[str, ee.String],
-        dateFormat: Union[str, ee.String] = "yyyy-MM-dd",
+        string: ee_str,
+        dateFormat: ee_str = "yyyy-MM-dd",
     ) -> ee.String:
         """Create a string from using the given pattern and using the image properties.
 
@@ -587,7 +582,7 @@ class Image:
             The string corresponding to the image
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -611,7 +606,7 @@ class Image:
 
         return patternList.iterate(replaceProperties, string)
 
-    def gauss(self, band: Union[ee.String, str] = "") -> ee.Image:
+    def gauss(self, band: ee_str = "") -> ee.Image:
         """Apply a gaussian filter to the image.
 
         We apply the following function to the image: "exp(((val-mean)**2)/(-2*(std**2)))"
@@ -626,7 +621,7 @@ class Image:
             The image with the gaussian filter applied.An single band image with the gaussian filter applied.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -652,7 +647,7 @@ class Image:
             },
         ).rename(band.cat("_gauss"))
 
-    def repeat(self, band, repeats: Union[ee.Number, int]) -> ee.image:
+    def repeat(self, band, repeats: ee_int) -> ee.image:
         """Repeat a band of the image.
 
         Args:
@@ -663,7 +658,7 @@ class Image:
             The image with the band repeated
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -695,7 +690,7 @@ class Image:
             The image with the zero values removed from each band.
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -718,9 +713,7 @@ class Image:
 
         return ee.ImageCollection(bands.map(remove)).toBands().rename(bands)
 
-    def interpolateBands(
-        self, src: Union[list, ee.List], to: Union[list, ee.List]
-    ) -> ee.Image:
+    def interpolateBands(self, src: ee_list, to: ee_list) -> ee.Image:
         """Interpolate bands from the "src" value range to the "to" value range.
 
         The Interpolation is performed linearly using the "extrapolate" option of the "interpolate" method.
@@ -733,7 +726,7 @@ class Image:
             The image with the interpolated bands
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -755,7 +748,7 @@ class Image:
 
         return ee.ImageCollection(bands.map(interpolate)).toBands().rename(bands)
 
-    def isletMask(self, offset: Union[ee.Number, float, int]) -> ee.Image:
+    def isletMask(self, offset: ee_number) -> ee.Image:
         """Compute the islet mask from an image.
 
         An islet is a set of non-masked pixels connected together by their edges of very small surface. The user define the offset of the island size and we compute the max number of pixels to improve computation speed. The inpt Image needs to be a single band binary image.
@@ -767,7 +760,7 @@ class Image:
             The island mask
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -783,11 +776,7 @@ class Image:
         pixelsLimit = offset.multiply(2).sqrt().divide(scale).max(ee.Number(2)).toInt()
         area = ee.Image.pixelArea().rename("area")
         isletArea = (
-            self._obj.select(0)
-            .mask()
-            .toInt()
-            .connectedPixelCount(pixelsLimit)
-            .multiply(area)
+            self._obj.select(0).mask().toInt().connectedPixelCount(pixelsLimit).multiply(area)
         )
         return isletArea.lt(offset).rename("mask").selfMask()
 
@@ -799,7 +788,7 @@ class Image:
             List of indices implemented in this module
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -813,28 +802,28 @@ class Image:
     def spectralIndices(
         self,
         index: str = "NDVI",
-        G: Union[float, int] = 2.5,
-        C1: Union[float, int] = 6.0,
-        C2: Union[float, int] = 7.5,
-        L: Union[float, int] = 1.0,
-        cexp: Union[float, int] = 1.16,
-        nexp: Union[float, int] = 2.0,
-        alpha: Union[float, int] = 0.1,
-        slope: Union[float, int] = 1.0,
-        intercept: Union[float, int] = 0.0,
-        gamma: Union[float, int] = 1.0,
-        omega: Union[float, int] = 2.0,
-        beta: Union[float, int] = 0.05,
-        k: Union[float, int] = 0.0,
-        fdelta: Union[float, int] = 0.581,
+        G: number = 2.5,
+        C1: number = 6.0,
+        C2: number = 7.5,
+        L: number = 1.0,
+        cexp: number = 1.16,
+        nexp: number = 2.0,
+        alpha: number = 0.1,
+        slope: number = 1.0,
+        intercept: number = 0.0,
+        gamma: number = 1.0,
+        omega: number = 2.0,
+        beta: number = 0.05,
+        k: number = 0.0,
+        fdelta: number = 0.581,
         kernel: str = "RBF",
         sigma: str = "0.5 * (a + b)",
-        p: Union[float, int] = 2.0,
-        c: Union[float, int] = 1.0,
-        lambdaN: Union[float, int] = 858.5,
-        lambdaR: Union[float, int] = 645.0,
-        lambdaG: Union[float, int] = 555.0,
-        online: Union[float, int] = False,
+        p: number = 2.0,
+        c: number = 1.0,
+        lambdaN: number = 858.5,
+        lambdaR: number = 645.0,
+        lambdaG: number = 555.0,
+        online: number = False,
     ) -> ee.Image:
         """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
 
@@ -881,7 +870,7 @@ class Image:
             Image with the computed spectral index, or indices, as new bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -905,7 +894,7 @@ class Image:
 
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -923,7 +912,7 @@ class Image:
             Dictionary with the offset parameters for each band.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
             import ee
             import geetools
@@ -941,7 +930,7 @@ class Image:
             Scaled image.
 
         Examples:
-            .. jupyter_execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -961,7 +950,7 @@ class Image:
             Pre-processed image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
             import ee
             import geetools
@@ -978,7 +967,7 @@ class Image:
             STAC of the image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
             import ee
             import geetools
@@ -996,7 +985,7 @@ class Image:
             DOI of the ee.Image dataset.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -1014,7 +1003,7 @@ class Image:
             Citation of the ee.Image dataset.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -1040,7 +1029,7 @@ class Image:
             The Image with all sharpenable bands sharpened to the panchromatic resolution and quality assessments run and set as properties.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -1078,7 +1067,7 @@ class Image:
             Image with the tasseled cap components as new bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1108,7 +1097,7 @@ class Image:
             The adjusted image containing the matched source bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -1168,7 +1157,7 @@ class Image:
             This method may mask water as well as clouds for the Sentinel-3 Radiance product.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

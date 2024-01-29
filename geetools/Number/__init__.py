@@ -1,11 +1,10 @@
 """Extra methods for the ``ee.Number`` class."""
 from __future__ import annotations
 
-from typing import Union
-
 import ee
 
 from geetools.accessors import geetools_accessor
+from geetools.types import ee_int
 
 
 @geetools_accessor(ee.Number)
@@ -16,7 +15,7 @@ class Number:
         """Initialize the Number class."""
         self._obj = obj
 
-    def truncate(self, nbDecimals: Union[ee.Number, int] = 2) -> ee.Number:
+    def truncate(self, nbDecimals: ee_int = 2) -> ee.Number:
         """Truncate a number to a given number of decimals.
 
         Parameters:
@@ -26,7 +25,7 @@ class Number:
             The truncated number.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

@@ -27,7 +27,6 @@ from .tools import string
 from .tools import imagecollection
 
 # then we extend all the other classes
-from .Array import Array
 from .Date import Date
 from .DateRange import DateRange
 from .Dictionary import Dictionary
@@ -45,11 +44,15 @@ from .String import String
 from .User import User
 from .ImageCollection import ImageCollection
 
+# Array cannot be imported directly in geetools prior to Initialisation
+# waiting for a fix in https://github.com/gee-community/gee_tools/issues/173
+# from .Array import Array
+
 
 __title__ = "geetools"
 __summary__ = "A set of useful tools to use with Google Earth Engine Python" "API"
 __uri__ = "http://geetools.readthedocs.io"
-__version__ = "0.6.14"
+__version__ = "1.0.0a3"
 
 __author__ = "Rodrigo E. Principe"
 __email__ = "fitoprincipe82@gmail.com"
