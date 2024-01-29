@@ -1156,25 +1156,7 @@ def aggregate_array_all(collection):
     return transposed.map(lambda ps: ee.Dictionary.fromLists(props, ps))
 
 
+@deprecated(version="1.0.0", reason="Use vanilla ee.ImageCollection.toBands instead")
 def toBands(collection):
-    """Convert an ImageCollection into an Image. The bands of the images.
-
-    inside the collection MUST be renamed. Similar to
-    ee.ImageCollection.toBands but it does not add a suffix
-    .
-    """
-
-    def wrap(image, accum):
-        accum = ee.List(accum)
-
-        def true():
-            last = ee.Image(accum.get(-1))
-            return accum.add(last.addBands(image)).slice(-1)
-
-        def false():
-            return accum.add(image)
-
-        condition = accum.size()
-        return ee.List(ee.Algorithms.If(condition, true(), false()))
-
-    return ee.Image(ee.List(collection.iterate(wrap, ee.List([]))).get(-1))
+    """Convert an ImageCollection into an Image"""
+    return ee.Image(collection.toBands())
