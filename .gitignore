@@ -71,6 +71,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+warning.txt
 
 # PyBuilder
 .pybuilder/
@@ -143,3 +144,4 @@ cython_debug/
 
 # sandbox Notebook
 sandbox.ipynb
+test.ipynb

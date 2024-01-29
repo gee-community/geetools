@@ -26,7 +26,7 @@ class User:
             credential_pathname: The path to the folder where the credentials are stored. If not set, it uses the default path
 
         Example:
-            .. jupyter-execture::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -71,7 +71,7 @@ class User:
             credential_pathname: The path to the folder where the credentials are stored. If not set, it uses the default path
 
         Example:
-            .. jupyter-execture::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -107,7 +107,7 @@ class User:
             credential_pathname: The path to the folder where the credentials are stored. If not set, it uses the default path
 
         Example:
-            .. jupyter-execture::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -139,7 +139,7 @@ class User:
             A list of strings with the names of the users
 
         Example:
-            .. jupyter-exectute::
+            .. code-block:: python
 
                 import ee
                 import geetools

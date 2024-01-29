@@ -1,38 +1,21 @@
 # coding=utf-8
-"""Module holding tools for ee.ImageCollections."""
-import math
-
+"""legacy Module holding tools for ee.ImageCollections."""
 import ee
-import ee.data
-import pandas as pd
+from deprecated.sphinx import deprecated
 
-from ..utils import castImage
-from . import collection as eecollection
-from . import date, ee_list
-from . import image as image_module
+import geetools  # noqa: F401
 
 
+@deprecated(version="1.0.0", reason="Use geetools.tools.imagecollection.append instead")
 def add(collection, image):
-    """Add an Image to the Collection.
-
-    **SERVER SIDE**
-
-    """
-    # TODO: handle a list of images
-    collist = collection.toList(collection.size())
-    append = collist.add(image)
-    return ee.ImageCollection.fromImages(append)
+    """Add an Image to the Collection."""
+    return ee.ImageCollection(collection).geetools.append(image)
 
 
+@deprecated(version="1.0.0", reason="Use geetools.tools.imagecollection.collectionMask instead")
 def allMasked(collection):
-    """Get a mask which indicates pixels that are masked in all images (0) and.
-
-    pixels that have a valid pixel in at least one image (1)
-    .
-    """
-    masks = collection.map(lambda i: i.mask())
-    masksum = ee.Image(masks.sum())
-    return ee.Image(masksum.gt(0))
+    """Get a mask which indicates pixels that are masked in all images (0) from the others"""
+    return ee.ImageCollection(collection).geetools.collectionMask()
 
 
 def containsAllBands(collection, bands):
@@ -128,7 +111,7 @@ def enumerateProperty(collection, name="enumeration"):
     :param name:
     :return:
     """
-    enumerated = eecollection.enumerate(collection)
+    enumerated = collection.enumerate(collection)
 
     def over_list(l):
         l = ee.List(l)
@@ -572,7 +555,8 @@ def outliers(collection, bands, sigma=2, updateMask=False):
 
 
 def data2pandas(data):
-    """Convert data coming from tools.imagecollection.get_values to a.
+    """
+    Convert data coming from tools.imagecollection.get_values to a.
 
     pandas DataFrame.
 
@@ -853,7 +837,7 @@ def linearInterpolation(collection, date_property="system:time_start"):
         slope = delta.divide(dx).unmask()
 
         # filled original bands
-        fo = f.select(original_bands)
+        fos = f.select(original_bands)
 
         # filled back original bands
         fob = fb.select(original_bands)
@@ -865,9 +849,9 @@ def linearInterpolation(collection, date_property="system:time_start"):
         mo = masked.select(original_bands)
 
         t = o.select(".+_tmpTime").subtract(f.select(".+_maskedTime"))
-        fill = fo.add(slope.multiply(t)).unmask()
+        fill = fos.add(slope.multiply(t)).unmask()
         fill2 = fob.where(fill, fill)
-        fill3 = fo.where(fill2, fill2)
+        fill3 = fos.where(fill2, fill2)
         final = oo.unmask().where(mo, fill3)
         final = image_module.deleteProperties(final)
         final = (

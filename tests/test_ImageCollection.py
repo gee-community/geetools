@@ -1,14 +1,17 @@
 """Test the ImageCollection class."""
+from typing import Optional
 
 import ee
+import pytest
 
-import geetools  # noqa: F401
+import geetools
 
 
-def reduce(collection: ee.ImageCollection) -> ee.Dictionary:
+def reduce(collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = None) -> ee.Dictionary:
     """Compute the mean reduction on the first image of the imageCollection."""
     first = collection.first()
-    geometry = first.geometry().centroid().buffer(100)
+    geometry = first.geometry() if geometry is None else geometry.geometry()
+    geometry = geometry.centroid().buffer(100)
     return first.reduceRegion(ee.Reducer.mean(), geometry, 1)
 
 
@@ -107,3 +110,29 @@ class TestTasseledCap:
     def test_tasseled_cap(self, s2, data_regression):
         tc = s2.geetools.tasseledCap()
         data_regression.check(reduce(tc).getInfo())
+
+
+class TestAppend:
+    """Test the ``append`` method."""
+
+    def test_append(self, s2_sr, data_regression):
+        appended = s2_sr.geetools.append(s2_sr.first())
+        data_regression.check(appended.size().getInfo())
+
+    def test_deprecated_add(self, s2_sr, data_regression):
+        with pytest.deprecated_call():
+            appended = geetools.imagecollection.add(s2_sr, s2_sr.first())
+            data_regression.check(appended.size().getInfo())
+
+
+class TestcollectionMask:
+    """Test the ``collectionMask`` method."""
+
+    def test_collection_mask(self, s2_sr, amazonas, data_regression):
+        masked = s2_sr.geetools.collectionMask()
+        data_regression.check(reduce(ee.ImageCollection([masked]), amazonas).getInfo())
+
+    def test_deprecated_mask(self, s2_sr, amazonas, data_regression):
+        with pytest.deprecated_call():
+            masked = geetools.imagecollection.allMasked(s2_sr)
+            data_regression.check(reduce(ee.ImageCollection([masked]), amazonas).getInfo())

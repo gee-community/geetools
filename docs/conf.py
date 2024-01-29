@@ -76,7 +76,6 @@ autoapi_options = [
     "show-inheritance",
     "show-module-summary",
     "special-members",
-    "imported-members",
 ]
 
 # -- Options for intersphinx output --------------------------------------------

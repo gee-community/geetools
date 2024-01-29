@@ -235,7 +235,7 @@ class ImageCollection:
             Scaled image.
 
         Examples:
-            .. jupyter_execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -382,3 +382,53 @@ class ImageCollection:
                 img = img.tasseledCap()
         """
         return ee_extra.Spectral.core.tasseledCap(self._obj)
+
+    def append(self, image: ee.Image) -> ee.ImageCollection:
+        """Append an image to the existing image collection.
+
+        Args:
+            image: Image to append to the collection.
+
+        Returns:
+            ImageCollection with the new image appended.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ic = ee.ImageCollection('COPERNICUS/S2_SR');
+
+                geom = ee.Geometry.Point(-122.196, 41.411);
+                ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
+                ic2021 = ic.filterBounds(geom).filterDate('2021-07-01', '2021-10-01')
+
+                ic = ic2018.append(ic2021.first())
+                ic.getInfo()
+        """
+        return self._obj.merge(ee.ImageCollection([image]))
+
+    def collectionMask(self) -> ee.Image:
+        """A binary ee.Image where only pixels that are masked in all images of the collection get masked.
+
+        Returns:
+            ee.Image of the mask. 1 where at least 1 pixel is valid 0 elswere
+
+        Examples:
+            .. code-block::
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ic = ee.ImageCollection('COPERNICUS/S2_SR');
+
+                geom = ee.Geometry.Point(-122.196, 41.411);
+                ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
+                ic = ic2018.geetools.collectionMask()
+                ic.getInfo()
+        """
+        masks = self._obj.map(lambda i: i.mask())
+        return ee.Image(masks.sum().gt(0))

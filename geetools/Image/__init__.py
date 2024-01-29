@@ -930,7 +930,7 @@ class Image:
             Scaled image.
 
         Examples:
-            .. jupyter_execute::
+            .. code-block:: python
 
                 import ee, geetools
 
