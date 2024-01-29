@@ -187,21 +187,10 @@ def fillWithLast(collection, reverse=False, proxy=-999):
     return ee.ImageCollection.fromImages(indices.map(wrap))
 
 
+@deprecated(version="1.0.0", reason="Use vanilla ee.ImageCollection.geometry instead")
 def mergeGeometries(collection):
     """Merge the geometries of many images. Return ee.Geometry."""
-    imlist = collection.toList(collection.size())
-
-    first = ee.Image(imlist.get(0))
-    rest = imlist.slice(1)
-
-    def wrap(img, ini):
-        ini = ee.Geometry(ini)
-        img = ee.Image(img)
-        geom = img.geometry()
-        union = geom.union(ini)
-        return union.dissolve()
-
-    return ee.Geometry(rest.iterate(wrap, first.geometry()))
+    return ee.ImageCollection(collection).geometry()
 
 
 def mosaicSameDay(collection, qualityBand=None):

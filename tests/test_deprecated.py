@@ -95,3 +95,8 @@ class TestImageCollection:
     def test_wrapper(self):
         with pytest.raises(NotImplementedError):
             geetools.imagecollection.wrapper(None)
+
+    def test_merge_geometry(self, s2_sr, data_regression):
+        with pytest.deprecated_call():
+            geom = geetools.imagecollection.mergeGeometries(s2_sr.limit(10))
+            data_regression.check(geom.getInfo())
