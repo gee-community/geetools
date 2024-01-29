@@ -100,3 +100,12 @@ class TestImageCollection:
         with pytest.deprecated_call():
             geom = geetools.imagecollection.mergeGeometries(s2_sr.limit(10))
             data_regression.check(geom.getInfo())
+
+    def test_data2pandas(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.data2pandas(None)
+
+    def test_tobands(self, s2_sr, data_regression):
+        with pytest.deprecated_call():
+            image = geetools.imagecollection.toBands(s2_sr.limit(3))
+            data_regression.check(image.bandNames().getInfo())

@@ -525,37 +525,10 @@ def outliers(collection, bands, sigma=2, updateMask=False):
     return collection.map(overcol)
 
 
+@deprecated(version="1.0.0", reason="geetools will mostly focus on server-side methods now")
 def data2pandas(data):
-    """
-    Convert data coming from tools.imagecollection.get_values to a.
-
-    pandas DataFrame.
-
-    :type data: dict
-    :rtype: pandas.DataFrame
-    """
-    # Indices
-    # header
-    allbands = [val.keys() for bands, val in data.items()]
-    header = []
-    for bandlist in allbands:
-        for band in bandlist:
-            if band not in header:
-                header.append(band)
-
-    data_dict = {}
-    indices = []
-    for i, head in enumerate(header):
-        band_data = []
-        for iid, val in data.items():
-            if i == 0:
-                indices.append(iid)
-            band_data.append(val[head])
-        data_dict[head] = band_data
-
-    df = pd.DataFrame(data=data_dict, index=indices)
-
-    return df
+    """Convert data coming from tools.imagecollection.get_values to a pandas DataFrame."""
+    raise NotImplementedError("geetools will mostly focus on server-side methods now")
 
 
 def parametrizeProperty(
@@ -1183,25 +1156,7 @@ def aggregate_array_all(collection):
     return transposed.map(lambda ps: ee.Dictionary.fromLists(props, ps))
 
 
+@deprecated(version="1.0.0", reason="Use vanilla ee.ImageCollection.toBands instead")
 def toBands(collection):
-    """Convert an ImageCollection into an Image. The bands of the images.
-
-    inside the collection MUST be renamed. Similar to
-    ee.ImageCollection.toBands but it does not add a suffix
-    .
-    """
-
-    def wrap(image, accum):
-        accum = ee.List(accum)
-
-        def true():
-            last = ee.Image(accum.get(-1))
-            return accum.add(last.addBands(image)).slice(-1)
-
-        def false():
-            return accum.add(image)
-
-        condition = accum.size()
-        return ee.List(ee.Algorithms.If(condition, true(), false()))
-
-    return ee.Image(ee.List(collection.iterate(wrap, ee.List([]))).get(-1))
+    """Convert an ImageCollection into an Image"""
+    return ee.Image(collection.toBands())
