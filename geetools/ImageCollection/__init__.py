@@ -469,7 +469,7 @@ class ImageCollection:
             An Image object with the integrated band for each pixel
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, LDCGEETools
 
