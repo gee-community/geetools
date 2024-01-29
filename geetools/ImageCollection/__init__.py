@@ -432,3 +432,27 @@ class ImageCollection:
         """
         masks = self._obj.map(lambda i: i.mask())
         return ee.Image(masks.sum().gt(0))
+
+    def iloc(self, index: int) -> ee.Image:
+        """Get Image from the ImageCollection by index.
+
+        Args:
+            index: Index of the image to get.
+
+        Returns:
+            ee.Image at the specified index.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ic = ee.ImageCollection('COPERNICUS/S2_SR');
+
+                geom = ee.Geometry.Point(-122.196, 41.411);
+                ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
+                ic2018.geetools.iloc(0).getInfo()
+        """
+        return ee.Image(self._obj.toList(self._obj.size()).get(index))

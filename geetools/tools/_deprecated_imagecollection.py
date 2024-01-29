@@ -68,40 +68,22 @@ def containsAnyBand(collection, bands):
     return collection.filter(filt)
 
 
+@deprecated(version="1.0.0", reason="It is error prone as some collection have no ID.")
 def getId(collection):
-    """Get the ImageCollection id.
-
-    **CLIENT SIDE**
-
-    :type collection: ee.ImageCollection
-    :return: the collection's id
-    :rtype: str
-    """
-    return collection.limit(0).getInfo()["id"]
+    """Get the ID of an ImageCollection."""
+    raise NotImplementedError("It is error prone as some collection have no ID.")
 
 
+@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.iloc instead")
 def getImage(collection, index):
     """Get an Image using its collection index."""
-    collist = collection.toList(collection.size())
-    return ee.Image(collist.get(index))
+    return ee.ImageCollection(collection).geetools.iloc(index)
 
 
+@deprecated(version="1.0.0", reason="Underefficient, use the vanilla map method instead")
 def wrapper(f, *arg, **kwargs):
-    """Wrap a function and its arguments into a mapping function for.
-
-    ImageCollections. The first parameter of the functions must be an Image,
-    and it must return an Image.
-
-    :param f: the function to be wrapped
-    :type f: function
-    :return: a function to use in ee.ImageCollection.map
-    :rtype: function
-    """
-
-    def wrap(img):
-        return f(img, *arg, **kwargs)
-
-    return wrap
+    """Wrap a function and its arguments into a mapping function for ImageCollection"""
+    raise NotImplementedError("Underefficient, use the vanilla map method instead")
 
 
 def enumerateProperty(collection, name="enumeration"):
@@ -205,21 +187,10 @@ def fillWithLast(collection, reverse=False, proxy=-999):
     return ee.ImageCollection.fromImages(indices.map(wrap))
 
 
+@deprecated(version="1.0.0", reason="Use vanilla ee.ImageCollection.geometry instead")
 def mergeGeometries(collection):
     """Merge the geometries of many images. Return ee.Geometry."""
-    imlist = collection.toList(collection.size())
-
-    first = ee.Image(imlist.get(0))
-    rest = imlist.slice(1)
-
-    def wrap(img, ini):
-        ini = ee.Geometry(ini)
-        img = ee.Image(img)
-        geom = img.geometry()
-        union = geom.union(ini)
-        return union.dissolve()
-
-    return ee.Geometry(rest.iterate(wrap, first.geometry()))
+    return ee.ImageCollection(collection).geometry()
 
 
 def mosaicSameDay(collection, qualityBand=None):

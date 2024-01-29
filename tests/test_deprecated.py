@@ -83,3 +83,20 @@ class TestUtils:
     def test_evaluate(self):
         with pytest.raises(NotImplementedError):
             geetools.utils.evaluate(None, None, None)
+
+
+class TestImageCollection:
+    """Test the deprecated_imagecollection module."""
+
+    def test_get_id(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.getId(None)
+
+    def test_wrapper(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.wrapper(None)
+
+    def test_merge_geometry(self, s2_sr, data_regression):
+        with pytest.deprecated_call():
+            geom = geetools.imagecollection.mergeGeometries(s2_sr.limit(10))
+            data_regression.check(geom.getInfo())
