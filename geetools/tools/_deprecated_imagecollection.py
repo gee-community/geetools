@@ -80,22 +80,10 @@ def getImage(collection, index):
     return ee.ImageCollection(collection).geetools.iloc(index)
 
 
+@deprecated(version="1.0.0", reason="Underefficient, use the vanilla map method instead")
 def wrapper(f, *arg, **kwargs):
-    """Wrap a function and its arguments into a mapping function for.
-
-    ImageCollections. The first parameter of the functions must be an Image,
-    and it must return an Image.
-
-    :param f: the function to be wrapped
-    :type f: function
-    :return: a function to use in ee.ImageCollection.map
-    :rtype: function
-    """
-
-    def wrap(img):
-        return f(img, *arg, **kwargs)
-
-    return wrap
+    """Wrap a function and its arguments into a mapping function for ImageCollection"""
+    raise NotImplementedError("Underefficient, use the vanilla map method instead")
 
 
 def enumerateProperty(collection, name="enumeration"):

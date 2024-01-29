@@ -91,3 +91,7 @@ class TestImageCollection:
     def test_get_id(self):
         with pytest.raises(NotImplementedError):
             geetools.imagecollection.getId(None)
+
+    def test_wrapper(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.wrapper(None)
