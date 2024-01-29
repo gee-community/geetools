@@ -525,37 +525,10 @@ def outliers(collection, bands, sigma=2, updateMask=False):
     return collection.map(overcol)
 
 
+@deprecated(version="1.0.0", reason="geetools will mostly focus on server-side methods now")
 def data2pandas(data):
-    """
-    Convert data coming from tools.imagecollection.get_values to a.
-
-    pandas DataFrame.
-
-    :type data: dict
-    :rtype: pandas.DataFrame
-    """
-    # Indices
-    # header
-    allbands = [val.keys() for bands, val in data.items()]
-    header = []
-    for bandlist in allbands:
-        for band in bandlist:
-            if band not in header:
-                header.append(band)
-
-    data_dict = {}
-    indices = []
-    for i, head in enumerate(header):
-        band_data = []
-        for iid, val in data.items():
-            if i == 0:
-                indices.append(iid)
-            band_data.append(val[head])
-        data_dict[head] = band_data
-
-    df = pd.DataFrame(data=data_dict, index=indices)
-
-    return df
+    """Convert data coming from tools.imagecollection.get_values to a pandas DataFrame."""
+    raise NotImplementedError("geetools will mostly focus on server-side methods now")
 
 
 def parametrizeProperty(
