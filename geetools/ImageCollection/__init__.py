@@ -456,3 +456,65 @@ class ImageCollection:
                 ic2018.geetools.iloc(0).getInfo()
         """
         return ee.Image(self._obj.toList(self._obj.size()).get(index))
+
+    def integral(self, band: str, time: str = "system:time_start", unit: str = "") -> ee.Image:
+        """Compute the integral of a band over time or a specified property.
+
+        Args:
+            band: the name of the band to integrate
+            time: the name of the property to use as time. It must be a date property of the images.
+            unit: the time unit use to compute the integral. It can be one of the following: ["year", "month", "day", "hour", "minute", "second"]. If non is set, the time will be normalized on the integral length.
+
+        Returns:
+            An Image object with the integrated band for each pixel
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, LDCGEETools
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                integral = collection.ldc.integral("B1")
+                print(integral.getInfo())
+        """
+        # compute the intervals along the x axis
+        # the GEE time is stored as a milliseconds timestamp. If the time unit is not set,
+        # the integral is normalized on the total time length of the time series
+        minTime = self._obj.aggregate_min(time)
+        maxTime = self._obj.aggregate_max(time)
+        intervals = {
+            "year": ee.Number(1000 * 60 * 60 * 24 * 365),  # 1 year in milliseconds
+            "month": ee.Number(1000 * 60 * 60 * 24 * 30),  # 1 month in milliseconds
+            "day": ee.Number(1000 * 60 * 60 * 24),  # 1 day in milliseconds
+            "hour": ee.Number(1000 * 60 * 60),  # 1 hour in milliseconds
+            "minute": ee.Number(1000 * 60),  # 1 minute in milliseconds
+            "second": ee.Number(1000),  # 1 second in milliseconds
+            "": ee.Number(maxTime).subtract(ee.Number(minTime)),
+        }
+        interval = intervals[unit]
+
+        # initialize the sum with a 0 value initial item
+        # all the properties of the first image of the collection are copied
+        first = self._obj.first()
+        zero = ee.Image.constant(0).copyProperties(first, first.propertyNames())
+        s = ee.Image(zero).rename("integral").set("last", zero)
+
+        # compute the approximation of the integral using the trapezoidal method
+        # each local interval is aproximated by the corresponding trapez and the
+        # sum is updated
+        def computeIntegral(image, integral):
+            image = ee.Image(image).select(band)
+            integral = ee.Image(integral)
+            last = ee.Image(integral.get("last"))
+            locMinTime = ee.Number(last.get(time))
+            locMaxTime = ee.Number(image.get(time))
+            locInterval = locMaxTime.subtract(locMinTime).divide(interval)
+            locIntegral = last.add(image).multiply(locInterval).divide(2)
+            return integral.add(locIntegral).set("last", image)
+
+        return ee.Image(self._obj.iterate(computeIntegral, s))
