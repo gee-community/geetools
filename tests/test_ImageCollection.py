@@ -11,7 +11,7 @@ def reduce(collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = Non
     """Compute the mean reduction on the first image of the imageCollection."""
     first = collection.first()
     geometry = first.geometry() if geometry is None else geometry.geometry()
-    geometry = geometry.centroid().buffer(100)
+    geometry = geometry.centroid(1).buffer(100)
     return first.reduceRegion(ee.Reducer.mean(), geometry, 1)
 
 
@@ -136,3 +136,17 @@ class TestcollectionMask:
         with pytest.deprecated_call():
             masked = geetools.imagecollection.allMasked(s2_sr)
             data_regression.check(reduce(ee.ImageCollection([masked]), amazonas).getInfo())
+
+
+class TestIloc:
+    """Test the iloc class."""
+
+    def test_iloc(self, s2_sr, data_regression):
+        ic = ee.ImageCollection([s2_sr.geetools.iloc(0).subtract(s2_sr.first())])
+        data_regression.check(reduce(ic).getInfo())
+
+    def test_deprecated_get_image(self, s2_sr, data_regression):
+        with pytest.deprecated_call():
+            image = geetools.imagecollection.getImage(s2_sr, 0).subtract(s2_sr.first())
+            ic = ee.ImageCollection([image])
+            data_regression.check(reduce(ic).getInfo())

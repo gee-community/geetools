@@ -74,10 +74,10 @@ def getId(collection):
     raise NotImplementedError("It is error prone as some collection have no ID.")
 
 
+@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.iloc instead")
 def getImage(collection, index):
     """Get an Image using its collection index."""
-    collist = collection.toList(collection.size())
-    return ee.Image(collist.get(index))
+    return ee.ImageCollection(collection).geetools.iloc(index)
 
 
 def wrapper(f, *arg, **kwargs):
