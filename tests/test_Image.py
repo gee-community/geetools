@@ -326,21 +326,21 @@ class TestPrefixSuffix:
 class TestGauss:
     """Test the ``gauss`` method."""
 
-    def test_gauss(self, s2_sr_vatican_2020, vatican_buffer, data_regression):
+    def test_gauss(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         image = s2_sr_vatican_2020.geetools.gauss()
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-        data_regression.check(values.getInfo())
+        num_regression.check(values.getInfo())
 
-    def test_gauss_with_band(self, s2_sr_vatican_2020, vatican_buffer, data_regression):
+    def test_gauss_with_band(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         image = s2_sr_vatican_2020.geetools.gauss("B2")
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-        data_regression.check(values.getInfo())
+        num_regression.check(values.getInfo())
 
-    def test_deprecated_gauss_function(self, s2_sr_vatican_2020, vatican_buffer, data_regression):
+    def test_deprecated_gauss_function(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         with pytest.deprecated_call():
             image = geetools.tools.image.gaussFunction(s2_sr_vatican_2020, "B2")
             values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-            data_regression.check(values.getInfo())
+            num_regression.check(values.getInfo())
 
 
 class TestDoyToDate:
