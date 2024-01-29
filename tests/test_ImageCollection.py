@@ -150,3 +150,20 @@ class TestIloc:
             image = geetools.imagecollection.getImage(s2_sr, 0).subtract(s2_sr.first())
             ic = ee.ImageCollection([image])
             data_regression.check(reduce(ic).getInfo())
+
+
+class TestIntegral:
+    """Test the ``integral`` method."""
+
+    def test_integral(self, s2_sr, amazonas, data_regression):
+        integral = s2_sr.limit(10).geetools.integral("B4").select("integral")
+        ic = ee.ImageCollection([integral])
+        data_regression.check(reduce(ic, amazonas).getInfo())
+
+    def test_deprecated_integral(self, s2_sr, amazonas, data_regression):
+        with pytest.deprecated_call():
+            integral = geetools.imagecollection.area_under_curve(s2_sr.limit(10), "B4").select(
+                "under_curve"
+            )
+            ic = ee.ImageCollection([integral])
+            data_regression.check(reduce(ic, amazonas).getInfo())

@@ -1047,38 +1047,10 @@ def maskedSize(collection):
     return masksum.divide(totalsum).multiply(100).toInt()
 
 
-def area_under_curve(collection, band, x_property=None, name="area_under"):
-    """Compute the area under the curve taking the x axis from an image.
-
-    property. If not specified, it'll use `system:time_start`
-    .
-    """
-    x_property = x_property or "system:time_start"
-    max_x = collection.aggregate_max(x_property)
-    min_x = collection.aggregate_min(x_property)
-    total_lapsed = ee.Number(max_x).subtract(ee.Number(min_x))
-
-    def cumulative(image, cumm):
-        cumm = ee.List(cumm)
-
-        def true(i, c):
-            c = ee.List(c)
-            last = ee.Image(c.get(-1))
-            lapsed = ee.Number(image.get(x_property)).subtract(ee.Number(last.get(x_property)))
-            lapsed_percent = lapsed.divide(total_lapsed)
-            rise = i.select(band).subtract(last.select(band)).divide(2)
-            toadd = i.select(band).add(rise).multiply(lapsed_percent).rename(name).toFloat()
-            return c.add(i.addBands(toadd))
-
-        def false(i, c):
-            toadd = i.addBands(ee.Image(0).rename(name).toFloat())
-            return c.add(toadd)
-
-        return ee.List(ee.Algorithms.If(cumm.size(), true(image, cumm), false(image, cumm)))
-
-    final = ee.List(collection.iterate(cumulative, ee.List([])))
-    final_ic = ee.ImageCollection.fromImages(final).select(name)
-    return ee.Image(final_ic.reduce(ee.Reducer.sum()))
+@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.integral instead")
+def area_under_curve(collection, band, x_property="system:time_start", name="under_curve"):
+    """Compute the area under the curve taking the x axis from an image property."""
+    return ee.ImageCollection(collection).geetools.integral(band, x_property).rename(name)
 
 
 def moving_average(collection, back=5, reducer=None, use_original=True):
