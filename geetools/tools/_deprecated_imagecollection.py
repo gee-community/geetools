@@ -477,52 +477,10 @@ def getValues(
         raise ValueError("side parameter must be 'server' or 'client'")
 
 
+@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.outliers instead")
 def outliers(collection, bands, sigma=2, updateMask=False):
-    """Compute outliers by.
-
-    outlier = value > mean+(sigma*stddev)
-    outlier = value < mean-(sigma*stddev)
-
-    Example (sigma = 1):
-        - values = [1, 5, 6, 4, 7, 10]
-        - mean = 5.5
-        - std dev = 3
-        - mean + (sigma*stddev) = 8.5
-        - mean - (sigma*stddev) = 2.5
-        - outliers = values between 2.5 and 8.5 = [1, 10]
-
-    if `updateMask` is False return the passed collection in which each image
-    have new bands (a mask) corresponding to the passed dict and a suffix '_outlier'
-    else return the passed collection with the passed bands masked if are
-    outliers (the outlier band is not returned).
-
-    idea from: https://www.kdnuggets.com/2017/02/removing-outliers-standard-deviation-python.html
-    """
-    bands = bands or ee.Image(collection.first()).bandNames()
-    bands = ee.List(bands)
-    forstats = collection.select(bands)
-    mean = forstats.mean()
-    stddev = forstats.reduce(ee.Reducer.stdDev())
-    imin = mean.subtract(stddev.multiply(sigma))
-    imax = mean.add(stddev.multiply(sigma))
-
-    def getOutlier(im, imin, imax):
-        ismin = im.lt(imin)
-        ismax = im.gt(imax)
-        outlier = ismin.Or(ismax)
-        return outlier
-
-    def overcol(im):
-        outs = getOutlier(im.select(bands), imin, imax)
-        if updateMask:
-            ibands = im.select(bands)
-            ibands = ibands.updateMask(outs.Not())
-        else:
-            ibands = image_module.addSuffix(outs, "_outlier")
-
-        return im.addBands(ibands, overwrite=True)
-
-    return collection.map(overcol)
+    """Compute outliers in the collection"""
+    return ee.ImageCollection(collection).geetools.outliers(bands, sigma, updateMask)
 
 
 @deprecated(version="1.0.0", reason="geetools will mostly focus on server-side methods now")

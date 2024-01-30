@@ -167,3 +167,28 @@ class TestIntegral:
             )
             ic = ee.ImageCollection([integral])
             data_regression.check(reduce(ic, amazonas).getInfo())
+
+
+class TestOutliers:
+    """Test the ``outliers`` method."""
+
+    def test_outliers(self, s2_sr, amazonas, data_regression):
+        ic = s2_sr.limit(10).geetools.outliers()
+        data_regression.check(reduce(ic, amazonas).getInfo())
+
+    def test_outliers_with_bands(self, s2_sr, amazonas, data_regression):
+        ic = s2_sr.limit(10).geetools.outliers(bands=["B4", "B2"])
+        data_regression.check(reduce(ic, amazonas).getInfo())
+
+    def test_outliers_with_sigma(self, s2_sr, amazonas, data_regression):
+        ic = s2_sr.limit(10).geetools.outliers(sigma=3)
+        data_regression.check(reduce(ic, amazonas).getInfo())
+
+    def test_outliers_with_drop(self, s2_sr, amazonas, data_regression):
+        ic = s2_sr.limit(10).geetools.outliers(drop=True)
+        data_regression.check(reduce(ic, amazonas).getInfo())
+
+    def test_deprecated_outliers(self, s2_sr, amazonas, data_regression):
+        with pytest.deprecated_call():
+            ic = geetools.imagecollection.outliers(s2_sr.limit(10), ["B4"])
+            data_regression.check(reduce(ic, amazonas).getInfo())
