@@ -7,7 +7,7 @@ import ee
 import ee_extra
 
 from geetools.accessors import geetools_accessor
-from geetools.types import number
+from geetools.types import ee_list, ee_number, number
 
 
 @geetools_accessor(ee.ImageCollection)
@@ -518,3 +518,80 @@ class ImageCollection:
             return integral.add(locIntegral).set("last", image)
 
         return ee.Image(self._obj.iterate(computeIntegral, s))
+
+    def outliers(
+        self, bands: ee_list = [], sigma: ee_number = 2, drop: bool = False
+    ) -> ee.ImageCollection:
+        """Compute the outlier for each pixel in the specified bands.
+
+        A pixel is considered as an outlier if:
+
+        .. code-block::
+
+            outlier = value > mean+(sigma*stddev)
+            outlier = value < mean-(sigma*stddev)
+
+        In a 1D example it would be:
+        - values = [1, 5, 6, 4, 7, 10]
+        - mean = 5.5
+        - std dev = 3
+        - mean + (sigma*stddev) = 8.5
+        - mean - (sigma*stddev) = 2.5
+        - outliers = values between 2.5 and 8.5 = [1, 10]
+
+        Here in this function an extra band is added to each image for each of the evaluated bands with the outlier status. The band name is the original band name with the suffix "_outlier". A value of 1 means that the pixel is an outlier, 0 means that it is not.
+
+        Optionally users can discard this band by setting ``drop`` to ``True`` and the outlier will simply be masked from each ilmage. This is useful when the outlier band is not needed and the user wants to save space.
+
+        idea from: https://www.kdnuggets.com/2017/02/removing-outliers-standard-deviation-python.html
+
+        Args:
+            bands: the bands to evaluate for outliers. If empty, all bands are evaluated
+            sigma: the number of standard deviations to use to compute the outlier
+            drop: whether to drop the outlier band from the images
+
+        Returns:
+            an ImageCollection with the outlier band added to each image or masked if ``drop`` is ``True``
+
+        Examples:
+            .. code-block:: python
+
+                import ee, LDCGEETools
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                outliers = collection.ldc.outliers(["B1", "B2"], 2)
+                print(outliers.getInfo())
+        """
+        # cast parameters and compute the outlier band names
+        initBands = self._obj.first().bandNames()
+        statBands = ee.List(bands) if bands else initBands
+        outBands = statBands.map(lambda b: ee.String(b).cat("_outlier"))
+
+        # compute the mean and std dev for each band
+        statCollection = self._obj.select(statBands)
+        mean = statCollection.mean()
+        stdDev = statCollection.reduce(ee.Reducer.stdDev())
+        minValues = mean.subtract(stdDev.multiply(sigma))
+        maxValues = mean.add(stdDev.multiply(sigma))
+
+        # compute the outlier band for each image
+        def computeOutlierBands(i):
+            outImage = i.select(statBands)
+            outImage = outImage.gt(maxValues).Or(outImage.lt(minValues))
+            return i.addBands(outImage.rename(outBands))
+
+        ic = self._obj.map(computeOutlierBands)
+
+        # drop the outlier band and mask each image if requested
+        def maskOutliers(i):
+            maskedBands = i.select(statBands).updateMask(i.select(outBands).Not())
+            return i.addBands(maskedBands, overwrite=True).select(initBands)
+
+        ic = ic if drop is False else ic.map(maskOutliers)
+
+        return ee.ImageCollection(ic)
