@@ -16,6 +16,10 @@ geetools
 Overview
 --------
 
+.. image:: _static/logo.png
+    :width: 20%
+    :align: right
+
 `Google Earth Engine <https://earthengine.google.com/>`__ is a cloud-based service for geospatial processing of vector and raster data. The Earth Engine platform has a `JavaScript and a Python API <https://developers.google.com/earth-engine/guides>`__ with different methods to process geospatial objects.
 
 The **geetools** package extends the Google Earth Engine Python API with pre-processing and processing tools for the most used satellite platforms by adding utility methods for different Earth Engine Objects that are friendly with the Python method chaining using the ``geetools`` namespace.
@@ -28,7 +32,7 @@ content
    .. grid-item::
 
       .. card:: Usage
-         :link: usage/installation.html
+         :link: usage/install.html
 
          Usage and installation
 

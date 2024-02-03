@@ -35,6 +35,8 @@ exclude_patterns = ["**.ipynb_checkpoints"]
 # -- Options for HTML output ---------------------------------------------------
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
+html_logo = "_static/logo.png"
+html_favicon = "_static/logo.png"
 html_theme_options = {
     "logo": {
         "text": project,
