@@ -7,28 +7,28 @@ geetools
 .. toctree::
    :hidden:
 
-   usage
-   contribute/index
+   usage/index
+   example/index
+   autoapi/index
+   Changelogs <https://github.com/gee-community/gee_tools/releases>
+   earth-engine API <https://developers.google.com/earth-engine/apidocs>
 
-
-Documentation contents
-----------------------
-
-The documentation contains 3 main sections:
+content
+-------
 
 .. grid:: 1 2 3 3
 
    .. grid-item::
 
       .. card:: Usage
-         :link: usage.html
+         :link: usage/installation.html
 
          Usage and installation
 
    .. grid-item::
 
       .. card:: Contribute
-         :link: contribute/index.html
+         :link: usage/contribute.html
 
          Help us improve the lib.
 
