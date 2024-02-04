@@ -20,7 +20,7 @@ from geetools.types import (
 
 
 @register_class_accessor(ee.Image, "geetools")
-class Image:
+class ImageAccessor:
     """Toolbox for the ``ee.Image`` class."""
 
     def __init__(self, obj: ee.Image):

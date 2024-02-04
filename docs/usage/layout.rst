@@ -24,17 +24,17 @@ As reported in https://github.com/gee-community/gee_tools/issues/173, this objec
 
 .. code-block:: python
 
-    from geetools.Array import Array
+    from geetools.Array import ArrayAccessor
 
 constructor
 ###########
 
-- :py:meth:`ee.Array.geetools.full <geetools.Array.Array.full>`: Create an array with the given dimensions, initialized to the given value. **Manually loaded**
+- :py:meth:`ee.Array.geetools.full <geetools.Array.ArrayAccessor.full>`: Create an array with the given dimensions, initialized to the given value. **Manually loaded**
 
 data manipulation
 #################
 
-- :py:meth:`ee.Array.geetools.set <geetools.Array.Array.set>`: Set the value of a cell in an array. **Manually be loaded**
+- :py:meth:`ee.Array.geetools.set <geetools.Array.ArrayAccessor.set>`: Set the value of a cell in an array. **Manually be loaded**
 
 ee.Authenticate
 ^^^^^^^^^^^^^^^
@@ -68,14 +68,14 @@ ee.Date
 Constructors
 ############
 
-- :py:meth:`ee.Date.geetools.fromEpoch <geetools.Date.Date.fromEpoch>`: :docstring:`geetools.Date.fromEpoch`
-- :py:meth:`ee.Date.geetools.fromDOY <geetools.Date.Date.fromDOY>`: :docstring:`geetools.Date.fromDOY`
+- :py:meth:`ee.Date.geetools.fromEpoch <geetools.Date.DateAccessor.fromEpoch>`: :docstring:`geetools.DateAccessor.fromEpoch`
+- :py:meth:`ee.Date.geetools.fromDOY <geetools.Date.DateAccessor.fromDOY>`: :docstring:`geetools.DateAccessor.fromDOY`
 
 Extra operations
 ################
 
-- :py:meth:`ee.Date.geetools.getUnitSinceEpoch <geetools.Date.Date.getUnitSinceEpoch>`: :docstring:`geetools.Date.getUnitSinceEpoch`
-- :py:meth:`ee.Date.geetools.isLeap <geetools.Date.Date.isLeap>`: :docstring:`geetools.Date.isLeap`
+- :py:meth:`ee.Date.geetools.getUnitSinceEpoch <geetools.Date.DateAccessor.getUnitSinceEpoch>`: :docstring:`geetools.DateAccessor.getUnitSinceEpoch`
+- :py:meth:`ee.Date.geetools.isLeap <geetools.Date.DateAccessor.isLeap>`: :docstring:`geetools.DateAccessor.isLeap`
 
 Exportation
 ###########
@@ -84,12 +84,12 @@ Exportation
 
     As the snake case suggests, this method is client side.
 
-- :py:meth:`ee.Date.geetools.to_datetime <geetools.Date.Date.to_datetime>`: :docstring:`geetools.Date.to_datetime`
+- :py:meth:`ee.Date.geetools.to_datetime <geetools.Date.DateAccessor.to_datetime>`: :docstring:`geetools.DateAccessor.to_datetime`
 
 helper
 ######
 
-- :py:meth:`ee.Date.geetools.check_unit <geetools.Date.Date.check_unit>`: :docstring:`geetools.Date.check_unit`
+- :py:meth:`ee.Date.geetools.check_unit <geetools.Date.DateAccessor.check_unit>`: :docstring:`geetools.DateAccessor.check_unit`
 
 ee.DateRange
 ^^^^^^^^^^^^
@@ -97,13 +97,13 @@ ee.DateRange
 Extra operations
 ################
 
-- :py:meth:`ee.DateRange.geetools.getRange <geetools.DateRange.DateRange.split>`: :docstring:`geetools.DateRange.split`
+- :py:meth:`ee.DateRange.geetools.getRange <geetools.DateRange.DateRangeAccessor.split>`: :docstring:`geetools.DateRangeAccessor.split`
 
 Helper
 ######
 
-- :py:meth:`ee.DateRange.geetools.check_unit <geetools.DateRange.DateRange.check_unit>`: :docstring:`geetools.DateRange.check_unit`
-- :py:meth:`ee.DateRange.geetools.unitMillis <geetools.DateRange.DateRange.unitMillis>`: :docstring:`geetools.DateRange.unitMillis`
+- :py:meth:`ee.DateRange.geetools.check_unit <geetools.DateRange.DateRangeAccessor.check_unit>`: :docstring:`geetools.DateRangeAccessor.check_unit`
+- :py:meth:`ee.DateRange.geetools.unitMillis <geetools.DateRange.DateRangeAccessor.unitMillis>`: :docstring:`geetools.DateRangeAccessor.unitMillis`
 
 ee.Dictionary
 ^^^^^^^^^^^^^
@@ -111,18 +111,18 @@ ee.Dictionary
 Constructors
 ############
 
-- :py:meth:`ee.Dictionary.geetools.fromPairs <geetools.Dictionary.Dictionary.fromPairs>`: :docstring:`geetools.Dictionary.fromPairs`
+- :py:meth:`ee.Dictionary.geetools.fromPairs <geetools.Dictionary.DictionaryAccessor.fromPairs>`: :docstring:`geetools.DictionaryAccessor.fromPairs`
 
 Extra operations
 ################
 
-- :py:meth:`ee.Dictionary.geetools.sort <geetools.Dictionary.Dictionary.sort>`: :docstring:`geetools.Dictionary.sort`
-- :py:meth:`ee.Dictionary.geetools.getMany <geetools.Dictionary.Dictionary.getMany>`: :docstring:`geetools.Dictionary.getMany`
+- :py:meth:`ee.Dictionary.geetools.sort <geetools.Dictionary.DictionaryAccessor.sort>`: :docstring:`geetools.DictionaryAccessor.sort`
+- :py:meth:`ee.Dictionary.geetools.getMany <geetools.Dictionary.DictionaryAccessor.getMany>`: :docstring:`geetools.DictionaryAccessor.getMany`
 
 ee.Feature
 ^^^^^^^^^^
 
-- :py:meth:`ee.Feature.geetools.toFeatureCollection <geetools.Feature.Feature.toFeatureCollection>`: :docstring:`geetools.Feature.toFeatureCollection`
+- :py:meth:`ee.Feature.geetools.toFeatureCollection <geetools.Feature.FeatureAccessor.toFeatureCollection>`: :docstring:`geetools.FeatureAccessor.toFeatureCollection`
 
 ee.FeatureCollection
 ^^^^^^^^^^^^^^^^^^^^
@@ -130,29 +130,29 @@ ee.FeatureCollection
 Properties management
 #####################
 
-- :py:meth:`ee.FeatureCollection.geetools.addId <geetools.FeatureCollection.FeatureCollection.addId>`: :docstring:`geetools.FeatureCollection.addId`
+- :py:meth:`ee.FeatureCollection.geetools.addId <geetools.FeatureCollection.FeatureCollectionAccessor.addId>`: :docstring:`geetools.FeatureCollectionAccessor.addId`
 
 Geometry management
 ###################
 
-- :py:meth:`ee.FeatureCollection.geetools.mergeGeometries <geetools.FeatureCollection.FeatureCollection.mergeGeometries>`: :docstring:`geetools.FeatureCollection.mergeGeometries`
-- :py:meth:`ee.FeatureCollection.geetools.toPolygons <geetools.FeatureCollection.FeatureCollection.toPolygons>`: :docstring:`geetools.FeatureCollection.toPolygons`
+- :py:meth:`ee.FeatureCollection.geetools.mergeGeometries <geetools.FeatureCollection.FeatureCollectionAccessor.mergeGeometries>`: :docstring:`geetools.FeatureCollectionAccessor.mergeGeometries`
+- :py:meth:`ee.FeatureCollection.geetools.toPolygons <geetools.FeatureCollection.FeatureCollectionAccessor.toPolygons>`: :docstring:`geetools.FeatureCollectionAccessor.toPolygons`
 
 Converter
 #########
 
-- :py:meth:`ee.FeatureCollection.geetools.toImage <geetools.FeatureCollection.FeatureCollection.toImage>`: :docstring:`geetools.FeatureCollection.toImage`
+- :py:meth:`ee.FeatureCollection.geetools.toImage <geetools.FeatureCollection.FeatureCollectionAccessor.toImage>`: :docstring:`geetools.FeatureCollectionAccessor.toImage`
 
 ee.Filter
 ^^^^^^^^^
 
-- :py:meth:`ee.Filter.geetools.dateRange <geetools.Filter.Filter.dateRange>`: :docstring:`geetools.Filter.dateRange`
+- :py:meth:`ee.Filter.geetools.dateRange <geetools.Filter.FilterAccessor.dateRange>`: :docstring:`geetools.FilterAccessor.dateRange`
 
 
 ee.Geometry
 ^^^^^^^^^^^
 
-- :py:meth:`ee.Geometry.geetools.keepType <geetools.Geometry.Geometry.keepType>`: :docstring:`geetools.Geometry.keepType`
+- :py:meth:`ee.Geometry.geetools.keepType <geetools.Geometry.GeometryAccessor.keepType>`: :docstring:`geetools.GeometryAccessor.keepType`
 
 ee.Image
 ^^^^^^^^
@@ -160,58 +160,58 @@ ee.Image
 Constructor
 ###########
 
-- :py:meth:`ee.Image.geetools.full <geetools.Image.Image.full>`: :docstring:`geetools.Image.full`
-- :py:meth:`ee.Image.geetools.fullLike <geetools.Image.Image.fullLike>`: :docstring:`geetools.Image.fullLike`
+- :py:meth:`ee.Image.geetools.full <geetools.Image.ImageAccessor.full>`: :docstring:`geetools.ImageAccessor.full`
+- :py:meth:`ee.Image.geetools.fullLike <geetools.Image.ImageAccessor.fullLike>`: :docstring:`geetools.ImageAccessor.fullLike`
 
 Band manipulation
 #################
 
-- :py:meth:`ee.Image.geetools.addDate <geetools.Image.Image.addDate>`: :docstring:`geetools.Image.addDate`
-- :py:meth:`ee.Image.geetools.addSuffix <geetools.Image.Image.addSuffix>`: :docstring:`geetools.Image.addSuffix`
-- :py:meth:`ee.Image.geetools.addPrefix <geetools.Image.Image.addPrefix>`: :docstring:`geetools.Image.addPrefix`
-- :py:meth:`ee.Image.geetools.rename <geetools.Image.Image.rename>`: :docstring:`geetools.Image.rename`
-- :py:meth:`ee.Image.geetools.remove <geetools.Image.Image.remove>`: :docstring:`geetools.Image.remove`
-- :py:meth:`ee.Image.geetools.doyToDate <geetools.Image.Image.doyToDate>`: :docstring:`geetools.Image.doyToDate`
-- :py:meth:`ee.Image.geetools.negativeClip <geetools.Image.Image.negativeClip>`: :docstring:`geetools.Image.negativeClip`
-- :py:meth:`ee.Image.geetools.gauss <geetools.Image.Image.gauss>`: :docstring:`geetools.Image.gauss`
-- :py:meth:`ee.Image.geetools.repeat <geetools.Image.Image.repeat>`: :docstring:`geetools.Image.repeat`
+- :py:meth:`ee.Image.geetools.addDate <geetools.Image.ImageAccessor.addDate>`: :docstring:`geetools.ImageAccessor.addDate`
+- :py:meth:`ee.Image.geetools.addSuffix <geetools.Image.ImageAccessor.addSuffix>`: :docstring:`geetools.ImageAccessor.addSuffix`
+- :py:meth:`ee.Image.geetools.addPrefix <geetools.Image.ImageAccessor.addPrefix>`: :docstring:`geetools.ImageAccessor.addPrefix`
+- :py:meth:`ee.Image.geetools.rename <geetools.Image.ImageAccessor.rename>`: :docstring:`geetools.ImageAccessor.rename`
+- :py:meth:`ee.Image.geetools.remove <geetools.Image.ImageAccessor.remove>`: :docstring:`geetools.ImageAccessor.remove`
+- :py:meth:`ee.Image.geetools.doyToDate <geetools.Image.ImageAccessor.doyToDate>`: :docstring:`geetools.ImageAccessor.doyToDate`
+- :py:meth:`ee.Image.geetools.negativeClip <geetools.Image.ImageAccessor.negativeClip>`: :docstring:`geetools.ImageAccessor.negativeClip`
+- :py:meth:`ee.Image.geetools.gauss <geetools.Image.ImageAccessor.gauss>`: :docstring:`geetools.ImageAccessor.gauss`
+- :py:meth:`ee.Image.geetools.repeat <geetools.Image.ImageAccessor.repeat>`: :docstring:`geetools.ImageAccessor.repeat`
 
 Data extraction
 ###############
 
-- :py:meth:`ee.Image.geetools.getValues <geetools.Image.Image.getValues>`: :docstring:`geetools.Image.getValues`
-- :py:meth:`ee.Image.geetools.minScale <geetools.Image.Image.minScale>`: :docstring:`geetools.Image.minScale`
-- :py:meth:`ee.Image.geetools.reduceBands <geetools.Image.Image.reduceBands>`: :docstring:`geetools.Image.reduceBands`
-- :py:meth:`ee.Image.geetools.format <geetools.Image.Image.format>`: :docstring:`geetools.Image.format`
-- :py:meth:`ee.Image.geetools.index_list <geetools.Image.Image.index_list>`: :docstring:`geetools.Image.index_list`
-- :py:meth:`ee.Image.geetools.spectralIndices <geetools.Image.Image.spectralIndices>`: :docstring:`geetools.Image.spectralIndices`
-- :py:meth:`ee.Image.geetools.getScaleParams <geetools.Image.Image.getScaleParams>`: :docstring:`geetools.Image.getScaleParams`
-- :py:meth:`ee.Image.geetools.getOffsetParams <geetools.Image.Image.getOffsetParams>`: :docstring:`geetools.Image.getOffsetParams`
-- :py:meth:`ee.Image.geetools.getSTAC <geetools.Image.Image.getSTAC>`: :docstring:`geetools.Image.getSTAC`
-- :py:meth:`ee.Image.geetools.getDOI <geetools.Image.Image.getDOI>`: :docstring:`geetools.Image.getDOI`
-- :py:meth:`ee.Image.geetools.getCitation <geetools.Image.Image.getCitation>`: :docstring:`geetools.Image.getCitation`
+- :py:meth:`ee.Image.geetools.getValues <geetools.Image.ImageAccessor.getValues>`: :docstring:`geetools.ImageAccessor.getValues`
+- :py:meth:`ee.Image.geetools.minScale <geetools.Image.ImageAccessor.minScale>`: :docstring:`geetools.ImageAccessor.minScale`
+- :py:meth:`ee.Image.geetools.reduceBands <geetools.Image.ImageAccessor.reduceBands>`: :docstring:`geetools.ImageAccessor.reduceBands`
+- :py:meth:`ee.Image.geetools.format <geetools.Image.ImageAccessor.format>`: :docstring:`geetools.ImageAccessor.format`
+- :py:meth:`ee.Image.geetools.index_list <geetools.Image.ImageAccessor.index_list>`: :docstring:`geetools.ImageAccessor.index_list`
+- :py:meth:`ee.Image.geetools.spectralIndices <geetools.Image.ImageAccessor.spectralIndices>`: :docstring:`geetools.ImageAccessor.spectralIndices`
+- :py:meth:`ee.Image.geetools.getScaleParams <geetools.Image.ImageAccessor.getScaleParams>`: :docstring:`geetools.ImageAccessor.getScaleParams`
+- :py:meth:`ee.Image.geetools.getOffsetParams <geetools.Image.ImageAccessor.getOffsetParams>`: :docstring:`geetools.ImageAccessor.getOffsetParams`
+- :py:meth:`ee.Image.geetools.getSTAC <geetools.Image.ImageAccessor.getSTAC>`: :docstring:`geetools.ImageAccessor.getSTAC`
+- :py:meth:`ee.Image.geetools.getDOI <geetools.Image.ImageAccessor.getDOI>`: :docstring:`geetools.ImageAccessor.getDOI`
+- :py:meth:`ee.Image.geetools.getCitation <geetools.Image.ImageAccessor.getCitation>`: :docstring:`geetools.ImageAccessor.getCitation`
 
 
 Data manipulation
 #################
 
-- :py:meth:`ee.Image.geetools.doyToDate <geetools.Image.Image.doyToDate>`: :docstring:`geetools.Image.doyToDate`
-- :py:meth:`ee.Image.geetools.clipOnCollection <geetools.Image.Image.clipOnCollection>`: :docstring:`geetools.Image.clipOnCollection`
-- :py:meth:`ee.Image.geetools.bufferMask <geetools.Image.Image.bufferMask>`: :docstring:`geetools.Image.bufferMask`
-- :py:meth:`ee.Image.geetools.removeZeros <geetools.Image.Image.removeZeros>`: :docstring:`geetools.Image.removeZeros`
-- :py:meth:`ee.Image.geetools.interpolateBands <geetools.Image.Image.interpolateBands>`: :docstring:`geetools.Image.interpolateBands`
-- :py:meth:`ee.Image.geetools.isletMask <geetools.Image.Image.isletMask>`: :docstring:`geetools.Image.isletMask`
-- :py:meth:`ee.Image.geetools.scaleAndOffset <geetools.Image.Image.scaleAndOffset>`: :docstring:`geetools.Image.scaleAndOffset`
-- :py:meth:`ee.Image.geetools.preprocess <geetools.Image.Image.preprocess>`: :docstring:`geetools.Image.preprocess`
-- :py:meth:`ee.Image.geetools.panSharpen <geetools.Image.Image.panSharpen>`: :docstring:`geetools.Image.panSharpen`
-- :py:meth:`ee.Image.geetools.tasseledCap <geetools.Image.Image.tasseledCap>`: :docstring:`geetools.Image.tasseledCap`
-- :py:meth:`ee.Image.geetools.matchHistogram <geetools.Image.Image.matchHistogram>`: :docstring:`geetools.Image.matchHistogram`
-- :py:meth:`ee.Image.geetools.maskClouds <geetools.Image.Image.maskClouds>`: :docstring:`geetools.Image.maskClouds`
+- :py:meth:`ee.Image.geetools.doyToDate <geetools.Image.ImageAccessor.doyToDate>`: :docstring:`geetools.ImageAccessor.doyToDate`
+- :py:meth:`ee.Image.geetools.clipOnCollection <geetools.Image.ImageAccessor.clipOnCollection>`: :docstring:`geetools.ImageAccessor.clipOnCollection`
+- :py:meth:`ee.Image.geetools.bufferMask <geetools.Image.ImageAccessor.bufferMask>`: :docstring:`geetools.ImageAccessor.bufferMask`
+- :py:meth:`ee.Image.geetools.removeZeros <geetools.Image.ImageAccessor.removeZeros>`: :docstring:`geetools.ImageAccessor.removeZeros`
+- :py:meth:`ee.Image.geetools.interpolateBands <geetools.Image.ImageAccessor.interpolateBands>`: :docstring:`geetools.ImageAccessor.interpolateBands`
+- :py:meth:`ee.Image.geetools.isletMask <geetools.Image.ImageAccessor.isletMask>`: :docstring:`geetools.ImageAccessor.isletMask`
+- :py:meth:`ee.Image.geetools.scaleAndOffset <geetools.Image.ImageAccessor.scaleAndOffset>`: :docstring:`geetools.ImageAccessor.scaleAndOffset`
+- :py:meth:`ee.Image.geetools.preprocess <geetools.Image.ImageAccessor.preprocess>`: :docstring:`geetools.ImageAccessor.preprocess`
+- :py:meth:`ee.Image.geetools.panSharpen <geetools.Image.ImageAccessor.panSharpen>`: :docstring:`geetools.ImageAccessor.panSharpen`
+- :py:meth:`ee.Image.geetools.tasseledCap <geetools.Image.ImageAccessor.tasseledCap>`: :docstring:`geetools.ImageAccessor.tasseledCap`
+- :py:meth:`ee.Image.geetools.matchHistogram <geetools.Image.ImageAccessor.matchHistogram>`: :docstring:`geetools.ImageAccessor.matchHistogram`
+- :py:meth:`ee.Image.geetools.maskClouds <geetools.Image.ImageAccessor.maskClouds>`: :docstring:`geetools.ImageAccessor.maskClouds`
 
 Converter
 #########
 
-- :py:meth:`ee.Image.geetools.toGrid <geetools.Image.Image.toGrid>`: :docstring:`geetools.Image.toGrid`
+- :py:meth:`ee.Image.geetools.toGrid <geetools.Image.ImageAccessor.toGrid>`: :docstring:`geetools.ImageAccessor.toGrid`
 
 ee.ImageCollection
 ^^^^^^^^^^^^^^^^^^
@@ -219,27 +219,27 @@ ee.ImageCollection
 Data manipulation
 #################
 
-- :py:meth:`ee.ImageCollection.geetools.maskClouds <geetools.ImageCollection.ImageCollection.maskClouds>`: :docstring:`geetools.ImageCollection.maskClouds`
-- :py:meth:`ee.ImageCollection.geetools.closest <geetools.ImageCollection.ImageCollection.closest>`: :docstring:`geetools.ImageCollection.closest`
-- :py:meth:`ee.ImageCollection.geetools.scaleAndOffset <geetools.ImageCollection.ImageCollection.scaleAndOffset>`: :docstring:`geetools.ImageCollection.scaleAndOffset`
-- :py:meth:`ee.ImageCollection.geetools.preprocess <geetools.ImageCollection.ImageCollection.preprocess>`: :docstring:`geetools.ImageCollection.preprocess`
-- :py:meth:`ee.ImageCollection.geetools.panSharpen <geetools.ImageCollection.ImageCollection.panSharpen>`: :docstring:`geetools.ImageCollection.panSharpen`
-- :py:meth:`ee.ImageCollection.geetools.tasseledCap <geetools.ImageCollection.ImageCollection.tasseledCap>`: :docstring:`geetools.ImageCollection.tasseledCap`
-- :py:meth:`ee.ImageCollection.geetools.append <geetools.ImageCollection.ImageCollection.append>`: :docstring:`geetools.ImageCollection.append`
-- :py:meth:`ee.ImageCollection.geetools.outliers <geetools.ImageCollection.ImageCollection.outliers>`: :docstring:`geetools.ImageCollection.outliers`
+- :py:meth:`ee.ImageCollection.geetools.maskClouds <geetools.ImageCollection.ImageCollectionAccessor.maskClouds>`: :docstring:`geetools.ImageCollectionAccessor.maskClouds`
+- :py:meth:`ee.ImageCollection.geetools.closest <geetools.ImageCollection.ImageCollectionAccessor.closest>`: :docstring:`geetools.ImageCollectionAccessor.closest`
+- :py:meth:`ee.ImageCollection.geetools.scaleAndOffset <geetools.ImageCollection.ImageCollectionAccessor.scaleAndOffset>`: :docstring:`geetools.ImageCollectionAccessor.scaleAndOffset`
+- :py:meth:`ee.ImageCollection.geetools.preprocess <geetools.ImageCollection.ImageCollectionAccessor.preprocess>`: :docstring:`geetools.ImageCollectionAccessor.preprocess`
+- :py:meth:`ee.ImageCollection.geetools.panSharpen <geetools.ImageCollection.ImageCollectionAccessor.panSharpen>`: :docstring:`geetools.ImageCollectionAccessor.panSharpen`
+- :py:meth:`ee.ImageCollection.geetools.tasseledCap <geetools.ImageCollection.ImageCollectionAccessor.tasseledCap>`: :docstring:`geetools.ImageCollectionAccessor.tasseledCap`
+- :py:meth:`ee.ImageCollection.geetools.append <geetools.ImageCollection.ImageCollectionAccessor.append>`: :docstring:`geetools.ImageCollectionAccessor.append`
+- :py:meth:`ee.ImageCollection.geetools.outliers <geetools.ImageCollection.ImageCollectionAccessor.outliers>`: :docstring:`geetools.ImageCollectionAccessor.outliers`
 
 Data extraction
 ###############
 
-- :py:meth:`ee.ImageCollection.geetools.spectralIndices <geetools.ImageCollection.ImageCollection.spectralIndices>`: :docstring:`geetools.ImageCollection.spectralIndices`
-- :py:meth:`ee.ImageCollection.geetools.getScaleParams <geetools.ImageCollection.ImageCollection.getScaleParams>`: :docstring:`geetools.ImageCollection.getScaleParams`
-- :py:meth:`ee.ImageCollection.geetools.getOffsetParams <geetools.ImageCollection.ImageCollection.getOffsetParams>`: :docstring:`geetools.ImageCollection.getOffsetParams`
-- :py:meth:`ee.ImageCollection.geetools.getDOI <geetools.ImageCollection.ImageCollection.getDOI>`: :docstring:`geetools.ImageCollection.getDOI`
-- :py:meth:`ee.ImageCollection.geetools.getCitation <geetools.ImageCollection.ImageCollection.getCitation>`: :docstring:`geetools.ImageCollection.getCitation`
-- :py:meth:`ee.ImageCollection.geetools.getSTAC <geetools.ImageCollection.ImageCollection.getSTAC>`: :docstring:`geetools.ImageCollection.getSTAC`
--  :py:meth:`ee.ImageCollection.geetools.collectionMask <geetools.ImageCollection.ImageCollection.collectionMask>`: :docstring:`geetools.ImageCollection.collectionMask`
-- :py:meth:`ee.ImageCollection.geetools.iloc <geetools.ImageCollection.ImageCollection.iloc>`: :docstring:`geetools.ImageCollection.iloc`
-- :py:meth:`ee.ImageCollection.geetools.integral <geetools.ImageCollection.ImageCollection.integral>`: :docstring:`geetools.ImageCollection.integral`
+- :py:meth:`ee.ImageCollection.geetools.spectralIndices <geetools.ImageCollection.ImageCollectionAccessor.spectralIndices>`: :docstring:`geetools.ImageCollectionAccessor.spectralIndices`
+- :py:meth:`ee.ImageCollection.geetools.getScaleParams <geetools.ImageCollection.ImageCollectionAccessor.getScaleParams>`: :docstring:`geetools.ImageCollectionAccessor.getScaleParams`
+- :py:meth:`ee.ImageCollection.geetools.getOffsetParams <geetools.ImageCollection.ImageCollectionAccessor.getOffsetParams>`: :docstring:`geetools.ImageCollectionAccessor.getOffsetParams`
+- :py:meth:`ee.ImageCollection.geetools.getDOI <geetools.ImageCollection.ImageCollectionAccessor.getDOI>`: :docstring:`geetools.ImageCollectionAccessor.getDOI`
+- :py:meth:`ee.ImageCollection.geetools.getCitation <geetools.ImageCollection.ImageCollectionAccessor.getCitation>`: :docstring:`geetools.ImageCollectionAccessor.getCitation`
+- :py:meth:`ee.ImageCollection.geetools.getSTAC <geetools.ImageCollection.ImageCollectionAccessor.getSTAC>`: :docstring:`geetools.ImageCollectionAccessor.getSTAC`
+-  :py:meth:`ee.ImageCollection.geetools.collectionMask <geetools.ImageCollection.ImageCollectionAccessor.collectionMask>`: :docstring:`geetools.ImageCollectionAccessor.collectionMask`
+- :py:meth:`ee.ImageCollection.geetools.iloc <geetools.ImageCollection.ImageCollectionAccessor.iloc>`: :docstring:`geetools.ImageCollectionAccessor.iloc`
+- :py:meth:`ee.ImageCollection.geetools.integral <geetools.ImageCollection.ImageCollectionAccessor.integral>`: :docstring:`geetools.ImageCollectionAccessor.integral`
 
 ee.Initialize
 ^^^^^^^^^^^^^
@@ -249,7 +249,7 @@ ee.Initialize
 ee.Join
 ^^^^^^^
 
-- :py:meth:`ee.Join.geetools.byProperty <geetools.Join.Join.byProperty>`: :docstring:`geetools.Join.byProperty`
+- :py:meth:`ee.Join.geetools.byProperty <geetools.Join.JoinAccessor.byProperty>`: :docstring:`geetools.JoinAccessor.byProperty`
 
 ee.List
 ^^^^^^^
@@ -257,35 +257,35 @@ ee.List
 Constructor
 ###########
 
-- :py:meth:`ee.List.geetools.sequence <geetools.List.List.sequence>`: :docstring:`geetools.List.sequence`
-- :py:meth:`ee.List.geetools.zip <geetools.List.List.zip>`: :docstring:`geetools.List.zip`
+- :py:meth:`ee.List.geetools.sequence <geetools.List.ListAccessor.sequence>`: :docstring:`geetools.ListAccessor.sequence`
+- :py:meth:`ee.List.geetools.zip <geetools.List.ListAccessor.zip>`: :docstring:`geetools.ListAccessor.zip`
 
 operations
 ##########
 
-- :py:meth:`ee.List.geetools.product <geetools.List.List.product>`: :docstring:`geetools.List.product`
-- :py:meth:`ee.List.geetools.complement <geetools.List.List.complement>`: :docstring:`geetools.List.complement`
-- :py:meth:`ee.List.geetools.intersection <geetools.List.List.intersection>`: :docstring:`geetools.List.intersection`
-- :py:meth:`ee.List.geetools.union <geetools.List.List.union>`: :docstring:`geetools.List.union`
-- :py:meth:`ee.List.geetools.delete <geetools.List.List.delete>`: :docstring:`geetools.List.delete`
-- :py:meth:`ee.List.geetools.replaceMany <geetools.List.List.replaceMany>`: :docstring:`geetools.List.replaceMany`
+- :py:meth:`ee.List.geetools.product <geetools.List.ListAccessor.product>`: :docstring:`geetools.ListAccessor.product`
+- :py:meth:`ee.List.geetools.complement <geetools.List.ListAccessor.complement>`: :docstring:`geetools.ListAccessor.complement`
+- :py:meth:`ee.List.geetools.intersection <geetools.List.ListAccessor.intersection>`: :docstring:`geetools.ListAccessor.intersection`
+- :py:meth:`ee.List.geetools.union <geetools.List.ListAccessor.union>`: :docstring:`geetools.ListAccessor.union`
+- :py:meth:`ee.List.geetools.delete <geetools.List.ListAccessor.delete>`: :docstring:`geetools.ListAccessor.delete`
+- :py:meth:`ee.List.geetools.replaceMany <geetools.List.ListAccessor.replaceMany>`: :docstring:`geetools.ListAccessor.replaceMany`
 
 Converter
 #########
 
-- :py:meth:`ee.List.geetools.join <geetools.List.List.join>`: :docstring:`geetools.List.join`
-- :py:meth:`ee.List.geetools.toStrings <geetools.List.List.toStrings>`: :docstring:`geetools.List.toStrings`
+- :py:meth:`ee.List.geetools.join <geetools.List.ListAccessor.join>`: :docstring:`geetools.ListAccessor.join`
+- :py:meth:`ee.List.geetools.toStrings <geetools.List.ListAccessor.toStrings>`: :docstring:`geetools.ListAccessor.toStrings`
 
 ee.Number
 ^^^^^^^^^
 
-- :py:meth:`ee.Number.geetools.truncate <geetools.Number.Number.truncate>`: :docstring:`geetools.Number.truncate`
+- :py:meth:`ee.Number.geetools.truncate <geetools.Number.NumberAccessor.truncate>`: :docstring:`geetools.NumberAccessor.truncate`
 
 ee.String
 ^^^^^^^^^
 
-- :py:meth:`ee.String.geetools.eq <geetools.String.String.eq>`: :docstring:`geetools.String.eq`
-- :py:meth:`ee.String.geetools.format <geetools.String.String.format>`: :docstring:`geetools.String.format`
+- :py:meth:`ee.String.geetools.eq <geetools.String.StringAccessor.eq>`: :docstring:`geetools.StringAccessor.eq`
+- :py:meth:`ee.String.geetools.format <geetools.String.StringAccessor.format>`: :docstring:`geetools.StringAccessor.format`
 
 Added classes
 -------------
@@ -295,13 +295,13 @@ ee.Float
 
 .. note::
 
-    This object does not exist in the original API. It is a custom Placeholder Float class to be used in the :py:meth:`ee.ComputedObject.isInstance <geetools.ComputedObject.isInstance>` method.
+    This object does not exist in the original API. It is a custom Placeholder Float class to be used in the :py:meth:`ee.ComputedObject.isInstance <geetools.ComputedObjectAccessor.isInstance>` method.
 
 ee.Integer
 ^^^^^^^^^^
 
 .. note::
 
-    This object does not exist in the original API. It is a custom Placeholder Float class to be used in the :py:meth:`ee.ComputedObject.isInstance <geetools.ComputedObject.isInstance>` method.
+    This object does not exist in the original API. It is a custom Placeholder Float class to be used in the :py:meth:`ee.ComputedObject.isInstance <geetools.ComputedObjectAccessor.isInstance>` method.
 
 

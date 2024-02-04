@@ -7,7 +7,7 @@
 
     .. code-block:: python
 
-        from geetools.Array import Array
+        from geetools.Array import ArrayAccessor
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from geetools.types import ee_int, ee_number
 
 
 @register_class_accessor(ee.Array, "geetools")
-class Array:
+class ArrayAccessor:
     """Toolbox for the ``ee.Array`` class."""
 
     def __init__(self, obj: ee.Array):

@@ -11,7 +11,7 @@ EE_EPOCH = datetime(1970, 1, 1, 0, 0, 0)
 
 
 @register_class_accessor(ee.Date, "geetools")
-class Date:
+class DateAccessor:
     """Toolbox for the ``ee.Date`` class."""
 
     def __init__(self, obj: ee.Date):

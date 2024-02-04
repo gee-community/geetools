@@ -8,7 +8,7 @@ from geetools.types import ee_str
 
 
 @register_class_accessor(ee.Join, "geetools")
-class Join:
+class JoinAccessor:
     """Toolbox for the ``ee.Join`` class."""
 
     def __init__(self, obj: ee.join):

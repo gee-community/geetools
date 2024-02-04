@@ -8,7 +8,7 @@ from geetools.types import ee_int
 
 
 @register_class_accessor(ee.DateRange, "geetools")
-class DateRange:
+class DateRangeAccessor:
     """Toolbox for the ``ee.DateRange`` class."""
 
     def __init__(self, obj: ee.DateRange):

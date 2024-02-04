@@ -8,7 +8,7 @@ from geetools.types import ee_list
 
 
 @register_class_accessor(ee.Dictionary, "geetools")
-class Dictionary:
+class DictionaryAccessor:
     """Toolbox for the ``ee.Dictionary`` class."""
 
     def __init__(self, obj: ee.Dictionary):

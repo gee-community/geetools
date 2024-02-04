@@ -8,7 +8,7 @@ from geetools.types import ee_int
 
 
 @register_class_accessor(ee.Number, "geetools")
-class Number:
+class NumberAccessor:
     """toolbox for the ``ee.Number`` class."""
 
     def __init__(self, obj: ee.Number):
