@@ -11,6 +11,17 @@ from geetools.accessors import _register_extention
 from geetools.types import pathlike
 
 
+# this hack is necessary for backward compatibility with Python < 3.10
+# for earlier version, staticmethod and classmethod were simply descriptors of the function
+# making it impossible to call it from outside the class scope or to decorate it.
+class _StaticMethod:
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, owner=None):
+        return self.func
+
+
 # -- types management ----------------------------------------------------------
 @_register_extention(ee.ComputedObject)
 def isInstance(self, klass: Type) -> ee.Number:
@@ -68,7 +79,7 @@ def save(self, path: pathlike) -> Path:
     return path
 
 
-@staticmethod  # type: ignore
+@_StaticMethod  # type: ignore
 @_register_extention(ee.ComputedObject)  # type: ignore
 def open(path: pathlike) -> ee.ComputedObject:
     """Open a .gee file as a ComputedObject.
