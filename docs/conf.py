@@ -8,11 +8,14 @@ https://www.sphinx-doc.org/en/master/usage/configuration.html
 # -- Path setup ----------------------------------------------------------------
 import os
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 
 import ee
-import httplib2
+
+# add . to sys to import local extensions
+sys.path.append(str(Path(".").resolve()))
 
 # -- Project information -------------------------------------------------------
 project = "geetools"
@@ -22,13 +25,15 @@ release = "1.0.0a3"
 
 # -- General configuration -----------------------------------------------------
 extensions = [
-    "sphinx_copybutton",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.autosectionlabel",
     "sphinx_design",
+    "sphinx_copybutton",
     "autoapi.extension",
     "jupyter_sphinx",
+    "_extension.docstring",
 ]
 exclude_patterns = ["**.ipynb_checkpoints"]
 
@@ -83,6 +88,9 @@ autoapi_options = [
 # -- Options for intersphinx output --------------------------------------------
 intersphinx_mapping = {}
 
+# -- options for the autolabel extension ---------------------------------------
+autosectionlabel_prefix_document = True
+
 # -- Script to authenticate to Earthengine using a token -----------------------
 def gee_configure() -> None:
     """Initialize earth engine according to the environment.
@@ -114,7 +122,7 @@ def gee_configure() -> None:
 
         # if the user is in local development the authentication should
         # already be available
-        ee.Initialize(http_transport=httplib2.Http())
+        ee.Initialize()
 
 
 gee_configure()

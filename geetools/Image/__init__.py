@@ -116,7 +116,7 @@ class Image:
         return self._obj.rename(bandNames)
 
     def rename(self, names: ee_dict) -> ee.Image:
-        """Rename the bands of the image.
+        """Rename the bands of the image based on a dictionary.
 
         It's the same function as the one from GEE but it takes a dictionary as input.
         Keys are the old names and values are the new names.
@@ -503,7 +503,7 @@ class Image:
 
     def reduceBands(
         self,
-        reducer: ee_str,
+        reducer: str,
         bands: ee_list = [],
         name: ee_str = "",
     ) -> ee.Image:
