@@ -1,16 +1,9 @@
 """Test the ComputedObject class methods."""
-import sys
 
 import ee
 import pytest
 
 import geetools
-
-
-def gte_310():
-    """Check if version of Python is >= 3.10."""
-    return True
-    return sys.version_info >= (3, 10)
 
 
 class TestIsinstance:
@@ -74,7 +67,6 @@ class TestIsinstance:
             assert geetools.tools.computedobject.isGeometry(g).getInfo() == 1
 
 
-@pytest.mark.skipif(not gte_310(), reason="requires python 3.10 or higher")
 class TestSave:
     """Test the ``save`` method."""
 
@@ -90,7 +82,6 @@ class TestSave:
             assert file.exists()
 
 
-@pytest.mark.skipif(not gte_310(), reason="requires python 3.10 or higher")
 class TestOpen:
     """Test the ``open`` method."""
 

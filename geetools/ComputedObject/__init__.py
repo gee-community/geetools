@@ -101,16 +101,6 @@ def open(path: pathlike) -> ee.ComputedObject:
     return ee.deserializer.decode(json.loads(path.read_text()))
 
 
-# before Python 3.10 @staticmethod and @classmethod were simply descriptors of the function
-# meaning that it was impossible to decorate them. I tried everything I could to find a workaround
-# but ended up removing these method for earlier version of Python
-# see the file history to watch the struggle
-# time lost: 3h
-# if sys.version_info >= (3, 10):
-#    _register_extention(ee.ComputedObject)(open)
-#    _register_extention(ee.ComputedObject)(save)
-
-
 # placeholder classes for the isInstance method --------------------------------
 @_register_extention(ee)
 class Float:
