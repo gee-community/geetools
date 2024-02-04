@@ -5,7 +5,7 @@ This page contains the steps to make a release and some helpful resources to get
 
 Create an issue and copy/paste the steps below to release a new version. Close the issue when it is done.
 
-These steps should be taken in order to create a new release![^release-refs]
+These steps should be taken in order to create a new release!
 
 .. code-block:: md
 
@@ -32,4 +32,4 @@ These steps should be taken in order to create a new release![^release-refs]
     - [ ] Hide the previous patch version build in the RDT interface if needed.
     - [ ] Celebrate, you're done!
 
-    [^release-refs]: Taken from [the release checklist](https://github.com/gee-community/gee_tools/blob/main/RELEASE.rst).
+    Taken from [the release checklist](https://github.com/gee-community/gee_tools/blob/main/RELEASE.rst).
