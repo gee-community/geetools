@@ -9,7 +9,7 @@ from geetools.accessors import register_class_accessor
 
 
 @register_class_accessor(ee.Filter, "geetools")
-class Filter:
+class FilterAccessor:
     """Toolbox for the ``ee.Filter`` class."""
 
     def __init__(self, obj: ee.Filter):

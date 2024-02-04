@@ -7,7 +7,7 @@ from geetools.accessors import register_class_accessor
 
 
 @register_class_accessor(ee.Feature, "geetools")
-class Feature:
+class FeatureAccessor:
     """Toolbox for the ``ee.Feature`` class."""
 
     def __init__(self, obj: ee.Feature):

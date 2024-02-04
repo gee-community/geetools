@@ -11,7 +11,7 @@ from geetools.types import ee_list, ee_number, number
 
 
 @register_class_accessor(ee.ImageCollection, "geetools")
-class ImageCollection:
+class ImageCollectionAccessor:
     """Toolbox for the ``ee.ImageCollection`` class."""
 
     def __init__(self, obj: ee.ImageCollection):

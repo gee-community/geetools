@@ -27,21 +27,21 @@ from .tools import string
 from .tools import imagecollection
 
 # then we extend all the other classes
-from .Date import Date
-from .DateRange import DateRange
-from .Dictionary import Dictionary
-from .Feature import Feature
-from .FeatureCollection import FeatureCollection
-from .Filter import Filter
+from .Date import DateAccessor
+from .DateRange import DateRangeAccessor
+from .Dictionary import DictionaryAccessor
+from .Feature import FeatureAccessor
+from .FeatureCollection import FeatureCollectionAccessor
+from .Filter import FilterAccessor
 from .ComputedObject import Float
-from .Geometry import Geometry
+from .Geometry import GeometryAccessor
 from .ComputedObject import Integer
-from .Image import Image
-from .Join import Join
-from .List import List
-from .Number import Number
-from .String import String
-from .ImageCollection import ImageCollection
+from .Image import ImageAccessor
+from .Join import JoinAccessor
+from .List import ListAccessor
+from .Number import NumberAccessor
+from .String import StringAccessor
+from .ImageCollection import ImageCollectionAccessor
 from .Initialize import InitializeAccessor
 from .Authenticate import AuthenticateAccessor
 

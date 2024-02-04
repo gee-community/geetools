@@ -10,7 +10,7 @@ from geetools.types import ee_int, ee_str
 
 
 @register_class_accessor(ee.FeatureCollection, "geetools")
-class FeatureCollection:
+class FeatureCollectionAccessor:
     """Toolbox for the `ee.FeatureCollection` class."""
 
     def __init__(self, obj: ee.FeatureCollection):
