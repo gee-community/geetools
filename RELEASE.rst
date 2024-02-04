@@ -7,7 +7,7 @@ Create an issue and copy/paste the steps below to release a new version. Close t
 
 These steps should be taken in order to create a new release![^release-refs]
 
-.. code_block:: md
+.. code-block:: md
 
     **Double check for quality-control**
 
