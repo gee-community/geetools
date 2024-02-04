@@ -17,6 +17,10 @@ from geetools.types import pathlike
 class _StaticMethod:
     def __init__(self, func):
         self.func = func
+        self.__name__ = func.__name__
+        self.__doc__ = func.__doc__
+        self.__module__ = func.__module__
+        self.__qualname__ = func.__qualname__
 
     def __get__(self, instance, owner=None):
         return self.func
@@ -79,8 +83,8 @@ def save(self, path: pathlike) -> Path:
     return path
 
 
-@_StaticMethod  # type: ignore
 @_register_extention(ee.ComputedObject)  # type: ignore
+@_StaticMethod  # type: ignore
 def open(path: pathlike) -> ee.ComputedObject:
     """Open a .gee file as a ComputedObject.
 
