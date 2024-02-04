@@ -33,6 +33,7 @@ extensions = [
     "sphinx_copybutton",
     "autoapi.extension",
     "jupyter_sphinx",
+    "nbsphinx",
     "_extension.docstring",
 ]
 exclude_patterns = ["**.ipynb_checkpoints"]
@@ -90,6 +91,9 @@ intersphinx_mapping = {}
 
 # -- options for the autolabel extension ---------------------------------------
 autosectionlabel_prefix_document = True
+
+# -- options for nbsphinx ------------------------------------------------------
+nbsphinx_execute = "never"
 
 # -- Script to authenticate to Earthengine using a token -----------------------
 def gee_configure() -> None:

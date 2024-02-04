@@ -27,3 +27,9 @@ The examples are regular notebook files that are interpreted by the nbsphinx lib
 To add a new example, you can use the `example template <https://github.com/gee-community/gee_tools/tree/main/docs/example/template.ipynb>`__ and replace things with your code.
 
 Then you can open a PR with the new file and it will be reviewed and merged.
+
+.. toctree::
+    :hidden:
+    :caption: Template
+
+    template
