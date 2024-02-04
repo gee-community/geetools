@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from typing import Type
 
@@ -37,6 +36,7 @@ def isInstance(self, klass: Type) -> ee.Number:
 
 
 # -- .gee files ----------------------------------------------------------------
+@_register_extention(ee.ComputedObject)  # type: ignore
 def save(self, path: pathlike) -> Path:
     """Save a ``ComputedObject`` to a .gee file.
 
@@ -69,6 +69,7 @@ def save(self, path: pathlike) -> Path:
 
 
 @staticmethod  # type: ignore
+@_register_extention(ee.ComputedObject)  # type: ignore
 def open(path: pathlike) -> ee.ComputedObject:
     """Open a .gee file as a ComputedObject.
 
@@ -105,9 +106,9 @@ def open(path: pathlike) -> ee.ComputedObject:
 # but ended up removing these method for earlier version of Python
 # see the file history to watch the struggle
 # time lost: 3h
-if sys.version_info >= (3, 10):
-    _register_extention(ee.ComputedObject)(open)
-    _register_extention(ee.ComputedObject)(save)
+# if sys.version_info >= (3, 10):
+#    _register_extention(ee.ComputedObject)(open)
+#    _register_extention(ee.ComputedObject)(save)
 
 
 # placeholder classes for the isInstance method --------------------------------

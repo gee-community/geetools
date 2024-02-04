@@ -9,6 +9,7 @@ import geetools
 
 def gte_310():
     """Check if version of Python is >= 3.10."""
+    return True
     return sys.version_info >= (3, 10)
 
 
