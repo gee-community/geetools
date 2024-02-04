@@ -139,6 +139,6 @@ class Date:
     # -- helper methods --------------------------------------------------------
     @staticmethod
     def check_unit(unit: str) -> None:
-        """Check if the unit is valid."""
+        """Check if the provided value is a valid time unit."""
         if unit not in (units := ["second", "minute", "hour", "day", "month", "year"]):
             raise ValueError(f"unit must be one of: {','.join(units)}")

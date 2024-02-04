@@ -97,12 +97,10 @@ For each pull request, the documentation is built and deployed to make it easier
 Release new version
 ^^^^^^^^^^^^^^^^^^^
 
-To release a new version, start by pushing a new bump from the local directory:
+.. danger::
 
-.. code-block::
+    Only maintainers can release new versions of **geetools**.
 
-    cz bump
+To release a new version, open an issue with the new version number e.g. ``RLS: 1.0.0``. copy/paste the instructions from the `release instructions <https://github.com/gee-community/gee_tools/blob/main/RELEASE.rst>`__ and follow the presented workflow.
 
-The commitizen-tool will detect the semantic version name based on the existing commits messages.
-
-Then push to Github. In Github design a new release using the same tag name nad the ``release.yaml`` job will send it to pipy.
+Once you are done you can close the issue and celebrate!

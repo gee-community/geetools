@@ -1,4 +1,0 @@
-Usage
-=====
-
-**geetools** usage documentation.
