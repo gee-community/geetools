@@ -5,11 +5,11 @@ from typing import Union
 
 import ee
 
-from geetools.accessors import geetools_accessor
+from geetools.accessors import register_class_accessor
 from geetools.types import ee_int, ee_str
 
 
-@geetools_accessor(ee.FeatureCollection)
+@register_class_accessor(ee.FeatureCollection, "geetools")
 class FeatureCollection:
     """Toolbox for the `ee.FeatureCollection` class."""
 

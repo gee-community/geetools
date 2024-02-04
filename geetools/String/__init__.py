@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import ee
 
-from geetools.accessors import geetools_accessor
+from geetools.accessors import register_class_accessor
 from geetools.types import ee_dict, ee_str
 
 
-@geetools_accessor(ee.String)
+@register_class_accessor(ee.String, "geetools")
 class String:
     """Toolbox for the ``ee.String`` class."""
 

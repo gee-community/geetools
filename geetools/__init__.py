@@ -33,16 +33,17 @@ from .Dictionary import Dictionary
 from .Feature import Feature
 from .FeatureCollection import FeatureCollection
 from .Filter import Filter
-from .Float import Float
+from .ComputedObject import Float
 from .Geometry import Geometry
+from .ComputedObject import Integer
 from .Image import Image
-from .Integer import Integer
 from .Join import Join
 from .List import List
 from .Number import Number
 from .String import String
-from .User import User
 from .ImageCollection import ImageCollection
+from .Initialize import InitializeAccessor
+from .Authenticate import AuthenticateAccessor
 
 # Array cannot be imported directly in geetools prior to Initialisation
 # waiting for a fix in https://github.com/gee-community/gee_tools/issues/173

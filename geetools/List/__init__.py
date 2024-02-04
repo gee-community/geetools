@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import ee
 
-from geetools.accessors import geetools_accessor
+from geetools.accessors import register_class_accessor
 from geetools.types import ee_dict, ee_int, ee_list, ee_str
 
 
-@geetools_accessor(ee.List)
+@register_class_accessor(ee.List, "geetools")
 class List:
     """Toolbox for the ``ee.List`` class."""
 

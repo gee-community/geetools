@@ -7,12 +7,12 @@ from typing import Type
 
 import ee
 
-from geetools.accessors import geetools_extend
+from geetools.accessors import _register_extention
 from geetools.types import pathlike
 
 
 # -- types management ----------------------------------------------------------
-@geetools_extend(ee.ComputedObject)
+@_register_extention(ee.ComputedObject)
 def isInstance(self, klass: Type) -> ee.Number:
     """Return 1 if the element is the passed type or 0 if not.
 
@@ -36,7 +36,7 @@ def isInstance(self, klass: Type) -> ee.Number:
 
 
 # -- .gee files ----------------------------------------------------------------
-@geetools_extend(ee.ComputedObject)
+@_register_extention(ee.ComputedObject)
 def save(self, path: pathlike) -> Path:
     """Save a ``ComputedObject`` to a .gee file.
 
@@ -68,7 +68,7 @@ def save(self, path: pathlike) -> Path:
     return path
 
 
-@geetools_extend(ee.ComputedObject)  # type: ignore
+@_register_extention(ee.ComputedObject)
 @classmethod
 def open(cls, path: pathlike) -> ee.ComputedObject:
     """Open a .gee file as a ComputedObject.
@@ -99,3 +99,30 @@ def open(cls, path: pathlike) -> ee.ComputedObject:
         raise ValueError("File must be a .gee file")
 
     return ee.deserializer.decode(json.loads(path.read_text()))
+
+
+# placeholder classes for the isInstance method --------------------------------
+@_register_extention(ee)
+class Float:
+    """Placeholder Float class to be used in the isInstance method."""
+
+    def __init__(self):
+        """Avoid initializing the class."""
+        raise NotImplementedError("This class is a placeholder, it should not be initialized")
+
+    def __name__(self):
+        """Return the class name."""
+        return "Float"
+
+
+@_register_extention(ee)
+class Integer:
+    """Placeholder Integer class to be used in the isInstance method."""
+
+    def __init__(self):
+        """Avoid initializing the class."""
+        raise NotImplementedError("This class is a placeholder, it should not be initialized")
+
+    def __name__(self):
+        """Return the class name."""
+        return "Integer"

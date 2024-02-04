@@ -1,68 +1,28 @@
-"""A User manager for Google Earth Engine Python API."""
-import json
+"""Toolbox for the ``ee.Authenticate`` function."""
+from __future__ import annotations
+
 from contextlib import suppress
 from pathlib import Path
 from shutil import move
 from tempfile import TemporaryDirectory
+from typing import Callable
 
 import ee
-from google.oauth2.credentials import Credentials
 
-from geetools.accessors import geetools_extend
+from geetools.accessors import register_function_accessor
 
 
-@geetools_extend(ee)
-class User:
-    """CRUD system to manage multiple user accounts on the same machine."""
+@register_function_accessor(ee.Authenticate, "geetools")
+class AuthenticateAccessor:
+    """Create an accessor for the ``ee.Authenticate`` function."""
 
-    @staticmethod
-    def set(name: str = "", credential_pathname: str = "") -> None:
-        """Set the current user.
-
-        Equivalent to the ``ee.initialize`` function but with a specific credential file stored in the machine.
-
-        Args:
-            name: The name of the user as saved when created. use default if not set
-            credential_pathname: The path to the folder where the credentials are stored. If not set, it uses the default path
-
-        Example:
-            .. code-block:: python
-
-                import ee
-                import geetools
-
-                geetools.User.set()
-
-                # check that GEE is connected
-                ee.Number(1).getInfo()
-        """
-        name = f"credentials{name}"
-        credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
-        credential_path = Path(credential_pathname).parent
-
-        try:
-            tokens = json.loads((credential_path / name).read_text())
-            refresh_token = tokens["refresh_token"]
-            client_id = tokens["client_id"]
-            client_secret = tokens["client_secret"]
-            credentials = Credentials(
-                None,
-                refresh_token=refresh_token,
-                token_uri=ee.oauth.TOKEN_URI,
-                client_id=client_id,
-                client_secret=client_secret,
-                scopes=ee.oauth.SCOPES,
-            )
-        except Exception:
-            raise ee.EEException(
-                "Please register this user first by using geetools.User.create first"
-            )
-
-        ee.Initialize(credentials)
+    def __init__(self, obj: Callable):
+        """Initialize the class."""
+        self._obj = obj
 
     @staticmethod
-    def create(name: str = "", credential_pathname: str = "") -> None:
-        """Create a new user.
+    def new_user(name: str = "", credential_pathname: str = "") -> None:
+        """Authenticate the user and save the credentials in a specific folder.
 
         Equivalent to ee.Authenticate but where the registered user will not be the default one (the one you get when running ee.initialize())
 
@@ -88,19 +48,21 @@ class User:
         credential_path = Path(credential_pathname).parent
 
         # the authenticate method will write the credentials in the default
-        # folder and with the default name. We to save the existing one in tmp,
+        # folder and with the default name. We have to save the existing one in tmp,
         # and then exchange places between the newly created and the existing one
         default = Path(ee.oauth.get_credentials_path())
 
         with TemporaryDirectory() as dir:
-            suppress(move(default, Path(dir) / default.name))
+            with suppress(FileNotFoundError):
+                move(default, Path(dir) / default.name)
             ee.Authenticate()
             move(default, credential_path / name)
-            suppress(move(Path(dir) / default.name, default))
+            with suppress(FileNotFoundError):
+                move(Path(dir) / default.name, default)
 
     @staticmethod
-    def delete(name: str = "", credential_pathname: str = "") -> None:
-        """Delete a user.
+    def delete_user(name: str = "", credential_pathname: str = "") -> None:
+        """Delete a user credential file.
 
         Args:
             name: The name of the user. If not set, it will delete the default user
@@ -127,7 +89,7 @@ class User:
             (credential_path / name).unlink()
 
     @staticmethod
-    def list(credential_pathname: str = "") -> list:
+    def list_user(credential_pathname: str = "") -> list:
         """return all the available users in the set folder.
 
         To reach "default" simply omit the ``name`` parameter in the User methods
@@ -152,7 +114,7 @@ class User:
         return [f.name.replace("credentials", "") or "default" for f in files]
 
     @staticmethod
-    def rename(new: str, old: str = "", credential_pathname: str = "") -> None:
+    def rename_user(new: str, old: str = "", credential_pathname: str = "") -> None:
         """Rename a user without changing the credentials.
 
         Args:

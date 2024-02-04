@@ -5,12 +5,12 @@ from datetime import datetime
 
 import ee
 
-from geetools.accessors import geetools_accessor
+from geetools.accessors import register_class_accessor
 
 EE_EPOCH = datetime(1970, 1, 1, 0, 0, 0)
 
 
-@geetools_accessor(ee.Date)
+@register_class_accessor(ee.Date, "geetools")
 class Date:
     """Toolbox for the ``ee.Date`` class."""
 

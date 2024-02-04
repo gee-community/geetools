@@ -6,11 +6,11 @@ from typing import Optional, Union
 import ee
 import ee_extra
 
-from geetools.accessors import geetools_accessor
+from geetools.accessors import register_class_accessor
 from geetools.types import ee_list, ee_number, number
 
 
-@geetools_accessor(ee.ImageCollection)
+@register_class_accessor(ee.ImageCollection, "geetools")
 class ImageCollection:
     """Toolbox for the ``ee.ImageCollection`` class."""
 

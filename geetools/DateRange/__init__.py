@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import ee
 
-from geetools.accessors import geetools_accessor
+from geetools.accessors import register_class_accessor
 from geetools.types import ee_int
 
 
-@geetools_accessor(ee.DateRange)
+@register_class_accessor(ee.DateRange, "geetools")
 class DateRange:
     """Toolbox for the ``ee.DateRange`` class."""
 

@@ -7,7 +7,7 @@ import ee
 import ee_extra
 import ee_extra.Algorithms.core
 
-from geetools.accessors import geetools_accessor
+from geetools.accessors import register_class_accessor
 from geetools.types import (
     ee_dict,
     ee_geomlike,
@@ -19,7 +19,7 @@ from geetools.types import (
 )
 
 
-@geetools_accessor(ee.Image)
+@register_class_accessor(ee.Image, "geetools")
 class Image:
     """Toolbox for the ``ee.Image`` class."""
 

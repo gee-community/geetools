@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import ee
 
-from geetools.accessors import geetools_accessor
+from geetools.accessors import register_class_accessor
 from geetools.types import ee_str
 
 
-@geetools_accessor(ee.Join)
+@register_class_accessor(ee.Join, "geetools")
 class Join:
     """Toolbox for the ``ee.Join`` class."""
 
