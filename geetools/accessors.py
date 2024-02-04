@@ -59,9 +59,9 @@ def register_function_accessor(func: Type, name: str) -> Callable:
     return decorator
 
 
-# this private method should not be exposed to end user as it perform 0 checks
-# it can overwrite existing methods/class/member
-# only used in the lib for the Computed object as the method need to be shared by every other child of the class
+# this private method should not be exposed to end user as it perform 0 checks it can overwrite
+# existing methods/class/member. Only used in the lib for the Computed object as the method need
+# to be shared by every other child of the class.
 def _register_extention(obj: Any) -> Callable:
     """Add the function to any object."""
     return lambda f: (setattr(obj, f.__name__, f) or f)  # type: ignore

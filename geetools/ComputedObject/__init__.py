@@ -36,7 +36,7 @@ def isInstance(self, klass: Type) -> ee.Number:
 
 
 # -- .gee files ----------------------------------------------------------------
-@_register_extention(ee.ComputedObject)
+@_register_extention(ee.ComputedObject)  # type: ignore
 def save(self, path: pathlike) -> Path:
     """Save a ``ComputedObject`` to a .gee file.
 
@@ -68,9 +68,9 @@ def save(self, path: pathlike) -> Path:
     return path
 
 
+@staticmethod  # type: ignore
 @_register_extention(ee.ComputedObject)  # type: ignore
-@classmethod
-def open(cls, path: pathlike) -> ee.ComputedObject:
+def open(path: pathlike) -> ee.ComputedObject:
     """Open a .gee file as a ComputedObject.
 
     Parameters:
@@ -92,7 +92,7 @@ def open(cls, path: pathlike) -> ee.ComputedObject:
             with TemporaryDirectory() as tmp:
                 file = Path(tmp) / "test.gee"
                 img.geetools.save(file)
-                obj = geetools.open(file)
+                obj = ee.Image.open(file)
                 print(obj)
     """
     if (path := Path(path)).suffix != ".gee":

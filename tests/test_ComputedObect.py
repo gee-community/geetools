@@ -1,4 +1,5 @@
 """Test the ComputedObject class methods."""
+
 import ee
 import pytest
 

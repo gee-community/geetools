@@ -33,9 +33,11 @@ from .Dictionary import DictionaryAccessor
 from .Feature import FeatureAccessor
 from .FeatureCollection import FeatureCollectionAccessor
 from .Filter import FilterAccessor
-from .ComputedObject import Float
+
+# from .ComputedObject import Float
 from .Geometry import GeometryAccessor
-from .ComputedObject import Integer
+
+# from .ComputedObject import Integer
 from .Image import ImageAccessor
 from .Join import JoinAccessor
 from .List import ListAccessor
