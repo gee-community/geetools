@@ -14,7 +14,7 @@ def toDatetime(date):
 @deprecated(version="1.0.0", reason="Epoch is the same for ee and python")
 def millisToDatetime(millis):
     """Convert from milliseconds to ``datetime.datetime``."""
-    return datetime.fromtimestamp(millis / 1000.0)
+    return datetime.utcfromtimestamp(millis / 1000.0)
 
 
 @deprecated(version="1.0.0", reason="Use ee.Date.geetools.getUnitSinceEpoch instead")

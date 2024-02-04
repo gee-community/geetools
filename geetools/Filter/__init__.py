@@ -5,10 +5,10 @@ from typing import Any
 
 import ee
 
-from geetools.accessors import geetools_accessor
+from geetools.accessors import register_class_accessor
 
 
-@geetools_accessor(ee.Filter)
+@register_class_accessor(ee.Filter, "geetools")
 class Filter:
     """Toolbox for the ``ee.Filter`` class."""
 

@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import ee
 
-from geetools.accessors import geetools_accessor
+from geetools.accessors import register_class_accessor
 
 
-@geetools_accessor(ee.Geometry)
+@register_class_accessor(ee.Geometry, "geetools")
 class Geometry:
     """Toolbox for the ``ee.Geometry`` class."""
 

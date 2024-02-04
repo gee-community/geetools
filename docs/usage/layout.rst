@@ -36,6 +36,15 @@ data manipulation
 
 - :py:meth:`ee.Array.geetools.set <geetools.Array.Array.set>`: Set the value of a cell in an array. **Manually be loaded**
 
+ee.Authenticate
+^^^^^^^^^^^^^^^
+
+- :py:meth:`ee.Authenticate.geetools.new_user <geetools.Authenticate.AuthenticateAccessor.new_user>`: :docstring:`geetools.AuthenticateAccessor.new_user`
+- :py:meth:`ee.Authenticate.geetools.delete_user <geetools.Authenticate.AuthenticateAccessor.delete_user>`: :docstring:`geetools.AuthenticateAccessor.delete_user`
+- :py:meth:`ee.Authenticate.geetools.list_user <geetools.Authenticate.AuthenticateAccessor.list_user>`: :docstring:`geetools.AuthenticateAccessor.list_user`
+- :py:meth:`ee.Authenticate.geetools.rename_user <geetools.Authenticate.AuthenticateAccessor.rename_user>`: :docstring:`geetools.AuthenticateAccessor.rename_user`
+
+
 ee.ComputedObject
 ^^^^^^^^^^^^^^^^^
 
@@ -110,13 +119,13 @@ Extra operations
 - :py:meth:`ee.Dictionary.geetools.sort <geetools.Dictionary.Dictionary.sort>`: :docstring:`geetools.Dictionary.sort`
 - :py:meth:`ee.Dictionary.geetools.getMany <geetools.Dictionary.Dictionary.getMany>`: :docstring:`geetools.Dictionary.getMany`
 
-Feature
-^^^^^^^
+ee.Feature
+^^^^^^^^^^
 
 - :py:meth:`ee.Feature.geetools.toFeatureCollection <geetools.Feature.Feature.toFeatureCollection>`: :docstring:`geetools.Feature.toFeatureCollection`
 
-FeatureCollection
-^^^^^^^^^^^^^^^^^
+ee.FeatureCollection
+^^^^^^^^^^^^^^^^^^^^
 
 Properties management
 #####################
@@ -231,6 +240,11 @@ Data extraction
 -  :py:meth:`ee.ImageCollection.geetools.collectionMask <geetools.ImageCollection.ImageCollection.collectionMask>`: :docstring:`geetools.ImageCollection.collectionMask`
 - :py:meth:`ee.ImageCollection.geetools.iloc <geetools.ImageCollection.ImageCollection.iloc>`: :docstring:`geetools.ImageCollection.iloc`
 - :py:meth:`ee.ImageCollection.geetools.integral <geetools.ImageCollection.ImageCollection.integral>`: :docstring:`geetools.ImageCollection.integral`
+
+ee.Initialize
+^^^^^^^^^^^^^
+
+- :py:meth:`ee.Initialize.geetools.from_user <geetools.Initialize.InitializeAccessor.from_user>`: :docstring:`geetools.InitializeAccessor.from_user`
 
 ee.Join
 ^^^^^^^

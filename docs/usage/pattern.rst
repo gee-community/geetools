@@ -20,13 +20,12 @@ Writing Custom Accessors
 
 To resolve this issue for more complex cases, ``geetools`` has implemented 3 decorators:
 
-- A class decorator: ``register_class_accessor()``
-- A function decorator: ``register_function_accessor()``
-- A module decorator: ``register_module_accessor()``
+- A class decorator: :py:meth:`register_class_accessor <geetools.accessors.register_class_accessor>`
+- A function decorator: :py:meth:`register_function_accessor <geetools.accessors.register_function_accessor>`
 
 They are used to add custom “accessors” on objects/functions/modules thereby “extending” the functionality of your ``ee`` object.
 
-Here’s how we use these decorators to write a custom “geetools” accessor implementing a extra method to ``ee.Number``object:
+Here’s how we use these decorators to write a custom “geetools” accessor implementing a extra method to ``ee.Number`` object:
 
 .. code-block:: python
 

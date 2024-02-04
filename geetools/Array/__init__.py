@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import ee
 
-from geetools.accessors import geetools_accessor
+from geetools.accessors import register_class_accessor
 from geetools.types import ee_int, ee_number
 
 # hack to have the generated Array class available
@@ -21,7 +21,7 @@ from geetools.types import ee_int, ee_number
 # ee.Initialize()
 
 
-@geetools_accessor(ee.Array)
+@register_class_accessor(ee.Array, "geetools")
 class Array:
     """Toolbox for the ``ee.Array`` class."""
 

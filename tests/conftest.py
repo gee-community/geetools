@@ -19,6 +19,7 @@ def pytest_configure() -> None:
     """
     # if the credentials token is asved in the environment use it
     if "EARTHENGINE_TOKEN" in os.environ:
+        print("Using the EARTHENGINE_TOKEN from the environment")
         # extract data from the key
         ee_token = json.loads(os.environ["EARTHENGINE_TOKEN"])
         username, key = ee_token["username"], ee_token["key"]
