@@ -11,7 +11,7 @@ These steps should be taken in order to create a new release!
 
     **Double check for quality-control**
 
-    - [ ] There are no [open issues with a `impact: block-release` label](https://github.com/gee-community/gee_tools/labels/impact%3A%20block-release)
+    - [ ] There are no [open issues with a `impact: block-release` label](https://github.com/gee-community/geetools/labels/impact%3A%20block-release)
 
     **Prepare the codebase for a new version**
 
@@ -21,15 +21,15 @@ These steps should be taken in order to create a new release!
 
     **Make the release**
 
-    - [ ] [Start a new GitHub release](https://github.com/gee-community/gee_tools/releases/new)
+    - [ ] [Start a new GitHub release](https://github.com/gee-community/geetools/releases/new)
     - Call the release the current version, e.g. `v0.2.0`
     - In the **`Choose a Tag:`** dropdown, type in the release name (e.g., `v0.2.0`) and click "Create new tag"
     - In the **`Target:`** dropdown, pin it to the release commit that you've just pushed.
     - Generate the automatic release notes, eventually manually specify the previous version (useful when several release candidate have been made)
     - [ ] Confirm that the release completed
-    - [The `publish` github action job](https://github.com/gee-community/gee_tools/actions/workflows/release.yaml) has completed successfully in the [actions tab](https://github.com/gee-community/gee_tools/actions).
+    - [The `publish` github action job](https://github.com/gee-community/geetools/actions/workflows/release.yaml) has completed successfully in the [actions tab](https://github.com/gee-community/geetools/actions).
     - [The PyPI version is updated](https://pypi.org/project/geetools/)
     - [ ] Hide the previous patch version build in the RDT interface if needed.
     - [ ] Celebrate, you're done!
 
-    Taken from [the release checklist](https://github.com/gee-community/gee_tools/blob/main/RELEASE.rst).
+    Taken from [the release checklist](https://github.com/gee-community/geetools/blob/main/RELEASE.rst).

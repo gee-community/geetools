@@ -12,7 +12,7 @@ None the less, as previous implementation was leading to internal issues such as
 .. warning::
 
     This documentation is gathering problems faced by the community and the solutions that were found.
-    If you have a problem that is not listed here, please open an item in our `issue tracker <https://github.com/gee-community/gee_tools/issues/new>`__.
+    If you have a problem that is not listed here, please open an item in our `issue tracker <https://github.com/gee-community/geetools/issues/new>`__.
 
 
 Import the modules

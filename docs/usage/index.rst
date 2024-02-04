@@ -17,7 +17,7 @@ Since version v1.0.0, the package has been drastically modified to adopt the ext
 
 .. important::
 
-    The refactoring process is not finished yet, we will progressively reintegrate all the methods in the new pattern and add many cool functionalities. If any of your previous is not working anymore and the :doc:`migration` page did not provided any solution, please open an issue in the `GitHub repository <https://github.com/gee-community/gee_tools/issues/new>`__.
+    The refactoring process is not finished yet, we will progressively reintegrate all the methods in the new pattern and add many cool functionalities. If any of your previous is not working anymore and the :doc:`migration` page did not provided any solution, please open an issue in the `GitHub repository <https://github.com/gee-community/geetools/issues/new>`__.
 
 .. toctree::
     :hidden:

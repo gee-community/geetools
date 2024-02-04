@@ -31,12 +31,12 @@ geetools
     :target: https://pypi.org/project/geetools/
     :alt: PyPI version
 
-.. image:: https://img.shields.io/github/actions/workflow/status/gee-community/gee_tools/unit.yaml?logo=github&logoColor=white
-    :target: https://github.com/gee-community/gee_tools/actions/workflows/unit.yaml
+.. image:: https://img.shields.io/github/actions/workflow/status/gee-community/geetools/unit.yaml?logo=github&logoColor=white
+    :target: https://github.com/gee-community/geetools/actions/workflows/unit.yaml
     :alt: build
 
-.. image:: https://img.shields.io/codecov/c/github/gee-community/gee_tools?logo=codecov&logoColor=white
-    :target: https://codecov.io/gh/gee-community/gee_tools
+.. image:: https://img.shields.io/codecov/c/github/gee-community/geetools?logo=codecov&logoColor=white
+    :target: https://codecov.io/gh/gee-community/geetools
     :alt: Test Coverage
 
 .. image:: https://img.shields.io/readthedocs/gee-tools?logo=readthedocs&logoColor=white

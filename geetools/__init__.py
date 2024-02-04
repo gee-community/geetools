@@ -48,7 +48,7 @@ from .Initialize import InitializeAccessor
 from .Authenticate import AuthenticateAccessor
 
 # Array cannot be imported directly in geetools prior to Initialisation
-# waiting for a fix in https://github.com/gee-community/gee_tools/issues/173
+# waiting for a fix in https://github.com/gee-community/geetools/issues/173
 # from .Array import Array
 
 

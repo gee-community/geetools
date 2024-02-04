@@ -45,8 +45,8 @@ Then, clone the repository locally so that you have a local copy to work on:
 
 .. code-block:: console
 
-   git clone https://github.com/<YOUR USERNAME>/gee_tools
-   cd gee_tools
+   git clone https://github.com/<YOUR USERNAME>/geetools
+   cd geetools
 
 Then install the development version of the extension:
 
@@ -101,6 +101,6 @@ Release new version
 
     Only maintainers can release new versions of **geetools**.
 
-To release a new version, open an issue with the new version number e.g. ``RLS: 1.0.0``. copy/paste the instructions from the `release instructions <https://github.com/gee-community/gee_tools/blob/main/RELEASE.rst>`__ and follow the presented workflow.
+To release a new version, open an issue with the new version number e.g. ``RLS: 1.0.0``. copy/paste the instructions from the `release instructions <https://github.com/gee-community/geetools/blob/main/RELEASE.rst>`__ and follow the presented workflow.
 
 Once you are done you can close the issue and celebrate!

@@ -51,7 +51,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/gee-community/gee_tools",
+            "url": "https://github.com/gee-community/geetools",
             "icon": "fa-brands fa-github",
         },
         {
@@ -67,7 +67,7 @@ html_theme_options = {
 }
 html_context = {
     "github_user": "gee-community",
-    "github_repo": "gee_tools",
+    "github_repo": "geetools",
     "github_version": "master",
     "doc_path": "docs",
 }

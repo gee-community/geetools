@@ -45,7 +45,7 @@ file = "README.rst"
 content-type = "text/x-rst"
 
 [project.urls]
-Homepage = "https://github.com/gee-community/gee_tools"
+Homepage = "https://github.com/gee-community/geetools"
 
 [project.optional-dependencies]
 "dev" = [
