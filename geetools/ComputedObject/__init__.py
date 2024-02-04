@@ -12,7 +12,7 @@ from geetools.types import pathlike
 
 
 # -- types management ----------------------------------------------------------
-@_register_extention(ee.ComputedObject, "isInstance")
+@_register_extention(ee.ComputedObject)
 def isInstance(self, klass: Type) -> ee.Number:
     """Return 1 if the element is the passed type or 0 if not.
 
@@ -36,7 +36,7 @@ def isInstance(self, klass: Type) -> ee.Number:
 
 
 # -- .gee files ----------------------------------------------------------------
-@_register_extention(ee.ComputedObject, "save")
+@_register_extention(ee.ComputedObject)
 def save(self, path: pathlike) -> Path:
     """Save a ``ComputedObject`` to a .gee file.
 
@@ -68,9 +68,9 @@ def save(self, path: pathlike) -> Path:
     return path
 
 
-@_register_extention(ee.ComputedObject, "open")  # type: ignore
-@classmethod
-def open(cls, path: pathlike) -> ee.ComputedObject:
+@staticmethod
+@_register_extention(ee.ComputedObject)  # type: ignore
+def open(path: pathlike) -> ee.ComputedObject:
     """Open a .gee file as a ComputedObject.
 
     Parameters:
@@ -102,7 +102,7 @@ def open(cls, path: pathlike) -> ee.ComputedObject:
 
 
 # placeholder classes for the isInstance method --------------------------------
-@_register_extention(ee, "Float")
+@_register_extention(ee)
 class Float:
     """Placeholder Float class to be used in the isInstance method."""
 
@@ -115,7 +115,7 @@ class Float:
         return "Float"
 
 
-@_register_extention(ee, "Integer")
+@_register_extention(ee)
 class Integer:
     """Placeholder Integer class to be used in the isInstance method."""
 
