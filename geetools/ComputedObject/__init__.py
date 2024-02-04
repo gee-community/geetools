@@ -68,7 +68,7 @@ def save(self, path: pathlike) -> Path:
     return path
 
 
-@_register_extention(ee.ComputedObject)
+@_register_extention(ee.ComputedObject)  # type: ignore
 @classmethod
 def open(cls, path: pathlike) -> ee.ComputedObject:
     """Open a .gee file as a ComputedObject.
