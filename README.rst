@@ -40,7 +40,7 @@ geetools
 Google Earth Engine tools
 -------------------------
 
-.. image:: https://raw.githubusercontent.com/gee-community/geetools/readme/docs/_static/logo.svg
+.. image:: https://raw.githubusercontent.com/gee-community/geetools/main/docs/_static/logo.svg
     :width: 20%
     :align: right
 
