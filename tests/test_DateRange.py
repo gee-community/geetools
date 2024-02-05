@@ -3,6 +3,7 @@ import ee
 import pytest
 
 import geetools
+from geetools.DateRange import DateRangeAccessor  # noqa: F401
 
 
 class TestSplit:
