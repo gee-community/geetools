@@ -2,6 +2,7 @@
 from typing import Optional
 
 import ee
+import numpy as np
 import pytest
 
 import geetools
@@ -18,9 +19,9 @@ def reduce(collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = Non
 class TestMaskClouds:
     """Test the ``maskClouds`` method."""
 
-    def test_mask_s2_sr(self, s2_sr, data_regression):
+    def test_mask_s2_sr(self, s2_sr, num_regression):
         masked = s2_sr.geetools.maskClouds(prob=75, buffer=300, cdi=-0.5)
-        data_regression.check(reduce(masked).getInfo())
+        num_regression.check(reduce(masked).getInfo())
 
 
 class TestClosest:
@@ -34,9 +35,9 @@ class TestClosest:
 class TestSpectralIndices:
     """Test the ``spectralIndices`` method."""
 
-    def test_spectral_indices(self, s2_sr, data_regression):
+    def test_spectral_indices(self, s2_sr, num_regression):
         indices = s2_sr.geetools.spectralIndices(["NDVI", "NDWI"])
-        data_regression.check(reduce(indices).getInfo())
+        num_regression.check(reduce(indices).getInfo())
 
 
 class TestGetScaleParams:
@@ -58,17 +59,18 @@ class TestGetOffsetParams:
 class TestScaleAndOffset:
     """Test the ``scaleAndOffset`` method."""
 
-    def test_scale_and_offset(self, s2_sr, data_regression):
+    def test_scale_and_offset(self, s2_sr, num_regression):
         scaled = s2_sr.geetools.scaleAndOffset()
-        data_regression.check(reduce(scaled).getInfo())
+        num_regression.check(reduce(scaled).getInfo())
 
 
 class TestPreprocess:
     """Test the ``preprocess`` method."""
 
-    def test_preprocess(self, s2_sr, data_regression):
+    def test_preprocess(self, s2_sr, num_regression):
         preprocessed = s2_sr.geetools.preprocess()
-        data_regression.check(reduce(preprocessed).getInfo())
+        values = {k: np.nan if v is None else v for k, v in reduce(preprocessed).getInfo().items()}
+        num_regression.check(values)
 
 
 class TestGetSTAC:
@@ -99,17 +101,17 @@ class TestGetCitation:
 class TestPanSharpen:
     """Test the ``panSharpen`` method."""
 
-    def test_pan_sharpen(self, l8_toa, data_regression):
+    def test_pan_sharpen(self, l8_toa, num_regression):
         sharpened = l8_toa.geetools.panSharpen()
-        data_regression.check(reduce(sharpened).getInfo())
+        num_regression.check(reduce(sharpened).getInfo())
 
 
 class TestTasseledCap:
     """Test the ``tasseledCap`` method."""
 
-    def test_tasseled_cap(self, s2, data_regression):
+    def test_tasseled_cap(self, s2, num_regression):
         tc = s2.geetools.tasseledCap()
-        data_regression.check(reduce(tc).getInfo())
+        num_regression.check(reduce(tc).getInfo())
 
 
 class TestAppend:
@@ -128,67 +130,80 @@ class TestAppend:
 class TestcollectionMask:
     """Test the ``collectionMask`` method."""
 
-    def test_collection_mask(self, s2_sr, amazonas, data_regression):
+    def test_collection_mask(self, s2_sr, amazonas, num_regression):
         masked = s2_sr.geetools.collectionMask()
-        data_regression.check(reduce(ee.ImageCollection([masked]), amazonas).getInfo())
+        num_regression.check(reduce(ee.ImageCollection([masked]), amazonas).getInfo())
 
-    def test_deprecated_mask(self, s2_sr, amazonas, data_regression):
+    def test_deprecated_mask(self, s2_sr, amazonas, num_regression):
         with pytest.deprecated_call():
             masked = geetools.imagecollection.allMasked(s2_sr)
-            data_regression.check(reduce(ee.ImageCollection([masked]), amazonas).getInfo())
+            num_regression.check(reduce(ee.ImageCollection([masked]), amazonas).getInfo())
 
 
 class TestIloc:
     """Test the iloc class."""
 
-    def test_iloc(self, s2_sr, data_regression):
+    def test_iloc(self, s2_sr, num_regression):
         ic = ee.ImageCollection([s2_sr.geetools.iloc(0).subtract(s2_sr.first())])
-        data_regression.check(reduce(ic).getInfo())
+        values = {k: np.nan if v is None else v for k, v in reduce(ic).getInfo().items()}
+        num_regression.check(values)
 
-    def test_deprecated_get_image(self, s2_sr, data_regression):
+    def test_deprecated_get_image(self, s2_sr, num_regression):
         with pytest.deprecated_call():
             image = geetools.imagecollection.getImage(s2_sr, 0).subtract(s2_sr.first())
             ic = ee.ImageCollection([image])
-            data_regression.check(reduce(ic).getInfo())
+            values = {k: np.nan if v is None else v for k, v in reduce(ic).getInfo().items()}
+            num_regression.check(values)
 
 
 class TestIntegral:
     """Test the ``integral`` method."""
 
-    def test_integral(self, s2_sr, amazonas, data_regression):
+    def test_integral(self, s2_sr, amazonas, num_regression):
         integral = s2_sr.limit(10).geetools.integral("B4").select("integral")
         ic = ee.ImageCollection([integral])
-        data_regression.check(reduce(ic, amazonas).getInfo())
+        values = {k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()}
+        num_regression.check(values)
 
-    def test_deprecated_integral(self, s2_sr, amazonas, data_regression):
+    def test_deprecated_integral(self, s2_sr, amazonas, num_regression):
         with pytest.deprecated_call():
             integral = geetools.imagecollection.area_under_curve(s2_sr.limit(10), "B4").select(
                 "under_curve"
             )
             ic = ee.ImageCollection([integral])
-            data_regression.check(reduce(ic, amazonas).getInfo())
+            values = {
+                k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()
+            }
+            num_regression.check(values)
 
 
 class TestOutliers:
     """Test the ``outliers`` method."""
 
-    def test_outliers(self, s2_sr, amazonas, data_regression):
+    def test_outliers(self, s2_sr, amazonas, num_regression):
         ic = s2_sr.limit(10).geetools.outliers()
-        data_regression.check(reduce(ic, amazonas).getInfo())
+        values = {k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()}
+        num_regression.check(values)
 
-    def test_outliers_with_bands(self, s2_sr, amazonas, data_regression):
+    def test_outliers_with_bands(self, s2_sr, amazonas, num_regression):
         ic = s2_sr.limit(10).geetools.outliers(bands=["B4", "B2"])
-        data_regression.check(reduce(ic, amazonas).getInfo())
+        values = {k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()}
+        num_regression.check(values)
 
-    def test_outliers_with_sigma(self, s2_sr, amazonas, data_regression):
+    def test_outliers_with_sigma(self, s2_sr, amazonas, num_regression):
         ic = s2_sr.limit(10).geetools.outliers(sigma=3)
-        data_regression.check(reduce(ic, amazonas).getInfo())
+        values = {k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()}
+        num_regression.check(values)
 
-    def test_outliers_with_drop(self, s2_sr, amazonas, data_regression):
+    def test_outliers_with_drop(self, s2_sr, amazonas, num_regression):
         ic = s2_sr.limit(10).geetools.outliers(drop=True)
-        data_regression.check(reduce(ic, amazonas).getInfo())
+        values = {k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()}
+        num_regression.check(values)
 
-    def test_deprecated_outliers(self, s2_sr, amazonas, data_regression):
+    def test_deprecated_outliers(self, s2_sr, amazonas, num_regression):
         with pytest.deprecated_call():
             ic = geetools.imagecollection.outliers(s2_sr.limit(10), ["B4"])
-            data_regression.check(reduce(ic, amazonas).getInfo())
+            values = {
+                k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()
+            }
+            num_regression.check(values)
