@@ -4,7 +4,7 @@ import os
 import ee
 
 from .. import tools
-from ..utils import makeName
+from .._deprecated_utils import makeName
 from . import utils
 
 
