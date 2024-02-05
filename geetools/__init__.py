@@ -48,8 +48,11 @@ from .Initialize import InitializeAccessor
 from .Authenticate import AuthenticateAccessor
 
 # Array cannot be imported directly in geetools prior to Initialisation
-# waiting for a fix in https://github.com/gee-community/geetools/issues/173
-# from .Array import Array
+# waiting for a fix in
+# https://github.com/gee-community/geetools/issues/173
+# https://github.com/gee-community/geetools/issues/206
+# from .Array import ArrayAccessor
+# from .DateRange import DateRangeAccessor
 
 
 __title__ = "geetools"
