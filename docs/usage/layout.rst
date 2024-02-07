@@ -218,7 +218,6 @@ Converter
 #########
 
 - :py:meth:`ee.Image.geetools.toGrid <geetools.Image.ImageAccessor.toGrid>`: :docstring:`geetools.ImageAccessor.toGrid`
-- :py:meth:`ee.Image.geetools.to_xarray <geetools.Image.ImageAccessor.to_xarray>`: :docstring:`geetools.ImageAccessor.to_xarray`
 
 ee.ImageCollection
 ^^^^^^^^^^^^^^^^^^
@@ -247,6 +246,11 @@ Data extraction
 -  :py:meth:`ee.ImageCollection.geetools.collectionMask <geetools.ImageCollection.ImageCollectionAccessor.collectionMask>`: :docstring:`geetools.ImageCollectionAccessor.collectionMask`
 - :py:meth:`ee.ImageCollection.geetools.iloc <geetools.ImageCollection.ImageCollectionAccessor.iloc>`: :docstring:`geetools.ImageCollectionAccessor.iloc`
 - :py:meth:`ee.ImageCollection.geetools.integral <geetools.ImageCollection.ImageCollectionAccessor.integral>`: :docstring:`geetools.ImageCollectionAccessor.integral`
+
+Converter
+#########
+
+- :py:meth:`ee.ImageCollection.geetools.to_xarray <geetools.ImageCollection.ImageCollectionAccessor.to_xarray>`: :docstring:`geetools.ImageCollectionAccessor.to_xarray`
 
 ee.Initialize
 ^^^^^^^^^^^^^
