@@ -17,13 +17,14 @@ class TestAddDate:
     def test_add_date(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         image = s2_sr_vatican_2020.geetools.addDate()
         values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
-        num_regression.check(values.getInfo())
+        num_regression.check({k: np.nan if v is None else v for k, v in values.getInfo().items()})
 
     def test_deprecated_make_date_band(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         with pytest.deprecated_call():
             image = geetools.tools.date.makeDateBand(s2_sr_vatican_2020)
             values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
-            num_regression.check(values.getInfo())
+            values = {k: np.nan if v is None else v for k, v in values.getInfo().items()}
+            num_regression.check(values)
 
 
 class TestAddSuffix:
@@ -65,16 +66,18 @@ class TestGetValues:
 
     def test_get_values(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         values = s2_sr_vatican_2020.geetools.getValues(vatican_buffer.centroid())
-        num_regression.check(values.getInfo())
+        num_regression.check({k: np.nan if v is None else v for k, v in values.getInfo().items()})
 
     def test_get_values_with_scale(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         values = s2_sr_vatican_2020.geetools.getValues(vatican_buffer.centroid(), scale=100)
-        num_regression.check(values.getInfo())
+        num_regression.check({k: np.nan if v is None else v for k, v in values.getInfo().items()})
 
     def test_deprecated_get_value(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         with pytest.deprecated_call():
             values = geetools.tools.image.getValue(s2_sr_vatican_2020, vatican_buffer.centroid())
-            num_regression.check(values.getInfo())
+            num_regression.check(
+                {k: np.nan if v is None else v for k, v in values.getInfo().items()}
+            )
 
 
 class TestMinScale:
@@ -542,37 +545,43 @@ class TestSpectralIndices:
         with pytest.deprecated_call():
             image = geetools.indices.compute(s2_sr_vatican_2020, "NDVI", None)
             values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-            num_regression.check(values.getInfo())
+            values = {k: np.nan if v is None else v for k, v in values.getInfo().items()}
+            num_regression.check(values)
 
     def test_deprecated_ndvi(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         with pytest.deprecated_call():
             image = geetools.indices.ndvi(s2_sr_vatican_2020, None, None)
             values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-            num_regression.check(values.getInfo())
+            values = {k: np.nan if v is None else v for k, v in values.getInfo().items()}
+            num_regression.check(values)
 
     def test_deprecated_evi(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         with pytest.deprecated_call():
             image = geetools.indices.evi(s2_sr_vatican_2020, None, None, None)
             values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-            num_regression.check(values.getInfo())
+            values = {k: np.nan if v is None else v for k, v in values.getInfo().items()}
+            num_regression.check(values)
 
     def test_deprecated_nbr2(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         with pytest.deprecated_call():
             image = geetools.indices.nbr2(s2_sr_vatican_2020, None, None)
             values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-            num_regression.check(values.getInfo())
+            values = {k: np.nan if v is None else v for k, v in values.getInfo().items()}
+            num_regression.check(values)
 
     def test_deprecated_nbr(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         with pytest.deprecated_call():
             image = geetools.indices.nbr(s2_sr_vatican_2020, None, None)
             values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-            num_regression.check(values.getInfo())
+            values = {k: np.nan if v is None else v for k, v in values.getInfo().items()}
+            num_regression.check(values)
 
     def test_deprecated_ndfi(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         with pytest.deprecated_call():
             image = geetools.indices.ndfi(s2_sr_vatican_2020, None, None, None, None, None, None)
             values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-            num_regression.check(values.getInfo())
+            values = {k: np.nan if v is None else v for k, v in values.getInfo().items()}
+            num_regression.check(values)
 
 
 class TestMaskClouds:
@@ -581,7 +590,8 @@ class TestMaskClouds:
     def test_mask_S2_clouds(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         image = s2_sr_vatican_2020.geetools.maskClouds()
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-        num_regression.check(values.getInfo())
+        values = {k: np.nan if v is None else v for k, v in values.getInfo().items()}
+        num_regression.check(values)
 
 
 class TestGetscaleParams:
