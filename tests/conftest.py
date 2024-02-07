@@ -199,3 +199,10 @@ def doy_image():
     """Return an Image instance with 2 random doy bands."""
     doy = ee.Image.random(seed=0).multiply(365).toInt().rename("doy1")
     return doy.rename("doy1").addBands(doy.rename("doy2"))
+
+
+@pytest.fixture
+def multipoint_feature():
+    """Return a ``Feature`` instance."""
+    geoms = ee.Geometry.MultiPoint([[0, 0], [0, 1]])
+    return ee.Feature(geoms).set({"foo": "bar", "bar": "foo"})

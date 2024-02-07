@@ -1,0 +1,10 @@
+geometry:
+  coordinates:
+  - - 0
+    - 0
+  - - 0
+    - 1
+  type: MultiPoint
+properties:
+  bar: foo
+type: Feature
