@@ -218,6 +218,7 @@ Converter
 #########
 
 - :py:meth:`ee.Image.geetools.toGrid <geetools.Image.ImageAccessor.toGrid>`: :docstring:`geetools.ImageAccessor.toGrid`
+- :py:meth:`ee.Image.geetools.to_xarray <geetools.Image.ImageAccessor.to_xarray>`: :docstring:`geetools.ImageAccessor.to_xarray`
 
 ee.ImageCollection
 ^^^^^^^^^^^^^^^^^^

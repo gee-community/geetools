@@ -1,10 +1,13 @@
 """Toolbox for the ``ee.ImageCollection`` class."""
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Any, Optional, Tuple, Union
 
 import ee
 import ee_extra
+import xarray
+from xarray import Dataset
+from xee.ext import REQUEST_BYTE_LIMIT
 
 from geetools.accessors import register_class_accessor
 from geetools.types import ee_list, ee_number, number
@@ -595,3 +598,69 @@ class ImageCollectionAccessor:
         ic = ic if drop is False else ic.map(maskOutliers)
 
         return ee.ImageCollection(ic)
+
+    def to_xarray(
+        self,
+        drop_variables: Optional[Tuple[str, ...]] = None,
+        io_chunks: Optional[Any] = None,
+        n_images: int = -1,
+        mask_and_scale: bool = True,
+        decode_times: bool = True,
+        decode_timedelta: Optional[bool] = None,
+        use_cftime: Optional[bool] = None,
+        concat_characters: bool = True,
+        decode_coords: bool = True,
+        crs: Optional[str] = None,
+        scale: Union[float, int, None] = None,
+        projection: Optional[ee.Projection] = None,
+        geometry: Optional[ee.Geometry] = None,
+        primary_dim_name: Optional[str] = None,
+        primary_dim_property: Optional[str] = None,
+        ee_mask_value: Optional[float] = None,
+        request_byte_limit: int = REQUEST_BYTE_LIMIT,
+    ) -> Dataset:
+        """Open an Earth Engine ImageCollection as an ``xarray.Dataset``.
+
+        Args:
+            drop_variables: Variables or bands to drop before opening.
+            io_chunks: Specifies the chunking strategy for loading data from EE. By default, this automatically calculates optional chunks based on the ``request_byte_limit``.
+            n_images: The max number of EE images in the collection to open. Useful when there are a large number of images in the collection since calculating collection size can be slow. -1 indicates that all images should be included.
+            mask_and_scale: Lazily scale (using scale_factor and add_offset) and mask (using _FillValue).
+            decode_times: Decode cf times (e.g., integers since "hours since 2000-01-01") to np.datetime64.
+            decode_timedelta: If True, decode variables and coordinates with time units in {"days", "hours", "minutes", "seconds", "milliseconds", "microseconds"} into timedelta objects. If False, leave them encoded as numbers. If None (default), assume the same value of decode_time.
+            use_cftime: Only relevant if encoded dates come from a standard calendar (e.g. "gregorian", "proleptic_gregorian", "standard", or not specified).  If None (default), attempt to decode times to ``np.datetime64[ns]`` objects; if this is not possible, decode times to ``cftime.datetime`` objects. If True, always decode times to ``cftime.datetime`` objects, regardless of whether or not they can be represented using ``np.datetime64[ns]`` objects.  If False, always decode times to ``np.datetime64[ns]`` objects; if this is not possible raise an error.
+            concat_characters: Should character arrays be concatenated to strings, for example: ["h", "e", "l", "l", "o"] -> "hello"
+            decode_coords: bool or {"coordinates", "all"}, Controls which variables are set as coordinate variables: - "coordinates" or True: Set variables referred to in the ``'coordinates'`` attribute of the datasets or individual variables as coordinate variables. - "all": Set variables referred to in  ``'grid_mapping'``, ``'bounds'`` and other attributes as coordinate variables.
+            crs: The coordinate reference system (a CRS code or WKT string). This defines the frame of reference to coalesce all variables upon opening. By default, data is opened with 'EPSG:4326'.
+            scale: The scale in the ``crs`` or ``projection``'s units of measure -- either meters or degrees. This defines the scale that all data is represented in upon opening. By default, the scale is 1° when the CRS is in degrees or 10,000 when in meters.
+            projection: Specify an ``ee.Projection`` object to define the ``scale`` and ``crs`` (or other coordinate reference system) with which to coalesce all variables upon opening. By default, the scale and reference system is set by the the ``crs`` and ``scale`` arguments.
+            geometry: Specify an ``ee.Geometry`` to define the regional bounds when opening the data. When not set, the bounds are defined by the CRS's ``area_of_use`` boundaries. If those aren't present, the bounds are derived from the geometry of the first image of the collection.
+            primary_dim_name: Override the name of the primary dimension of the output Dataset. By default, the name is 'time'.
+            primary_dim_property: Override the ``ee.Image`` property for which to derive the values of the primary dimension. By default, this is 'system:time_start'.
+            ee_mask_value: Value to mask to EE nodata values. By default, this is 'np.iinfo(np.int32).max' i.e. 2147483647.
+            request_byte_limit: the max allowed bytes to request at a time from Earth Engine. By default, it is 48MBs.
+
+        Returns:
+            An ``xarray.Dataset`` that streams in remote data from Earth Engine.
+        """
+        return xarray.open_dataset(
+            self._obj,
+            engine="ee",
+            drop_variables=drop_variables,
+            io_chunks=io_chunks,
+            n_images=n_images,
+            mask_and_scale=mask_and_scale,
+            decode_times=decode_times,
+            decode_timedelta=decode_timedelta,
+            use_cftime=use_cftime,
+            concat_characters=concat_characters,
+            decode_coords=decode_coords,
+            crs=crs,
+            scale=scale,
+            projection=projection,
+            geometry=geometry,
+            primary_dim_name=primary_dim_name,
+            primary_dim_property=primary_dim_property,
+            ee_mask_value=ee_mask_value,
+            request_byte_limit=request_byte_limit,
+        )

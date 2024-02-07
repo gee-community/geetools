@@ -207,3 +207,11 @@ class TestOutliers:
                 k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()
             }
             num_regression.check(values)
+
+
+class TestToXarray:
+    """Test the ``toXarray`` method."""
+
+    def test_to_xarray(self, s2_sr, data_regression):
+        ds = s2_sr.geetools.to_xarray()
+        data_regression.check(ds.to_dict(data=False))

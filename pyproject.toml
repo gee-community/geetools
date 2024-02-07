@@ -11,7 +11,7 @@ keywords = [
   "geospatial",
   "remote-sensing",
   "google-earth-engine",
-  "earthengine"
+  "earthengine",
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -31,6 +31,7 @@ dependencies = [
     "geopandas",
     "deprecated",
     "ee-extra",
+    "xee",
 ]
 
 [[project.authors]]
@@ -127,7 +128,7 @@ version_files = [
 ]
 
 [tool.codespell]
-skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb"
+skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb,**/*.yml"
 
 [tool.black]
 line-length = 100
