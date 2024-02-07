@@ -219,6 +219,11 @@ Converter
 
 - :py:meth:`ee.Image.geetools.toGrid <geetools.Image.ImageAccessor.toGrid>`: :docstring:`geetools.ImageAccessor.toGrid`
 
+Properties
+##########
+
+- :py:meth:`ee.Image.geetools.removeProperties <geetools.Image.ImageAccessor.removeProperties>`: :docstring:`geetools.ImageAccessor.removeProperties`
+
 ee.ImageCollection
 ^^^^^^^^^^^^^^^^^^
 

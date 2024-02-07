@@ -1179,3 +1179,26 @@ class ImageAccessor:
             buffer,
             cdi,
         )
+
+    def removeProperties(self, properties: ee_list) -> ee.Image:
+        """Remove a list of properties from an image.
+
+        Args:
+            properties: List of properties to remove from the image.
+
+        Returns:
+            Image with the specified properties removed.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                image = image.removeProperties(["system:time_start"])
+        """
+        properties = ee.List(properties)
+        proxy = self._obj.multiply(1)  # drop properties
+        return ee.Image(proxy.copyProperties(self._obj, exclude=properties))

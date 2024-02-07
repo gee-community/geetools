@@ -671,3 +671,11 @@ class TestTasseledCap:
             centroid = img.geometry().centroid().buffer(100)
             values = img.reduceRegion(ee.Reducer.mean(), centroid, 1)
             num_regression.check(values.getInfo())
+
+
+class TestRemoveProperties:
+    """Test the removeProperties method."""
+
+    def test_remove_properties(self, s2_sr_vatican_2020, data_regression):
+        image = s2_sr_vatican_2020.geetools.removeProperties(["system:time_start"])
+        data_regression.check(image.propertyNames().getInfo())
