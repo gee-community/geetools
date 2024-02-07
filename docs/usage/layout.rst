@@ -129,6 +129,7 @@ ee.Feature
 ^^^^^^^^^^
 
 - :py:meth:`ee.Feature.geetools.toFeatureCollection <geetools.Feature.FeatureAccessor.toFeatureCollection>`: :docstring:`geetools.FeatureAccessor.toFeatureCollection`
+- :py:meth:`ee.Feature.geetools.removeProperties <geetools.Feature.FeatureAccessor.removeProperties>`: :docstring:`geetools.FeatureAccessor.removeProperties`
 
 ee.FeatureCollection
 ^^^^^^^^^^^^^^^^^^^^
