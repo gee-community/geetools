@@ -28,7 +28,6 @@ from .tools import imagecollection
 
 # then we extend all the other classes
 from .Date import DateAccessor
-from .DateRange import DateRangeAccessor
 from .Dictionary import DictionaryAccessor
 from .Feature import FeatureAccessor
 from .FeatureCollection import FeatureCollectionAccessor

@@ -103,13 +103,13 @@ As reported in https://github.com/gee-community/geetools/issues/206, this object
 Extra operations
 ################
 
-- :py:meth:`ee.DateRange.geetools.getRange <geetools.DateRange.DateRangeAccessor.split>`: :docstring:`geetools.DateRangeAccessor.split`
+- :py:meth:`ee.DateRange.geetools.split <geetools.DateRange.DateRangeAccessor.split>`: Convert a ``ee.DateRange`` to a list of ``ee.DateRange``.`
 
 Helper
 ######
 
-- :py:meth:`ee.DateRange.geetools.check_unit <geetools.DateRange.DateRangeAccessor.check_unit>`: :docstring:`geetools.DateRangeAccessor.check_unit`
-- :py:meth:`ee.DateRange.geetools.unitMillis <geetools.DateRange.DateRangeAccessor.unitMillis>`: :docstring:`geetools.DateRangeAccessor.unitMillis`
+- :py:meth:`ee.DateRange.geetools.check_unit <geetools.DateRange.DateRangeAccessor.check_unit>`: Check if the unit is valid.
+- :py:meth:`ee.DateRange.geetools.unitMillis <geetools.DateRange.DateRangeAccessor.unitMillis>`: Get the milliseconds of a unit.
 
 ee.Dictionary
 ^^^^^^^^^^^^^
