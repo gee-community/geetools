@@ -21,9 +21,13 @@ geetools
     :target: https://pre-commit.com/
     :alt: pre-commit
 
-.. image:: https://img.shields.io/pypi/v/geetools?color=blue&logo=pypi&logoColor=white
+.. image:: https://img.shields.io/pypi/v/geetools?color=blue&logo=python&logoColor=white
     :target: https://pypi.org/project/geetools/
     :alt: PyPI version
+
+.. image:: https://img.shields.io/conda/vn/conda-forge/geetools?color=blue&logo=anaconda&logoColor=white
+    :target: https://anaconda.org/conda-forge/geetools
+    :alt: Conda-forge version
 
 .. image:: https://img.shields.io/github/actions/workflow/status/gee-community/geetools/unit.yaml?logo=github&logoColor=white
     :target: https://github.com/gee-community/geetools/actions/workflows/unit.yaml
