@@ -39,6 +39,20 @@ extensions = [
 exclude_patterns = ["**.ipynb_checkpoints"]
 
 # -- Options for HTML output ---------------------------------------------------
+# Define the json_url for our version switcher.
+json_url = "https://gee-tools.readthedocs.io/en/latest/_static/switcher.json"
+
+# Define the version we use for matching in the version switcher.
+version_match = os.environ.get("READTHEDOCS_VERSION")
+
+# If READTHEDOCS_VERSION doesn't exist, we're not on RTD
+# for local development and the latest dev build use the local file instead of the distant one.
+if not version_match or version_match.isdigit() or version_match == "latest":
+    version_match = "dev"
+    json_url = "_static/switcher.json"
+elif version_match == "stable":
+    version_match = f"v{release}"
+
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
 html_logo = "_static/logo.png"
@@ -64,6 +78,10 @@ html_theme_options = {
         "page-toc.html",
         "edit-this-page.html",
     ],
+    "switcher": {
+        "json_url": json_url,
+        "version_match": version_match,
+    },
 }
 html_context = {
     "github_user": "gee-community",

@@ -1,0 +1,12 @@
+[
+  {
+    "version": "dev",
+    "url": "https://gee-tools.readthedocs.io/en/latest/"
+  },
+  {
+    "name": "1.1.0 (stable)",
+    "version": "v1.1.0",
+    "url": "https://gee-tools.readthedocs.io/en/stable/",
+    "preferred": true
+  }
+]
