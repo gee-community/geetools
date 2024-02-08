@@ -82,7 +82,7 @@ html_theme_options = {
         "json_url": json_url,
         "version_match": version_match,
     },
-    "navbar_center": ["version-switcher", "navbar-nav"],
+    "navbar_start": ["navbar-logo", "version-switcher"],
 }
 html_context = {
     "github_user": "gee-community",
