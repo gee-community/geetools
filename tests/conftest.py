@@ -9,32 +9,12 @@ from pathlib import Path
 import ee
 import httplib2
 import pytest
+import pytest_gee
 
 
 def pytest_configure() -> None:
-    """Initialize earth engine according to the environment.
-
-    It will use the creddential file if the EARTHENGINE_TOKEN env variable exist.
-    Otherwise it use the simple Initialize command (asking the user to register if necessary).
-    """
-    # if the credentials token is asved in the environment use it
-    if "EARTHENGINE_TOKEN" in os.environ:
-        print("Using the EARTHENGINE_TOKEN from the environment")
-        # extract data from the key
-        ee_token = json.loads(os.environ["EARTHENGINE_TOKEN"])
-        username, key = ee_token["username"], ee_token["key"]
-
-        # Use them to init EE
-        with tempfile.TemporaryDirectory() as d:
-            file = Path(d) / "token.json"
-            file.write_text(json.dumps(key))
-            credentials = ee.ServiceAccountCredentials(username, str(file))
-            ee.Initialize(credentials)
-
-    # if the user is in local development the authentication should
-    # already be available
-    else:
-        ee.Initialize(http_transport=httplib2.Http())
+    """Initialize earth engine according to the environment."""
+    pytest_gee.init_ee_from_service_account()
 
 
 # -- fixtures that will be used throughout the tests ---------------------------
