@@ -7,7 +7,8 @@ on:
   pull_request:
 
 env:
-  EARTHENGINE_TOKEN: ${{ secrets.EARTHENGINE_TOKEN }}
+  EARTHENGINE_SERVICE_ACCOUNT: ${{ secrets.EARTHENGINE_SERVICE_ACCOUNT }}
+  EARTHENGINE_PROJECT: ${{ secrets.EARTHENGINE_PROJECT }}
 
 jobs:
   lint:
