@@ -1,13 +1,8 @@
 """Pytest session configuration."""
 
-import json
-import os
 import string
-import tempfile
-from pathlib import Path
 
 import ee
-import httplib2
 import pytest
 import pytest_gee
 
