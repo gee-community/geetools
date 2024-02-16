@@ -193,7 +193,13 @@ class Asset:
 
     def iterdir(self, recursive: bool = False) -> list:
         """Get the list of children of a folder."""
+        # sanity check on variables
         self.is_type("FOLDER", raised=True)
+
+        # no need for recursion if recursive is false we directly return the result
+        # of th API call
+        if recursive is False:
+            return ee.data.listAssets({"parent": self.as_posix()})["assets"]
 
         # recursive function to get all the assets
         def _recursive_get(folder, asset_list):
@@ -220,25 +226,20 @@ class Asset:
         ]
         to_be_created = [p for p in self.parents if p not in parent_to_ignore and not p.exists()]
 
-        # if the complete one is in the least and exist_ok is True remove it from the list and proceed
+        # if the complete one is in the list and exist_ok is True remove it from the list and proceed
         # else raise an error
-        if self in to_be_created:
-            if exist_ok is True:
-                to_be_created.remove(self)
-            else:
-                raise ValueError(f"Asset {self.as_posix()} already exists.")
+        if self not in to_be_created and exist_ok is False:
+            raise ValueError(f"Asset {self.as_posix()} already exists.")
 
         # if parents is True, create all the parts that are in the list
         # else raise an error with the 1st parent name
-        if len(to_be_created) > 0:
-            if parents is True:
-                for p in reversed(to_be_created):
-                    ee.data.createAsset({"type": "FOLDER"}, p.as_posix())
-            else:
-                raise ValueError(f'Parent Asset "{to_be_created[-1]}" does not exist.')
+        if len(to_be_created) > 1 and parents is False:
+            raise ValueError(f'Parent Asset "{to_be_created[-1]}" does not exist.')
 
-        # finally build self folder asset
-        ee.data.createAsset({"type": "FOLDER"}, self.as_posix())
+        # 2 option either there is 1 single element in the list or all the parents are included
+        # we need to walk it in reversed to make sure the parents are build first.
+        for p in reversed(to_be_created):
+            ee.data.createAsset({"type": "FOLDER"}, p.as_posix())
 
         return self
 
@@ -252,13 +253,43 @@ class Asset:
         self.is_absolute(raised=True)
         return self.parts[1]
 
-    def rename(self, new_name: str) -> Asset:
-        """Rename the asset."""
-        NotImplementedError()
+    def move(self, new_asset: Asset, overwrite: bool = False) -> Asset:
+        """Move the asset to a target destination.
 
-    def replace(self, new_asset: Asset) -> Asset:
-        """Replace the asset."""
-        NotImplementedError()
+        Move this asset (any type)to the given target, and return a new ``Asset`` instance
+        pointing to target. If target exists and overwrite is False the method will raise an
+        error. Else it will silently delete the existing file. If the asset is a folder the whole
+        content will be moved as well.
+
+        Args:
+            new_asset: The destination asset.
+            overwrite: If True, overwrite the destination asset if it exists. Defaults to False.
+
+        Returns:
+            The new asset instance.
+        """
+        # exit if the destination asset exist and overwrite is False
+        if new_asset.exists() and overwrite is False:
+            raise ValueError(f"Asset {new_asset.as_posix()} already exists.")
+
+        # make all the parents of the target asset if necessary
+        new_asset.parent.mkdir(parents=True, exist_ok=True)
+
+        # copy the asset to the new destination
+        ee.data.copyAsset(self.as_posix(), new_asset.as_posix(), allowOverwrite=True)
+
+        # if the asset is a folder, we need to move all its content recursively to the new destination
+        # we recursively call this method on each children of the asset
+        # if it's a folder it will loop again and if it's not it will reach the delete step
+        if self.is_folder():
+            for asset in self.iterdir(recursive=True):
+                loc_asset = new_asset / asset.relative_to(self)
+                asset.move(loc_asset, overwrite=overwrite)
+
+        # delete the initial asset
+        self.unlink()
+
+        return new_asset
 
     def rmdir(self, recursive: bool = False, dry_run: Optional[bool] = None) -> list:
         """Remove the asset folder.
