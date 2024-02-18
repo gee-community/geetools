@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "geetools"
-version = "1.0.1"
+version = "1.1.0"
 description = "A collection of tools to work with Google Earth Engine Python API"
 keywords = [
   "python",
   "geospatial",
   "remote-sensing",
   "google-earth-engine",
-  "earthengine"
+  "earthengine",
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -31,6 +31,7 @@ dependencies = [
     "geopandas",
     "deprecated",
     "ee-extra",
+    "xee",
 ]
 
 [[project.authors]]
@@ -119,7 +120,7 @@ branch = true
 [tool.commitizen]
 tag_format = "v$major.$minor.$patch$prerelease"
 update_changelog_on_bump = false
-version = "1.0.1"
+version = "1.1.0"
 version_files = [
     "pyproject.toml:version",
     "geetools/__init__.py:__version__",
@@ -127,7 +128,7 @@ version_files = [
 ]
 
 [tool.codespell]
-skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb"
+skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb,**/*.yml"
 
 [tool.black]
 line-length = 100

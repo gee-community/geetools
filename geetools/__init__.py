@@ -29,7 +29,6 @@ from .tools import imagecollection
 # then we extend all the other classes
 from .Asset import Asset
 from .Date import DateAccessor
-from .DateRange import DateRangeAccessor
 from .Dictionary import DictionaryAccessor
 from .Feature import FeatureAccessor
 from .FeatureCollection import FeatureCollectionAccessor
@@ -55,7 +54,7 @@ from .Authenticate import AuthenticateAccessor
 __title__ = "geetools"
 __summary__ = "A set of useful tools to use with Google Earth Engine Python" "API"
 __uri__ = "http://geetools.readthedocs.io"
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 
 __author__ = "Rodrigo E. Principe"
 __email__ = "fitoprincipe82@gmail.com"
