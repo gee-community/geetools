@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import PurePosixPath
 from typing import Optional, Union
 
 import ee
+from yamlable import YamlAble, yaml_info
 
 from geetools.accessors import _register_extention
 
@@ -13,12 +15,13 @@ pathlike = Union[str, os.PathLike]
 
 
 @_register_extention(ee)
-class Asset:
+@yaml_info(yaml_tag="ee.Asset")
+class Asset(YamlAble):
     """An Asset management class mimicking the ``pathlib.Path`` class behaviour."""
 
     def __init__(self, *args):
         """Initialize the Asset class."""
-        self._path = PurePosixPath(*args)
+        self._path = args[0]._path if isinstance(args[0], Asset) else PurePosixPath(*args)
 
     def __str__(self):
         """Transform the asset id to a string."""
@@ -30,35 +33,44 @@ class Asset:
 
     def __truediv__(self, other: pathlike) -> Asset:
         """Override the division operator to join the asset with other paths."""
-        return Asset(self._path / other)
+        return Asset(self._path / str(other))
 
     def __lt__(self, other: pathlike) -> bool:
         """Override the less than operator to compare the asset with other paths."""
-        return self._path < PurePosixPath(other)
+        return self._path < PurePosixPath(str(other))
 
     def __gt__(self, other: pathlike) -> bool:
         """Override the greater than operator to compare the asset with other paths."""
-        return self._path > PurePosixPath(other)
+        return self._path > PurePosixPath(str(other))
 
     def __le__(self, other: pathlike) -> bool:
         """Override the less than or equal operator to compare the asset with other paths."""
-        return self._path <= PurePosixPath(other)
+        return self._path <= PurePosixPath(str(other))
 
     def __ge__(self, other: pathlike) -> bool:
         """Override the greater than or equal operator to compare the asset with other paths."""
-        return self._path >= PurePosixPath(other)
+        return self._path >= PurePosixPath(str(other))
 
     def __eq__(self, other: pathlike) -> bool:
         """Override the equal operator to compare the asset with other paths."""
-        return self._path == PurePosixPath(other)
+        return self._path == PurePosixPath(str(other))
 
     def __ne__(self, other: pathlike) -> bool:
         """Override the not equal operator to compare the asset with other paths."""
-        return self._path != PurePosixPath(other)
+        return self._path != PurePosixPath(str(other))
 
     def __idiv__(self, other: pathlike) -> Asset:
         """Override the in-place division operator to join the asset with other paths."""
-        return Asset(self._path / other)
+        return Asset(self._path / str(other))
+
+    def __to_yaml_dict__(self):
+        """Write the object to a yaml safe format."""
+        return {"path": self.as_posix()}
+
+    @classmethod
+    def __from_yaml_dict__(cls, dct, yaml_tag):
+        """Read the object from a yaml safe format."""
+        return cls(dct["path"])
 
     @classmethod
     def home(cls) -> Asset:
@@ -135,7 +147,10 @@ class Asset:
     @property
     def parents(self):
         """Return the parent directories."""
-        return [Asset(p) for p in self._path.parents]
+        # we remove the files that are not assets but are parsed by parents method
+        parents = self._path.parents
+        patterns = [r"^\.$", "^projects$", r"^projects/[^/]+$", r"^projects/[^/]+/assets$"]
+        return [Asset(a) for a in parents if not any(re.match(p, str(a)) for p in patterns)]
 
     @property
     def name(self):
@@ -145,12 +160,16 @@ class Asset:
     @property
     def st_size(self):
         """Return the byte size of the file."""
+        # sanity checks
         self.exists(raised=True)
-        return ee.data.getAsset(self.as_posix())["sizeBytes"]
+        if self.is_folder():
+            raise ValueError(f"Asset {self.as_posix()} is a folder.")
+
+        return int(ee.data.getAsset(self.as_posix())["sizeBytes"])
 
     def is_relative_to(self, other: pathlike) -> bool:
         """Return True if the asset is relative to another asset."""
-        return self._path.is_relative_to(PurePosixPath(other))
+        return self._path.is_relative_to(PurePosixPath(str(other)))
 
     def joinpath(self, *args) -> Asset:
         """Join the asset with other paths."""
@@ -158,7 +177,7 @@ class Asset:
 
     def match(self, *patterns) -> bool:
         """Return True if the asset matches the patterns."""
-        return self._path.match(*patterns, case_sensitive=True)
+        return self._path.match(*patterns)
 
     def with_name(self, name: str) -> Asset:
         """Return the asset with the given name."""
@@ -201,10 +220,10 @@ class Asset:
         # sanity check on variables
         self.is_type("FOLDER", raised=True)
 
-        # no need for recursion if recursive is false we directly return the result
-        # of th API call
+        # no need for recursion if recursive is false we directly return the result of th API call
         if recursive is False:
-            return ee.data.listAssets({"parent": self.as_posix()})["assets"]
+            asset_ids = ee.data.listAssets({"parent": self.as_posix()})["assets"]
+            return [Asset(asset["id"]) for asset in asset_ids]
 
         # recursive function to get all the assets
         def _recursive_get(folder, asset_list):
@@ -212,29 +231,24 @@ class Asset:
                 asset_list.append(Asset(asset["id"]))
                 if asset["type"] == "FOLDER" and recursive is True:
                     asset_list = _recursive_get(asset["id"], asset_list)
-                return asset_list
+            return asset_list
 
         return _recursive_get(self, [])
 
     def mkdir(self, parents=False, exist_ok=False):
         """Create a folder asset."""
         # check if the root is the same as home (only place where we can write to)
-        self.is_same_project(raised=True)
         self.is_absolute(raised=True)
 
-        # list all the parts of the path that needs to be created
-        parent_to_ignore = [
-            Asset("."),  # will appear in the parent list if the path is not absolute
-            Asset("projects"),  # not an asset
-            Asset(f"projects/{ee.data._cloud_api_user_project}"),  # not an asset
-            self.home(),  # not an asset
-        ]
-        to_be_created = [p for p in self.parents if p not in parent_to_ignore and not p.exists()]
+        # list the non-existing parents of the folder to create
+        to_be_created = [p for p in self.parents if not p.exists()]
 
-        # if the complete one is in the list and exist_ok is True remove it from the list and proceed
-        # else raise an error
-        if self not in to_be_created and exist_ok is False:
+        # if the complete one is in the list and exist_ok is True remove it from the list and
+        # proceed else raise an error
+        if self.exists() and exist_ok is False:
             raise ValueError(f"Asset {self.as_posix()} already exists.")
+        elif not self.exists():
+            to_be_created.insert(0, self)
 
         # if parents is True, create all the parts that are in the list
         # else raise an error with the 1st parent name
@@ -261,7 +275,7 @@ class Asset:
     def move(self, new_asset: Asset, overwrite: bool = False) -> Asset:
         """Move the asset to a target destination.
 
-        Move this asset (any type)to the given target, and return a new ``Asset`` instance
+        Move this asset (any type) to the given target, and return a new ``Asset`` instance
         pointing to target. If target exists and overwrite is False the method will raise an
         error. Else it will silently delete the existing file. If the asset is a folder the whole
         content will be moved as well.
@@ -280,15 +294,21 @@ class Asset:
         # make all the parents of the target asset if necessary
         new_asset.parent.mkdir(parents=True, exist_ok=True)
 
-        # copy the asset to the new destination
-        ee.data.copyAsset(self.as_posix(), new_asset.as_posix(), allowOverwrite=True)
-
-        # if the asset is a folder, we need to move all its content recursively to the new destination
-        # we recursively call this method on each children of the asset
-        # if it's a folder it will loop again and if it's not it will reach the delete step
+        # copy the asset to the new destination. If the asset is a folder, we need to move all its
+        # content recursively to the new destination we recursively call this method on each
+        # children of the asset if it's a folder it will loop again and if it's not it will
+        # reach the delete step
         if self.is_folder():
-            for asset in self.iterdir(recursive=True):
-                loc_asset = new_asset / asset.relative_to(self)
+            new_asset.mkdir(parents=True, exist_ok=True)
+            for asset in self.iterdir():
+                loc_asset = new_asset / asset._path.relative_to(self._path)
+                asset.move(loc_asset, overwrite=overwrite)
+        else:
+            ee.data.copyAsset(self.as_posix(), new_asset.as_posix(), allowOverwrite=True)
+
+        if self.is_folder():
+            for asset in self.iterdir():
+                loc_asset = new_asset / asset._path.relative_to(self._path)
                 asset.move(loc_asset, overwrite=overwrite)
 
         # delete the initial asset
@@ -324,8 +344,8 @@ class Asset:
         output = []
 
         def delete(asset):
-            output.append(str(id))
-            dry_run is True or ee.data.deleteAsset(str(id))
+            output.append(str(asset))
+            dry_run is True or ee.data.deleteAsset(str(asset))
 
         if recursive is True:
 
