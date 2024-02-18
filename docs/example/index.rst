@@ -26,10 +26,18 @@ The examples are regular notebook files that are interpreted by the nbsphinx lib
 
 To add a new example, you can use the `example template <https://github.com/gee-community/geetools/tree/main/docs/example/template.ipynb>`__ and replace things with your code.
 
+Adapt the code of the 2 first buttons to your file so users can lunch it in collab and view the source in github.
+
+.. code-block:: md
+
+    [![github](https://img.shields.io/badge/-see%20sources-white?logo=github&labelColor=555)](https://github.com/gee_community/geetools/blob/main/docs/example/template.ipynb)
+    [![colab](https://img.shields.io/badge/-open%20in%20colab-blue?logo=googlecolab&labelColor=555)](https://colab.research.google.com/github/gee_community/gee_tools/blob/main/docs/example/template.ipynb)
+
+
 Then you can open a PR with the new file and it will be reviewed and merged.
 
 .. toctree::
     :hidden:
-    :caption: Template
 
     template
+    asset

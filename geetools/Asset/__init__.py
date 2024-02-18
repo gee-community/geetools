@@ -1,17 +1,15 @@
 """An Asset management class mimicking the ``pathlib.Path`` class behaviour."""
 from __future__ import annotations
 
-import os
 import re
 from pathlib import PurePosixPath
-from typing import Optional, Union
+from typing import Optional
 
 import ee
 from yamlable import YamlAble, yaml_info
 
 from geetools.accessors import _register_extention
-
-pathlike = Union[str, os.PathLike]
+from geetools.types import pathlike
 
 
 @_register_extention(ee)
@@ -74,19 +72,60 @@ class Asset(YamlAble):
 
     @classmethod
     def home(cls) -> Asset:
-        """Return the current project name."""
+        """Return the root asset folder of the used cloud project.
+
+        Returns:
+            The root asset folder.
+
+        Examples:
+            .. code-block:: python
+
+                ee.Asset.home()
+        """
         return cls(f"projects/{ee.data._cloud_api_user_project}/assets/")
 
     def as_posix(self) -> str:
-        """Return the asset id as a posix path."""
+        """Return the asset id as a posix path.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.as_posix()
+
+                # equivalent to
+                str(asset)
+        """
         return self._path.as_posix()
 
     def as_uri(self) -> str:
-        """Return the asset id as a uri."""
+        """Return the asset id as a uri.
+
+        The uri can be directly copy/pasted to your browser to see the asset in the GEE code editor.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.as_uri()
+        """
         return f"https://code.earthengine.google.com/?asset={self.as_posix()}"
 
     def is_absolute(self, raised: bool = False) -> bool:
-        """Return True if the asset is absolute."""
+        """Return True if the asset is absolute.
+
+        An absolute asset path starts with "projects" and contains "assets" at the 3rd position.
+        We don't check if the project name exist in this method, simply the sctructure of the path.
+
+        Args:
+            raised: If True, raise an exception if the asset is not absolute. Defaults to False.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.is_absolute()
+        """
         # we decided not to enforce the length of the parts to still be able to use the
         # relative_to method of the Path class. Consequence is tis little trick in case
         # the asset is not absolute at all.
@@ -104,6 +143,12 @@ class Asset(YamlAble):
 
         Args:
             raised: If True, raise an exception if the asset is not in the same project. Defaults to False.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.is_user_project()
         """
         if self.is_relative_to(self.home()._path):
             return True
@@ -115,15 +160,30 @@ class Asset(YamlAble):
             else:
                 return False
 
-    def expanduser(self):
-        """Return a new path with expanded ~ constructs."""
+    def expanduser(self) -> Asset:
+        """Return a new path with expanded ~ constructs.
+
+        If one don't want to write the path with the complete project name, the method will build it for you.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("~/assets/folder/image")
+                asset.expanduser()
+        """
         return Asset(self.as_posix().replace("~", self.home().as_posix(), 1))
 
     def exists(self, raised: bool = False) -> bool:
-        """Return True if the asset exists and/or has access to it.
+        """Return True if the asset exists and/or the user has access to it.
 
         Args:
             raised: If True, raise an exception if the asset does not exist. Defaults to False.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.exists()
         """
         try:
             ee.data.getAsset(self.as_posix())
@@ -136,17 +196,43 @@ class Asset(YamlAble):
 
     @property
     def parts(self):
-        """Return the asset id parts."""
+        """Return the asset parts of the path.
+
+        We will show all the parts from the root to the asset name.
+        Remember that projects/user/assets is not part of the asset name but is part of the path.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.parts
+        """
         return self._path.parts
 
     @property
     def parent(self):
-        """Return the parent directory."""
+        """Return the direct parent directory.
+
+        It can go further up than the root folder if the asset is not absolute.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.parent
+        """
         return Asset(self._path.parent)
 
     @property
     def parents(self):
-        """Return the parent directories."""
+        """Return the parent directories from the root folder.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.parents
+        """
         # we remove the files that are not assets but are parsed by parents method
         parents = self._path.parents
         patterns = [r"^\.$", "^projects$", r"^projects/[^/]+$", r"^projects/[^/]+/assets$"]
@@ -154,12 +240,26 @@ class Asset(YamlAble):
 
     @property
     def name(self):
-        """Return the asset name."""
+        """Return the asset name.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.name
+        """
         return self._path.name
 
     @property
     def st_size(self):
-        """Return the byte size of the file."""
+        """Return the byte size of the file.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.st_size
+        """
         # sanity checks
         self.exists(raised=True)
         if self.is_folder():
@@ -168,35 +268,102 @@ class Asset(YamlAble):
         return int(ee.data.getAsset(self.as_posix())["sizeBytes"])
 
     def is_relative_to(self, other: pathlike) -> bool:
-        """Return True if the asset is relative to another asset."""
+        """Return True if the asset is relative to another asset.
+
+        Args:
+            other: The other asset to compare with.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.is_relative_to("projects/ee-geetools/assets")
+        """
         return self._path.is_relative_to(PurePosixPath(str(other)))
 
     def joinpath(self, *args) -> Asset:
-        """Join the asset with other paths."""
+        """Join the asset with other paths.
+
+        Args:
+            *args: The other paths to join with the asset.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.joinpath("other", "path")
+        """
         return Asset(self._path.joinpath(*args))
 
     def match(self, *patterns) -> bool:
-        """Return True if the asset matches the patterns."""
+        """Return True if the asset matches the patterns.
+
+        patterns: The patterns to match with the asset name.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.match("**/image")
+        """
         return self._path.match(*patterns)
 
     def with_name(self, name: str) -> Asset:
-        """Return the asset with the given name."""
+        """Return the asset with the given name.
+
+        Args:
+            name: The new name for the asset.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.with_name("new_image")
+        """
         return Asset(self._path.with_name(name))
 
     def is_image(self) -> bool:
-        """Return ``True`` if the asset is an image."""
+        """Return ``True`` if the asset is an image.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.is_image()
+        """
         return self.is_type("IMAGE")
 
     def is_image_collection(self) -> bool:
-        """Return ``True`` if the asset is an image collection."""
+        """Return ``True`` if the asset is an image collection.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image_collection")
+                asset.is_image_collection()
+        """
         return self.is_type("IMAGE_COLLECTION")
 
     def is_feature_collection(self) -> bool:
-        """Return ``True`` if the asset is a feature collection."""
+        """Return ``True`` if the asset is a feature collection.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/feature_collection")
+                asset.is_feature_collection()
+        """
         return self.is_type("FEATURE_COLLECTION") or self.is_type("TABLE")
 
     def is_folder(self) -> bool:
-        """Return ``True`` if the asset is a folder."""
+        """Return ``True`` if the asset is a folder.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder")
+                asset.is_folder()
+        """
         return self.is_type("FOLDER")
 
     def is_type(self, asset_type: str, raised=False) -> bool:
@@ -205,6 +372,12 @@ class Asset(YamlAble):
         Args:
             asset_type: The asset type to check for.
             raised: If True, raise an exception if the asset is not corresponding to the type. Defaults to False.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.is_type("IMAGE")
         """
         self.exists(raised=True)
         if ee.data.getAsset(self.as_posix())["type"] == asset_type:
@@ -216,7 +389,17 @@ class Asset(YamlAble):
                 return False
 
     def iterdir(self, recursive: bool = False) -> list:
-        """Get the list of children of a folder."""
+        """Get the list of children of a folder.
+
+        Args:
+            recursive: If True, get all the children recursively. Defaults to False.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder")
+                asset.iterdir(recursive=True)
+        """
         # sanity check on variables
         self.is_type("FOLDER", raised=True)
 
@@ -235,8 +418,19 @@ class Asset(YamlAble):
 
         return _recursive_get(self, [])
 
-    def mkdir(self, parents=False, exist_ok=False):
-        """Create a folder asset."""
+    def mkdir(self, parents=False, exist_ok=False) -> Asset:
+        """Create a folder asset from the Asset path.
+
+        Args:
+            parents: If True, create all the parents of the folder. Defaults to False.
+            exist_ok: If True, do not raise an error if the folder already exists. Defaults to False.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder")
+                asset.mkdir(parents=True, exist_ok=True)
+        """
         # check if the root is the same as home (only place where we can write to)
         self.is_absolute(raised=True)
 
@@ -266,8 +460,13 @@ class Asset(YamlAble):
     def owner(self):
         """Return the asset owner (project name).
 
-        Note:
-            This method is only parsing the asset path and is not checking asset existence.
+        This method is only parsing the asset path and is not checking asset existence.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.owner
         """
         self.is_absolute(raised=True)
         return self.parts[1]
@@ -286,6 +485,13 @@ class Asset(YamlAble):
 
         Returns:
             The new asset instance.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                new_asset = ee.Asset("projects/ee-geetools/assets/folder/new_image")
+                asset.move(new_asset, overwrite=False)
         """
         # exit if the destination asset exist and overwrite is False
         if new_asset.exists() and overwrite is False:
@@ -329,6 +535,12 @@ class Asset(YamlAble):
 
         Returns:
             The list of deleted assets.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder")
+                asset.rmdir(recursive=True)
         """
         # raise an error if the asset is not a folder
         self.is_type("FOLDER", raised=True)
@@ -371,10 +583,24 @@ class Asset(YamlAble):
         return output
 
     def unlink(self):
-        """Remove the asset."""
+        """Remove the asset.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.unlink()
+        """
         self.exists(raised=True)
         ee.data.deleteAsset(self.as_posix())
 
     def delete(self):
-        """Alias for unlink."""
+        """Alias for unlink.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.delete()
+        """
         return self.unlink()

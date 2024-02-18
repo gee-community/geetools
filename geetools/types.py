@@ -1,6 +1,7 @@
 """A set of custom mixin types to use in the package when dealing with Python/GEE functions."""
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Union
 
@@ -14,5 +15,5 @@ ee_list = Union[list, ee.List]
 ee_dict = Union[dict, ee.Dictionary]
 ee_geomlike = Union[ee.Geometry, ee.Feature, ee.FeatureCollection]
 
-pathlike = Union[str, Path]
+pathlike = Union[os.PathLike, Path]
 number = Union[float, int]
