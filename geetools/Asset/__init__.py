@@ -26,7 +26,7 @@ class Asset:
 
     def __repr__(self):
         """Return the asset object representation as a string."""
-        return f"{type(self).__name__}({self.as_posix()})"
+        return f"ee.{type(self).__name__}('{self.as_posix()}')"
 
     def __truediv__(self, other: pathlike) -> Asset:
         """Override the division operator to join the asset with other paths."""
@@ -60,6 +60,11 @@ class Asset:
         """Override the in-place division operator to join the asset with other paths."""
         return Asset(self._path / other)
 
+    @classmethod
+    def home(cls) -> Asset:
+        """Return the current project name."""
+        return cls(f"projects/{ee.data._cloud_api_user_project}/assets/")
+
     def as_posix(self) -> str:
         """Return the asset id as a posix path."""
         return self._path.as_posix()
@@ -70,7 +75,11 @@ class Asset:
 
     def is_absolute(self, raised: bool = False) -> bool:
         """Return True if the asset is absolute."""
-        if self.parts[0] == "projects" and self.parts[2] != "assets":
+        # we decided not to enforce the length of the parts to still be able to use the
+        # relative_to method of the Path class. Consequence is tis little trick in case
+        # the asset is not absolute at all.
+        parts = dict(enumerate(self.parts))
+        if parts.get(0) == "projects" and parts.get(2) == "assets":
             return True
         else:
             if raised is True:
@@ -78,13 +87,13 @@ class Asset:
             else:
                 return False
 
-    def is_same_project(self, raised: False) -> bool:
+    def is_user_project(self, raised: bool = False) -> bool:
         """Check if the current asset is in the same project as the user.
 
         Args:
             raised: If True, raise an exception if the asset is not in the same project. Defaults to False.
         """
-        if self.is_relative_to(self.home()):
+        if self.is_relative_to(self.home()._path):
             return True
         else:
             if raised is True:
@@ -94,10 +103,9 @@ class Asset:
             else:
                 return False
 
-    @classmethod
-    def home(cls) -> Asset:
-        """Return the current project name."""
-        return cls.__init__(f"projects/{ee.data._cloud_api_user_project}/assets/")
+    def expanduser(self):
+        """Return a new path with expanded ~ constructs."""
+        return Asset(self.as_posix().replace("~", self.home().as_posix(), 1))
 
     def exists(self, raised: bool = False) -> bool:
         """Return True if the asset exists and/or has access to it.
@@ -114,10 +122,7 @@ class Asset:
             else:
                 return False
 
-    def expanduser(self):
-        """Return a new path with expanded ~ constructs."""
-        return Asset(self.as_posix().replace("~", self.home().as_posix(), 1))
-
+    @property
     def parts(self):
         """Return the asset id parts."""
         return self._path.parts
