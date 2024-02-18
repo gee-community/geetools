@@ -49,11 +49,11 @@ class Asset(YamlAble):
         """Override the greater than or equal operator to compare the asset with other paths."""
         return self._path >= PurePosixPath(str(other))
 
-    def __eq__(self, other: pathlike) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Override the equal operator to compare the asset with other paths."""
         return self._path == PurePosixPath(str(other))
 
-    def __ne__(self, other: pathlike) -> bool:
+    def __ne__(self, other: object) -> bool:
         """Override the not equal operator to compare the asset with other paths."""
         return self._path != PurePosixPath(str(other))
 
