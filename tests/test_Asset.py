@@ -188,12 +188,18 @@ class TestServerMethods:
 
     def test_iterdir(self, gee_hash, gee_test_folder, data_regression):
         folder = ee.Asset(gee_test_folder) / "folder"
-        assets = [str(a).replace(gee_hash, "hash") for a in folder.iterdir()]
+        assets = [
+            str(a).replace(EARTHENGINE_PROJECT, "ee-project").replace(gee_hash, "hash")
+            for a in folder.iterdir()
+        ]
         data_regression.check(assets)
 
     def test_iterdir_recursive(self, gee_hash, gee_test_folder, data_regression):
         folder = ee.Asset(gee_test_folder) / "folder"
-        assets = [str(a).replace(gee_hash, "hash") for a in folder.iterdir(recursive=True)]
+        assets = [
+            str(a).replace(EARTHENGINE_PROJECT, "ee-project").replace(gee_hash, "hash")
+            for a in folder.iterdir(recursive=True)
+        ]
         data_regression.check(assets)
 
     def test_iterdir_nodir(self, gee_test_folder):
@@ -266,7 +272,10 @@ class TestServerMethods:
     def test_rmdir_recursive_dry_run(self, gee_hash, gee_test_folder, data_regression):
         gee_test_folder = ee.Asset(gee_test_folder)
         asset = gee_test_folder / "rmdir_folder"
-        assets = [str(a).replace(gee_hash, "hash") for a in asset.rmdir(recursive=True)]
+        assets = [
+            str(a).replace(EARTHENGINE_PROJECT, "ee-project").replace(gee_hash, "hash")
+            for a in asset.rmdir(recursive=True)
+        ]
         data_regression.check(assets)
 
     def test_rmdir_recursive(self, gee_test_folder):
