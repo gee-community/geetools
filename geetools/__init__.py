@@ -27,16 +27,13 @@ from .tools import string
 from .tools import imagecollection
 
 # then we extend all the other classes
+from .Asset import Asset
 from .Date import DateAccessor
 from .Dictionary import DictionaryAccessor
 from .Feature import FeatureAccessor
 from .FeatureCollection import FeatureCollectionAccessor
 from .Filter import FilterAccessor
-
-# from .ComputedObject import Float
 from .Geometry import GeometryAccessor
-
-# from .ComputedObject import Integer
 from .Image import ImageAccessor
 from .Join import JoinAccessor
 from .List import ListAccessor

@@ -12,6 +12,32 @@ def pytest_configure() -> None:
     pytest_gee.init_ee_from_service_account()
 
 
+@pytest.fixture(scope="session")
+def gee_folder_structure():
+    """Override the default test folder structure."""
+    point = ee.Geometry.Point([0, 0])
+    return {
+        "folder": {
+            "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
+            "subfolder": {
+                "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
+            },
+        },
+        "rmdir_folder": {
+            "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
+            "subfolder": {
+                "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
+            },
+        },
+        "move_folder": {
+            "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
+            "subfolder": {
+                "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
+            },
+        },
+    }
+
+
 # -- fixtures that will be used throughout the tests ---------------------------
 @pytest.fixture
 def amazonas() -> ee.FeatureCollection:
