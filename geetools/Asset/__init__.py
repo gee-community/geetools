@@ -379,6 +379,28 @@ class Asset(YamlAble):
         self.exists(raised=True)
         return ee.data.getAsset(self.as_posix())["type"]
 
+    def is_project(self, raised: bool = False) -> bool:
+        """Return ``True`` if the asset is a project.
+
+        As project path are not assets, we cannot check their existence. We only check the path structure.
+
+        Args:
+            raised: If True, raise an exception if the asset is not a project. Defaults to False.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets")
+                asset.is_project()
+        """
+        if self.is_absolute() and len(self.parts) == 3:
+            return True
+        else:
+            if raised is True:
+                raise ValueError(f"Asset {self.as_posix()} is not a project.")
+            else:
+                return False
+
     def is_type(self, asset_type: str, raised=False) -> bool:
         """Return ``True`` if the asset is of the specified type.
 

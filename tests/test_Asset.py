@@ -170,6 +170,12 @@ class TestServerMethods:
         assert (gee_test_folder / "folder" / "image").exists() is True
         assert (gee_test_folder / "folder" / "fake").exists() is False
 
+    def test_is_project(self):
+        assert ee.Asset(f"projects/{EARTHENGINE_PROJECT}/assets").is_project() is True
+        assert ee.Asset("projects/bar").is_project() is False
+        with pytest.raises(ValueError):
+            ee.Asset("projects/bar").is_project(raised=True)
+
     def test_is_folder(self, gee_test_folder):
         gee_test_folder = ee.Asset(gee_test_folder)
         assert (gee_test_folder / "folder").is_folder() is True
