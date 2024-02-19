@@ -46,7 +46,7 @@ class BitReader(object):
 
     @staticmethod
     def getBin(bit, nbits=None, shift=0):
-        """from https://stackoverflow.com/questions/699866/python-int-to-binary."""
+        """From https://stackoverflow.com/questions/699866/python-int-to-binary."""
         pure = bin(bit)[2:]
 
         if not nbits:
@@ -74,7 +74,7 @@ class BitReader(object):
 
     @staticmethod
     def decodeKey(key):
-        """decodes an option's key into a list."""
+        """Decodes an option's key into a list."""
         if isinstance(key, (str,)):
             bits = key.split("-")
 
@@ -101,7 +101,7 @@ class BitReader(object):
         self.options = options
 
         def allBits():
-            """get a list of all bits and check consistance."""
+            """Get a list of all bits and check consistance."""
             all_values = [x for key in options.keys() for x in self.decodeKey(key)]
             for val in all_values:
                 n = all_values.count(val)
@@ -246,7 +246,7 @@ class BitReader(object):
         return result
 
     def decode(self, value):
-        """given a value return a list with all categories."""
+        """Given a value return a list with all categories."""
         result = []
         for cat in self.all_categories:
             data = self.info[cat]
@@ -299,7 +299,7 @@ class BitReader(object):
         return ee.Image(categories.iterate(eachcat, image)).select(categories)
 
     def match(self, value, category):
-        """given a value and a category return True if the value includes.
+        """Given a value and a category return True if the value includes.
 
         that category, else False
         .

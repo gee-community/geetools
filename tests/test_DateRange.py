@@ -1,4 +1,5 @@
 """Test the ``DateRange`` class."""
+
 import ee
 import pytest
 

@@ -1,4 +1,5 @@
 """TODO missing docstring."""
+
 import os
 
 import ee
@@ -85,7 +86,7 @@ def toAsset(
     region=None,
     create=True,
     verbose=False,
-    **kwargs
+    **kwargs,
 ):
     """This function can create folders and ImageCollections on the fly.
 
@@ -163,7 +164,7 @@ def toDriveByFeature(
     scale=1000,
     dataType="float",
     verbose=False,
-    **kwargs
+    **kwargs,
 ):
     """Export an image clipped by features (Polygons). You can use the.
 
@@ -219,7 +220,7 @@ def toDriveByFeature(
                 fileNamePrefix=n,
                 region=region,
                 scale=scale,
-                **kwargs
+                **kwargs,
             )
 
             task.start()

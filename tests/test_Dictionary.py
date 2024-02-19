@@ -1,4 +1,5 @@
 """Test the Dictionary class methods."""
+
 import ee
 import pytest
 

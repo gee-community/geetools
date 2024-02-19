@@ -115,6 +115,7 @@ autosectionlabel_prefix_document = True
 # -- options for nbsphinx ------------------------------------------------------
 nbsphinx_execute = "never"
 
+
 # -- Script to authenticate to Earthengine using a token -----------------------
 def gee_configure() -> None:
     """Initialize earth engine according to the environment.

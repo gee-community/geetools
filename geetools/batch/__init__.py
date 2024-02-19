@@ -1,4 +1,5 @@
 """Missing docstring."""
+
 import ee
 
 from . import featurecollection, imagecollection

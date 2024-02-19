@@ -1,4 +1,5 @@
 """Legacy array methods."""
+
 import ee
 from deprecated.sphinx import deprecated
 

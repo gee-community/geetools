@@ -1,4 +1,5 @@
 """test the Number class methods."""
+
 import pytest
 
 import geetools

@@ -1,4 +1,5 @@
 """Module for classification tools."""
+
 import ee
 
 

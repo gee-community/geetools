@@ -1,4 +1,5 @@
 """EE Element. Common methods between Feature and Image."""
+
 from deprecated.sphinx import deprecated
 
 

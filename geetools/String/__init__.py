@@ -1,4 +1,5 @@
 """Extra methods for the ``ee.String`` class."""
+
 from __future__ import annotations
 
 import ee

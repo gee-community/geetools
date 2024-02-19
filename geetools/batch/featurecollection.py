@@ -1,4 +1,5 @@
 """TODO missing docstring."""
+
 import csv
 import json
 
@@ -350,7 +351,7 @@ def _toDriveShapefile(
     selectors=None,
     types=None,
     verbose=True,
-    **kwargs
+    **kwargs,
 ):
     """Export a FeatureCollection to a SHP in Google Drive. The advantage of.
 
@@ -387,7 +388,7 @@ def _toDriveShapefileGeomCol(
     selectors=None,
     types=None,
     verbose=True,
-    **kwargs
+    **kwargs,
 ):
     """Export a FeatureCollection to a SHP in Google Drive. The advantage of.
 
@@ -422,7 +423,7 @@ def toDriveShapefile(
     selectors=None,
     types=None,
     verbose=True,
-    **kwargs
+    **kwargs,
 ):
     """Export a FeatureCollection to a SHP in Google Drive. The advantage of.
 

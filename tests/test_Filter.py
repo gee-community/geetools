@@ -1,4 +1,5 @@
 """Test the Filter class methods."""
+
 import ee
 import pytest
 

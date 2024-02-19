@@ -1,4 +1,5 @@
 """Legacy tools for ``ee.Date``."""
+
 from datetime import datetime
 
 import ee

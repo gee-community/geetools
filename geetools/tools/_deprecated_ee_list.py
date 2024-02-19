@@ -1,4 +1,5 @@
 """Legacy tools for the ee.List class."""
+
 import ee
 from deprecated.sphinx import deprecated
 

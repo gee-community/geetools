@@ -1,4 +1,5 @@
 """Legacy ``ee.Feature`` methods."""
+
 from deprecated.sphinx import deprecated
 
 

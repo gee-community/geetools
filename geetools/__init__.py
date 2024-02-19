@@ -1,4 +1,5 @@
 """A package to use with Google Earth Engine Python API."""
+
 import ee
 
 # it needs to be imported first as it's the mother class

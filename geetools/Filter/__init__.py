@@ -1,4 +1,5 @@
 """Extra method for the ``ee.Filter`` class."""
+
 from __future__ import annotations
 
 from typing import Any

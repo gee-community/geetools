@@ -1,4 +1,5 @@
 """Legacy method for all ``ee.ComputedObject`` subclasses."""
+
 import ee
 from deprecated.sphinx import deprecated
 

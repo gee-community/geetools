@@ -1,4 +1,5 @@
 """Legacy tools for ``ee.FeatureCollection``."""
+
 from deprecated.sphinx import deprecated
 
 

@@ -1,4 +1,5 @@
 """Legacy tools for ``ee.Geometry``."""
+
 from deprecated.sphinx import deprecated
 
 

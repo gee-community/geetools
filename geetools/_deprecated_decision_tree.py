@@ -1,4 +1,5 @@
 """Legacy method related to binary Image classification."""
+
 from deprecated.sphinx import deprecated
 
 

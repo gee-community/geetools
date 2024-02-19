@@ -1,4 +1,5 @@
 """Test the String class methods."""
+
 import pytest
 
 import geetools

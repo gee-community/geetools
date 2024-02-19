@@ -1,4 +1,5 @@
 """Legacy methods for the Dictionary class."""
+
 import ee
 from deprecated.sphinx import deprecated
 

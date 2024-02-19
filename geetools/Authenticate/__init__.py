@@ -1,4 +1,5 @@
 """Toolbox for the ``ee.Authenticate`` function."""
+
 from __future__ import annotations
 
 from contextlib import suppress
@@ -90,7 +91,7 @@ class AuthenticateAccessor:
 
     @staticmethod
     def list_user(credential_pathname: str = "") -> list:
-        """return all the available users in the set folder.
+        """Return all the available users in the set folder.
 
         To reach "default" simply omit the ``name`` parameter in the User methods
 

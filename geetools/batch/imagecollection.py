@@ -1,4 +1,5 @@
 """TODO missing docstring."""
+
 import os
 
 import ee
@@ -18,7 +19,7 @@ def toDrive(
     datePattern=None,
     extra=None,
     verbose=False,
-    **kwargs
+    **kwargs,
 ):
     """Upload all images from one collection to Google Drive. You can use.
 
@@ -85,7 +86,7 @@ def toDrive(
                 fileNamePrefix=name,
                 region=region,
                 scale=scale,
-                **kwargs
+                **kwargs,
             )
             task.start()
             if verbose:
@@ -114,7 +115,7 @@ def toCloudStorage(
     datePattern=None,
     verbose=False,
     extra=None,
-    **kwargs
+    **kwargs,
 ):
     """Upload all images from one collection to Google Cloud Storage. You can.
 
@@ -175,7 +176,7 @@ def toCloudStorage(
                 path=path,
                 region=region,
                 scale=scale,
-                **kwargs
+                **kwargs,
             )
             task.start()
             tasklist.append(task)
@@ -203,7 +204,7 @@ def toAsset(
     verbose=False,
     datePattern="yyyyMMdd",
     extra=None,
-    **kwargs
+    **kwargs,
 ):
     """Upload all images from one collection to a Earth Engine Asset.
 
@@ -297,7 +298,7 @@ def toAsset(
                 description=description,
                 region=region,
                 scale=scale,
-                **kwargs
+                **kwargs,
             )
             task.start()
 

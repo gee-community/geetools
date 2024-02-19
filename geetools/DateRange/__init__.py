@@ -10,6 +10,7 @@
 
         from geetools.DateRange import DateRangeAccessor
 """
+
 from __future__ import annotations
 
 import ee

@@ -1,4 +1,5 @@
 """Test the ``FeatureCollection`` class."""
+
 import ee
 import pytest
 

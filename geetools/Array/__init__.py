@@ -9,6 +9,7 @@
 
         from geetools.Array import ArrayAccessor
 """
+
 from __future__ import annotations
 
 import ee

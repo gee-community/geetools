@@ -1,4 +1,5 @@
 """Module holding tools for ``ee.String``."""
+
 import ee
 from deprecated.sphinx import deprecated
 

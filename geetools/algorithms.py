@@ -501,7 +501,7 @@ class Landsat(object):
             return string.format(**allArgs)
 
         def toImage(img, band, args=None):
-            """compute an expression passed in band if it's a str.
+            """Compute an expression passed in band if it's a str.
 
             formats the expression in band using format_str if necessary
             :return: one band image.
@@ -517,7 +517,7 @@ class Landsat(object):
             return ee.Image(band)
 
         def set_name(img, name, toAdd, args=None):
-            """compute the band (toAdd) with toImage.
+            """Compute the band (toAdd) with toImage.
 
             add the band to the passed image and rename it.
             """
@@ -877,7 +877,7 @@ class Landsat(object):
             return img
 
         def adjustBands(img):
-            """apply cFactor per band."""
+            """Apply cFactor per band."""
             for bandName in coefficientsByBand:
                 coefficients = coefficientsByBand[bandName]
                 img = applyCFactor(img, bandName, coefficients)

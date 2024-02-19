@@ -1,4 +1,5 @@
 """Test the ``Join`` class."""
+
 import ee
 import pytest
 

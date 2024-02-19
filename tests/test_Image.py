@@ -1,4 +1,5 @@
 """Test the ``Image`` class."""
+
 import zipfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -405,7 +406,7 @@ class TestmatchHistogram:
 
     @pytest.fixture
     def image_source(self, vatican_buffer, dates):
-        """image from the S2 copernicus program over vatican city."""
+        """Image from the S2 copernicus program over vatican city."""
         return (
             ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
             .filterBounds(vatican_buffer)
@@ -417,7 +418,7 @@ class TestmatchHistogram:
 
     @pytest.fixture
     def image_target(self, vatican_buffer, dates):
-        """image from the L8 Landsat program over vatican city."""
+        """Image from the L8 Landsat program over vatican city."""
         return (
             ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
             .filterBounds(vatican_buffer)

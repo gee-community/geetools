@@ -1,4 +1,5 @@
 """A set of custom mixin types to use in the package when dealing with Python/GEE functions."""
+
 from __future__ import annotations
 
 import os

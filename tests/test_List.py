@@ -1,4 +1,5 @@
 """Test the List class methods."""
+
 import ee
 import pytest
 

@@ -1,4 +1,5 @@
 """Test the ``Geometry`` class."""
+
 import pytest
 
 import geetools

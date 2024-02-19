@@ -1,4 +1,5 @@
 """Legacy tools for the ee.Image class."""
+
 from math import pi
 
 import ee

@@ -1,4 +1,5 @@
 """Test the ImageCollection class."""
+
 from typing import Optional
 
 import ee

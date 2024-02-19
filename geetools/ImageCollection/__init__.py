@@ -1,4 +1,5 @@
 """Toolbox for the ``ee.ImageCollection`` class."""
+
 from __future__ import annotations
 
 from typing import Any, Optional, Tuple, Union
