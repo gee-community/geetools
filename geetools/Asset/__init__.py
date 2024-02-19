@@ -366,6 +366,19 @@ class Asset(YamlAble):
         """
         return self.is_type("FOLDER")
 
+    @property
+    def type(self) -> str:
+        """Return the asset type.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.type
+        """
+        self.exists(raised=True)
+        return ee.data.getAsset(self.as_posix())["type"]
+
     def is_type(self, asset_type: str, raised=False) -> bool:
         """Return ``True`` if the asset is of the specified type.
 
@@ -380,7 +393,7 @@ class Asset(YamlAble):
                 asset.is_type("IMAGE")
         """
         self.exists(raised=True)
-        if ee.data.getAsset(self.as_posix())["type"] == asset_type:
+        if self.type == asset_type:
             return True
         else:
             if raised is True:
