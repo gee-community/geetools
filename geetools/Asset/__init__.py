@@ -366,6 +366,41 @@ class Asset(YamlAble):
         """
         return self.is_type("FOLDER")
 
+    @property
+    def type(self) -> str:
+        """Return the asset type.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.type
+        """
+        self.exists(raised=True)
+        return ee.data.getAsset(self.as_posix())["type"]
+
+    def is_project(self, raised: bool = False) -> bool:
+        """Return ``True`` if the asset is a project.
+
+        As project path are not assets, we cannot check their existence. We only check the path structure.
+
+        Args:
+            raised: If True, raise an exception if the asset is not a project. Defaults to False.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets")
+                asset.is_project()
+        """
+        if self.is_absolute() and len(self.parts) == 3:
+            return True
+        else:
+            if raised is True:
+                raise ValueError(f"Asset {self.as_posix()} is not a project.")
+            else:
+                return False
+
     def is_type(self, asset_type: str, raised=False) -> bool:
         """Return ``True`` if the asset is of the specified type.
 
@@ -380,7 +415,7 @@ class Asset(YamlAble):
                 asset.is_type("IMAGE")
         """
         self.exists(raised=True)
-        if ee.data.getAsset(self.as_posix())["type"] == asset_type:
+        if self.type == asset_type:
             return True
         else:
             if raised is True:
@@ -401,7 +436,7 @@ class Asset(YamlAble):
                 asset.iterdir(recursive=True)
         """
         # sanity check on variables
-        self.is_type("FOLDER", raised=True)
+        self.is_project() or self.is_type("FOLDER", raised=True)
 
         # no need for recursion if recursive is false we directly return the result of th API call
         if recursive is False:
