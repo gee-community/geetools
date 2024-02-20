@@ -40,7 +40,7 @@ exclude_patterns = ["**.ipynb_checkpoints"]
 
 # -- Options for HTML output ---------------------------------------------------
 # Define the json_url for our version switcher.
-json_url = "https://gee-tools.readthedocs.io/en/latest/_static/switcher.json"
+json_url = "https://geetools.readthedocs.io/en/latest/_static/switcher.json"
 
 # Define the version we use for matching in the version switcher.
 version_match = os.environ.get("READTHEDOCS_VERSION")
