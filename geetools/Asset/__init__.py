@@ -436,7 +436,7 @@ class Asset(YamlAble):
                 asset.iterdir(recursive=True)
         """
         # sanity check on variables
-        self.is_type("FOLDER", raised=True)
+        self.is_project() or self.is_type("FOLDER", raised=True)
 
         # no need for recursion if recursive is false we directly return the result of th API call
         if recursive is False:
