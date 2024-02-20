@@ -37,8 +37,8 @@ geetools
     :target: https://codecov.io/gh/gee-community/geetools
     :alt: Test Coverage
 
-.. image:: https://img.shields.io/readthedocs/gee-tools?logo=readthedocs&logoColor=white
-    :target: https://gee-tools.readthedocs.io/en/stable/
+.. image:: https://img.shields.io/readthedocs/geetools?logo=readthedocs&logoColor=white
+    :target: https://geetools.readthedocs.io/en/stable/
     :alt: Documentation Status
 
 Google Earth Engine tools
