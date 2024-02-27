@@ -6,6 +6,7 @@ from typing import Optional
 import ee
 import ee_extra
 import ee_extra.Algorithms.core
+import requests
 
 from geetools.accessors import register_class_accessor
 from geetools.types import (
@@ -976,7 +977,25 @@ class ImageAccessor:
 
             ee.ImageCollection('COPERNICUS/S2_SR').first().getSTAC()
         """
-        return ee_extra.STAC.core.getSTAC(self._obj)
+        # extract the Asset id from the imagecollection
+        assetId = self._obj.get("system:id").getInfo()
+
+        # search for the project in the GEE catalog and extract the project catalog URL
+        project = assetId.split("/")[0]
+        catalog = "https://earthengine-stac.storage.googleapis.com/catalog/catalog.json"
+        links = requests.get(catalog).json()["links"]
+        project_catalog = next((i["href"] for i in links if i.get("title") == project), None)
+        if project_catalog is None:
+            raise ValueError(f"Project {project} not found in the catalog")
+
+        # search for the collection in the project catalog and extract the collection STAC URL
+        collection = "_".join(assetId.split("/")[:-1])
+        links = requests.get(project_catalog).json()["links"]
+        collection_stac = next((i["href"] for i in links if i.get("title") == collection), None)
+        if collection_stac is None:
+            raise ValueError(f"Collection {collection} not found in the {project} catalog")
+
+        return requests.get(collection_stac).json()
 
     def getDOI(self) -> str:
         """Gets the DOI of the image, if available.
