@@ -35,6 +35,12 @@ def gee_folder_structure():
                 "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
             },
         },
+        "copy_folder": {
+            "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
+            "subfolder": {
+                "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
+            },
+        },
     }
 
 
