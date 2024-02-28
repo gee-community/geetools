@@ -83,6 +83,7 @@ html_theme_options = {
         "version_match": version_match,
     },
     "navbar_start": ["navbar-logo", "version-switcher"],
+    "show_toc_level": 2
 }
 html_context = {
     "github_user": "gee-community",
