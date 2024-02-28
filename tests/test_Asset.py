@@ -18,6 +18,10 @@ class TestConstructors:
         asset = ee.Asset.home()
         assert asset == f"projects/{EARTHENGINE_PROJECT}/assets"
 
+    def test_not_absolute(self):
+        asset = ee.Asset("/projects/foo/bar")
+        assert asset == "projects/foo/bar"
+
 
 class TestStr:
     """Test the to_string method."""

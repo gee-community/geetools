@@ -18,8 +18,13 @@ class Asset(YamlAble):
     """An Asset management class mimicking the ``pathlib.Path`` class behaviour."""
 
     def __init__(self, *args):
-        """Initialize the Asset class."""
+        """Initialize the Asset class.
+
+        .. note::
+            An asset cannot be an absolute path like in a normal filesystem and thus any trailing "/" will be removed.
+        """
         self._path = args[0]._path if isinstance(args[0], Asset) else PurePosixPath(*args)
+        self._path = PurePosixPath(str(self._path)[1:]) if self._path.is_absolute() else self._path
 
     def __str__(self):
         """Transform the asset id to a string."""
