@@ -6,15 +6,13 @@ from pathlib import PurePosixPath
 from typing import Optional
 
 import ee
-from yamlable import YamlAble, yaml_info
 
 from geetools.accessors import _register_extention
 from geetools.types import pathlike
 
 
 @_register_extention(ee)
-@yaml_info(yaml_tag="ee.Asset")
-class Asset(YamlAble):
+class Asset:
     """An Asset management class mimicking the ``pathlib.Path`` class behaviour."""
 
     def __init__(self, *args):
@@ -65,15 +63,6 @@ class Asset(YamlAble):
     def __idiv__(self, other: pathlike) -> Asset:
         """Override the in-place division operator to join the asset with other paths."""
         return Asset(self._path / str(other))
-
-    def __to_yaml_dict__(self):
-        """Write the object to a yaml safe format."""
-        return {"path": self.as_posix()}
-
-    @classmethod
-    def __from_yaml_dict__(cls, dct, yaml_tag):
-        """Read the object from a yaml safe format."""
-        return cls(dct["path"])
 
     @classmethod
     def home(cls) -> Asset:
@@ -517,7 +506,7 @@ class Asset(YamlAble):
         Move this asset (any type) to the given target, and return a new ``Asset`` instance
         pointing to target. If target exists and overwrite is False the method will raise an
         error. Else it will silently delete the existing file. If the asset is a folder the whole
-        content will be moved as well.
+        content will be moved as well. The initial content is removed after the move.
 
         Args:
             new_asset: The destination asset.
@@ -551,11 +540,6 @@ class Asset(YamlAble):
                 asset.move(loc_asset, overwrite=overwrite)
         else:
             ee.data.copyAsset(self.as_posix(), new_asset.as_posix(), allowOverwrite=True)
-
-        if self.is_folder():
-            for asset in self.iterdir():
-                loc_asset = new_asset / asset._path.relative_to(self._path)
-                asset.move(loc_asset, overwrite=overwrite)
 
         # delete the initial asset
         self.unlink()
@@ -644,3 +628,45 @@ class Asset(YamlAble):
                 asset.delete()
         """
         return self.unlink()
+
+    def copy(self, new_asset: Asset, overwrite: bool = False) -> Asset:
+        """Copy the asset to a target destination.
+
+        Copy this asset (any type) to the given target, and return a new ``Asset`` instance
+        pointing to target. If target exists and overwrite is False the method will raise an
+        error. Else it will silently delete the existing asset. If the asset is a folder the whole
+        content will be moved as well.
+
+        Args:
+            new_asset: The destination asset.
+            overwrite: If True, overwrite the destination asset if it exists. Defaults to False.
+
+        Returns:
+            The new asset instance.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                new_asset = ee.Asset("projects/ee-geetools/assets/folder/new_image")
+                asset.copy(new_asset, overwrite=False)
+        """
+        # exit if the destination asset exist and overwrite is False
+        if new_asset.exists() and overwrite is False:
+            raise ValueError(f"Asset {new_asset.as_posix()} already exists.")
+
+        # make all the parents of the target asset if necessary
+        new_asset.parent.mkdir(parents=True, exist_ok=True)
+
+        # copy the asset to the new destination. If the asset is a folder, we need to move all its
+        # content recursively to the new destination we recursively call this method on each
+        # children of the asset if it's a folder it will loop again.
+        if self.is_folder():
+            new_asset.mkdir(parents=True, exist_ok=True)
+            for asset in self.iterdir():
+                loc_asset = new_asset / asset._path.relative_to(self._path)
+                asset.copy(loc_asset, overwrite=overwrite)
+        else:
+            ee.data.copyAsset(self.as_posix(), new_asset.as_posix(), allowOverwrite=True)
+
+        return new_asset

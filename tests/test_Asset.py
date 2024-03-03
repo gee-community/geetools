@@ -294,6 +294,22 @@ class TestServerMethods:
         asset.rmdir(recursive=True, dry_run=False)
         assert asset.exists() is False
 
+    def test_copy(self, gee_test_folder):
+        gee_test_folder = ee.Asset(gee_test_folder)
+        asset = gee_test_folder / "copy_folder" / "image"
+        new_asset = gee_test_folder / "copy_folder" / "new_image"
+        asset.copy(new_asset)
+        assert asset.exists() is True
+        assert new_asset.exists() is True
+
+    def test_copy_folder(self, gee_test_folder):
+        gee_test_folder = ee.Asset(gee_test_folder)
+        asset = gee_test_folder / "copy_folder"
+        new_asset = gee_test_folder / "new_copy_folder"
+        asset.copy(new_asset)
+        assert asset.exists() is True
+        assert new_asset.exists() is True
+
     def test_move(self, gee_test_folder):
         gee_test_folder = ee.Asset(gee_test_folder)
         asset = gee_test_folder / "move_folder" / "image"
