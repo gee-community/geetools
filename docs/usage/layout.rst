@@ -262,6 +262,7 @@ ee.Initialize
 ^^^^^^^^^^^^^
 
 - :py:meth:`ee.Initialize.geetools.from_user <geetools.Initialize.InitializeAccessor.from_user>`: :docstring:`geetools.InitializeAccessor.from_user`
+- :py:meth:`ee.Initialize.geetools.project_id <geetools.Initialize.InitializeAccessor.project_id>`: :docstring:`geetools.InitializeAccessor.project_id`
 
 ee.Join
 ^^^^^^^
