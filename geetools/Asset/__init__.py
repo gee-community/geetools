@@ -316,8 +316,11 @@ class Asset:
         """
         return Asset(self._path.with_name(name))
 
-    def is_image(self) -> bool:
+    def is_image(self, raised: bool = False) -> bool:
         """Return ``True`` if the asset is an image.
+
+        Args:
+            raised: If True, raise an exception if the asset is not an image. Defaults to False.
 
         Examples:
             .. code-block:: python
@@ -325,10 +328,13 @@ class Asset:
                 asset = ee.Asset("projects/ee-geetools/assets/folder/image")
                 asset.is_image()
         """
-        return self.is_type("IMAGE")
+        return self.is_type("IMAGE", raised)
 
-    def is_image_collection(self) -> bool:
+    def is_image_collection(self, raised: bool = False) -> bool:
         """Return ``True`` if the asset is an image collection.
+
+        Args:
+            raised: If True, raise an exception if the asset is not an image collection. Defaults to False.
 
         Examples:
             .. code-block:: python
@@ -336,10 +342,13 @@ class Asset:
                 asset = ee.Asset("projects/ee-geetools/assets/folder/image_collection")
                 asset.is_image_collection()
         """
-        return self.is_type("IMAGE_COLLECTION")
+        return self.is_type("IMAGE_COLLECTION", raised)
 
-    def is_feature_collection(self) -> bool:
+    def is_feature_collection(self, raised: bool = False) -> bool:
         """Return ``True`` if the asset is a feature collection.
+
+        Args:
+            raised: If True, raise an exception if the asset is not a feature collection. Defaults to False.
 
         Examples:
             .. code-block:: python
@@ -347,10 +356,13 @@ class Asset:
                 asset = ee.Asset("projects/ee-geetools/assets/folder/feature_collection")
                 asset.is_feature_collection()
         """
-        return self.is_type("FEATURE_COLLECTION") or self.is_type("TABLE")
+        return self.is_type("FEATURE_COLLECTION", raised) or self.is_type("TABLE", raised)
 
-    def is_folder(self) -> bool:
+    def is_folder(self, raised: bool = False) -> bool:
         """Return ``True`` if the asset is a folder.
+
+        Args:
+            raised: If True, raise an exception if the asset is not a folder. Defaults to False.
 
         Examples:
             .. code-block:: python
@@ -358,7 +370,7 @@ class Asset:
                 asset = ee.Asset("projects/ee-geetools/assets/folder")
                 asset.is_folder()
         """
-        return self.is_type("FOLDER")
+        return self.is_type("FOLDER", raised)
 
     @property
     def type(self) -> str:
