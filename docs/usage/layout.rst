@@ -360,6 +360,8 @@ Operation
 - :py:meth:`ee.Asset.unlink <geetools.Asset.Asset.unlink>`: :docstring:`geetools.Asset.unlink`
 - :py:meth:`ee.Asset.delete <geetools.Asset.Asset.delete>`: :docstring:`geetools.Asset.delete`
 - :py:meth:`ee.Asset.copy <geetools.Asset.Asset.copy>`: :docstring:`geetools.Asset.copy`
+- :py:meth:`ee.Asset.glob <geetools.Asset.Asset.glob>`: :docstring:`geetools.Asset.glob`
+- :py:meth:`ee.Asset.rglob <geetools.Asset.Asset.rglob>`: :docstring:`geetools.Asset.rglob`
 
 Property
 ########
