@@ -5,7 +5,6 @@ from contextlib import suppress
 from pathlib import Path
 from shutil import move
 from tempfile import TemporaryDirectory
-from typing import Callable
 
 import ee
 
@@ -15,10 +14,6 @@ from geetools.accessors import register_function_accessor
 @register_function_accessor(ee.Authenticate, "geetools")
 class AuthenticateAccessor:
     """Create an accessor for the ``ee.Authenticate`` function."""
-
-    def __init__(self, obj: Callable):
-        """Initialize the class."""
-        self._obj = obj
 
     @staticmethod
     def new_user(name: str = "", credential_pathname: str = "") -> None:

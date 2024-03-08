@@ -35,11 +35,11 @@ def register_class_accessor(klass: Type, name: str) -> Callable:
 
 
 def register_function_accessor(func: Type, name: str) -> Callable:
-    """Create an accessor through the provided namespace to a given function.
+    """Add a Accessor class to function through the provided namespace.
 
     Parameters:
         func: The function to set the accessor to.
-        name: The name of the accessor namespace
+        name: The name of the accessor namespace.
 
     Returns:
         The accessor function to to the function.
@@ -49,10 +49,9 @@ def register_function_accessor(func: Type, name: str) -> Callable:
 
         # check if the accessor already exists for this class
         if hasattr(func, name):
-            raise AttributeError(f"Accessor {name} already exists for {func}")
-
-        # register the accessor to the class
-        setattr(func, name, accessor)
+            raise AttributeError(f"Member {name} already exists for {func}")
+        else:
+            setattr(func, name, accessor())
 
         return accessor
 
