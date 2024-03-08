@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Optional
 
 import ee
 from google.oauth2.credentials import Credentials
@@ -17,10 +17,6 @@ _project_id: Optional[str] = None
 @register_function_accessor(ee.Initialize, "geetools")
 class InitializeAccessor:
     """Toolbox for the ``ee.Initialize`` function."""
-
-    def __init__(self, obj: Callable):
-        """Initialize the class."""
-        self._obj = obj
 
     @staticmethod
     def from_user(name: str = "", credential_pathname: str = "", project: str = "") -> None:
@@ -74,24 +70,23 @@ class InitializeAccessor:
         # from GEE side
         _project_id = project or tokens["project_id"]
 
+    @staticmethod
+    def project_id() -> str:
+        """Get the project_id of the current account.
 
-@register_function_accessor(ee.Initialize, "geetools")
-def project_id() -> str:
-    """Get the project_id of the current account.
+        Returns:
+            The project_id of the connected profile
 
-    Returns:
-        The project_id of the connected profile
+        Raises:
+            RuntimeError: If the account is not initialized.
 
-    Raises:
-        RuntimeError: If the account is not initialized.
+        Examples:
+            .. code-block::
 
-    Examples:
-        .. code-block::
+                import ee, geetools
 
-            import ee, geetools
-
-            ee.Initialize.geetools.project_id()
-    """
-    if _project_id is None:
-        raise RuntimeError("The GEE account is not initialized")
-    return _project_id
+                ee.Initialize.geetools.project_id()
+        """
+        if _project_id is None:
+            raise RuntimeError("The GEE account is not initialized")
+        return _project_id
