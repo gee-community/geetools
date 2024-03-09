@@ -29,10 +29,14 @@ class ImageAccessor:
         self._obj = obj
 
     # -- band manipulation -----------------------------------------------------
-    def addDate(self) -> ee.Image:
+    def addDate(self, format: ee_str = "") -> ee.Image:
         """Add a band with the date of the image in the provided format.
 
-        The date is stored as a Timestamp in millisecond in a band "date".
+        If no format is provided, the date is stored as a Timestamp in millisecond in a band "date". If format band is provided, the date is store in a int8 band with the date in the provided format. This format needs to be a string that can be converted to a number.
+        If not an error will be thrown.
+
+        Args:
+            format: A date pattern, as described at http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
 
         Returns:
             The image with the date band added.
@@ -51,8 +55,16 @@ class ImageAccessor:
                 value = date.reduceRegion(ee.Reducer.first(), buffer, 10).get("date")
                 ee.Date(value).format('YYYY-MM-dd').getInfo()
         """
-        date = self._obj.date().millis()
-        return self._obj.addBands(ee.Image.constant(date).rename("date"))
+        # parse the inputs
+        format = ee.String(format)
+        isMillis = format.equals(ee.String(""))
+
+        # extract the date from the object and create a image band from it
+        date = self._obj.date()
+        date = ee.Algorithms.If(isMillis, date.millis(), date.format(format))
+        dateBand = ee.Image.constant(ee.Number.parse(date)).rename("date")
+
+        return self._obj.addBands(dateBand)
 
     def addSuffix(self, suffix: ee_str, bands: ee_list = []) -> ee.Image:
         """Add a suffix to the image selected band.
