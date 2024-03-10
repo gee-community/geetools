@@ -1,15 +1,17 @@
 """Toolbox for the `ee.FeatureCollection` class."""
 from __future__ import annotations
 
+import json
 from typing import Tuple, Union
 
 import ee
+import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from geetools.accessors import register_class_accessor
-from geetools.types import ee_int, ee_str
+from geetools.types import ee_int, ee_list, ee_str
 
 
 @register_class_accessor(ee.FeatureCollection, "geetools")
@@ -142,13 +144,21 @@ class FeatureCollectionAccessor:
         Returns:
             The matplotlib objects as in a ``pyplot.subplot`` method.
 
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
+                fc.geetools.plot_by_features(yProperties=["ADM1_CODE", "ADM2_CODE"])
+
         Note:
             This function is a client-side function.
         """
         # Get the features and properties
         fc = self._obj
-        yproperties = yProperties if yProperties else fc.first().propertyNames().getInfo()
-        xProperty not in yproperties or yproperties.remove(xProperty)
+        yProperties = yProperties if yProperties else fc.first().propertyNames().getInfo()
+        xProperty not in yProperties or yProperties.remove(xProperty)
 
         # initialize the plot
         fig, ax = plt.subplots()
@@ -156,15 +166,81 @@ class FeatureCollectionAccessor:
         # get all the data and add them to the plot
         x = fc.aggregate_array(xProperty).getInfo()
         ax.set_xlabel(f"Features (labeled by {xProperty})")
-        for yProperty in yproperties:
+        for yProperty in yProperties:
             y = fc.aggregate_array(yProperty).getInfo()
             ax.plot(x, y, label=yProperty, **kwargs)
 
         # we use the name of the property as y axis only if there is 1 property
         # else we use "Properties values"
-        ax.set_ylabel(yproperties[0] if len(yProperties) == 1 else "Properties values")
+        ax.set_ylabel(yProperties[0] if len(yProperties) == 1 else "Properties values")
 
         # add the legend to the graph
+        ax.legend()
+
+        return fig, ax
+
+    def plot_by_property(
+        self, xProperties: ee_list = [], seriesProperty: ee_str = "system:index", **kwargs
+    ) -> Tuple[Figure, Axes]:
+        """Plot the values of a FeatureCollection by property.
+
+        Each features will be represented by a color and each property will a bar of the bar chart.
+
+        Args:
+            xProperties: A list of properties to plot. Defaults to all properties.
+            seriesProperty: The property to use as the series label. Defaults to "system:index".
+            kwargs: Additional arguments from the ``pyplot.bar`` function.
+
+        Returns:
+            The matplotlib objects as in a ``pyplot.subplot`` method.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
+                fc.geetools.plot_by_property(xProperties=["ADM1_CODE", "ADM2_CODE"])
+
+        Note:
+            This function is a client-side function.
+        """
+        # Get the features and properties
+        fc = self._obj
+        xProperties = ee.List(xProperties) if xProperties else fc.first().propertyNames()
+        xProperties = xProperties.remove(seriesProperty)
+
+        # get the name of each feature label
+        seriesLabels = fc.aggregate_array(seriesProperty).getInfo()
+
+        # get the aggregate values for each property and affect them to series
+        # the "to_dictionary" method cannot be used as it relies on the fc properties
+        # this is often missing when datasets are created from a reducer.
+        # I hope GEE team will change it in the future.
+        values = xProperties.map(lambda p: fc.aggregate_array(p))
+        properties = ee.Dictionary.fromLists(xProperties, values).getInfo()
+        series = {k: [v[i] for v in properties.values()] for i, k in enumerate(seriesLabels)}
+
+        print(json.dumps(series))
+
+        # initialize the plot
+        fig, ax = plt.subplots()
+
+        # display the series
+        x = np.arange(len(properties))  # the label locations
+        width = kwargs.get("width", 0.1)  # the width of the bars
+
+        multiplier = 0
+        for id_, value in series.items():
+            offset = width * multiplier
+            ax.bar(x + offset, value, width, label=id_, **kwargs)
+            multiplier += 1
+
+        # add meaningful ticks to the x axis
+        tick_offset = (len(series) - 1) / 2 * width
+        ax.set_xticks(x + tick_offset, properties.keys())
+
+        # add a legend
         ax.legend()
 
         return fig, ax
