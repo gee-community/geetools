@@ -1,9 +1,12 @@
 """Toolbox for the `ee.FeatureCollection` class."""
 from __future__ import annotations
 
-from typing import Union
+from typing import Tuple, Union
 
 import ee
+from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
 from geetools.accessors import register_class_accessor
 from geetools.types import ee_int, ee_str
@@ -121,3 +124,47 @@ class FeatureCollectionAccessor:
             return feat.setGeometry(ee.Geometry.MultiPolygon(filteredGeoms, proj))
 
         return self._obj.map(removeNonPoly)
+
+    def plot_by_features(
+        self, xProperty: str = "system:index", yProperties: list = [], **kwargs
+    ) -> Tuple[Figure, Axes]:
+        """Plot the values of a FeatureCollection by feature.
+
+        Each feature property selected in yProperties will be plotted using the xProperty as the x-axis.
+        If no yProperties are provided, all properties will be plotted.
+        If no xProperty is provided, the system:index property will be used.
+
+        Args:
+            xProperty: The property to use as the x-axis. Defaults to "system:index".
+            yProperties: A list of properties to plot. Defaults to all properties.
+            kwargs: Additional arguments from the ``pyplot.plot`` function.
+
+        Returns:
+            The matplotlib objects as in a ``pyplot.subplot`` method.
+
+        Note:
+            This function is a client-side function.
+        """
+        # Get the features and properties
+        fc = self._obj
+        yproperties = yProperties if yProperties else fc.first().propertyNames().getInfo()
+        xProperty not in yproperties or yproperties.remove(xProperty)
+
+        # initialize the plot
+        fig, ax = plt.subplots()
+
+        # get all the data and add them to the plot
+        x = fc.aggregate_array(xProperty).getInfo()
+        ax.set_xlabel(f"Features (labeled by {xProperty})")
+        for yProperty in yproperties:
+            y = fc.aggregate_array(yProperty).getInfo()
+            ax.plot(x, y, label=yProperty, **kwargs)
+
+        # we use the name of the property as y axis only if there is 1 property
+        # else we use "Properties values"
+        ax.set_ylabel(yproperties[0] if len(yProperties) == 1 else "Properties values")
+
+        # add the legend to the graph
+        ax.legend()
+
+        return fig, ax

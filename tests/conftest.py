@@ -202,6 +202,12 @@ def gaul_3_countries():
 
 
 @pytest.fixture
+def gaul():
+    """Return the GAUL level 2 collection."""
+    return ee.FeatureCollection("FAO/GAUL/2015/level2")
+
+
+@pytest.fixture
 def doy_image():
     """Return an Image instance with 2 random doy bands."""
     doy = ee.Image.random(seed=0).multiply(365).toInt().rename("doy1")

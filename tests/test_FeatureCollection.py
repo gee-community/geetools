@@ -1,4 +1,6 @@
 """Test the ``FeatureCollection`` class."""
+import io
+
 import ee
 import pytest
 
@@ -77,3 +79,30 @@ class TestToPolygons:
         with pytest.deprecated_call():
             fc = geetools.tools.featurecollection.clean(fc_instance)
             data_regression.check(fc.getInfo())
+
+
+class TestPlotByFeatures:
+    """Test the ``plot_by_features`` method."""
+
+    def test_plot_by_features(self, gaul, image_regression):
+        fc = gaul.limit(10).select(["ADM0_CODE", "ADM1_CODE", "ADM2_CODE"])
+        fig, ax = fc.geetools.plot_by_features()
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_features_yproperties(self, gaul, image_regression):
+        fc = gaul.limit(10)
+        fig, ax = fc.geetools.plot_by_features(yProperties=["ADM1_CODE", "ADM2_CODE"])
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_features_xproperty(self, gaul, image_regression):
+        fc = gaul.limit(10)
+        fig, ax = fc.geetools.plot_by_features(
+            xProperty="ADM1_CODE", yProperties=["ADM1_CODE", "ADM2_CODE"]
+        )
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
