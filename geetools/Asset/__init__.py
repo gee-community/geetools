@@ -682,3 +682,31 @@ class Asset:
             ee.data.copyAsset(self.as_posix(), new_asset.as_posix(), allowOverwrite=True)
 
         return new_asset
+
+    def glob(self, pattern: str) -> list:
+        """Return a list of assets matching the pattern.
+
+        Args:
+            pattern: The pattern to match with the asset name.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder")
+                asset.glob("image_*")
+        """
+        return [a for a in self.iterdir(recursive=False) if a.match(pattern)]
+
+    def rglob(self, pattern: str) -> list:
+        """Return a list of assets matching the pattern recursively.
+
+        Args:
+            pattern: The pattern to match with the asset name.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder")
+                asset.rglob("image_*")
+        """
+        return [a for a in self.iterdir(recursive=True) if a.match(pattern)]

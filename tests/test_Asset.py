@@ -216,6 +216,22 @@ class TestServerMethods:
         with pytest.raises(ValueError):
             (ee.Asset(gee_test_folder) / "folder" / "image").iterdir()
 
+    def test_glob(self, gee_test_folder, gee_hash, data_regression):
+        folder = ee.Asset(gee_test_folder) / "folder"
+        assets = [
+            str(a).replace(EARTHENGINE_PROJECT, "ee-project").replace(gee_hash, "hash")
+            for a in folder.glob("*/image")
+        ]
+        data_regression.check(assets)
+
+    def test_rglob(self, gee_test_folder, gee_hash, data_regression):
+        folder = ee.Asset(gee_test_folder) / "folder"
+        assets = [
+            str(a).replace(EARTHENGINE_PROJECT, "ee-project").replace(gee_hash, "hash")
+            for a in folder.rglob("*/image")
+        ]
+        data_regression.check(assets)
+
     def test_mkdir(self, gee_test_folder):
         gee_test_folder = ee.Asset(gee_test_folder)
         asset = (gee_test_folder / "new_mkdir_folder").mkdir()
