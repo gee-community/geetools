@@ -140,29 +140,29 @@ class TestPlotByFeatures:
             image_regression.check(buffer.getvalue())
 
 
-class TestPlotByPropperty:
-    """Test the ``plot_by_property`` method."""
+class TestPlotByPropperties:
+    """Test the ``plot_by_properties`` method."""
 
-    def test_plot_by_property(self, gaul, image_regression):
+    def test_plot_by_properties(self, gaul, image_regression):
         fig, ax = plt.subplots()
         fc = gaul.limit(10).select(["ADM0_CODE", "ADM1_CODE", "ADM2_CODE"])
-        fc.geetools.plot_by_property(ax=ax)
+        fc.geetools.plot_by_properties(ax=ax)
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
             image_regression.check(buffer.getvalue())
 
-    def test_plot_by_property_xproperties(self, gaul, image_regression):
+    def test_plot_by_properties_xproperties(self, gaul, image_regression):
         fig, ax = plt.subplots()
         fc = gaul.limit(10)
-        fc.geetools.plot_by_property(xProperties=["ADM1_CODE", "ADM2_CODE"], ax=ax)
+        fc.geetools.plot_by_properties(xProperties=["ADM1_CODE", "ADM2_CODE"], ax=ax)
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
             image_regression.check(buffer.getvalue())
 
-    def test_plot_by_property_series(self, gaul, image_regression):
+    def test_plot_by_properties_series(self, gaul, image_regression):
         fig, ax = plt.subplots()
         fc = gaul.limit(10)
-        fc.geetools.plot_by_property(
+        fc.geetools.plot_by_properties(
             xProperties=["ADM0_CODE", "ADM1_CODE"], seriesProperty="ADM2_CODE", ax=ax
         )
         with io.BytesIO() as buffer:

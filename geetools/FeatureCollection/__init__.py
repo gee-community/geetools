@@ -263,7 +263,7 @@ class FeatureCollectionAccessor:
         # Get the features and properties
         fc = self._obj
         yProperties = yProperties if yProperties else fc.first().propertyNames().getInfo()
-        xProperty not in yProperties or yProperties.remove(xProperty)
+        xProperty not in yProperties or yProperties.remove(xProperty)  # type: ignore
 
         # get the data from server
         data = self.byProperties(yProperties).getInfo()
@@ -281,7 +281,7 @@ class FeatureCollectionAccessor:
         # make sure the canvas is only rendered once.
         ax.figure.canvas.draw_idle()
 
-    def plot_by_property(
+    def plot_by_properties(
         self,
         xProperties: ee_list = [],
         seriesProperty: ee_str = "system:index",
@@ -304,7 +304,7 @@ class FeatureCollectionAccessor:
                 import ee, geetools
 
                 fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
-                fc.geetools.plot_by_property(xProperties=["ADM1_CODE", "ADM2_CODE"])
+                fc.geetools.plot_by_properties(xProperties=["ADM1_CODE", "ADM2_CODE"])
 
         Note:
             This function is a client-side function.
