@@ -127,6 +127,102 @@ class FeatureCollectionAccessor:
 
         return self._obj.map(removeNonPoly)
 
+    def byProperties(self, properties: ee_list = []) -> ee.Dictionary:
+        """Get a dictionary with all feature values for each properties.
+
+        This method is returning a dictionary with all the properties as keys and their values in each feaure as a list.
+
+        .. code-block::
+
+            {
+                "property1": [value1, value2, value3, ...],
+                "property2": [value1, value2, value3, ...],
+                ...
+            }
+
+        The output remain server side and can be used to create a client side plot.
+
+        Args:
+            properties: A list of properties to get the values from.
+
+        Returns:
+            A dictionary with all the properties as keys and their values in each feaure as a list.
+
+        Example:
+            .. code-block:: python
+
+                import ee, geetools
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
+                d = fc.geetools.byProperties(["ADM1_CODE", "ADM2_CODE"])
+                d.getInfo()
+        """
+        properties = ee.List(properties) if properties else self._obj.first().propertyNames()
+        values = properties.map(lambda p: self._obj.aggregate_array(p))
+
+        return ee.Dictionary.fromLists(properties, values)
+
+    def byFeatures(
+        self, featureId: ee_str = "system:index", properties: ee_list = []
+    ) -> ee.Dictionary:
+        """Get a dictionary with all property values for each feature.
+
+        This method is returning a dictionary with all the feature ids as keys and their properties as a dictionary.
+
+        .. code-block::
+
+            {
+                "feature1": {
+                    "property1": value1,
+                    "property2": value2,
+                    ...
+                },
+                "feature2": {
+                    "property1": value1,
+                    "property2": value2,
+                    ...
+                },
+                ...
+            }
+
+        The output remain server side and can be used to create a client side plot.
+
+        We are waiting for the resolution of: https://issuetracker.google.com/issues/329106322 to allow non string feature ids.
+
+        Args:
+            featureId: The property to use as the feature id. Defaults to "system:index". This property needs to be a string property.
+            properties: A list of properties to get the values from.
+
+        Returns:
+            A dictionary with all the feature ids as keys and their properties as a dictionary.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
+                d = fc.geetools.byFeature(featureId="ADM2_CODE", properties=["ADM0_CODE"])
+                d.getInfo()
+        """
+        # gather the parameters
+        featureId = ee.String(featureId)
+        properties = ee.List(properties) if properties else self._obj.first().propertyNames()
+        properties = properties.remove(featureId)
+
+        # create a function to get the properties of a feature
+        # we need to map the featureCollection into a list as it's not possible to return something else than a
+        # featureCollection mapping a FeatureCollection. We know it's a very expensive process but we don't have any
+        # other choice.
+        fc_list = self._obj.toList(self._obj.size())
+        values = fc_list.map(lambda f: ee.Feature(f).toDictionary(properties))
+
+        # get all the id values, they must be string so we are forced to cast them manually
+        ids = self._obj.aggregate_array(featureId)
+        ids = ids.map(lambda i: ee.String(i))
+
+        return ee.Dictionary.fromLists(ids.map(lambda i: ee.String(i)), values)
+
     def plot_by_features(
         self, xProperty: str = "system:index", yProperties: list = [], **kwargs
     ) -> Tuple[Figure, Axes]:

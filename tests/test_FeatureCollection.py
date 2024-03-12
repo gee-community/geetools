@@ -81,6 +81,34 @@ class TestToPolygons:
             data_regression.check(fc.getInfo())
 
 
+class TestByProperties:
+    """Test the ``byProperties`` method."""
+
+    def test_by_properties(self, gaul, data_regression):
+        fc = gaul.limit(10).geetools.byProperties()
+        data_regression.check(fc.getInfo())
+
+    def test_by_properties_with_properties(self, gaul, data_regression):
+        fc = gaul.limit(10).geetools.byProperties(properties=["ADM0_CODE", "ADM1_CODE"])
+        data_regression.check(fc.getInfo())
+
+
+class TestByFeatures:
+    """Test the ``byFeatures`` method."""
+
+    def test_by_features(self, gaul, data_regression):
+        fc = gaul.limit(10).geetools.byFeatures()
+        data_regression.check(fc.getInfo())
+
+    def test_by_features_with_id(self, gaul, data_regression):
+        fc = gaul.limit(10).geetools.byFeatures("ADM2_NAME")
+        data_regression.check(fc.getInfo())
+
+    def test_by_features_with_properties(self, gaul, data_regression):
+        fc = gaul.limit(10).geetools.byFeatures(properties=["ADM2_CODE", "ADM2_NAME"])
+        data_regression.check(fc.getInfo())
+
+
 class TestPlotByFeatures:
     """Test the ``plot_by_features`` method."""
 

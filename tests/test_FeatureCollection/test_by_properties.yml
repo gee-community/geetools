@@ -1,0 +1,143 @@
+ADM0_CODE:
+- 257
+- 257
+- 257
+- 257
+- 257
+- 257
+- 257
+- 257
+- 257
+- 257
+ADM0_NAME:
+- United Republic of Tanzania
+- United Republic of Tanzania
+- United Republic of Tanzania
+- United Republic of Tanzania
+- United Republic of Tanzania
+- United Republic of Tanzania
+- United Republic of Tanzania
+- United Republic of Tanzania
+- United Republic of Tanzania
+- United Republic of Tanzania
+ADM1_CODE:
+- 48357
+- 115003
+- 115003
+- 48365
+- 48373
+- 48373
+- 115009
+- 48369
+- 48369
+- 115006
+ADM1_NAME:
+- Arusha
+- Iringa
+- Iringa
+- Manyara
+- Pwani
+- Pwani
+- Shinyanga
+- Mtwara
+- Mtwara
+- Mwanza
+ADM2_CODE:
+- 115068
+- 115032
+- 115069
+- 115119
+- 115056
+- 115071
+- 115067
+- 115050
+- 115073
+- 115070
+ADM2_NAME:
+- Karatu
+- Iringa Rural
+- Kilolo
+- Mbulu
+- Kisarawe
+- Mkuranga
+- Kahama
+- Newala
+- Tandahimba
+- Kwimba
+DISP_AREA:
+- 'NO'
+- 'NO'
+- 'NO'
+- 'NO'
+- 'NO'
+- 'NO'
+- 'NO'
+- 'NO'
+- 'NO'
+- 'NO'
+EXP2_YEAR:
+- 3000
+- 3000
+- 3000
+- 3000
+- 3000
+- 3000
+- 3000
+- 3000
+- 3000
+- 3000
+STATUS:
+- Member State
+- Member State
+- Member State
+- Member State
+- Member State
+- Member State
+- Member State
+- Member State
+- Member State
+- Member State
+STR2_YEAR:
+- 1995
+- 1995
+- 1995
+- 1995
+- 1995
+- 1995
+- 1995
+- 1996
+- 1996
+- 1996
+Shape_Area:
+- 0.263517154134
+- 1.53882787761
+- 0.757752623859
+- 0.309377353754
+- 0.411885037
+- 0.225776526465
+- 0.549929851674
+- 0.161218272252
+- 0.168312873495
+- 0.264732672577
+Shape_Leng:
+- 4.27535218494
+- 6.74111125814
+- 4.43402893414
+- 2.66066329502
+- 4.70721379908
+- 4.43907654746
+- 6.49514646579
+- 2.37285851744
+- 2.27988314794
+- 3.27176576921
+system:index:
+- '00000000000000000253'
+- '00000000000000000267'
+- 00000000000000000269
+- 00000000000000000298
+- 000000000000000002cb
+- 000000000000000002cd
+- 000000000000000002d9
+- 000000000000000002b9
+- 000000000000000002ba
+- 000000000000000002bc

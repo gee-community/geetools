@@ -1,0 +1,130 @@
+Iringa Rural:
+  ADM0_CODE: 257
+  ADM0_NAME: United Republic of Tanzania
+  ADM1_CODE: 115003
+  ADM1_NAME: Iringa
+  ADM2_CODE: 115032
+  DISP_AREA: 'NO'
+  EXP2_YEAR: 3000
+  STATUS: Member State
+  STR2_YEAR: 1995
+  Shape_Area: 1.53882787761
+  Shape_Leng: 6.74111125814
+  system:index: '00000000000000000267'
+Kahama:
+  ADM0_CODE: 257
+  ADM0_NAME: United Republic of Tanzania
+  ADM1_CODE: 115009
+  ADM1_NAME: Shinyanga
+  ADM2_CODE: 115067
+  DISP_AREA: 'NO'
+  EXP2_YEAR: 3000
+  STATUS: Member State
+  STR2_YEAR: 1995
+  Shape_Area: 0.549929851674
+  Shape_Leng: 6.49514646579
+  system:index: 000000000000000002d9
+Karatu:
+  ADM0_CODE: 257
+  ADM0_NAME: United Republic of Tanzania
+  ADM1_CODE: 48357
+  ADM1_NAME: Arusha
+  ADM2_CODE: 115068
+  DISP_AREA: 'NO'
+  EXP2_YEAR: 3000
+  STATUS: Member State
+  STR2_YEAR: 1995
+  Shape_Area: 0.263517154134
+  Shape_Leng: 4.27535218494
+  system:index: '00000000000000000253'
+Kilolo:
+  ADM0_CODE: 257
+  ADM0_NAME: United Republic of Tanzania
+  ADM1_CODE: 115003
+  ADM1_NAME: Iringa
+  ADM2_CODE: 115069
+  DISP_AREA: 'NO'
+  EXP2_YEAR: 3000
+  STATUS: Member State
+  STR2_YEAR: 1995
+  Shape_Area: 0.757752623859
+  Shape_Leng: 4.43402893414
+  system:index: 00000000000000000269
+Kisarawe:
+  ADM0_CODE: 257
+  ADM0_NAME: United Republic of Tanzania
+  ADM1_CODE: 48373
+  ADM1_NAME: Pwani
+  ADM2_CODE: 115056
+  DISP_AREA: 'NO'
+  EXP2_YEAR: 3000
+  STATUS: Member State
+  STR2_YEAR: 1995
+  Shape_Area: 0.411885037
+  Shape_Leng: 4.70721379908
+  system:index: 000000000000000002cb
+Kwimba:
+  ADM0_CODE: 257
+  ADM0_NAME: United Republic of Tanzania
+  ADM1_CODE: 115006
+  ADM1_NAME: Mwanza
+  ADM2_CODE: 115070
+  DISP_AREA: 'NO'
+  EXP2_YEAR: 3000
+  STATUS: Member State
+  STR2_YEAR: 1996
+  Shape_Area: 0.264732672577
+  Shape_Leng: 3.27176576921
+  system:index: 000000000000000002bc
+Mbulu:
+  ADM0_CODE: 257
+  ADM0_NAME: United Republic of Tanzania
+  ADM1_CODE: 48365
+  ADM1_NAME: Manyara
+  ADM2_CODE: 115119
+  DISP_AREA: 'NO'
+  EXP2_YEAR: 3000
+  STATUS: Member State
+  STR2_YEAR: 1995
+  Shape_Area: 0.309377353754
+  Shape_Leng: 2.66066329502
+  system:index: 00000000000000000298
+Mkuranga:
+  ADM0_CODE: 257
+  ADM0_NAME: United Republic of Tanzania
+  ADM1_CODE: 48373
+  ADM1_NAME: Pwani
+  ADM2_CODE: 115071
+  DISP_AREA: 'NO'
+  EXP2_YEAR: 3000
+  STATUS: Member State
+  STR2_YEAR: 1995
+  Shape_Area: 0.225776526465
+  Shape_Leng: 4.43907654746
+  system:index: 000000000000000002cd
+Newala:
+  ADM0_CODE: 257
+  ADM0_NAME: United Republic of Tanzania
+  ADM1_CODE: 48369
+  ADM1_NAME: Mtwara
+  ADM2_CODE: 115050
+  DISP_AREA: 'NO'
+  EXP2_YEAR: 3000
+  STATUS: Member State
+  STR2_YEAR: 1996
+  Shape_Area: 0.161218272252
+  Shape_Leng: 2.37285851744
+  system:index: 000000000000000002b9
+Tandahimba:
+  ADM0_CODE: 257
+  ADM0_NAME: United Republic of Tanzania
+  ADM1_CODE: 48369
+  ADM1_NAME: Mtwara
+  ADM2_CODE: 115073
+  DISP_AREA: 'NO'
+  EXP2_YEAR: 3000
+  STATUS: Member State
+  STR2_YEAR: 1996
+  Shape_Area: 0.168312873495
+  Shape_Leng: 2.27988314794
+  system:index: 000000000000000002ba
