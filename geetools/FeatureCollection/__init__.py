@@ -1,14 +1,12 @@
 """Toolbox for the `ee.FeatureCollection` class."""
 from __future__ import annotations
 
-import json
-from typing import Tuple, Union
+from typing import Optional, Union
 
 import ee
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
-from matplotlib.figure import Figure
 
 from geetools.accessors import register_class_accessor
 from geetools.types import ee_int, ee_list, ee_str
@@ -218,14 +216,23 @@ class FeatureCollectionAccessor:
         values = fc_list.map(lambda f: ee.Feature(f).toDictionary(properties))
 
         # get all the id values, they must be string so we are forced to cast them manually
+        # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
         ids = self._obj.aggregate_array(featureId)
-        ids = ids.map(lambda i: ee.String(i))
+
+        def isString(i):
+            return ee.Algorithms.ObjectType(i).compareTo("String").eq(0)
+
+        ids = ids.map(lambda i: ee.Algorithms.If(isString(i), ee.String(i), ee.Number(i).format()))
 
         return ee.Dictionary.fromLists(ids.map(lambda i: ee.String(i)), values)
 
     def plot_by_features(
-        self, xProperty: str = "system:index", yProperties: list = [], **kwargs
-    ) -> Tuple[Figure, Axes]:
+        self,
+        xProperty: str = "system:index",
+        yProperties: list = [],
+        ax: Optional[Axes] = None,
+        **kwargs,
+    ):
         """Plot the values of a FeatureCollection by feature.
 
         Each feature property selected in yProperties will be plotted using the xProperty as the x-axis.
@@ -235,10 +242,8 @@ class FeatureCollectionAccessor:
         Args:
             xProperty: The property to use as the x-axis. Defaults to "system:index".
             yProperties: A list of properties to plot. Defaults to all properties.
+            ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
             kwargs: Additional arguments from the ``pyplot.plot`` function.
-
-        Returns:
-            The matplotlib objects as in a ``pyplot.subplot`` method.
 
         Examples:
             .. code-block:: python
@@ -251,44 +256,47 @@ class FeatureCollectionAccessor:
         Note:
             This function is a client-side function.
         """
+        # define the ax if not provided by the user
+        if ax is None:
+            fig, ax = plt.subplots()
+
         # Get the features and properties
         fc = self._obj
         yProperties = yProperties if yProperties else fc.first().propertyNames().getInfo()
         xProperty not in yProperties or yProperties.remove(xProperty)
 
-        # initialize the plot
-        fig, ax = plt.subplots()
+        # get the data from server
+        data = self.byProperties(yProperties).getInfo()
 
         # get all the data and add them to the plot
         x = fc.aggregate_array(xProperty).getInfo()
-        ax.set_xlabel(f"Features (labeled by {xProperty})")
         for yProperty in yProperties:
-            y = fc.aggregate_array(yProperty).getInfo()
-            ax.plot(x, y, label=yProperty, **kwargs)
+            ax.plot(x, data[yProperty], label=yProperty, **kwargs)
 
-        # we use the name of the property as y axis only if there is 1 property
-        # else we use "Properties values"
+        # customize the layout of the axis
+        ax.set_xlabel(f"Features (labeled by {xProperty})")
         ax.set_ylabel(yProperties[0] if len(yProperties) == 1 else "Properties values")
-
-        # add the legend to the graph
         ax.legend()
 
-        return fig, ax
+        # make sure the canvas is only rendered once.
+        ax.figure.canvas.draw_idle()
 
     def plot_by_property(
-        self, xProperties: ee_list = [], seriesProperty: ee_str = "system:index", **kwargs
-    ) -> Tuple[Figure, Axes]:
+        self,
+        xProperties: ee_list = [],
+        seriesProperty: ee_str = "system:index",
+        ax: Optional[Axes] = None,
+        **kwargs,
+    ):
         """Plot the values of a FeatureCollection by property.
 
-        Each features will be represented by a color and each property will a bar of the bar chart.
+        Each features will be represented by a color and each property will be a bar of the bar chart.
 
         Args:
             xProperties: A list of properties to plot. Defaults to all properties.
             seriesProperty: The property to use as the series label. Defaults to "system:index".
+            ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
             kwargs: Additional arguments from the ``pyplot.bar`` function.
-
-        Returns:
-            The matplotlib objects as in a ``pyplot.subplot`` method.
 
         Examples:
             .. code-block:: python
@@ -301,26 +309,24 @@ class FeatureCollectionAccessor:
         Note:
             This function is a client-side function.
         """
+        # define the ax if not provided by the user
+        if ax is None:
+            fig, ax = plt.subplots()
+
         # Get the features and properties
         fc = self._obj
         xProperties = ee.List(xProperties) if xProperties else fc.first().propertyNames()
         xProperties = xProperties.remove(seriesProperty)
 
-        # get the name of each feature label
-        seriesLabels = fc.aggregate_array(seriesProperty).getInfo()
+        # get the name of each properties
+        properties = xProperties.getInfo()
 
-        # get the aggregate values for each property and affect them to series
-        # the "to_dictionary" method cannot be used as it relies on the fc properties
-        # this is often missing when datasets are created from a reducer.
-        # I hope GEE team will change it in the future.
-        values = xProperties.map(lambda p: fc.aggregate_array(p))
-        properties = ee.Dictionary.fromLists(xProperties, values).getInfo()
-        series = {k: [v[i] for v in properties.values()] for i, k in enumerate(seriesLabels)}
+        # get the data from server
+        data = self.byFeatures(seriesProperty, xProperties).getInfo()
 
-        print(json.dumps(series))
-
-        # initialize the plot
-        fig, ax = plt.subplots()
+        # rearrange them so they make sense from a plotting perspective
+        # i.e. remove all the keys in each feature
+        series = {k: list(v.values()) for k, v in data.items()}
 
         # display the series
         x = np.arange(len(properties))  # the label locations
@@ -332,11 +338,7 @@ class FeatureCollectionAccessor:
             ax.bar(x + offset, value, width, label=id_, **kwargs)
             multiplier += 1
 
-        # add meaningful ticks to the x axis
-        tick_offset = (len(series) - 1) / 2 * width
-        ax.set_xticks(x + tick_offset, properties.keys())
-
-        # add a legend
+        # customize the layout of the axis
+        ax.set_xticks(x + ((len(series) - 1) / 2 * width), properties)
         ax.legend()
-
-        return fig, ax
+        ax.figure.canvas.draw_idle()
