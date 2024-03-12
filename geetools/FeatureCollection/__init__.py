@@ -368,16 +368,21 @@ class FeatureCollectionAccessor:
         # gather the data from parameters
         property = ee.String(property)
         properties = ee.List([property])
-        bin = kwargs.pop("bins", 10)
 
         # get the data from the server
         data = self.byProperties(properties).getInfo()
         data = data[property.getInfo()]
 
-        # plot the histogram
-        ax.hist(data, bins=bin, **kwargs)
-
         # customize the layout
         ax.set_xlabel(f"{property.getInfo()} values")
         ax.set_ylabel("frequency")
+        kwargs["rwidth"] = kwargs.get("rwidth", 0.9)
+        ax.grid(axis="y")
+        ax.set_axisbelow(True)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+        # plot the histogram
+        ax.hist(data, **kwargs)
+
         ax.figure.canvas.draw_idle()
