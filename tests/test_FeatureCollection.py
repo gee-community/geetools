@@ -168,3 +168,23 @@ class TestPlotByPropperty:
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
             image_regression.check(buffer.getvalue())
+
+
+class TestPlotHist:
+    """Test the ``plot_hist`` method."""
+
+    def test_plot_hist(self, gaul, image_regression):
+        fig, ax = plt.subplots()
+        fc = gaul.limit(10)
+        fc.geetools.plot_hist("ADM2_CODE", ax=ax)
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_hist_bins(self, gaul, image_regression):
+        fig, ax = plt.subplots()
+        fc = gaul.limit(10)
+        fc.geetools.plot_hist("ADM2_CODE", bins=3, ax=ax)
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())

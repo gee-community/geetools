@@ -342,3 +342,42 @@ class FeatureCollectionAccessor:
         ax.set_xticks(x + ((len(series) - 1) / 2 * width), properties)
         ax.legend()
         ax.figure.canvas.draw_idle()
+
+    def plot_hist(self, property: ee_str, ax: Optional[Axes] = None, **kwargs):
+        """Plot the histogram of a specific property.
+
+        Args:
+            property: The property to display
+            ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
+            kwargs: Additional arguments from the ``pyplot.hist`` function.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm81m').toBands()
+                region = ee.Geometry.Rectangle(-123.41, 40.43, -116.38, 45.14)
+                climSamp = normClim.sample(region, 5000)
+                climSamp.geetools.plot_hist("07_ppt")
+        """
+        # define the ax if not provided by the user
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        # gather the data from parameters
+        property = ee.String(property)
+        properties = ee.List([property])
+        bin = kwargs.pop("bins", 10)
+
+        # get the data from the server
+        data = self.byProperties(properties).getInfo()
+        data = data[property.getInfo()]
+
+        # plot the histogram
+        ax.hist(data, bins=bin, **kwargs)
+
+        # customize the layout
+        ax.set_xlabel(f"{property.getInfo()} values")
+        ax.set_ylabel("frequency")
+        ax.figure.canvas.draw_idle()
