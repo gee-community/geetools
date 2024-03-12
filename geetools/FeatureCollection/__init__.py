@@ -7,6 +7,7 @@ import ee
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
+from matplotlib.colors import to_rgba
 
 from geetools.accessors import register_class_accessor
 from geetools.types import ee_int, ee_list, ee_str
@@ -125,7 +126,9 @@ class FeatureCollectionAccessor:
 
         return self._obj.map(removeNonPoly)
 
-    def byProperties(self, properties: ee_list = []) -> ee.Dictionary:
+    def byProperties(
+        self, properties: ee_list = [], featureId: ee_str = "system:index"
+    ) -> ee.Dictionary:
         """Get a dictionary with all feature values for each properties.
 
         This method is returning a dictionary with all the properties as keys and their values in each feaure as a list.
@@ -133,14 +136,15 @@ class FeatureCollectionAccessor:
         .. code-block::
 
             {
-                "property1": [value1, value2, value3, ...],
-                "property2": [value1, value2, value3, ...],
+                "property1": {"feature1": value1, "feature2": value2, ...},
+                "property2": {"feature1": value1, "feature2": value2, ...},
                 ...
             }
 
         The output remain server side and can be used to create a client side plot.
 
         Args:
+            featureId: The property to use as the feature id. Defaults to "system:index".
             properties: A list of properties to get the values from.
 
         Returns:
@@ -155,8 +159,18 @@ class FeatureCollectionAccessor:
                 d = fc.geetools.byProperties(["ADM1_CODE", "ADM2_CODE"])
                 d.getInfo()
         """
+        # get all the id values, they must be string so we are forced to cast them manually
+        # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
+        features = self._obj.aggregate_array(featureId)
+        isString = lambda i: ee.Algorithms.ObjectType(i).compareTo("String").eq(0)  # noqa: E731
+        features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
+
+        # retrieve properties for each feature
         properties = ee.List(properties) if properties else self._obj.first().propertyNames()
-        values = properties.map(lambda p: self._obj.aggregate_array(p))
+        properties = properties.remove(featureId)
+        values = properties.map(
+            lambda p: ee.Dictionary.fromLists(features, self._obj.aggregate_array(p))
+        )
 
         return ee.Dictionary.fromLists(properties, values)
 
@@ -170,16 +184,8 @@ class FeatureCollectionAccessor:
         .. code-block::
 
             {
-                "feature1": {
-                    "property1": value1,
-                    "property2": value2,
-                    ...
-                },
-                "feature2": {
-                    "property1": value1,
-                    "property2": value2,
-                    ...
-                },
+                "feature1": {"property1": value1, "property2": value2, ...},
+                "feature2": {"property1": value1, "property2": value2, ...},
                 ...
             }
 
@@ -203,34 +209,30 @@ class FeatureCollectionAccessor:
                 d = fc.geetools.byFeature(featureId="ADM2_CODE", properties=["ADM0_CODE"])
                 d.getInfo()
         """
-        # gather the parameters
-        featureId = ee.String(featureId)
-        properties = ee.List(properties) if properties else self._obj.first().propertyNames()
-        properties = properties.remove(featureId)
-
         # create a function to get the properties of a feature
         # we need to map the featureCollection into a list as it's not possible to return something else than a
-        # featureCollection mapping a FeatureCollection. We know it's a very expensive process but we don't have any
-        # other choice.
+        # featureCollection mapping a FeatureCollection.
+        # We know it's a very expensive process but we don't have any other choice.
+        properties = ee.List(properties) if properties else self._obj.first().propertyNames()
+        properties = properties.remove(featureId)
         fc_list = self._obj.toList(self._obj.size())
         values = fc_list.map(lambda f: ee.Feature(f).toDictionary(properties))
 
         # get all the id values, they must be string so we are forced to cast them manually
         # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
-        ids = self._obj.aggregate_array(featureId)
+        features = self._obj.aggregate_array(featureId)
+        isString = lambda i: ee.Algorithms.ObjectType(i).compareTo("String").eq(0)  # noqa: E731
+        features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
-        def isString(i):
-            return ee.Algorithms.ObjectType(i).compareTo("String").eq(0)
-
-        ids = ids.map(lambda i: ee.Algorithms.If(isString(i), ee.String(i), ee.Number(i).format()))
-
-        return ee.Dictionary.fromLists(ids.map(lambda i: ee.String(i)), values)
+        return ee.Dictionary.fromLists(features, values)
 
     def plot_by_features(
         self,
+        type: str = "bar",
         xProperty: str = "system:index",
         yProperties: list = [],
         ax: Optional[Axes] = None,
+        colors: list = [],
         **kwargs,
     ):
         """Plot the values of a FeatureCollection by feature.
@@ -242,7 +244,9 @@ class FeatureCollectionAccessor:
         Args:
             xProperty: The property to use as the x-axis. Defaults to "system:index".
             yProperties: A list of properties to plot. Defaults to all properties.
+            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
+            colors: A list of colors to use for the plot. If not provided, the default colors from the matplotlib library will be used. It need to be consistent with the size of the plotted data which is type dependent.
             kwargs: Additional arguments from the ``pyplot.plot`` function.
 
         Examples:
@@ -256,36 +260,22 @@ class FeatureCollectionAccessor:
         Note:
             This function is a client-side function.
         """
-        # define the ax if not provided by the user
-        if ax is None:
-            fig, ax = plt.subplots()
-
         # Get the features and properties
-        fc = self._obj
-        yProperties = yProperties if yProperties else fc.first().propertyNames().getInfo()
+        yProperties = yProperties if yProperties else self._obj.first().propertyNames().getInfo()
         xProperty not in yProperties or yProperties.remove(xProperty)  # type: ignore
 
         # get the data from server
         data = self.byProperties(yProperties).getInfo()
 
-        # get all the data and add them to the plot
-        x = fc.aggregate_array(xProperty).getInfo()
-        for yProperty in yProperties:
-            ax.plot(x, data[yProperty], label=yProperty, **kwargs)
-
-        # customize the layout of the axis
-        ax.set_xlabel(f"Features (labeled by {xProperty})")
-        ax.set_ylabel(yProperties[0] if len(yProperties) == 1 else "Properties values")
-        ax.legend()
-
-        # make sure the canvas is only rendered once.
-        ax.figure.canvas.draw_idle()
+        self._plot(data, xProperty, type, ax=ax, colors=colors, **kwargs)
 
     def plot_by_properties(
         self,
+        type: str = "bar",
         xProperties: ee_list = [],
         seriesProperty: ee_str = "system:index",
         ax: Optional[Axes] = None,
+        colors: list = [],
         **kwargs,
     ):
         """Plot the values of a FeatureCollection by property.
@@ -295,7 +285,9 @@ class FeatureCollectionAccessor:
         Args:
             xProperties: A list of properties to plot. Defaults to all properties.
             seriesProperty: The property to use as the series label. Defaults to "system:index".
+            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
+            colors: A list of colors to use for the plot. If not provided, the default colors from the matplotlib library will be used. It need to be consistent with the size of the plotted data which is type dependent.
             kwargs: Additional arguments from the ``pyplot.bar`` function.
 
         Examples:
@@ -309,46 +301,26 @@ class FeatureCollectionAccessor:
         Note:
             This function is a client-side function.
         """
-        # define the ax if not provided by the user
-        if ax is None:
-            fig, ax = plt.subplots()
-
         # Get the features and properties
         fc = self._obj
         xProperties = ee.List(xProperties) if xProperties else fc.first().propertyNames()
         xProperties = xProperties.remove(seriesProperty)
 
         # get the name of each properties
-        properties = xProperties.getInfo()
+        xProperties.getInfo()
 
         # get the data from server
         data = self.byFeatures(seriesProperty, xProperties).getInfo()
 
-        # rearrange them so they make sense from a plotting perspective
-        # i.e. remove all the keys in each feature
-        series = {k: list(v.values()) for k, v in data.items()}
+        self._plot(data, seriesProperty, type, ax=ax, colors=colors, **kwargs)
 
-        # display the series
-        x = np.arange(len(properties))  # the label locations
-        width = kwargs.get("width", 0.1)  # the width of the bars
-
-        multiplier = 0
-        for id_, value in series.items():
-            offset = width * multiplier
-            ax.bar(x + offset, value, width, label=id_, **kwargs)
-            multiplier += 1
-
-        # customize the layout of the axis
-        ax.set_xticks(x + ((len(series) - 1) / 2 * width), properties)
-        ax.legend()
-        ax.figure.canvas.draw_idle()
-
-    def plot_hist(self, property: ee_str, ax: Optional[Axes] = None, **kwargs):
+    def plot_hist(self, property: ee_str, ax: Optional[Axes] = None, color=None, **kwargs):
         """Plot the histogram of a specific property.
 
         Args:
             property: The property to display
             ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
+            color: The color to use for the plot. If not provided, the default colors from the matplotlib library will be used.
             kwargs: Additional arguments from the ``pyplot.hist`` function.
 
         Examples:
@@ -361,28 +333,145 @@ class FeatureCollectionAccessor:
                 climSamp = normClim.sample(region, 5000)
                 climSamp.geetools.plot_hist("07_ppt")
         """
+        # gather the data from parameters
+        properties = ee.List([property])
+        colors = [] if color is None else [color]
+
+        # get the data from the server
+        data = self.byProperties(properties).getInfo()
+
+        self._plot(data, property, "hist", ax=ax, colors=colors, **kwargs)
+
+    @staticmethod
+    def _plot(
+        data: dict,
+        label_prop: str,
+        type: str = "plot",
+        ax: Optional[Axes] = None,
+        colors: list = [],
+        **kwargs,
+    ):
+        """Plotting mechanism used in all the plotting functions.
+
+        It binds the matplotlib capabilities with the data aggregated either by feature or by properties.
+        the shape of the data should as follows:
+
+        .. code-block::
+
+            {
+                "label1": {"property1": value1, "property2": value2, ...}
+                "label2": {"property1": value1, "property2": value2, ...},
+                ...
+            }
+
+        Args:
+            data: the data to use as inputs of the graph
+            label_prop: The property that twas used to generate the labels
+            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
+            ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
+            colors: A list of colors to use for the plot. If not provided, the default colors from the matplotlib library will be used. It need to be consistent with the size of the plotted data which is type dependent.
+            kwargs: Additional arguments from the ``pyplot`` chat type selected.
+        """
         # define the ax if not provided by the user
         if ax is None:
             fig, ax = plt.subplots()
 
         # gather the data from parameters
-        property = ee.String(property)
-        properties = ee.List([property])
+        labels = list(data.keys())
+        properties = list(data[labels[0]].keys())
+        colors = colors if colors else plt.cm.get_cmap("tab10").colors
 
-        # get the data from the server
-        data = self.byProperties(properties).getInfo()
-        data = data[property.getInfo()]
+        # draw the chart based on the type
+        if type == "plot":
+            for i, label in enumerate(labels):
+                kwargs["color"] = colors[i]
+                name = properties[0] if len(properties) == 1 else "Properties values"
+                ax.plot(properties, list(data[label].values()), label=label, **kwargs)
+                ax.set_ylabel(name)
+                ax.set_xlabel(f"Features (labeled by {label_prop})")
+            ax.legend()
 
-        # customize the layout
-        ax.set_xlabel(f"{property.getInfo()} values")
-        ax.set_ylabel("frequency")
-        kwargs["rwidth"] = kwargs.get("rwidth", 0.9)
+        elif type == "scatter":
+            for i, label in enumerate(labels):
+                kwargs["color"] = colors[i]
+                name = properties[0] if len(properties) == 1 else "Properties values"
+                ax.scatter(properties, list(data[label].values()), label=label, **kwargs)
+                ax.set_ylabel(properties[0])
+                ax.set_xlabel(f"Features (labeled by {label_prop})")
+            ax.legend()
+
+        elif type == "fill_between":
+            for i, label in enumerate(labels):
+                kwargs["facecolor"] = to_rgba(colors[i], 0.2)
+                kwargs["edgecolor"] = to_rgba(colors[i], 1)
+                name = properties[0] if len(properties) == 1 else "Properties values"
+                ax.fill_between(properties, list(data[label].values()), label=label, **kwargs)
+                ax.set_ylabel(name)
+                ax.set_xlabel(f"Features (labeled by {label_prop})")
+            ax.legend()
+
+        elif type == "bar":
+            x = np.arange(len(properties))
+            width = 1 / (len(labels) + 0.5)
+            margin = width / 10
+            kwargs["width"] = width - margin
+            ax.set_xticks(x + width, properties)
+            for i, (id_, value) in enumerate(data.items()):
+                kwargs["color"] = colors[i]
+                ax.bar(x + width * i, list(value.values()), label=id_, **kwargs)
+            ax.legend()
+
+        elif type == "stacked":
+            x = np.arange(len(properties))
+            bottom = np.zeros(len(properties))
+            for i, (id_, value) in enumerate(data.items()):
+                kwargs.update(color=colors[i], bottom=bottom)
+                ax.bar(x, list(value.values()), label=id_, **kwargs)
+                bottom += list(value.values())
+            ax.legend()
+
+        elif type == "pie":
+            if len(labels) != 1:
+                raise ValueError("Pie chart can only be used with one property")
+            kwargs["autopct"] = kwargs.get("autopct", "%1.1f%%")
+            kwargs["normalize"] = kwargs.get("normalize", True)
+            kwargs["labeldistance"] = kwargs.get("labeldistance", None)
+            kwargs["wedgeprops"] = kwargs.get("wedgeprops", {"edgecolor": "w"})
+            kwargs["textprops"] = kwargs.get("textprops", {"color": "w"})
+            kwargs.update(autopct="%1.1f%%", colors=colors)
+            ax.pie(list(data[labels[0]].values()), labels=properties, **kwargs)
+            ax.legend()
+
+        elif type == "donut":
+            if len(labels) != 1:
+                raise ValueError("Pie chart can only be used with one property")
+            kwargs["autopct"] = kwargs.get("autopct", "%1.1f%%")
+            kwargs["normalize"] = kwargs.get("normalize", True)
+            kwargs["labeldistance"] = kwargs.get("labeldistance", None)
+            kwargs["wedgeprops"] = kwargs.get("wedgeprops", {"width": 0.6, "edgecolor": "w"})
+            kwargs["textprops"] = kwargs.get("textprops", {"color": "w"})
+            kwargs["pctdistance"] = kwargs.get("pctdistance", 0.7)
+            kwargs.update(autopct="%1.1f%%", colors=colors)
+            ax.pie(list(data[labels[0]].values()), labels=properties, **kwargs)
+            ax.legend()
+
+        elif type == "hist":
+            if len(labels) != 1:
+                raise ValueError("Pie chart can only be used with one property")
+            kwargs["rwidth"] = kwargs.get("rwidth", 0.9)
+            kwargs["color"] = colors[0]
+            ax.hist(list(data[labels[0]].values()), **kwargs)
+            ax.set_xlabel(f"{labels[0]} values")
+            ax.set_ylabel("frequency")
+
+        else:
+            raise ValueError(f"Type {type} is not (yet?) supported")
+
+        # customize the layout of the axis
         ax.grid(axis="y")
         ax.set_axisbelow(True)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
 
-        # plot the histogram
-        ax.hist(data, **kwargs)
-
+        # make sure the canvas is only rendered once.
         ax.figure.canvas.draw_idle()
