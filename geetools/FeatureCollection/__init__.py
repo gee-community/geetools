@@ -325,11 +325,14 @@ class FeatureCollectionAccessor:
             type=type, data=data, label_name=featureId, colors=colors, ax=ax, **kwargs
         )
 
-    def plot_hist(self, property: ee_str, ax: Optional[Axes] = None, color=None, **kwargs) -> Axes:
+    def plot_hist(
+        self, property: ee_str, label: str = "", ax: Optional[Axes] = None, color=None, **kwargs
+    ) -> Axes:
         """Plot the histogram of a specific property.
 
         Args:
             property: The property to display
+            label: The label to use for the property. If not provided, the property name will be used.
             ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
             color: The color to use for the plot. If not provided, the default colors from the matplotlib library will be used.
             kwargs: Additional arguments from the ``pyplot.hist`` function.
@@ -345,20 +348,36 @@ class FeatureCollectionAccessor:
                 climSamp.geetools.plot_hist("07_ppt")
         """
         # gather the data from parameters
-        properties = ee.List([property])
-        colors = [] if color is None else [color]
+        properties, labels = ee.List([property]), ee.List([label])
 
         # get the data from the server
-        data = self.byProperties(properties=properties).getInfo()
+        data = self.byProperties(properties=properties, labels=labels).getInfo()
 
-        return self._plot(
-            type="hist",
-            data=data,
-            label_name=property,
-            colors=colors,
-            ax=ax,
-            **kwargs,
-        )
+        # define the ax if not provided by the user
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        # gather the data from the data variable
+        labels = list(data.keys())
+        if len(labels) != 1:
+            raise ValueError("Pie chart can only be used with one property")
+
+        kwargs["rwidth"] = kwargs.get("rwidth", 0.9)
+        kwargs["color"] = color or plt.cm.get_cmap("tab10").colors[0]
+        ax.hist(list(data[labels[0]].values()), **kwargs)
+        ax.set_xlabel(labels[0])
+        ax.set_ylabel("frequency")
+
+        # customize the layout of the axis
+        ax.grid(axis="y")
+        ax.set_axisbelow(True)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+        # make sure the canvas is only rendered once.
+        ax.figure.canvas.draw_idle()
+
+        return ax
 
     @staticmethod
     def _plot(
@@ -473,15 +492,6 @@ class FeatureCollectionAccessor:
             kwargs.update(autopct="%1.1f%%", colors=colors)
             values = [data[labels[0]][p] for p in props]
             ax.pie(values, labels=props, **kwargs)
-
-        elif type == "hist":
-            if len(labels) != 1:
-                raise ValueError("Pie chart can only be used with one property")
-            kwargs["rwidth"] = kwargs.get("rwidth", 0.9)
-            kwargs["color"] = colors[0]
-            ax.hist(list(data[labels[0]].values()), **kwargs)
-            ax.set_xlabel(f"{labels[0]} values")
-            ax.set_ylabel("frequency")
 
         else:
             raise ValueError(f"Type {type} is not (yet?) supported")
