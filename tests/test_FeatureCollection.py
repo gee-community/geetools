@@ -85,55 +85,182 @@ class TestToPolygons:
 class TestByProperties:
     """Test the ``byProperties`` method."""
 
-    def test_by_properties(self, gaul, data_regression):
-        fc = gaul.limit(10).geetools.byProperties()
+    def test_by_properties(self, ecoregions, data_regression):
+        fc = ecoregions.geetools.byProperties()
         data_regression.check(fc.getInfo())
 
-    def test_by_properties_with_properties(self, gaul, data_regression):
-        fc = gaul.limit(10).geetools.byProperties(properties=["ADM0_CODE", "ADM1_CODE"])
+    def test_by_properties_with_id(self, ecoregions, data_regression):
+        fc = ecoregions.geetools.byProperties("label")
+        data_regression.check(fc.getInfo())
+
+    def test_by_properties_with_properties(self, ecoregions, data_regression):
+        fc = ecoregions.geetools.byProperties("label", properties=["01_tmean", "02_tmean"])
         data_regression.check(fc.getInfo())
 
 
 class TestByFeatures:
     """Test the ``byFeatures`` method."""
 
-    def test_by_features(self, gaul, data_regression):
-        fc = gaul.limit(10).geetools.byFeatures()
+    def test_by_features(self, ecoregions, data_regression):
+        fc = ecoregions.geetools.byFeatures()
         data_regression.check(fc.getInfo())
 
-    def test_by_features_with_id(self, gaul, data_regression):
-        fc = gaul.limit(10).geetools.byFeatures("ADM2_NAME")
+    def test_by_features_with_id(self, ecoregions, data_regression):
+        fc = ecoregions.geetools.byFeatures("label")
         data_regression.check(fc.getInfo())
 
-    def test_by_features_with_properties(self, gaul, data_regression):
-        fc = gaul.limit(10).geetools.byFeatures(properties=["ADM2_CODE", "ADM2_NAME"])
+    def test_by_features_with_properties(self, ecoregions, data_regression):
+        fc = ecoregions.geetools.byFeatures("label", properties=["01_tmean", "02_tmean"])
         data_regression.check(fc.getInfo())
 
 
 class TestPlotByFeatures:
     """Test the ``plot_by_features`` method."""
 
-    def test_plot_by_features(self, gaul, image_regression):
+    def test_plot_by_features_bar(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
-        fc = gaul.limit(10).select(["ADM0_CODE", "ADM1_CODE", "ADM2_CODE"])
-        fc.geetools.plot_by_features(ax=ax)
+        # ftm: off
+        ecoregions.geetools.plot_by_features(
+            type="bar",
+            featureId="label",
+            properties=[
+                "01_tmean",
+                "02_tmean",
+                "03_tmean",
+                "04_tmean",
+                "05_tmean",
+                "06_tmean",
+                "07_tmean",
+                "08_tmean",
+                "09_tmean",
+                "10_tmean",
+                "11_tmean",
+                "12_tmean",
+            ],
+            labels=[
+                "jan",
+                "feb",
+                "mar",
+                "apr",
+                "may",
+                "jun",
+                "jul",
+                "aug",
+                "sep",
+                "oct",
+                "nov",
+                "dec",
+            ],
+            colors=[
+                "#604791",
+                "#1d6b99",
+                "#39a8a7",
+                "#0f8755",
+                "#76b349",
+                "#f0af07",
+                "#e37d05",
+                "#cf513e",
+                "#96356f",
+                "#724173",
+                "#9c4f97",
+                "#696969",
+            ],
+            ax=ax,
+        )
+        # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
             image_regression.check(buffer.getvalue())
 
-    def test_plot_by_features_yproperties(self, gaul, image_regression):
+    def test_plot_by_features_stacked(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
-        fc = gaul.limit(10)
-        fc.geetools.plot_by_features(yProperties=["ADM1_CODE", "ADM2_CODE"], ax=ax)
+        # ftm: off
+        ecoregions.geetools.plot_by_features(
+            type="stacked",
+            featureId="label",
+            properties=[
+                "01_tmean",
+                "02_tmean",
+                "03_tmean",
+                "04_tmean",
+                "05_tmean",
+                "06_tmean",
+                "07_tmean",
+                "08_tmean",
+                "09_tmean",
+                "10_tmean",
+                "11_tmean",
+                "12_tmean",
+            ],
+            labels=[
+                "jan",
+                "feb",
+                "mar",
+                "apr",
+                "may",
+                "jun",
+                "jul",
+                "aug",
+                "sep",
+                "oct",
+                "nov",
+                "dec",
+            ],
+            colors=[
+                "#604791",
+                "#1d6b99",
+                "#39a8a7",
+                "#0f8755",
+                "#76b349",
+                "#f0af07",
+                "#e37d05",
+                "#cf513e",
+                "#96356f",
+                "#724173",
+                "#9c4f97",
+                "#696969",
+            ],
+            ax=ax,
+        )
+        # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
             image_regression.check(buffer.getvalue())
 
-    def test_plot_by_features_xproperty(self, gaul, image_regression):
+    def test_plot_by_features_scatter(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
-        fc = gaul.limit(10)
-        fc.geetools.plot_by_features(
-            xProperty="ADM1_CODE", yProperties=["ADM1_CODE", "ADM2_CODE"], ax=ax
+        ecoregions.geetools.plot_by_features(
+            type="scatter",
+            featureId="label",
+            properties=["01_ppt", "06_ppt", "09_ppt"],
+            labels=["jan", "jun", "sep"],
+            ax=ax,
+        )
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_features_pie(self, ecoregions, image_regression):
+        fig, ax = plt.subplots()
+        ecoregions.geetools.plot_by_features(
+            type="pie",
+            featureId="label",
+            properties=["06_ppt"],
+            colors=["#f0af07", "#0f8755", "#76b349"],
+            ax=ax,
+        )
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_features_donut(self, ecoregions, image_regression):
+        fig, ax = plt.subplots()
+        ecoregions.geetools.plot_by_features(
+            type="donut",
+            featureId="label",
+            properties=["06_ppt"],
+            colors=["#f0af07", "#0f8755", "#76b349"],
+            ax=ax,
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
@@ -143,28 +270,128 @@ class TestPlotByFeatures:
 class TestPlotByPropperties:
     """Test the ``plot_by_properties`` method."""
 
-    def test_plot_by_properties(self, gaul, image_regression):
+    def test_plot_by_properties_bar(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
-        fc = gaul.limit(10).select(["ADM0_CODE", "ADM1_CODE", "ADM2_CODE"])
-        fc.geetools.plot_by_properties(ax=ax)
-        with io.BytesIO() as buffer:
-            fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
-
-    def test_plot_by_properties_xproperties(self, gaul, image_regression):
-        fig, ax = plt.subplots()
-        fc = gaul.limit(10)
-        fc.geetools.plot_by_properties(xProperties=["ADM1_CODE", "ADM2_CODE"], ax=ax)
-        with io.BytesIO() as buffer:
-            fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
-
-    def test_plot_by_properties_series(self, gaul, image_regression):
-        fig, ax = plt.subplots()
-        fc = gaul.limit(10)
-        fc.geetools.plot_by_properties(
-            xProperties=["ADM0_CODE", "ADM1_CODE"], seriesProperty="ADM2_CODE", ax=ax
+        # ftm: off
+        ecoregions.geetools.plot_by_properties(
+            type="bar",
+            properties=[
+                "01_ppt",
+                "02_ppt",
+                "03_ppt",
+                "04_ppt",
+                "05_ppt",
+                "06_ppt",
+                "07_ppt",
+                "08_ppt",
+                "09_ppt",
+                "10_ppt",
+                "11_ppt",
+                "12_ppt",
+            ],
+            labels=[
+                "jan",
+                "feb",
+                "mar",
+                "apr",
+                "may",
+                "jun",
+                "jul",
+                "aug",
+                "sep",
+                "oct",
+                "nov",
+                "dec",
+            ],
+            featureId="label",
+            colors=["#f0af07", "#0f8755", "#76b349"],
+            ax=ax,
         )
+        # fmt: on
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_properties_plot(self, ecoregions, image_regression):
+        fig, ax = plt.subplots()
+        # ftm: off
+        ecoregions.geetools.plot_by_properties(
+            type="plot",
+            properties=[
+                "01_ppt",
+                "02_ppt",
+                "03_ppt",
+                "04_ppt",
+                "05_ppt",
+                "06_ppt",
+                "07_ppt",
+                "08_ppt",
+                "09_ppt",
+                "10_ppt",
+                "11_ppt",
+                "12_ppt",
+            ],
+            labels=[
+                "jan",
+                "feb",
+                "mar",
+                "apr",
+                "may",
+                "jun",
+                "jul",
+                "aug",
+                "sep",
+                "oct",
+                "nov",
+                "dec",
+            ],
+            featureId="label",
+            colors=["#f0af07", "#0f8755", "#76b349"],
+            ax=ax,
+        )
+        # fmt: on
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_properties_area(self, ecoregions, image_regression):
+        fig, ax = plt.subplots()
+        # ftm: off
+        ecoregions.geetools.plot_by_properties(
+            type="fill_between",
+            properties=[
+                "01_ppt",
+                "02_ppt",
+                "03_ppt",
+                "04_ppt",
+                "05_ppt",
+                "06_ppt",
+                "07_ppt",
+                "08_ppt",
+                "09_ppt",
+                "10_ppt",
+                "11_ppt",
+                "12_ppt",
+            ],
+            labels=[
+                "jan",
+                "feb",
+                "mar",
+                "apr",
+                "may",
+                "jun",
+                "jul",
+                "aug",
+                "sep",
+                "oct",
+                "nov",
+                "dec",
+            ],
+            featureId="label",
+            colors=["#f0af07", "#0f8755", "#76b349"],
+            ax=ax,
+        )
+        # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
             image_regression.check(buffer.getvalue())
@@ -173,18 +400,11 @@ class TestPlotByPropperties:
 class TestPlotHist:
     """Test the ``plot_hist`` method."""
 
-    def test_plot_hist(self, gaul, image_regression):
+    def test_plot_hist(self, climSamp, image_regression):
         fig, ax = plt.subplots()
-        fc = gaul.limit(10)
-        fc.geetools.plot_hist("ADM2_CODE", ax=ax)
-        with io.BytesIO() as buffer:
-            fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
-
-    def test_plot_hist_bins(self, gaul, image_regression):
-        fig, ax = plt.subplots()
-        fc = gaul.limit(10)
-        fc.geetools.plot_hist("ADM2_CODE", bins=3, ax=ax)
+        climSamp.geetools.plot_hist(
+            property="07_ppt", label="July Precipitation (mm)", color="#1d6b99", ax=ax, bins=30
+        )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
             image_regression.check(buffer.getvalue())
