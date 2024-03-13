@@ -219,3 +219,9 @@ def multipoint_feature():
     """Return a ``Feature`` instance."""
     geoms = ee.Geometry.MultiPoint([[0, 0], [0, 1]])
     return ee.Feature(geoms).set({"foo": "bar", "bar": "foo"})
+
+
+@pytest.fixture
+def ecoregion():
+    """Return the ecoregion collection."""
+    return ee.FeatureCollection("projects/google/charts_feature_example")

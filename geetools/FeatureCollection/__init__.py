@@ -349,13 +349,12 @@ class FeatureCollectionAccessor:
         colors = [] if color is None else [color]
 
         # get the data from the server
-        data = self.byProperties(properties).getInfo()
+        data = self.byProperties(properties=properties).getInfo()
 
         return self._plot(
             type="hist",
             data=data,
             label_name=property,
-            property_names=properties,
             colors=colors,
             ax=ax,
             **kwargs,
