@@ -13,12 +13,6 @@ repos:
       - id: commitizen
         stages: [commit-msg]
 
-  #  - repo: "https://github.com/kynan/nbstripout"
-  #    rev: "0.5.0"
-  #    hooks:
-  #      - id: nbstripout
-  #        stages: [commit]
-
   - repo: "https://github.com/pre-commit/mirrors-prettier"
     rev: "v2.7.1"
     hooks:

@@ -213,3 +213,17 @@ def multipoint_feature():
     """Return a ``Feature`` instance."""
     geoms = ee.Geometry.MultiPoint([[0, 0], [0, 1]])
     return ee.Feature(geoms).set({"foo": "bar", "bar": "foo"})
+
+
+@pytest.fixture
+def ecoregions():
+    """Return the ecoregion collection."""
+    return ee.FeatureCollection("projects/google/charts_feature_example")
+
+
+@pytest.fixture
+def climSamp():
+    """Return the climate sample collection."""
+    normClim = ee.ImageCollection("OREGONSTATE/PRISM/Norm81m").toBands()
+    region = ee.Geometry.Rectangle(-123.41, 40.43, -116.38, 45.14)
+    return normClim.sample(region, 5000)
