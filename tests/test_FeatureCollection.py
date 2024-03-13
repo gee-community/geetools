@@ -119,52 +119,13 @@ class TestPlotByFeatures:
 
     def test_plot_by_features_bar(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
-        # ftm: off
+        # fmt: off
         ecoregions.geetools.plot_by_features(
             type="bar",
             featureId="label",
-            properties=[
-                "01_tmean",
-                "02_tmean",
-                "03_tmean",
-                "04_tmean",
-                "05_tmean",
-                "06_tmean",
-                "07_tmean",
-                "08_tmean",
-                "09_tmean",
-                "10_tmean",
-                "11_tmean",
-                "12_tmean",
-            ],
-            labels=[
-                "jan",
-                "feb",
-                "mar",
-                "apr",
-                "may",
-                "jun",
-                "jul",
-                "aug",
-                "sep",
-                "oct",
-                "nov",
-                "dec",
-            ],
-            colors=[
-                "#604791",
-                "#1d6b99",
-                "#39a8a7",
-                "#0f8755",
-                "#76b349",
-                "#f0af07",
-                "#e37d05",
-                "#cf513e",
-                "#96356f",
-                "#724173",
-                "#9c4f97",
-                "#696969",
-            ],
+            properties=["01_tmean", "02_tmean", "03_tmean", "04_tmean", "05_tmean", "06_tmean", "07_tmean", "08_tmean", "09_tmean", "10_tmean","11_tmean", "12_tmean"],
+            labels=["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+            colors=["#604791", "#1d6b99", "#39a8a7", "#0f8755", "#76b349", "#f0af07", "#e37d05", "#cf513e", "#96356f", "#724173", "#9c4f97", "#696969"],
             ax=ax,
         )
         # fmt: on
@@ -174,52 +135,13 @@ class TestPlotByFeatures:
 
     def test_plot_by_features_stacked(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
-        # ftm: off
+        # fmt: off
         ecoregions.geetools.plot_by_features(
             type="stacked",
             featureId="label",
-            properties=[
-                "01_tmean",
-                "02_tmean",
-                "03_tmean",
-                "04_tmean",
-                "05_tmean",
-                "06_tmean",
-                "07_tmean",
-                "08_tmean",
-                "09_tmean",
-                "10_tmean",
-                "11_tmean",
-                "12_tmean",
-            ],
-            labels=[
-                "jan",
-                "feb",
-                "mar",
-                "apr",
-                "may",
-                "jun",
-                "jul",
-                "aug",
-                "sep",
-                "oct",
-                "nov",
-                "dec",
-            ],
-            colors=[
-                "#604791",
-                "#1d6b99",
-                "#39a8a7",
-                "#0f8755",
-                "#76b349",
-                "#f0af07",
-                "#e37d05",
-                "#cf513e",
-                "#96356f",
-                "#724173",
-                "#9c4f97",
-                "#696969",
-            ],
+            properties=["01_tmean", "02_tmean", "03_tmean", "04_tmean", "05_tmean", "06_tmean", "07_tmean", "08_tmean", "09_tmean", "10_tmean","11_tmean", "12_tmean"],
+            labels=["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+            colors=["#604791", "#1d6b99", "#39a8a7", "#0f8755", "#76b349", "#f0af07", "#e37d05", "#cf513e", "#96356f", "#724173", "#9c4f97", "#696969"],
             ax=ax,
         )
         # fmt: on
@@ -272,37 +194,11 @@ class TestPlotByPropperties:
 
     def test_plot_by_properties_bar(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
-        # ftm: off
+        # fmt: off
         ecoregions.geetools.plot_by_properties(
             type="bar",
-            properties=[
-                "01_ppt",
-                "02_ppt",
-                "03_ppt",
-                "04_ppt",
-                "05_ppt",
-                "06_ppt",
-                "07_ppt",
-                "08_ppt",
-                "09_ppt",
-                "10_ppt",
-                "11_ppt",
-                "12_ppt",
-            ],
-            labels=[
-                "jan",
-                "feb",
-                "mar",
-                "apr",
-                "may",
-                "jun",
-                "jul",
-                "aug",
-                "sep",
-                "oct",
-                "nov",
-                "dec",
-            ],
+            properties=["01_ppt", "02_ppt", "03_ppt", "04_ppt", "05_ppt", "06_ppt", "07_ppt", "08_ppt", "09_ppt", "10_ppt", "11_ppt", "12_ppt"],
+            labels=["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
             featureId="label",
             colors=["#f0af07", "#0f8755", "#76b349"],
             ax=ax,
@@ -314,37 +210,11 @@ class TestPlotByPropperties:
 
     def test_plot_by_properties_plot(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
-        # ftm: off
+        # fmt: off
         ecoregions.geetools.plot_by_properties(
             type="plot",
-            properties=[
-                "01_ppt",
-                "02_ppt",
-                "03_ppt",
-                "04_ppt",
-                "05_ppt",
-                "06_ppt",
-                "07_ppt",
-                "08_ppt",
-                "09_ppt",
-                "10_ppt",
-                "11_ppt",
-                "12_ppt",
-            ],
-            labels=[
-                "jan",
-                "feb",
-                "mar",
-                "apr",
-                "may",
-                "jun",
-                "jul",
-                "aug",
-                "sep",
-                "oct",
-                "nov",
-                "dec",
-            ],
+            properties=["01_ppt", "02_ppt", "03_ppt", "04_ppt", "05_ppt", "06_ppt", "07_ppt", "08_ppt", "09_ppt", "10_ppt", "11_ppt", "12_ppt"],
+            labels=["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
             featureId="label",
             colors=["#f0af07", "#0f8755", "#76b349"],
             ax=ax,
@@ -356,37 +226,11 @@ class TestPlotByPropperties:
 
     def test_plot_by_properties_area(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
-        # ftm: off
+        # fmt: off
         ecoregions.geetools.plot_by_properties(
             type="fill_between",
-            properties=[
-                "01_ppt",
-                "02_ppt",
-                "03_ppt",
-                "04_ppt",
-                "05_ppt",
-                "06_ppt",
-                "07_ppt",
-                "08_ppt",
-                "09_ppt",
-                "10_ppt",
-                "11_ppt",
-                "12_ppt",
-            ],
-            labels=[
-                "jan",
-                "feb",
-                "mar",
-                "apr",
-                "may",
-                "jun",
-                "jul",
-                "aug",
-                "sep",
-                "oct",
-                "nov",
-                "dec",
-            ],
+            properties=["01_ppt", "02_ppt", "03_ppt", "04_ppt", "05_ppt", "06_ppt", "07_ppt", "08_ppt", "09_ppt", "10_ppt", "11_ppt", "12_ppt"],
+            labels=["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
             featureId="label",
             colors=["#f0af07", "#0f8755", "#76b349"],
             ax=ax,
