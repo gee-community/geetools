@@ -284,7 +284,7 @@ class FeatureCollectionAccessor:
         type: str = "bar",
         featureId: str = "system:index",
         properties: ee_list = [],
-        labels: str = [],
+        labels: list = [],
         colors: list = [],
         ax: Optional[Axes] = None,
         **kwargs,
