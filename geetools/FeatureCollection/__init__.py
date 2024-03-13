@@ -409,7 +409,6 @@ class FeatureCollectionAccessor:
                 ax.plot(props, values, label=label, **kwargs)
                 ax.set_ylabel(name)
                 ax.set_xlabel(f"Features (labeled by {label_name})")
-            ax.legend()
 
         elif type == "scatter":
             for i, label in enumerate(labels):
@@ -419,7 +418,6 @@ class FeatureCollectionAccessor:
                 ax.scatter(props, values, label=label, **kwargs)
                 ax.set_ylabel(name)
                 ax.set_xlabel(f"Features (labeled by {label_name})")
-            ax.legend()
 
         elif type == "fill_between":
             for i, label in enumerate(labels):
@@ -430,7 +428,6 @@ class FeatureCollectionAccessor:
                 ax.fill_between(props, values, label=label, **kwargs)
                 ax.set_ylabel(name)
                 ax.set_xlabel(f"Features (labeled by {label_name})")
-            ax.legend()
 
         elif type == "bar":
             x = np.arange(len(props))
@@ -442,7 +439,6 @@ class FeatureCollectionAccessor:
                 kwargs["color"] = colors[i]
                 values = list(data[label].values())
                 ax.bar(x + width * i, values, label=label, **kwargs)
-            ax.legend()
 
         elif type == "stacked":
             x = np.arange(len(props))
@@ -452,7 +448,6 @@ class FeatureCollectionAccessor:
                 values = list(data[label].values())
                 ax.bar(x, values, label=label, **kwargs)
                 bottom += values
-            ax.legend()
 
         elif type == "pie":
             if len(labels) != 1:
@@ -465,7 +460,6 @@ class FeatureCollectionAccessor:
             kwargs.update(autopct="%1.1f%%", colors=colors)
             values = [data[labels[0]][p] for p in props]
             ax.pie(values, labels=props, **kwargs)
-            ax.legend()
 
         elif type == "donut":
             if len(labels) != 1:
@@ -479,7 +473,6 @@ class FeatureCollectionAccessor:
             kwargs.update(autopct="%1.1f%%", colors=colors)
             values = [data[labels[0]][p] for p in props]
             ax.pie(values, labels=props, **kwargs)
-            ax.legend()
 
         elif type == "hist":
             if len(labels) != 1:
@@ -498,6 +491,7 @@ class FeatureCollectionAccessor:
         ax.set_axisbelow(True)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
+        ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
 
         # make sure the canvas is only rendered once.
         ax.figure.canvas.draw_idle()
