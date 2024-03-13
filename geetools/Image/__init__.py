@@ -56,13 +56,13 @@ class ImageAccessor:
                 ee.Date(value).format('YYYY-MM-dd').getInfo()
         """
         # parse the inputs
-        format = ee.String(format)
-        isMillis = format.equals(ee.String(""))
+        isMillis = ee.String(format).equals(ee.String(""))
+        format = ee.String(format) if format else ee.String("YYYYMMdd")
 
         # extract the date from the object and create a image band from it
         date = self._obj.date()
-        date = ee.Algorithms.If(isMillis, date.millis(), date.format(format))
-        dateBand = ee.Image.constant(ee.Number.parse(date)).rename("date")
+        date = ee.Algorithms.If(isMillis, date.millis(), ee.Number.parse(date.format(format)))
+        dateBand = ee.Image.constant(ee.Number(date)).rename("date")
 
         return self._obj.addBands(dateBand)
 
