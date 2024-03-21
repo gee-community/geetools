@@ -745,6 +745,6 @@ class Asset:
         desc = anyascii(description)
         for chars, rep in replacements:
             pattern = "|".join(re.escape(c) for c in chars)
-            desc = re.sub(pattern, rep, desc)
+            desc = re.sub(pattern, rep, desc)  # type: ignore
 
         return desc[:100]
