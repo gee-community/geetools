@@ -6,6 +6,7 @@ from pathlib import PurePosixPath
 from typing import Optional
 
 import ee
+from anyascii import anyascii
 
 from geetools.accessors import _register_extention
 from geetools.types import pathlike
@@ -710,3 +711,40 @@ class Asset:
                 asset.rglob("image_*")
         """
         return [a for a in self.iterdir(recursive=True) if a.match(pattern)]
+
+    def as_description(self) -> str:
+        """Transform the name of the Asset in to a description compatible string for a Task.
+
+        Returns:
+            The formatted description.
+        """
+        return self.format_description(self.name)
+
+    @staticmethod
+    def format_description(description: str) -> str:
+        """Format a name to be accepted as a Task description.
+
+        The rule is:
+        The description must contain only the following characters: a..z, A..Z,
+        0..9, ".", ",", ":", ";", "_" or "-". The description must be at most 100
+        characters long.
+
+        Args:
+            description: The description to format.
+
+        Returns:
+            The formatted description.
+        """
+        replacements = [
+            [[" "], "_"],
+            [["/"], "-"],
+            [["?", "!", "¿", "*"], "."],
+            [["(", ")", "[", "]", "{", "}"], ":"],
+        ]
+
+        desc = anyascii(description)
+        for chars, rep in replacements:
+            pattern = "|".join(re.escape(c) for c in chars)
+            desc = re.sub(pattern, rep, desc)
+
+        return desc[:100]
