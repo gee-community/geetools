@@ -19,6 +19,11 @@ class TestAddDate:
         values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
         num_regression.check({k: np.nan if v is None else v for k, v in values.getInfo().items()})
 
+    def test_add_date_format(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
+        image = s2_sr_vatican_2020.geetools.addDate("yyyyMMdd")
+        values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
+        num_regression.check({k: np.nan if v is None else v for k, v in values.getInfo().items()})
+
     def test_deprecated_make_date_band(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         with pytest.deprecated_call():
             image = geetools.tools.date.makeDateBand(s2_sr_vatican_2020)

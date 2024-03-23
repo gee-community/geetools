@@ -109,6 +109,14 @@ links:
 - href: https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED#terms-of-use
   rel: license
   type: text/html
+- href: https://storage.googleapis.com/earthengine-stac/catalog/COPERNICUS/COPERNICUS_S2_SR_HARMONIZED.json
+  rel: latest-version
+  title: COPERNICUS/S2_SR_HARMONIZED
+  type: application/json
+- href: https://storage.googleapis.com/earthengine-stac/catalog/COPERNICUS/COPERNICUS_S2_SR.json
+  rel: predecessor-version
+  title: COPERNICUS/S2_SR
+  type: application/json
 providers:
 - name: European Union/ESA/Copernicus
   roles:
@@ -121,6 +129,7 @@ providers:
   url: https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED
 stac_extensions:
 - https://stac-extensions.github.io/eo/v1.0.0/schema.json
+- https://stac-extensions.github.io/version/v1.0.0/schema.json
 stac_version: 1.0.0
 summaries:
   MSK_CLDPRB:
@@ -615,3 +624,4 @@ summaries:
   - Sentinel-2B
 title: 'Harmonized Sentinel-2 MSI: MultiSpectral Instrument, Level-2A'
 type: Collection
+version: harmonized
