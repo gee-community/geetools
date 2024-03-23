@@ -41,3 +41,4 @@ Then you can open a PR with the new file and it will be reviewed and merged.
 
     template
     asset
+    plot_featureCollection

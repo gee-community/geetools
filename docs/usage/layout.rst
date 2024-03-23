@@ -149,6 +149,15 @@ Converter
 #########
 
 - :py:meth:`ee.FeatureCollection.geetools.toImage <geetools.FeatureCollection.FeatureCollectionAccessor.toImage>`: :docstring:`geetools.FeatureCollectionAccessor.toImage`
+- :py:meth:`ee.FeatureCollection.geetools.byFeatures <geetools.FeatureCollection.FeatureCollectionAccessor.byFeatures>`: :docstring:`geetools.FeatureCollectionAccessor.byFeatures`
+- :py:meth:`ee.FeatureCollection.geetools.byProperties <geetools.FeatureCollection.FeatureCollectionAccessor.byProperties>`: :docstring:`geetools.FeatureCollectionAccessor.byProperties`
+
+Plotting
+########
+
+- :py:meth:`ee.FeatureCollection.geetools.plot_by_features <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_features>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_features`
+- :py:meth:`ee.FeatureCollection.geetools.plot_by_properties <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_properties>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_properties`
+- :py:meth:`ee.FeatureCollection.geetools.plot_hist <geetools.FeatureCollection.FeatureCollectionAccessor.plot_hist>`: :docstring:`geetools.FeatureCollectionAccessor.plot_hist`
 
 ee.Filter
 ^^^^^^^^^
@@ -360,6 +369,8 @@ Operation
 - :py:meth:`ee.Asset.unlink <geetools.Asset.Asset.unlink>`: :docstring:`geetools.Asset.unlink`
 - :py:meth:`ee.Asset.delete <geetools.Asset.Asset.delete>`: :docstring:`geetools.Asset.delete`
 - :py:meth:`ee.Asset.copy <geetools.Asset.Asset.copy>`: :docstring:`geetools.Asset.copy`
+- :py:meth:`ee.Asset.glob <geetools.Asset.Asset.glob>`: :docstring:`geetools.Asset.glob`
+- :py:meth:`ee.Asset.rglob <geetools.Asset.Asset.rglob>`: :docstring:`geetools.Asset.rglob`
 
 Property
 ########
