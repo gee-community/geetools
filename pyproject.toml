@@ -33,6 +33,7 @@ dependencies = [
     "xee",
     "yamlable",
     "matplotlib",
+    "anyascii",
 ]
 
 [[project.authors]]

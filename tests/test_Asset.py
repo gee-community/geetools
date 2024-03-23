@@ -42,6 +42,10 @@ class TestStr:
         asset = ee.Asset("projects/bar")
         assert asset.as_uri() == "https://code.earthengine.google.com/?asset=projects/bar"
 
+    def test_as_description(self):
+        asset = ee.Asset(f"projects/{EARTHENGINE_PROJECT}/assets/a weird name")
+        assert asset.as_description() == "a_weird_name"
+
 
 class TestOperations:
     """Test the operations that can be run on the asset."""
