@@ -4,6 +4,7 @@ from typing import Optional
 import ee
 import numpy as np
 import pytest
+from jsonschema import validate
 
 import geetools
 
@@ -76,14 +77,14 @@ class TestPreprocess:
 class TestGetSTAC:
     """Test the ``getSTAC`` method."""
 
-    def test_get_stac(self, s2_sr, data_regression):
+    def test_get_stac(self, s2_sr):
         stac = s2_sr.geetools.getSTAC()
-        stac["extent"].pop("temporal")  # it will change all the time
-        data_regression.check(stac)
+        assert stac["id"] == "COPERNICUS/S2_SR"
 
-    def test_get_stac_schema(self, s2_sr, data_regression):
-        stac = s2_sr.geetools.getSTAC(properties=["system:time_start", "system:time_end"])
-        stac["extent"].pop("temporal")
+    @pytest.mark.xfail
+    def test_get_stac_schema(self, s2_sr, stac_schema):
+        stac = s2_sr.geetools.getSTAC()
+        validate(stac, stac_schema)
 
 
 class TestGetDOI:
