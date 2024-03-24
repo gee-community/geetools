@@ -241,7 +241,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -266,7 +266,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -291,7 +291,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -316,7 +316,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -341,7 +341,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -366,7 +366,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -391,7 +391,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -416,7 +416,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -441,7 +441,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -466,7 +466,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -491,7 +491,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -516,7 +516,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -541,7 +541,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -566,7 +566,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -591,7 +591,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -616,7 +616,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -641,7 +641,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -666,7 +666,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -691,7 +691,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -716,7 +716,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -741,7 +741,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -766,7 +766,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
@@ -791,7 +791,7 @@ data_vars:
     - time
     - lon
     - lat
-    dtype: int32
+    dtype: float32
     shape:
     - 2449
     - 360
