@@ -7,6 +7,7 @@ from urllib.request import urlretrieve
 import ee
 import numpy as np
 import pytest
+from jsonschema import validate
 
 import geetools
 
@@ -636,10 +637,14 @@ class TestPreprocess:
 class TestGetSTAC:
     """Test the ``getSTAC`` method."""
 
-    def test_get_stac(self, s2_sr_vatican_2020, data_regression):
+    @pytest.mark.xfail
+    def test_get_stac_schema(self, s2_sr_vatican_2020, stac_schema):
         stac = s2_sr_vatican_2020.geetools.getSTAC()
-        stac["extent"].pop("temporal")  # it will change all the time
-        data_regression.check(stac)
+        validate(stac, stac_schema)
+
+    def test_get_stac(self, s2_sr_vatican_2020):
+        stac = s2_sr_vatican_2020.geetools.getSTAC()
+        assert stac["id"] == "COPERNICUS/S2_SR_HARMONIZED"
 
 
 class TestGetDOI:

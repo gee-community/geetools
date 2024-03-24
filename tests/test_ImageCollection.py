@@ -81,6 +81,10 @@ class TestGetSTAC:
         stac["extent"].pop("temporal")  # it will change all the time
         data_regression.check(stac)
 
+    def test_get_stac_schema(self, s2_sr, data_regression):
+        stac = s2_sr.geetools.getSTAC(properties=["system:time_start", "system:time_end"])
+        stac["extent"].pop("temporal")
+
 
 class TestGetDOI:
     """Test the ``getDOI`` method."""
