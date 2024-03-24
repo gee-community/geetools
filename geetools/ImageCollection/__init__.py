@@ -15,7 +15,7 @@ from geetools.accessors import register_class_accessor
 from geetools.types import ee_list, ee_number, number
 
 
-def _add_tz(data: Any) -> Union[dict, list]:
+def _add_tz(data: Any) -> Any:
     """Workaround for the lack of timezone info in date strings returned by the Earth Engine API.
 
     related issue: https://issuetracker.google.com/issues/331016656

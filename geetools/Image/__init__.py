@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import ee
 import ee_extra
@@ -21,7 +21,7 @@ from geetools.types import (
 )
 
 
-def _add_tz(data: Any) -> Union[dict, list]:
+def _add_tz(data: Any) -> Any:
     """Workaround for the lack of timezone info in date strings returned by the Earth Engine API.
 
     related issue: https://issuetracker.google.com/issues/331016656
