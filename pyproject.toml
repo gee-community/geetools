@@ -65,6 +65,7 @@ Homepage = "https://github.com/gee-community/geetools"
     "pytest-regressions",
     "Pillow",
     "pytest-gee",
+    "jsonschema",
 ]
 doc = [
   "sphinx>=6.2.1",
