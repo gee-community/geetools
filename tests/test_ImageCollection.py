@@ -81,7 +81,6 @@ class TestGetSTAC:
         stac = s2_sr.geetools.getSTAC()
         assert stac["id"] == "COPERNICUS/S2_SR"
 
-    @pytest.mark.xfail
     def test_get_stac_schema(self, s2_sr, stac_schema):
         stac = s2_sr.geetools.getSTAC()
         validate(stac, stac_schema)

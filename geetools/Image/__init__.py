@@ -1,7 +1,8 @@
 """Toolbox for the ``ee.Image`` class."""
 from __future__ import annotations
 
-from typing import Optional
+from datetime import datetime
+from typing import Any, Optional, Union
 
 import ee
 import ee_extra
@@ -18,6 +19,26 @@ from geetools.types import (
     ee_str,
     number,
 )
+
+
+def _add_tz(data: Any) -> Union[dict, list]:
+    """Workaround for the lack of timezone info in date strings returned by the Earth Engine API.
+
+    related issue: https://issuetracker.google.com/issues/331016656
+    """
+    if isinstance(data, dict):
+        return {key: _add_tz(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [_add_tz(item) for item in data]
+    elif isinstance(data, str):
+        try:
+            datetime_obj = datetime.fromisoformat(data)
+            extra_tz = "Z" if datetime_obj.tzinfo is None else ""
+            return data + extra_tz  # Add Z if no timezone info is present
+        except ValueError:
+            return data  # Not a valid date string, return unchanged
+    else:
+        return data  # Return unchanged for non-string values
 
 
 @register_class_accessor(ee.Image, "geetools")
@@ -1007,7 +1028,7 @@ class ImageAccessor:
         if collection_stac is None:
             raise ValueError(f"Collection {collection} not found in the {project} catalog")
 
-        return requests.get(collection_stac).json()
+        return _add_tz(requests.get(collection_stac).json())
 
     def getDOI(self) -> str:
         """Gets the DOI of the image, if available.

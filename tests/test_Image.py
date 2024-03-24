@@ -637,7 +637,6 @@ class TestPreprocess:
 class TestGetSTAC:
     """Test the ``getSTAC`` method."""
 
-    @pytest.mark.xfail
     def test_get_stac_schema(self, s2_sr_vatican_2020, stac_schema):
         stac = s2_sr_vatican_2020.geetools.getSTAC()
         validate(stac, stac_schema)
