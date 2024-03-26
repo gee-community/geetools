@@ -105,7 +105,7 @@ autoapi_options = [
     "show-module-summary",
     "special-members",
 ]
-autoapi_render_in_single_page = ["class", "function", "method"]
+autoapi_own_page_level = "method"
 
 # -- Options for intersphinx output --------------------------------------------
 intersphinx_mapping = {}
