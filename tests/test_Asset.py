@@ -18,6 +18,10 @@ class TestConstructors:
         asset = ee.Asset.home()
         assert asset == f"projects/{EARTHENGINE_PROJECT}/assets"
 
+    def test_not_absolute(self):
+        asset = ee.Asset("/projects/foo/bar")
+        assert asset == "projects/foo/bar"
+
 
 class TestStr:
     """Test the to_string method."""
@@ -37,6 +41,10 @@ class TestStr:
     def test_as_uri(self):
         asset = ee.Asset("projects/bar")
         assert asset.as_uri() == "https://code.earthengine.google.com/?asset=projects/bar"
+
+    def test_as_description(self):
+        asset = ee.Asset(f"projects/{EARTHENGINE_PROJECT}/assets/a weird name")
+        assert asset.as_description() == "a_weird_name"
 
 
 class TestOperations:
@@ -170,6 +178,12 @@ class TestServerMethods:
         assert (gee_test_folder / "folder" / "image").exists() is True
         assert (gee_test_folder / "folder" / "fake").exists() is False
 
+    def test_is_project(self):
+        assert ee.Asset(f"projects/{EARTHENGINE_PROJECT}/assets").is_project() is True
+        assert ee.Asset("projects/bar").is_project() is False
+        with pytest.raises(ValueError):
+            ee.Asset("projects/bar").is_project(raised=True)
+
     def test_is_folder(self, gee_test_folder):
         gee_test_folder = ee.Asset(gee_test_folder)
         assert (gee_test_folder / "folder").is_folder() is True
@@ -205,6 +219,22 @@ class TestServerMethods:
     def test_iterdir_nodir(self, gee_test_folder):
         with pytest.raises(ValueError):
             (ee.Asset(gee_test_folder) / "folder" / "image").iterdir()
+
+    def test_glob(self, gee_test_folder, gee_hash, data_regression):
+        folder = ee.Asset(gee_test_folder) / "folder"
+        assets = [
+            str(a).replace(EARTHENGINE_PROJECT, "ee-project").replace(gee_hash, "hash")
+            for a in folder.glob("*/image")
+        ]
+        data_regression.check(assets)
+
+    def test_rglob(self, gee_test_folder, gee_hash, data_regression):
+        folder = ee.Asset(gee_test_folder) / "folder"
+        assets = [
+            str(a).replace(EARTHENGINE_PROJECT, "ee-project").replace(gee_hash, "hash")
+            for a in folder.rglob("*/image")
+        ]
+        data_regression.check(assets)
 
     def test_mkdir(self, gee_test_folder):
         gee_test_folder = ee.Asset(gee_test_folder)
@@ -283,6 +313,22 @@ class TestServerMethods:
         asset = gee_test_folder / "rmdir_folder"
         asset.rmdir(recursive=True, dry_run=False)
         assert asset.exists() is False
+
+    def test_copy(self, gee_test_folder):
+        gee_test_folder = ee.Asset(gee_test_folder)
+        asset = gee_test_folder / "copy_folder" / "image"
+        new_asset = gee_test_folder / "copy_folder" / "new_image"
+        asset.copy(new_asset)
+        assert asset.exists() is True
+        assert new_asset.exists() is True
+
+    def test_copy_folder(self, gee_test_folder):
+        gee_test_folder = ee.Asset(gee_test_folder)
+        asset = gee_test_folder / "copy_folder"
+        new_asset = gee_test_folder / "new_copy_folder"
+        asset.copy(new_asset)
+        assert asset.exists() is True
+        assert new_asset.exists() is True
 
     def test_move(self, gee_test_folder):
         gee_test_folder = ee.Asset(gee_test_folder)

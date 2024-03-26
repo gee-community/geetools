@@ -21,7 +21,7 @@ sys.path.append(str(Path(".").resolve()))
 project = "geetools"
 author = "Rodrigo E. Principe"
 copyright = f"2017-{datetime.now().year}, {author}"
-release = "1.2.0"
+release = "1.3.0"
 
 # -- General configuration -----------------------------------------------------
 extensions = [
@@ -40,7 +40,7 @@ exclude_patterns = ["**.ipynb_checkpoints"]
 
 # -- Options for HTML output ---------------------------------------------------
 # Define the json_url for our version switcher.
-json_url = "https://gee-tools.readthedocs.io/en/latest/_static/switcher.json"
+json_url = "https://geetools.readthedocs.io/en/latest/_static/switcher.json"
 
 # Define the version we use for matching in the version switcher.
 version_match = os.environ.get("READTHEDOCS_VERSION")
@@ -83,6 +83,7 @@ html_theme_options = {
         "version_match": version_match,
     },
     "navbar_start": ["navbar-logo", "version-switcher"],
+    "show_toc_level": 2,
 }
 html_context = {
     "github_user": "gee-community",

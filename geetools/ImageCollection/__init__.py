@@ -1,16 +1,38 @@
 """Toolbox for the ``ee.ImageCollection`` class."""
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Optional, Tuple, Union
 
 import ee
 import ee_extra
+import requests
 import xarray
 from xarray import Dataset
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from geetools.accessors import register_class_accessor
 from geetools.types import ee_list, ee_number, number
+
+
+def _add_tz(data: Any) -> Any:
+    """Workaround for the lack of timezone info in date strings returned by the Earth Engine API.
+
+    related issue: https://issuetracker.google.com/issues/331016656
+    """
+    if isinstance(data, dict):
+        return {key: _add_tz(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [_add_tz(item) for item in data]
+    elif isinstance(data, str):
+        try:
+            datetime_obj = datetime.fromisoformat(data)
+            extra_tz = "Z" if datetime_obj.tzinfo is None else ""
+            return data + extra_tz  # Add Z if no timezone info is present
+        except ValueError:
+            return data  # Not a valid date string, return unchanged
+    else:
+        return data  # Return unchanged for non-string values
 
 
 @register_class_accessor(ee.ImageCollection, "geetools")
@@ -284,10 +306,28 @@ class ImageCollectionAccessor:
 
             ee.ImageCollection('COPERNICUS/S2_SR').getSTAC()
         """
-        return ee_extra.STAC.core.getSTAC(self._obj)
+        # extract the Asset id from the imagecollection
+        assetId = self._obj.get("system:id").getInfo()
+
+        # search for the project in the GEE catalog and extract the project catalog URL
+        project = assetId.split("/")[0]
+        catalog = "https://earthengine-stac.storage.googleapis.com/catalog/catalog.json"
+        links = requests.get(catalog).json()["links"]
+        project_catalog = next((i["href"] for i in links if i.get("title") == project), None)
+        if project_catalog is None:
+            raise ValueError(f"Project {project} not found in the catalog")
+
+        # search for the collection in the project catalog and extract the collection STAC URL
+        collection = "_".join(assetId.split("/"))
+        links = requests.get(project_catalog).json()["links"]
+        collection_stac = next((i["href"] for i in links if i.get("title") == collection), None)
+        if collection_stac is None:
+            raise ValueError(f"Collection {collection} not found in the {project} catalog")
+
+        return _add_tz(requests.get(collection_stac).json())
 
     def getDOI(self) -> str:
-        """Gets the DOI of the image, if available.
+        """Gets the DOI of the collection, if available.
 
         Returns:
             DOI of the ee.Image dataset.

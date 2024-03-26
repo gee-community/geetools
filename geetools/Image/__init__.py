@@ -1,11 +1,13 @@
 """Toolbox for the ``ee.Image`` class."""
 from __future__ import annotations
 
-from typing import Optional
+from datetime import datetime
+from typing import Any, Optional
 
 import ee
 import ee_extra
 import ee_extra.Algorithms.core
+import requests
 
 from geetools.accessors import register_class_accessor
 from geetools.types import (
@@ -19,6 +21,26 @@ from geetools.types import (
 )
 
 
+def _add_tz(data: Any) -> Any:
+    """Workaround for the lack of timezone info in date strings returned by the Earth Engine API.
+
+    related issue: https://issuetracker.google.com/issues/331016656
+    """
+    if isinstance(data, dict):
+        return {key: _add_tz(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [_add_tz(item) for item in data]
+    elif isinstance(data, str):
+        try:
+            datetime_obj = datetime.fromisoformat(data)
+            extra_tz = "Z" if datetime_obj.tzinfo is None else ""
+            return data + extra_tz  # Add Z if no timezone info is present
+        except ValueError:
+            return data  # Not a valid date string, return unchanged
+    else:
+        return data  # Return unchanged for non-string values
+
+
 @register_class_accessor(ee.Image, "geetools")
 class ImageAccessor:
     """Toolbox for the ``ee.Image`` class."""
@@ -28,10 +50,14 @@ class ImageAccessor:
         self._obj = obj
 
     # -- band manipulation -----------------------------------------------------
-    def addDate(self) -> ee.Image:
+    def addDate(self, format: ee_str = "") -> ee.Image:
         """Add a band with the date of the image in the provided format.
 
-        The date is stored as a Timestamp in millisecond in a band "date".
+        If no format is provided, the date is stored as a Timestamp in millisecond in a band "date". If format band is provided, the date is store in a int8 band with the date in the provided format. This format needs to be a string that can be converted to a number.
+        If not an error will be thrown.
+
+        Args:
+            format: A date pattern, as described at http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
 
         Returns:
             The image with the date band added.
@@ -50,8 +76,16 @@ class ImageAccessor:
                 value = date.reduceRegion(ee.Reducer.first(), buffer, 10).get("date")
                 ee.Date(value).format('YYYY-MM-dd').getInfo()
         """
-        date = self._obj.date().millis()
-        return self._obj.addBands(ee.Image.constant(date).rename("date"))
+        # parse the inputs
+        isMillis = ee.String(format).equals(ee.String(""))
+        format = ee.String(format) if format else ee.String("YYYYMMdd")
+
+        # extract the date from the object and create a image band from it
+        date = self._obj.date()
+        date = ee.Algorithms.If(isMillis, date.millis(), ee.Number.parse(date.format(format)))
+        dateBand = ee.Image.constant(ee.Number(date)).rename("date")
+
+        return self._obj.addBands(dateBand)
 
     def addSuffix(self, suffix: ee_str, bands: ee_list = []) -> ee.Image:
         """Add a suffix to the image selected band.
@@ -976,7 +1010,25 @@ class ImageAccessor:
 
             ee.ImageCollection('COPERNICUS/S2_SR').first().getSTAC()
         """
-        return ee_extra.STAC.core.getSTAC(self._obj)
+        # extract the Asset id from the imagecollection
+        assetId = self._obj.get("system:id").getInfo()
+
+        # search for the project in the GEE catalog and extract the project catalog URL
+        project = assetId.split("/")[0]
+        catalog = "https://earthengine-stac.storage.googleapis.com/catalog/catalog.json"
+        links = requests.get(catalog).json()["links"]
+        project_catalog = next((i["href"] for i in links if i.get("title") == project), None)
+        if project_catalog is None:
+            raise ValueError(f"Project {project} not found in the catalog")
+
+        # search for the collection in the project catalog and extract the collection STAC URL
+        collection = "_".join(assetId.split("/")[:-1])
+        links = requests.get(project_catalog).json()["links"]
+        collection_stac = next((i["href"] for i in links if i.get("title") == collection), None)
+        if collection_stac is None:
+            raise ValueError(f"Collection {collection} not found in the {project} catalog")
+
+        return _add_tz(requests.get(collection_stac).json())
 
     def getDOI(self) -> str:
         """Gets the DOI of the image, if available.

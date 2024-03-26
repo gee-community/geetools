@@ -7,6 +7,7 @@ from urllib.request import urlretrieve
 import ee
 import numpy as np
 import pytest
+from jsonschema import validate
 
 import geetools
 
@@ -16,6 +17,11 @@ class TestAddDate:
 
     def test_add_date(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         image = s2_sr_vatican_2020.geetools.addDate()
+        values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
+        num_regression.check({k: np.nan if v is None else v for k, v in values.getInfo().items()})
+
+    def test_add_date_format(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
+        image = s2_sr_vatican_2020.geetools.addDate("yyyyMMdd")
         values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
         num_regression.check({k: np.nan if v is None else v for k, v in values.getInfo().items()})
 
@@ -631,10 +637,13 @@ class TestPreprocess:
 class TestGetSTAC:
     """Test the ``getSTAC`` method."""
 
-    def test_get_stac(self, s2_sr_vatican_2020, data_regression):
+    def test_get_stac_schema(self, s2_sr_vatican_2020, stac_schema):
         stac = s2_sr_vatican_2020.geetools.getSTAC()
-        stac["extent"].pop("temporal")  # it will change all the time
-        data_regression.check(stac)
+        validate(stac, stac_schema)
+
+    def test_get_stac(self, s2_sr_vatican_2020):
+        stac = s2_sr_vatican_2020.geetools.getSTAC()
+        assert stac["id"] == "COPERNICUS/S2_SR_HARMONIZED"
 
 
 class TestGetDOI:
