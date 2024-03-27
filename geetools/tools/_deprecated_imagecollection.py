@@ -987,22 +987,11 @@ def normalDistributionBand(collection, band, mean=None, std=None, name="normal_d
     return gaussFunctionBand(collection, band, mean=imean, output_max=imax, std=istd, name=name)
 
 
+@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.validPixels instead")
 def maskedSize(collection):
-    """Return an image with the percentage of masked pixels. 100% means all.
-
-    pixels are masked
-    .
-    """
-    mask = collection.map(lambda i: i.mask().Not())
-
-    def wrap(i):
-        onemore = i.add(1)
-        return onemore.divide(onemore)
-
-    total = mask.map(wrap)
-    masksum = mask.sum()
-    totalsum = total.sum()
-    return masksum.divide(totalsum).multiply(100).toInt()
+    """Return an image with the percentage of masked pixels"""
+    valid = ee.ImageCollection(collection).geetools.validPixels().select("pct_valid")
+    return ee.Image(100).subtract(valid)
 
 
 @deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.integral instead")
