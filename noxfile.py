@@ -41,7 +41,6 @@ def docs(session):
     """Build the documentation."""
     build = session.posargs.pop() if session.posargs else "html"
     session.install(".[doc]")
-    session.install("sphinx-autoapi==3.1.0a3")  # until v3.1 is released with the single page fix
     dst, warn = f"docs/_build/{build}", "warnings.txt"
     session.run("sphinx-build", "-v", "-b", build, "docs", dst, "-w", warn)
 
