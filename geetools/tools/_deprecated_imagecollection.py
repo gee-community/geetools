@@ -990,7 +990,7 @@ def normalDistributionBand(collection, band, mean=None, std=None, name="normal_d
 @deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.validPixels instead")
 def maskedSize(collection):
     """Return an image with the percentage of masked pixels"""
-    valid = ee.ImageCollection(collection).geetools.validPixels().select("pct_valid")
+    valid = ee.ImageCollection(collection).geetools.validPixel().select("pct_valid")
     return ee.Image(100).subtract(valid)
 
 

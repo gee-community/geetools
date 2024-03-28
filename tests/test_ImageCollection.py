@@ -215,3 +215,22 @@ class TestToXarray:
     def test_to_xarray(self, s2_sr, data_regression):
         ds = s2_sr.geetools.to_xarray()
         data_regression.check(ds.to_dict(data=False))
+
+
+class TestValidPixel:
+    """Test the ``validPixel`` method."""
+
+    def test_validPixel(self, s2_sr, amazonas, num_regression):
+        s2_sr = s2_sr.filterDate("2021-01-01", "2021-01-31")
+        ic = ee.ImageCollection([s2_sr.geetools.validPixel("B1")])
+        values = {k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()}
+        num_regression.check(values)
+
+    def test_deprecated_masked_size(self, s2_sr, amazonas, num_regression):
+        with pytest.deprecated_call():
+            s2_sr = s2_sr.filterDate("2021-01-01", "2021-01-31")
+            ic = ee.ImageCollection([geetools.imagecollection.maskedSize(s2_sr)])
+            values = {
+                k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()
+            }
+            num_regression.check(values)
