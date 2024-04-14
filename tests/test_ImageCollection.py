@@ -218,4 +218,5 @@ class TestToXarray:
 
     def test_to_xarray(self, s2_sr, data_regression):
         ds = s2_sr.geetools.to_xarray()
+        ds = ds.astype(np.float64)
         data_regression.check(ds.to_dict(data=False))
