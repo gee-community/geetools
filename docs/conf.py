@@ -98,6 +98,7 @@ autodoc_typehints = "description"
 autoapi_dirs = ["../geetools"]
 autoapi_python_class_content = "both"
 autoapi_member_order = "groupwise"
+autoapi_template_dir = "_templates"
 autoapi_options = [
     "members",
     "undoc-members",
