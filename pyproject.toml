@@ -30,7 +30,7 @@ dependencies = [
     "geopandas",
     "deprecated",
     "ee-extra",
-    "xee",
+    "xee>=0.0.11", # xee change dtype management
     "yamlable",
     "matplotlib",
     "anyascii",

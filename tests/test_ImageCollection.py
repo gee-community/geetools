@@ -218,5 +218,16 @@ class TestToXarray:
 
     def test_to_xarray(self, s2_sr, data_regression):
         ds = s2_sr.geetools.to_xarray()
-        ds = ds.astype(np.float64)
+
+        # drop all the dtype as they are not consistently setup depending on the xarray version
+        def drop_dtype(d=ds):
+            for k, v in ds.items():
+                if isinstance(v, dict):
+                    drop_dtype(v)
+                elif k == "dtype":
+                    del ds[k]
+
+        drop_dtype()
+
+        # ds = ds.astype(np.float64)
         data_regression.check(ds.to_dict(data=False))
