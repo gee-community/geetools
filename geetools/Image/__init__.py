@@ -475,6 +475,7 @@ class ImageAccessor:
         fillValue: ee_number,
         copyProperties: ee_int = 0,
         keepMask: ee_int = 0,
+        keepFootprint: ee_int = 1,
     ) -> ee.Image:
         """Create an image with the same band names, projection and scale as the original image.
 
@@ -485,6 +486,7 @@ class ImageAccessor:
             fillValue: The value to fill the image with.
             copyProperties: If True, the properties of the original image will be copied to the new one.
             keepMask: If True, the mask of the original image will be copied to the new one.
+            keepFootprint: If True, the footprint of the original image will be used to clip the new image.
 
         Returns:
             An image with the same band names, projection and scale as the original image.
@@ -500,16 +502,30 @@ class ImageAccessor:
                 image = image.geetools.fullLike(0)
                 print(image.bandNames().getInfo())
         """
+        # function params as GEE objects
         keepMask, copyProperties = ee.Number(keepMask), ee.Number(copyProperties)
+        keepFootprint = ee.Number(keepFootprint)
+        # get geometry, band names and property names
         footprint, bandNames = self._obj.geometry(), self._obj.bandNames()
+        properties = self._obj.propertyNames().remove(
+            "system:footprint"
+        )  # remove footprint as a "normal" property
+        # list of values to fill the image
         fillValue = ee.List.repeat(fillValue, bandNames.size())
-        image = (
-            self.full(fillValue, bandNames)
-            .reproject(self._obj.select(0).projection())
-            .clip(footprint)
+        # filled image
+        image = self.full(fillValue, bandNames)
+        # handler projection
+        projected_list = bandNames.map(
+            lambda b: image.select([b]).reproject(self._obj.select([b]).projection())
         )
-        withProperties = image.copyProperties(self._obj)
+        image = ee.ImageCollection.fromImages(projected_list).toBands().rename(bandNames)
+        # handle footprint
+        image_footprint = image.clip(footprint)  # sets system:footprint property
+        image = ee.Image(ee.Algorithms.If(keepFootprint, image_footprint, image))
+        # handle properties
+        withProperties = image.copyProperties(self._obj, properties)
         image = ee.Algorithms.If(copyProperties, withProperties, image)
+        # handle mask
         withMask = ee.Image(image).updateMask(self._obj.mask())
         image = ee.Algorithms.If(keepMask, withMask, image)
         return ee.Image(image)
