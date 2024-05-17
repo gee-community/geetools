@@ -494,7 +494,7 @@ class Asset:
         # 2 option either there is 1 single element in the list or all the parents are included
         # we need to walk it in reversed to make sure the parents are build first.
         for p in reversed(to_be_created):
-            ee.data.createAsset({"type": "FOLDER"}, p.as_posix())
+            ee.data.createFolder(p.as_posix())
 
         return self
 

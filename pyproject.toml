@@ -24,7 +24,7 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "earthengine-api",
+    "earthengine-api>=0.1.397", # support for ee.data.createFolder
     "requests",
     "pandas",
     "geopandas",
