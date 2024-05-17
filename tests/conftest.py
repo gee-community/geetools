@@ -5,6 +5,7 @@ import string
 import ee
 import pytest
 import pytest_gee
+import requests
 
 
 def pytest_configure() -> None:
@@ -227,3 +228,10 @@ def climSamp():
     normClim = ee.ImageCollection("OREGONSTATE/PRISM/Norm81m").toBands()
     region = ee.Geometry.Rectangle(-123.41, 40.43, -116.38, 45.14)
     return normClim.sample(region, 5000)
+
+
+@pytest.fixture(scope="session")
+def stac_schema():
+    """Return the STAC collection schema."""
+    url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/collection-spec/json-schema/collection.json"
+    return requests.get(url).json()

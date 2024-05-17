@@ -98,6 +98,7 @@ autodoc_typehints = "description"
 autoapi_dirs = ["../geetools"]
 autoapi_python_class_content = "both"
 autoapi_member_order = "groupwise"
+autoapi_template_dir = "_templates"
 autoapi_options = [
     "members",
     "undoc-members",
@@ -105,7 +106,7 @@ autoapi_options = [
     "show-module-summary",
     "special-members",
 ]
-autoapi_render_in_single_page = ["class", "function", "method"]
+autoapi_own_page_level = "method"
 
 # -- Options for intersphinx output --------------------------------------------
 intersphinx_mapping = {}

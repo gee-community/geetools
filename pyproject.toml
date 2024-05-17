@@ -24,15 +24,16 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "earthengine-api",
+    "earthengine-api>=0.1.397", # support for ee.data.createFolder
     "requests",
     "pandas",
     "geopandas",
     "deprecated",
     "ee-extra",
-    "xee",
+    "xee>=0.0.11", # xee change dtype management
     "yamlable",
     "matplotlib",
+    "anyascii",
 ]
 
 [[project.authors]]
@@ -64,13 +65,14 @@ Homepage = "https://github.com/gee-community/geetools"
     "pytest-regressions",
     "Pillow",
     "pytest-gee",
+    "jsonschema",
 ]
 doc = [
   "sphinx>=6.2.1",
   "pydata-sphinx-theme",
   "sphinx-copybutton",
   "sphinx-design",
-  "sphinx-autoapi",
+  "sphinx-autoapi==3.1.0a3",  # until v3.1 is released with the single page fix
   "ipykernel",
   "httplib2",
   "jupyter-sphinx",
