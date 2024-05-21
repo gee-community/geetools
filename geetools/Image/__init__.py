@@ -527,8 +527,9 @@ class ImageAccessor:
         image = ee.Algorithms.If(copyProperties, withProperties, image)
         # handle mask
         withMask = ee.Image(image).updateMask(self._obj.mask())
-        image = ee.Algorithms.If(keepMask, withMask, image)
-        return ee.Image(image)
+        image = ee.Image(ee.Algorithms.If(keepMask, withMask, image))
+        # handle band types
+        return ee.Image(image.cast(self._obj.bandTypes()))
 
     def reduceBands(
         self,
