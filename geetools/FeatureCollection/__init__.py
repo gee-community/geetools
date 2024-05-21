@@ -363,7 +363,7 @@ class FeatureCollectionAccessor:
             raise ValueError("Pie chart can only be used with one property")
 
         kwargs["rwidth"] = kwargs.get("rwidth", 0.9)
-        kwargs["color"] = color or plt.cm.get_cmap("tab10").colors[0]
+        kwargs["color"] = color or plt.get_cmap("tab10").colors[0]
         ax.hist(list(data[labels[0]].values()), **kwargs)
         ax.set_xlabel(labels[0])
         ax.set_ylabel("frequency")
@@ -417,7 +417,7 @@ class FeatureCollectionAccessor:
         # gather the data from parameters
         labels = list(data.keys())
         props = list(data[labels[0]].keys())
-        colors = colors if colors else plt.cm.get_cmap("tab10").colors
+        colors = colors if colors else plt.get_cmap("tab10").colors
 
         # draw the chart based on the type
         if type == "plot":
