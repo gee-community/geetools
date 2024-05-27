@@ -1,54 +1,57 @@
-geetools
-========
-
-.. image:: https://img.shields.io/badge/License-MIT-yellow.svg?logo=opensourceinitiative&logoColor=white
+.. |license| image:: https://img.shields.io/badge/License-MIT-yellow.svg?logo=opensourceinitiative&logoColor=white
     :target: LICENSE
     :alt: License: MIT
 
-.. image:: https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?logo=git&logoColor=white
+.. |commit| image:: https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?logo=git&logoColor=white
     :target: https://conventionalcommits.org
     :alt: conventional commit
 
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
     :alt: Black badge
 
-.. image:: https://img.shields.io/badge/code_style-prettier-ff69b4.svg?logo=prettier&logoColor=white
+.. |prettier| image:: https://img.shields.io/badge/code_style-prettier-ff69b4.svg?logo=prettier&logoColor=white
     :target: https://github.com/prettier/prettier
     :alt: prettier badge
 
-.. image:: https://img.shields.io/badge/pre--commit-active-yellow?logo=pre-commit&logoColor=white
+.. |pre-commit| image:: https://img.shields.io/badge/pre--commit-active-yellow?logo=pre-commit&logoColor=white
     :target: https://pre-commit.com/
     :alt: pre-commit
 
-.. image:: https://img.shields.io/pypi/v/geetools?color=blue&logo=python&logoColor=white
+.. |pypi| image:: https://img.shields.io/pypi/v/geetools?color=blue&logo=python&logoColor=white
     :target: https://pypi.org/project/geetools/
     :alt: PyPI version
 
-.. image:: https://img.shields.io/conda/vn/conda-forge/geetools?color=blue&logo=anaconda&logoColor=white
+.. |conda| image:: https://img.shields.io/conda/vn/conda-forge/geetools?color=blue&logo=anaconda&logoColor=white
     :target: https://anaconda.org/conda-forge/geetools
     :alt: Conda-forge version
 
-.. image:: https://img.shields.io/github/actions/workflow/status/gee-community/geetools/unit.yaml?logo=github&logoColor=white
+.. |build| image:: https://img.shields.io/github/actions/workflow/status/gee-community/geetools/unit.yaml?logo=github&logoColor=white
     :target: https://github.com/gee-community/geetools/actions/workflows/unit.yaml
     :alt: build
 
-.. image:: https://img.shields.io/codecov/c/github/gee-community/geetools?logo=codecov&logoColor=white
+.. |coverage| image:: https://img.shields.io/codecov/c/github/gee-community/geetools?logo=codecov&logoColor=white
     :target: https://codecov.io/gh/gee-community/geetools
     :alt: Test Coverage
 
-.. image:: https://img.shields.io/readthedocs/geetools?logo=readthedocs&logoColor=white
+.. |docs| image:: https://img.shields.io/readthedocs/geetools?logo=readthedocs&logoColor=white
     :target: https://geetools.readthedocs.io/en/stable/
     :alt: Documentation Status
+
+.. |logo| image:: https://raw.githubusercontent.com/gee-community/geetools/main/docs/_static/logo.svg
+    :width: 20%
+    :align: right
+
+geetools
+========
+
+|license| |commit| |black| |prettier| |pre-commit| |pypi| |conda| |build| |coverage| |docs|
+
 
 Google Earth Engine tools
 -------------------------
 
-.. image:: https://raw.githubusercontent.com/gee-community/geetools/main/docs/_static/logo.svg
-    :width: 20%
-    :align: right
-
-`Google Earth Engine <https://earthengine.google.com/>`__ is a cloud-based service for geospatial processing of vector and raster data. The Earth Engine platform has a `JavaScript and a Python API <https://developers.google.com/earth-engine/guides>`__ with different methods to process geospatial objects.
+|logo| `Google Earth Engine <https://earthengine.google.com/>`__ is a cloud-based service for geospatial processing of vector and raster data. The Earth Engine platform has a `JavaScript and a Python API <https://developers.google.com/earth-engine/guides>`__ with different methods to process geospatial objects.
 
 The **geetools** package extends the Google Earth Engine Python API with pre-processing and processing tools for the most used satellite platforms by adding utility methods for different Earth Engine Objects that are friendly with the Python method chaining using the ``geetools`` namespace.
 
