@@ -748,3 +748,18 @@ class Asset:
             desc = re.sub(pattern, rep, desc)  # type: ignore
 
         return desc[:100]
+
+    def setProperties(self, **kwargs) -> ee.Asset:
+        """Set properties of the asset.
+
+        Args:
+            **kwargs: The properties to set key, value pairs
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.setProperties(description="new_description")
+        """
+        ee.data.setAssetProperties(self.as_posix(), kwargs)
+        return self

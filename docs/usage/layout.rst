@@ -371,6 +371,7 @@ Operation
 - :py:meth:`ee.Asset.copy <geetools.Asset.Asset.copy>`: :docstring:`geetools.Asset.copy`
 - :py:meth:`ee.Asset.glob <geetools.Asset.Asset.glob>`: :docstring:`geetools.Asset.glob`
 - :py:meth:`ee.Asset.rglob <geetools.Asset.Asset.rglob>`: :docstring:`geetools.Asset.rglob`
+- :py:meth:`ee.Asset.setProperties <geetools.Asset.Asset.setProperties>`: :docstring:`geetools.Asset.setProperties`
 
 Property
 ########
