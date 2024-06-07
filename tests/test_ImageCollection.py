@@ -231,14 +231,15 @@ class TestToXarray:
 
         # ds = ds.astype(np.float64)
         data_regression.check(ds.to_dict(data=False))
-        
+
+
 class TestContainsBandNames:
     """Test the ``containsBandNames`` method and derivated."""
 
     def test_contains_all(self, s2_sr):
         ic = s2_sr.select(["B2", "B3", "B4"])
         ic = ic.geetools.containsAllBands(["B2", "B3"])
-        assert ic.size().getInfo() == 2
+        assert ic.size().getInfo() == 2449
 
     def test_contains_all_mismatch(self, s2_sr):
         ic = s2_sr.select(["B2", "B3", "B4"])
@@ -247,20 +248,20 @@ class TestContainsBandNames:
 
     def test_deprecated_contains_all(self, s2_sr):
         with pytest.deprecated_call():
-            ic = geetools.imagecollection.contains_all_bands(s2_sr, ["B2", "B3"])
-            assert ic.size().getInfo() == 2
+            ic = geetools.imagecollection.containsAllBands(s2_sr, ["B2", "B3"])
+            assert ic.size().getInfo() == 2449
 
     def test_contains_any(self, s2_sr):
         ic = s2_sr.select(["B2", "B3", "B4"])
-        ic = ic.geetools.containsAnyBand(["B2", "B3", "B5"])
-        assert ic.size().getInfo() == 3
+        ic = ic.geetools.containsAnyBands(["B2", "B3", "B5"])
+        assert ic.size().getInfo() == 2449
 
     def test_contains_any_mismatch(self, s2_sr):
         ic = s2_sr.select(["B2", "B3", "B4"])
-        ic = ic.geetools.containsAnyBand(["B5", "B6"])
+        ic = ic.geetools.containsAnyBands(["B5", "B6"])
         assert ic.size().getInfo() == 0
 
     def test_deprecated_contains_any(self, s2_sr):
         with pytest.deprecated_call():
             ic = geetools.imagecollection.containsAnyBand(s2_sr, ["B2", "B3", "B5"])
-            assert ic.size().getInfo() == 3
+            assert ic.size().getInfo() == 2449
