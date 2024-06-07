@@ -683,3 +683,102 @@ class ImageCollectionAccessor:
             ee_mask_value=ee_mask_value,
             request_byte_limit=request_byte_limit,
         )
+      
+      def containsBandNames(self, bandNames: ee_list, filter: str) -> ee.ImageCollection:
+        """Filter the ImageCollection by band names using the provided filter.
+
+        Args:
+            bandNames: list of band names to filter
+            filter: type of filter to apply. To keep images that contains all the specified bands use "ALL". To get the images including at least one of the specified band use "ANY".
+
+        Returns:
+            A filtered ImageCollection
+
+        Examples:
+            .. code-block:: python
+
+                import ee, LDCGEETools
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                filtered = collection.ldc.containsBandNames(["B1", "B2"], "ALL")
+                print(filtered.getInfo())
+        """
+        # cast parameters
+        filter = {"ALL": "Filter.and", "ANY": "Filter.or"}[filter]
+        bandNames = ee.List(bandNames)
+
+        # add bands as metadata in a temporary property
+        band_name = uuid.uuid4().hex
+        ic = self._obj.map(lambda i: i.set(band_name, i.bandNames()))
+
+        # create a filter by combining a listContain filter over all the band names from the
+        # user list. Combine them with a "Or" to get a "any" filter and "And" to get a "all".
+        # We use a workaround until this is solved: https://issuetracker.google.com/issues/322838709
+        filterList = bandNames.map(lambda b: ee.Filter.listContains(band_name, b))
+        filterCombination = ee.ApiFunction._call(filter, ee.List(filterList))
+
+        # apply this filter and remove the temporary property. Exclude parameter is additive so
+        # we do a blank multiplication to remove all the properties beforhand
+        ic = ee.imageCollection(ic.filter(filterCombination))
+        ic = ic.map(lambda i: ee.image(i.multiply(1).copyProperties(i, exclude=[band_name])))
+
+        return ee.ImageCollection(ic)
+
+    def containsAllBands(self, bandNames: ee_list) -> ee.ImageCollection:
+        """Filter the ImageCollection keeping only the images with all the provided bands.
+
+        Args:
+            bandNames: list of band names to filter
+
+        Returns:
+            A filtered ImageCollection
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                filtered = collection.ldc.containsAllBands(["B1", "B2"])
+                print(filtered.getInfo())
+        """
+        return self.containsBandNames(bandNames, "ALL")
+
+    def containsAnyBand(self, bandNames: ee_list) -> ee.ImageCollection:
+        """Filter the ImageCollection keeping only the images with any of the provided bands.
+
+        Args:
+            bandNames: list of band names to filter
+
+        Returns:
+            A filtered ImageCollection
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                filtered = collection.ldc.containsAnyBand(["B1", "B2"])
+                print(filtered.getInfo())
+        """
+        return self.containsBandNames(bandNames, "ANY")
