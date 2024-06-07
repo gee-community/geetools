@@ -267,7 +267,7 @@ Filter
 
 - :py:meth:`ee.ImageCollection.geetools.containsBandNames <geetools.ImageCollection.ImageCollectionAccessor.containsBandNames>`: :docstring:`geetools.ImageCollectionAccessor.containsBandNames`
 - :py:meth:`ee.ImageCollection.geetools.containsAllBands <geetools.ImageCollection.ImageCollectionAccessor.containsAllBands>`: :docstring:`geetools.ImageCollectionAccessor.containsAllBands`
-- :py:meth:`ee.ImageCollection.geetools.containsAnyBand <geetools.ImageCollection.ImageCollectionAccessor.containsAnyBand>`: :docstring:`geetools.ImageCollectionAccessor.containsAnyBand`
+- :py:meth:`ee.ImageCollection.geetools.containsAnyBands <geetools.ImageCollection.ImageCollectionAccessor.containsAnyBands>`: :docstring:`geetools.ImageCollectionAccessor.containsAnyBands`
 
 Converter
 #########
