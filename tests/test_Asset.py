@@ -345,3 +345,12 @@ class TestServerMethods:
         asset.move(new_asset)
         assert asset.exists() is False
         assert new_asset.exists() is True
+
+
+class TestSetProperties:
+    """Test the ``set_properties`` method."""
+
+    def test_set_properties(self, gee_test_folder):
+        asset = ee.Asset(gee_test_folder) / "folder" / "image"
+        asset.setProperties(foo="bar")
+        assert ee.Image(asset.as_posix()).get("foo").getInfo() == "bar"
