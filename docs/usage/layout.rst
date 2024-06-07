@@ -262,6 +262,13 @@ Data extraction
 - :py:meth:`ee.ImageCollection.geetools.iloc <geetools.ImageCollection.ImageCollectionAccessor.iloc>`: :docstring:`geetools.ImageCollectionAccessor.iloc`
 - :py:meth:`ee.ImageCollection.geetools.integral <geetools.ImageCollection.ImageCollectionAccessor.integral>`: :docstring:`geetools.ImageCollectionAccessor.integral`
 
+Filter
+######
+
+- :py:meth:`ee.ImageCollection.geetools.containsBandNames <geetools.ImageCollection.ImageCollectionAccessor.containsBandNames>`: :docstring:`geetools.ImageCollectionAccessor.containsBandNames`
+- :py:meth:`ee.ImageCollection.geetools.containsAllBands <geetools.ImageCollection.ImageCollectionAccessor.containsAllBands>`: :docstring:`geetools.ImageCollectionAccessor.containsAllBands`
+- :py:meth:`ee.ImageCollection.geetools.containsAnyBands <geetools.ImageCollection.ImageCollectionAccessor.containsAnyBands>`: :docstring:`geetools.ImageCollectionAccessor.containsAnyBands`
+
 Converter
 #########
 

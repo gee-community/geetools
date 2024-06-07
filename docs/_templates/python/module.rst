@@ -1,20 +1,21 @@
 {% if obj.display %}
    {% if is_own_page %}
-{{ obj.id }}
-{{ "=" * obj.id|length }}
+{{obj.id}}
+{{"=" * obj.id|length}}
 
-.. py:module:: {{ obj.name }}
+.. py:module:: {{obj.name}}
 
       {% if obj.docstring %}
 .. autoapi-nested-parse::
 
-   {{ obj.docstring|indent(3) }}
+   {{obj.docstring|indent(3)}}
 
       {% endif %}
 
       {% block subpackages %}
          {% set visible_subpackages = obj.subpackages|selectattr("display")|list %}
          {% if visible_subpackages %}
+
 Subpackages
 -----------
 
@@ -22,15 +23,15 @@ Subpackages
    :maxdepth: 1
 
             {% for subpackage in visible_subpackages %}
-   {{ subpackage.include_path }}
+   {{subpackage.include_path}}
             {% endfor %}
-
 
          {% endif %}
       {% endblock %}
       {% block submodules %}
          {% set visible_submodules = obj.submodules|selectattr("display")|list %}
          {% if visible_submodules %}
+
 Submodules
 ----------
 
@@ -38,7 +39,7 @@ Submodules
    :maxdepth: 1
 
             {% for submodule in visible_submodules %}
-   {{ submodule.include_path }}
+   {{submodule.include_path}}
             {% endfor %}
 
 
@@ -56,6 +57,7 @@ Submodules
             {% set visible_attributes = visible_children|selectattr("type", "equalto", "data")|list %}
             {% if visible_attributes %}
                {% if "attribute" in own_page_types or "show-module-summary" in autoapi_options %}
+
 Attributes
 ----------
 
@@ -64,14 +66,14 @@ Attributes
    :hidden:
 
                      {% for attribute in visible_attributes %}
-   {{ attribute.include_path }}
+   {{attribute.include_path}}
                      {% endfor %}
 
                   {% endif %}
 .. autoapisummary::
 
                   {% for attribute in visible_attributes %}
-   {{ attribute.id }}
+   {{attribute.id}}
                   {% endfor %}
                {% endif %}
 
@@ -88,14 +90,14 @@ Exceptions
    :hidden:
 
                      {% for exception in visible_exceptions %}
-   {{ exception.include_path }}
+   {{exception.include_path}}
                      {% endfor %}
 
                   {% endif %}
 .. autoapisummary::
 
                   {% for exception in visible_exceptions %}
-   {{ exception.id }}
+   {{exception.id}}
                   {% endfor %}
                {% endif %}
 
@@ -112,14 +114,14 @@ Classes
    :hidden:
 
                      {% for klass in visible_classes %}
-   {{ klass.include_path }}
+   {{klass.include_path}}
                      {% endfor %}
 
                   {% endif %}
 .. autoapisummary::
 
                   {% for klass in visible_classes %}
-   {{ klass.id }}
+   {{klass.id}}
                   {% endfor %}
                {% endif %}
 
@@ -136,14 +138,14 @@ Functions
    :hidden:
 
                      {% for function in visible_functions %}
-   {{ function.include_path }}
+   {{function.include_path}}
                      {% endfor %}
 
                   {% endif %}
 .. autoapisummary::
 
                   {% for function in visible_functions %}
-   {{ function.id }}
+   {{function.id}}
                   {% endfor %}
                {% endif %}
 
@@ -151,26 +153,26 @@ Functions
             {% endif %}
             {% set this_page_children = visible_children|rejectattr("type", "in", own_page_types)|list %}
             {% if this_page_children %}
-{{ obj.type|title }} Contents
-{{ "-" * obj.type|length }}---------
+{{obj.type|title}} Contents
+{{"-" * obj.type|length}}---------
 
                {% for obj_item in this_page_children %}
-{{ obj_item.render()|indent(0) }}
+{{obj_item.render()|indent(0)}}
                {% endfor %}
             {% endif %}
          {% endif %}
       {% endblock %}
    {% else %}
-.. py:module:: {{ obj.name }}
+.. py:module:: {{obj.name}}
 
       {% if obj.docstring %}
    .. autoapi-nested-parse::
 
-      {{ obj.docstring|indent(6) }}
+      {{obj.docstring|indent(6)}}
 
       {% endif %}
       {% for obj_item in visible_children %}
-   {{ obj_item.render()|indent(3) }}
+   {{obj_item.render()|indent(3)}}
       {% endfor %}
    {% endif %}
 {% endif %}
