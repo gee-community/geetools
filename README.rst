@@ -38,9 +38,7 @@
     :target: https://geetools.readthedocs.io/en/stable/
     :alt: Documentation Status
 
-.. |logo| image:: https://raw.githubusercontent.com/gee-community/geetools/main/docs/_static/logo.svg
-    :width: 20%
-    :align: right
+
 
 geetools
 ========
@@ -51,7 +49,11 @@ geetools
 Google Earth Engine tools
 -------------------------
 
-|logo| `Google Earth Engine <https://earthengine.google.com/>`__ is a cloud-based service for geospatial processing of vector and raster data. The Earth Engine platform has a `JavaScript and a Python API <https://developers.google.com/earth-engine/guides>`__ with different methods to process geospatial objects.
+.. image:: https://raw.githubusercontent.com/gee-community/geetools/main/docs/_static/logo.svg
+    :width: 20%
+    :align: right
+
+`Google Earth Engine <https://earthengine.google.com/>`__ is a cloud-based service for geospatial processing of vector and raster data. The Earth Engine platform has a `JavaScript and a Python API <https://developers.google.com/earth-engine/guides>`__ with different methods to process geospatial objects.
 
 The **geetools** package extends the Google Earth Engine Python API with pre-processing and processing tools for the most used satellite platforms by adding utility methods for different Earth Engine Objects that are friendly with the Python method chaining using the ``geetools`` namespace.
 
