@@ -6,6 +6,7 @@ from typing import Optional
 import ee
 import ee_extra
 import ee_extra.Algorithms.core
+import requests
 
 from geetools.accessors import register_class_accessor
 from geetools.types import (
@@ -28,10 +29,14 @@ class ImageAccessor:
         self._obj = obj
 
     # -- band manipulation -----------------------------------------------------
-    def addDate(self) -> ee.Image:
+    def addDate(self, format: ee_str = "") -> ee.Image:
         """Add a band with the date of the image in the provided format.
 
-        The date is stored as a Timestamp in millisecond in a band "date".
+        If no format is provided, the date is stored as a Timestamp in millisecond in a band "date". If format band is provided, the date is store in a int8 band with the date in the provided format. This format needs to be a string that can be converted to a number.
+        If not an error will be thrown.
+
+        Args:
+            format: A date pattern, as described at http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
 
         Returns:
             The image with the date band added.
@@ -50,8 +55,16 @@ class ImageAccessor:
                 value = date.reduceRegion(ee.Reducer.first(), buffer, 10).get("date")
                 ee.Date(value).format('YYYY-MM-dd').getInfo()
         """
-        date = self._obj.date().millis()
-        return self._obj.addBands(ee.Image.constant(date).rename("date"))
+        # parse the inputs
+        isMillis = ee.String(format).equals(ee.String(""))
+        format = ee.String(format) if format else ee.String("YYYYMMdd")
+
+        # extract the date from the object and create a image band from it
+        date = self._obj.date()
+        date = ee.Algorithms.If(isMillis, date.millis(), ee.Number.parse(date.format(format)))
+        dateBand = ee.Image.constant(ee.Number(date)).rename("date")
+
+        return self._obj.addBands(dateBand)
 
     def addSuffix(self, suffix: ee_str, bands: ee_list = []) -> ee.Image:
         """Add a suffix to the image selected band.
@@ -462,6 +475,7 @@ class ImageAccessor:
         fillValue: ee_number,
         copyProperties: ee_int = 0,
         keepMask: ee_int = 0,
+        keepFootprint: ee_int = 1,
     ) -> ee.Image:
         """Create an image with the same band names, projection and scale as the original image.
 
@@ -472,6 +486,7 @@ class ImageAccessor:
             fillValue: The value to fill the image with.
             copyProperties: If True, the properties of the original image will be copied to the new one.
             keepMask: If True, the mask of the original image will be copied to the new one.
+            keepFootprint: If True, the footprint of the original image will be used to clip the new image.
 
         Returns:
             An image with the same band names, projection and scale as the original image.
@@ -487,19 +502,34 @@ class ImageAccessor:
                 image = image.geetools.fullLike(0)
                 print(image.bandNames().getInfo())
         """
+        # function params as GEE objects
         keepMask, copyProperties = ee.Number(keepMask), ee.Number(copyProperties)
+        keepFootprint = ee.Number(keepFootprint)
+        # get geometry, band names and property names
         footprint, bandNames = self._obj.geometry(), self._obj.bandNames()
+        properties = self._obj.propertyNames().remove(
+            "system:footprint"
+        )  # remove footprint as a "normal" property
+        # list of values to fill the image
         fillValue = ee.List.repeat(fillValue, bandNames.size())
-        image = (
-            self.full(fillValue, bandNames)
-            .reproject(self._obj.select(0).projection())
-            .clip(footprint)
+        # filled image
+        image = self.full(fillValue, bandNames)
+        # handler projection
+        projected_list = bandNames.map(
+            lambda b: image.select([b]).reproject(self._obj.select([b]).projection())
         )
-        withProperties = image.copyProperties(self._obj)
+        image = ee.ImageCollection.fromImages(projected_list).toBands().rename(bandNames)
+        # handle footprint
+        image_footprint = image.clip(footprint)  # sets system:footprint property
+        image = ee.Image(ee.Algorithms.If(keepFootprint, image_footprint, image))
+        # handle properties
+        withProperties = image.copyProperties(self._obj, properties)
         image = ee.Algorithms.If(copyProperties, withProperties, image)
+        # handle mask
         withMask = ee.Image(image).updateMask(self._obj.mask())
-        image = ee.Algorithms.If(keepMask, withMask, image)
-        return ee.Image(image)
+        image = ee.Image(ee.Algorithms.If(keepMask, withMask, image))
+        # handle band types
+        return ee.Image(image.cast(self._obj.bandTypes()))
 
     def reduceBands(
         self,
@@ -976,7 +1006,25 @@ class ImageAccessor:
 
             ee.ImageCollection('COPERNICUS/S2_SR').first().getSTAC()
         """
-        return ee_extra.STAC.core.getSTAC(self._obj)
+        # extract the Asset id from the imagecollection
+        assetId = self._obj.get("system:id").getInfo()
+
+        # search for the project in the GEE catalog and extract the project catalog URL
+        project = assetId.split("/")[0]
+        catalog = "https://earthengine-stac.storage.googleapis.com/catalog/catalog.json"
+        links = requests.get(catalog).json()["links"]
+        project_catalog = next((i["href"] for i in links if i.get("title") == project), None)
+        if project_catalog is None:
+            raise ValueError(f"Project {project} not found in the catalog")
+
+        # search for the collection in the project catalog and extract the collection STAC URL
+        collection = "_".join(assetId.split("/")[:-1])
+        links = requests.get(project_catalog).json()["links"]
+        collection_stac = next((i["href"] for i in links if i.get("title") == collection), None)
+        if collection_stac is None:
+            raise ValueError(f"Collection {collection} not found in the {project} catalog")
+
+        return requests.get(collection_stac).json()
 
     def getDOI(self) -> str:
         """Gets the DOI of the image, if available.

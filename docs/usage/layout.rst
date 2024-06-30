@@ -149,6 +149,15 @@ Converter
 #########
 
 - :py:meth:`ee.FeatureCollection.geetools.toImage <geetools.FeatureCollection.FeatureCollectionAccessor.toImage>`: :docstring:`geetools.FeatureCollectionAccessor.toImage`
+- :py:meth:`ee.FeatureCollection.geetools.byFeatures <geetools.FeatureCollection.FeatureCollectionAccessor.byFeatures>`: :docstring:`geetools.FeatureCollectionAccessor.byFeatures`
+- :py:meth:`ee.FeatureCollection.geetools.byProperties <geetools.FeatureCollection.FeatureCollectionAccessor.byProperties>`: :docstring:`geetools.FeatureCollectionAccessor.byProperties`
+
+Plotting
+########
+
+- :py:meth:`ee.FeatureCollection.geetools.plot_by_features <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_features>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_features`
+- :py:meth:`ee.FeatureCollection.geetools.plot_by_properties <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_properties>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_properties`
+- :py:meth:`ee.FeatureCollection.geetools.plot_hist <geetools.FeatureCollection.FeatureCollectionAccessor.plot_hist>`: :docstring:`geetools.FeatureCollectionAccessor.plot_hist`
 
 ee.Filter
 ^^^^^^^^^
@@ -253,6 +262,13 @@ Data extraction
 - :py:meth:`ee.ImageCollection.geetools.iloc <geetools.ImageCollection.ImageCollectionAccessor.iloc>`: :docstring:`geetools.ImageCollectionAccessor.iloc`
 - :py:meth:`ee.ImageCollection.geetools.integral <geetools.ImageCollection.ImageCollectionAccessor.integral>`: :docstring:`geetools.ImageCollectionAccessor.integral`
 
+Filter
+######
+
+- :py:meth:`ee.ImageCollection.geetools.containsBandNames <geetools.ImageCollection.ImageCollectionAccessor.containsBandNames>`: :docstring:`geetools.ImageCollectionAccessor.containsBandNames`
+- :py:meth:`ee.ImageCollection.geetools.containsAllBands <geetools.ImageCollection.ImageCollectionAccessor.containsAllBands>`: :docstring:`geetools.ImageCollectionAccessor.containsAllBands`
+- :py:meth:`ee.ImageCollection.geetools.containsAnyBands <geetools.ImageCollection.ImageCollectionAccessor.containsAnyBands>`: :docstring:`geetools.ImageCollectionAccessor.containsAnyBands`
+
 Converter
 #########
 
@@ -262,6 +278,7 @@ ee.Initialize
 ^^^^^^^^^^^^^
 
 - :py:meth:`ee.Initialize.geetools.from_user <geetools.Initialize.InitializeAccessor.from_user>`: :docstring:`geetools.InitializeAccessor.from_user`
+- :py:meth:`ee.Initialize.geetools.project_id <geetools.Initialize.InitializeAccessor.project_id>`: :docstring:`geetools.InitializeAccessor.project_id`
 
 ee.Join
 ^^^^^^^
@@ -321,4 +338,56 @@ ee.Integer
 
     This object does not exist in the original API. It is a custom Placeholder Float class to be used in the :py:meth:`ee.ComputedObject.isInstance <geetools.ComputedObjectAccessor.isInstance>` method.
 
+ee.Asset
+^^^^^^^^
+
+.. note::
+
+    This object is overriding most of the pathlib methods. We are simply gathering them here for convenience.
+
+Constructor
+###########
+
+- :py:meth:`ee.Asset.home <geetools.Asset.Asset.home>`: :docstring:`geetools.Asset.home`
+
+Operation
+#########
+
+- :py:meth:`ee.Asset.as_posix <geetools.Asset.Asset.as_posix>`: :docstring:`geetools.Asset.as_posix`
+- :py:meth:`ee.Asset.as_uri <geetools.Asset.Asset.as_uri>`: :docstring:`geetools.Asset.as_uri`
+- :py:meth:`ee.Asset.is_absolute <geetools.Asset.Asset.is_absolute>`: :docstring:`geetools.Asset.is_absolute`
+- :py:meth:`ee.Asset.is_user_project <geetools.Asset.Asset.is_user_project>`: :docstring:`geetools.Asset.is_user_project`
+- :py:meth:`ee.Asset.expanduser <geetools.Asset.Asset.expanduser>`: :docstring:`geetools.Asset.expanduser`
+- :py:meth:`ee.Asset.exists <geetools.Asset.Asset.exists>`: :docstring:`geetools.Asset.exists`
+- :py:meth:`ee.Asset.is_relative_to <geetools.Asset.Asset.is_relative_to>`: :docstring:`geetools.Asset.is_relative_to`
+- :py:meth:`ee.Asset.joinpath <geetools.Asset.Asset.joinpath>`: :docstring:`geetools.Asset.joinpath`
+- :py:meth:`ee.Asset.match <geetools.Asset.Asset.match>`: :docstring:`geetools.Asset.match`
+- :py:meth:`ee.Asset.with_name <geetools.Asset.Asset.with_name>`: :docstring:`geetools.Asset.with_name`
+- :py:meth:`ee.Asset.is_image <geetools.Asset.Asset.is_image>`: :docstring:`geetools.Asset.is_image`
+- :py:meth:`ee.Asset.is_image_collection <geetools.Asset.Asset.is_image_collection>`: :docstring:`geetools.Asset.is_image_collection`
+- :py:meth:`ee.Asset.is_feature_collection <geetools.Asset.Asset.is_feature_collection>`: :docstring:`geetools.Asset.is_feature_collection`
+- :py:meth:`ee.Asset.is_folder <geetools.Asset.Asset.is_folder>`: :docstring:`geetools.Asset.is_folder`
+- :py:meth:`ee.Asset.is_project <geetools.Asset.Asset.is_project>`: :docstring:`geetools.Asset.is_project`
+- :py:meth:`ee.Asset.is_type <geetools.Asset.Asset.is_type>`: :docstring:`geetools.Asset.is_type`
+- :py:meth:`ee.Asset.iterdir <geetools.Asset.Asset.iterdir>`: :docstring:`geetools.Asset.iterdir`
+- :py:meth:`ee.Asset.mkdir <geetools.Asset.Asset.mkdir>`: :docstring:`geetools.Asset.mkdir`
+- :py:meth:`ee.Asset.move <geetools.Asset.Asset.move>`: :docstring:`geetools.Asset.move`
+- :py:meth:`ee.Asset.rmdir <geetools.Asset.Asset.rmdir>`: :docstring:`geetools.Asset.rmdir`
+- :py:meth:`ee.Asset.unlink <geetools.Asset.Asset.unlink>`: :docstring:`geetools.Asset.unlink`
+- :py:meth:`ee.Asset.delete <geetools.Asset.Asset.delete>`: :docstring:`geetools.Asset.delete`
+- :py:meth:`ee.Asset.copy <geetools.Asset.Asset.copy>`: :docstring:`geetools.Asset.copy`
+- :py:meth:`ee.Asset.glob <geetools.Asset.Asset.glob>`: :docstring:`geetools.Asset.glob`
+- :py:meth:`ee.Asset.rglob <geetools.Asset.Asset.rglob>`: :docstring:`geetools.Asset.rglob`
+- :py:meth:`ee.Asset.setProperties <geetools.Asset.Asset.setProperties>`: :docstring:`geetools.Asset.setProperties`
+
+Property
+########
+
+- :py:meth:`ee.Asset.parts <geetools.Asset.Asset.parts>`: :docstring:`geetools.Asset.parts`
+- :py:meth:`ee.Asset.parent <geetools.Asset.Asset.parent>`: :docstring:`geetools.Asset.parent`
+- :py:meth:`ee.Asset.parents <geetools.Asset.Asset.parents>`: :docstring:`geetools.Asset.parents`
+- :py:meth:`ee.Asset.name <geetools.Asset.Asset.name>`: :docstring:`geetools.Asset.name`
+- :py:meth:`ee.Asset.st_size <geetools.Asset.Asset.st_size>`: :docstring:`geetools.Asset.st_size`
+- :py:meth:`ee.Asset.type <geetools.Asset.Asset.type>`: :docstring:`geetools.Asset.type`
+- :py:meth:`ee.Asset.owner <geetools.Asset.Asset.owner>`: :docstring:`geetools.Asset.owner`
 

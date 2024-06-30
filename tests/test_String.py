@@ -1,4 +1,5 @@
 """Test the String class methods."""
+import ee
 import pytest
 
 import geetools
@@ -28,6 +29,11 @@ class TestFormat:
         params = {"greeting": "Hello", "name": "bob"}
         formatted_string = format_string_instance.geetools.format(params)
         assert formatted_string.getInfo() == "Hello bob !"
+
+    def test_with_number(self, format_string_instance):
+        params = {"greeting": "Hello", "name": ee.Number(1)}
+        formatted_string = format_string_instance.geetools.format(params)
+        assert formatted_string.getInfo() == "Hello 1 !"
 
     def test_deprecated_format(self, format_string_instance):
         with pytest.deprecated_call():

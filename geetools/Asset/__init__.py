@@ -6,20 +6,24 @@ from pathlib import PurePosixPath
 from typing import Optional
 
 import ee
-from yamlable import YamlAble, yaml_info
+from anyascii import anyascii
 
 from geetools.accessors import _register_extention
 from geetools.types import pathlike
 
 
 @_register_extention(ee)
-@yaml_info(yaml_tag="ee.Asset")
-class Asset(YamlAble):
+class Asset:
     """An Asset management class mimicking the ``pathlib.Path`` class behaviour."""
 
     def __init__(self, *args):
-        """Initialize the Asset class."""
+        """Initialize the Asset class.
+
+        .. note::
+            An asset cannot be an absolute path like in a normal filesystem and thus any trailing "/" will be removed.
+        """
         self._path = args[0]._path if isinstance(args[0], Asset) else PurePosixPath(*args)
+        self._path = PurePosixPath(str(self._path)[1:]) if self._path.is_absolute() else self._path
 
     def __str__(self):
         """Transform the asset id to a string."""
@@ -60,15 +64,6 @@ class Asset(YamlAble):
     def __idiv__(self, other: pathlike) -> Asset:
         """Override the in-place division operator to join the asset with other paths."""
         return Asset(self._path / str(other))
-
-    def __to_yaml_dict__(self):
-        """Write the object to a yaml safe format."""
-        return {"path": self.as_posix()}
-
-    @classmethod
-    def __from_yaml_dict__(cls, dct, yaml_tag):
-        """Read the object from a yaml safe format."""
-        return cls(dct["path"])
 
     @classmethod
     def home(cls) -> Asset:
@@ -322,8 +317,11 @@ class Asset(YamlAble):
         """
         return Asset(self._path.with_name(name))
 
-    def is_image(self) -> bool:
+    def is_image(self, raised: bool = False) -> bool:
         """Return ``True`` if the asset is an image.
+
+        Args:
+            raised: If True, raise an exception if the asset is not an image. Defaults to False.
 
         Examples:
             .. code-block:: python
@@ -331,10 +329,13 @@ class Asset(YamlAble):
                 asset = ee.Asset("projects/ee-geetools/assets/folder/image")
                 asset.is_image()
         """
-        return self.is_type("IMAGE")
+        return self.is_type("IMAGE", raised)
 
-    def is_image_collection(self) -> bool:
+    def is_image_collection(self, raised: bool = False) -> bool:
         """Return ``True`` if the asset is an image collection.
+
+        Args:
+            raised: If True, raise an exception if the asset is not an image collection. Defaults to False.
 
         Examples:
             .. code-block:: python
@@ -342,10 +343,13 @@ class Asset(YamlAble):
                 asset = ee.Asset("projects/ee-geetools/assets/folder/image_collection")
                 asset.is_image_collection()
         """
-        return self.is_type("IMAGE_COLLECTION")
+        return self.is_type("IMAGE_COLLECTION", raised)
 
-    def is_feature_collection(self) -> bool:
+    def is_feature_collection(self, raised: bool = False) -> bool:
         """Return ``True`` if the asset is a feature collection.
+
+        Args:
+            raised: If True, raise an exception if the asset is not a feature collection. Defaults to False.
 
         Examples:
             .. code-block:: python
@@ -353,10 +357,13 @@ class Asset(YamlAble):
                 asset = ee.Asset("projects/ee-geetools/assets/folder/feature_collection")
                 asset.is_feature_collection()
         """
-        return self.is_type("FEATURE_COLLECTION") or self.is_type("TABLE")
+        return self.is_type("FEATURE_COLLECTION", raised) or self.is_type("TABLE", raised)
 
-    def is_folder(self) -> bool:
+    def is_folder(self, raised: bool = False) -> bool:
         """Return ``True`` if the asset is a folder.
+
+        Args:
+            raised: If True, raise an exception if the asset is not a folder. Defaults to False.
 
         Examples:
             .. code-block:: python
@@ -364,7 +371,7 @@ class Asset(YamlAble):
                 asset = ee.Asset("projects/ee-geetools/assets/folder")
                 asset.is_folder()
         """
-        return self.is_type("FOLDER")
+        return self.is_type("FOLDER", raised)
 
     @property
     def type(self) -> str:
@@ -517,7 +524,7 @@ class Asset(YamlAble):
         Move this asset (any type) to the given target, and return a new ``Asset`` instance
         pointing to target. If target exists and overwrite is False the method will raise an
         error. Else it will silently delete the existing file. If the asset is a folder the whole
-        content will be moved as well.
+        content will be moved as well. The initial content is removed after the move.
 
         Args:
             new_asset: The destination asset.
@@ -558,7 +565,7 @@ class Asset(YamlAble):
             for asset in self.iterdir():
                 loc_asset = new_asset / asset._path.relative_to(self._path)
                 asset.move(loc_asset, overwrite=overwrite)
-
+            
         # delete the initial asset
         self.unlink()
 
@@ -650,3 +657,125 @@ class Asset(YamlAble):
                 asset.delete()
         """
         return self.unlink()
+
+    def copy(self, new_asset: Asset, overwrite: bool = False) -> Asset:
+        """Copy the asset to a target destination.
+
+        Copy this asset (any type) to the given target, and return a new ``Asset`` instance
+        pointing to target. If target exists and overwrite is False the method will raise an
+        error. Else it will silently delete the existing asset. If the asset is a folder the whole
+        content will be moved as well.
+
+        Args:
+            new_asset: The destination asset.
+            overwrite: If True, overwrite the destination asset if it exists. Defaults to False.
+
+        Returns:
+            The new asset instance.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                new_asset = ee.Asset("projects/ee-geetools/assets/folder/new_image")
+                asset.copy(new_asset, overwrite=False)
+        """
+        # exit if the destination asset exist and overwrite is False
+        if new_asset.exists() and overwrite is False:
+            raise ValueError(f"Asset {new_asset.as_posix()} already exists.")
+
+        # make all the parents of the target asset if necessary
+        new_asset.parent.mkdir(parents=True, exist_ok=True)
+
+        # copy the asset to the new destination. If the asset is a folder, we need to move all its
+        # content recursively to the new destination we recursively call this method on each
+        # children of the asset if it's a folder it will loop again.
+        if self.is_folder():
+            new_asset.mkdir(parents=True, exist_ok=True)
+            for asset in self.iterdir():
+                loc_asset = new_asset / asset._path.relative_to(self._path)
+                asset.copy(loc_asset, overwrite=overwrite)
+        else:
+            ee.data.copyAsset(self.as_posix(), new_asset.as_posix(), allowOverwrite=True)
+
+        return new_asset
+
+    def glob(self, pattern: str) -> list:
+        """Return a list of assets matching the pattern.
+
+        Args:
+            pattern: The pattern to match with the asset name.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder")
+                asset.glob("image_*")
+        """
+        return [a for a in self.iterdir(recursive=False) if a.match(pattern)]
+
+    def rglob(self, pattern: str) -> list:
+        """Return a list of assets matching the pattern recursively.
+
+        Args:
+            pattern: The pattern to match with the asset name.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder")
+                asset.rglob("image_*")
+        """
+        return [a for a in self.iterdir(recursive=True) if a.match(pattern)]
+
+    def as_description(self) -> str:
+        """Transform the name of the Asset in to a description compatible string for a Task.
+
+        Returns:
+            The formatted description.
+        """
+        return self.format_description(self.name)
+
+    @staticmethod
+    def format_description(description: str) -> str:
+        """Format a name to be accepted as a Task description.
+
+        The rule is:
+        The description must contain only the following characters: a..z, A..Z,
+        0..9, ".", ",", ":", ";", "_" or "-". The description must be at most 100
+        characters long.
+
+        Args:
+            description: The description to format.
+
+        Returns:
+            The formatted description.
+        """
+        replacements = [
+            [[" "], "_"],
+            [["/"], "-"],
+            [["?", "!", "¿", "*"], "."],
+            [["(", ")", "[", "]", "{", "}"], ":"],
+        ]
+
+        desc = anyascii(description)
+        for chars, rep in replacements:
+            pattern = "|".join(re.escape(c) for c in chars)
+            desc = re.sub(pattern, rep, desc)  # type: ignore
+
+        return desc[:100]
+
+    def setProperties(self, **kwargs) -> ee.Asset:
+        """Set properties of the asset.
+
+        Args:
+            **kwargs: The properties to set key, value pairs
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.setProperties(description="new_description")
+        """
+        ee.data.setAssetProperties(self.as_posix(), kwargs)
+        return self

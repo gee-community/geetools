@@ -4,6 +4,7 @@ from typing import Optional
 import ee
 import numpy as np
 import pytest
+from jsonschema import validate
 
 import geetools
 
@@ -76,10 +77,13 @@ class TestPreprocess:
 class TestGetSTAC:
     """Test the ``getSTAC`` method."""
 
-    def test_get_stac(self, s2_sr, data_regression):
+    def test_get_stac(self, s2_sr):
         stac = s2_sr.geetools.getSTAC()
-        stac["extent"].pop("temporal")  # it will change all the time
-        data_regression.check(stac)
+        assert stac["id"] == "COPERNICUS/S2_SR"
+
+    def test_get_stac_schema(self, s2_sr, stac_schema):
+        stac = s2_sr.geetools.getSTAC()
+        validate(stac, stac_schema)
 
 
 class TestGetDOI:
@@ -214,4 +218,50 @@ class TestToXarray:
 
     def test_to_xarray(self, s2_sr, data_regression):
         ds = s2_sr.geetools.to_xarray()
+
+        # drop all the dtype as they are not consistently setup depending on the xarray version
+        def drop_dtype(d=ds):
+            for k, v in ds.items():
+                if isinstance(v, dict):
+                    drop_dtype(v)
+                elif k == "dtype":
+                    del ds[k]
+
+        drop_dtype()
+
+        # ds = ds.astype(np.float64)
         data_regression.check(ds.to_dict(data=False))
+
+
+class TestContainsBandNames:
+    """Test the ``containsBandNames`` method and derivated."""
+
+    def test_contains_all(self, s2_sr):
+        ic = s2_sr.select(["B2", "B3", "B4"])
+        ic = ic.geetools.containsAllBands(["B2", "B3"])
+        assert ic.size().getInfo() == 2449
+
+    def test_contains_all_mismatch(self, s2_sr):
+        ic = s2_sr.select(["B2", "B3", "B4"])
+        ic = ic.geetools.containsAllBands(["B2", "B3", "B5"])
+        assert ic.size().getInfo() == 0
+
+    def test_deprecated_contains_all(self, s2_sr):
+        with pytest.deprecated_call():
+            ic = geetools.imagecollection.containsAllBands(s2_sr, ["B2", "B3"])
+            assert ic.size().getInfo() == 2449
+
+    def test_contains_any(self, s2_sr):
+        ic = s2_sr.select(["B2", "B3", "B4"])
+        ic = ic.geetools.containsAnyBands(["B2", "B3", "B5"])
+        assert ic.size().getInfo() == 2449
+
+    def test_contains_any_mismatch(self, s2_sr):
+        ic = s2_sr.select(["B2", "B3", "B4"])
+        ic = ic.geetools.containsAnyBands(["B5", "B6"])
+        assert ic.size().getInfo() == 0
+
+    def test_deprecated_contains_any(self, s2_sr):
+        with pytest.deprecated_call():
+            ic = geetools.imagecollection.containsAnyBand(s2_sr, ["B2", "B3", "B5"])
+            assert ic.size().getInfo() == 2449
