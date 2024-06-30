@@ -660,7 +660,8 @@ class Asset:
             raise ValueError(f"Asset {new_asset.as_posix()} already exists.")
 
         # make all the parents of the target asset if necessary
-        new_asset.parent.mkdir(parents=True, exist_ok=True)
+        if len(new_asset.parents) != 0:
+            new_asset.parent.mkdir(parents=True, exist_ok=True)
 
         # copy the asset to the new destination. If the asset is a container, we need to move all its
         # content recursively to the new destination we recursively call this method on each
