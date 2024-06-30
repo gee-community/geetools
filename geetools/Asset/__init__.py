@@ -433,6 +433,9 @@ class Asset:
     def iterdir(self, recursive: bool = False) -> list:
         """Get the list of children of a container.
 
+        Note:
+            A container is an asset containing other assets, it can be a ``Folder`` or an ``ImageCollection``.
+
         Args:
             recursive: If True, get all the children recursively. Defaults to False.
 
@@ -466,6 +469,9 @@ class Asset:
     def mkdir(self, parents=False, exist_ok=False, image_collection: bool = False) -> Asset:
         """Create a container asset from the Asset path.
 
+        Note:
+            A container is an asset containing other assets, it can be a ``Folder`` or an ``ImageCollection``.
+
         Args:
             parents: If True, create all the parents of the folder. Defaults to False.
             exist_ok: If True, do not raise an error if the folder already exists. Defaults to False.
@@ -480,26 +486,28 @@ class Asset:
         # check if the root is the same as home (only place where we can write to)
         self.is_absolute(raised=True)
 
-        # list the non-existing parents of the folder to create
-        to_be_created = [p for p in self.parents if not p.exists()]
-
         # if the complete one is in the list and exist_ok is True remove it from the list and
         # proceed else raise an error
         if self.exists() and exist_ok is False:
             raise ValueError(f"Asset {self.as_posix()} already exists.")
-        elif not self.exists():
-            to_be_created.insert(0, self)
+
+        # list the non-existing parents of the folder to create
+        to_be_created = [p for p in self.parents if not p.exists()]
 
         # if parents is True, create all the parts that are in the list
         # else raise an error with the 1st parent name
-        if len(to_be_created) > 1 and parents is False:
+        if len(to_be_created) > 0 and parents is False:
             raise ValueError(f'Parent Asset "{to_be_created[-1]}" does not exist.')
 
         # 2 option either there is 1 single element in the list or all the parents are included
         # we need to walk it in reversed to make sure the parents are build first.
-        asset_type = "IMAGE_COLLECTION" if image_collection is True else "FOLDER"
         for p in reversed(to_be_created):
-            ee.data.createAsset({"type": asset_type}, p.as_posix())
+            ee.data.createFolder(p.as_posix())
+
+        # now that all the parents are there, we can create the requested container
+        if not self.exists():
+            asset_type = "IMAGE_COLLECTION" if image_collection is True else "FOLDER"
+            ee.data.createAsset({"type": asset_type}, self.as_posix())
 
         return self
 
@@ -523,7 +531,7 @@ class Asset:
 
         Move this asset (any type) to the given target, and return a new ``Asset`` instance
         pointing to target. If target exists and overwrite is False the method will raise an
-        error. Else it will silently delete the existing file. If the asset is a folder the whole
+        error. Else it will silently delete the existing file. If the asset is a container the whole
         content will be moved as well. The initial content is removed after the move.
 
         Args:
@@ -540,44 +548,23 @@ class Asset:
                 new_asset = ee.Asset("projects/ee-geetools/assets/folder/new_image")
                 asset.move(new_asset, overwrite=False)
         """
-        # exit if the destination asset exist and overwrite is False
-        if new_asset.exists() and overwrite is False:
-            raise ValueError(f"Asset {new_asset.as_posix()} already exists.")
+        # copy the assets
+        self.copy(new_asset, overwrite=overwrite)
 
-        # make all the parents of the target asset if necessary
-        new_asset.parent.mkdir(parents=True, exist_ok=True)
-
-        # copy the asset to the new destination. If the asset is a folder, we need to move all its
-        # content recursively to the new destination we recursively call this method on each
-        # children of the asset if it's a folder it will loop again and if it's not it will
-        # reach the delete step
-        if self.is_folder() or self.is_image_collection():
-            new_asset.mkdir(
-                parents=True, exist_ok=True, image_collection=self.is_image_collection()
-            )
-            for asset in self.iterdir():
-                loc_asset = new_asset / asset._path.relative_to(self._path)
-                asset.move(loc_asset, overwrite=overwrite)
-        else:
-            ee.data.copyAsset(self.as_posix(), new_asset.as_posix(), allowOverwrite=True)
-
-        if self.is_folder() or self.is_image_collection():
-            for asset in self.iterdir():
-                loc_asset = new_asset / asset._path.relative_to(self._path)
-                asset.move(loc_asset, overwrite=overwrite)
-            
-        # delete the initial asset
-        self.unlink()
+        # delete the original
+        self.delete(recursive=True, dry_run=False)
 
         return new_asset
 
-    def rmdir(self, recursive: bool = False, dry_run: Optional[bool] = None) -> list:
-        """Remove the asset container.
+    def delete(self, recursive: bool = False, dry_run: Optional[bool] = None) -> list:
+        """Remove the asset.
 
-        This method will delete a container asset and all its children. by default it is not recursive and will raise an error if the container is not empty.
+        This method will delete an asset (any type) asset and all its potential children. by default it is not recursive and will raise an error if the container is not empty.
         By setting the recursive argument to True, the method will delete all the children and the container asset (including potential subfolders).
         To avoid deleting important assets by accident the method is set to dry_run by default.
-        Container asset can be either ``ImageCollection`` or ``Folder``.
+
+        Note:
+            A container is an asset containing other assets, it can be a ``Folder`` or an ``ImageCollection``.
 
         Args:
             recursive: If True, delete all the children and the container asset. Defaults to False.
@@ -590,14 +577,8 @@ class Asset:
             .. code-block:: python
 
                 asset = ee.Asset("projects/ee-geetools/assets/folder")
-                asset.rmdir(recursive=True)
+                asset.delete(recursive=True)
         """
-        # sanity check on variables
-        if not (self.is_project() or self.is_folder() or self.is_image_collection()):
-            raise ValueError(
-                f"Asset {self.as_posix()} is not a container and cannot contain other assets."
-            )
-
         # init if it should be a dry-run or not
         # if we run a recursive rmdir the dry_run is set to True to avoid deleting too many things by accident
         # if we run a non-recursive rmdir the dry_run is set to False to delete the folder only
@@ -612,7 +593,8 @@ class Asset:
             output.append(str(asset))
             dry_run is True or ee.data.deleteAsset(str(asset))
 
-        if recursive is True:
+        is_container = self.is_folder() or self.is_image_collection()
+        if recursive is True and is_container:
 
             # get all the assets
             asset_list = self.iterdir(recursive=True)
@@ -635,35 +617,28 @@ class Asset:
 
         return output
 
-    def unlink(self):
-        """Remove the asset.
-
-        Examples:
-            .. code-block:: python
-
-                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
-                asset.unlink()
-        """
+    # aliases
+    def unlink(self) -> list:
+        """``delete`` alias for singular assets."""
+        # sanity check on variables
+        if self.is_project() or self.is_folder() or self.is_image_collection():
+            raise ValueError(f"Asset {self.as_posix()} is a container, use rmdir instead.")
         self.exists(raised=True)
-        ee.data.deleteAsset(self.as_posix())
+        return self.delete()
 
-    def delete(self):
-        """Alias for unlink.
-
-        Examples:
-            .. code-block:: python
-
-                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
-                asset.delete()
-        """
-        return self.unlink()
+    def rmdir(self, recursive: bool = False, dry_run: Optional[bool] = None) -> list:
+        """``delete`` alias for containers."""
+        if not (self.is_project() or self.is_folder() or self.is_image_collection()):
+            raise ValueError(f"Asset {self.as_posix()} is not a container, use unlink instead.")
+        self.exists(raised=True)
+        return self.delete(recursive, dry_run)
 
     def copy(self, new_asset: Asset, overwrite: bool = False) -> Asset:
         """Copy the asset to a target destination.
 
         Copy this asset (any type) to the given target, and return a new ``Asset`` instance
         pointing to target. If target exists and overwrite is False the method will raise an
-        error. Else it will silently delete the existing asset. If the asset is a folder the whole
+        error. Else it will silently delete the existing asset. If the asset is a container the whole
         content will be moved as well.
 
         Args:
@@ -687,11 +662,11 @@ class Asset:
         # make all the parents of the target asset if necessary
         new_asset.parent.mkdir(parents=True, exist_ok=True)
 
-        # copy the asset to the new destination. If the asset is a folder, we need to move all its
+        # copy the asset to the new destination. If the asset is a container, we need to move all its
         # content recursively to the new destination we recursively call this method on each
         # children of the asset if it's a folder it will loop again.
-        if self.is_folder():
-            new_asset.mkdir(parents=True, exist_ok=True)
+        if self.is_folder() or self.is_image_collection():
+            new_asset.mkdir(True, True, self.is_image_collection())
             for asset in self.iterdir():
                 loc_asset = new_asset / asset._path.relative_to(self._path)
                 asset.copy(loc_asset, overwrite=overwrite)
