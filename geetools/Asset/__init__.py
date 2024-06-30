@@ -424,7 +424,7 @@ class Asset(YamlAble):
                 return False
 
     def iterdir(self, recursive: bool = False) -> list:
-        """Get the list of children of a folder.
+        """Get the list of children of a container.
 
         Args:
             recursive: If True, get all the children recursively. Defaults to False.
@@ -436,7 +436,10 @@ class Asset(YamlAble):
                 asset.iterdir(recursive=True)
         """
         # sanity check on variables
-        self.is_project() or self.is_type("FOLDER", raised=True)
+        if not (self.is_project() or self.is_folder() or self.is_image_collection()):
+            raise ValueError(
+                f"Asset {self.as_posix()} is not a container and cannot contain other assets."
+            )
 
         # no need for recursion if recursive is false we directly return the result of th API call
         if recursive is False:
@@ -447,18 +450,19 @@ class Asset(YamlAble):
         def _recursive_get(folder, asset_list):
             for asset in ee.data.listAssets({"parent": str(folder)})["assets"]:
                 asset_list.append(Asset(asset["id"]))
-                if asset["type"] == "FOLDER" and recursive is True:
+                if asset["type"] in ["FOLDER", "IMAGE_COLLECTION"] and recursive is True:
                     asset_list = _recursive_get(asset["id"], asset_list)
             return asset_list
 
         return _recursive_get(self, [])
 
-    def mkdir(self, parents=False, exist_ok=False) -> Asset:
-        """Create a folder asset from the Asset path.
+    def mkdir(self, parents=False, exist_ok=False, image_collection: bool = False) -> Asset:
+        """Create a container asset from the Asset path.
 
         Args:
             parents: If True, create all the parents of the folder. Defaults to False.
             exist_ok: If True, do not raise an error if the folder already exists. Defaults to False.
+            image_collection: If True, create an image collection asset. Otherwise create a folder asset. Defaults to False.
 
         Examples:
             .. code-block:: python
@@ -486,8 +490,9 @@ class Asset(YamlAble):
 
         # 2 option either there is 1 single element in the list or all the parents are included
         # we need to walk it in reversed to make sure the parents are build first.
+        asset_type = "IMAGE_COLLECTION" if image_collection is True else "FOLDER"
         for p in reversed(to_be_created):
-            ee.data.createAsset({"type": "FOLDER"}, p.as_posix())
+            ee.data.createAsset({"type": asset_type}, p.as_posix())
 
         return self
 
@@ -539,15 +544,17 @@ class Asset(YamlAble):
         # content recursively to the new destination we recursively call this method on each
         # children of the asset if it's a folder it will loop again and if it's not it will
         # reach the delete step
-        if self.is_folder():
-            new_asset.mkdir(parents=True, exist_ok=True)
+        if self.is_folder() or self.is_image_collection():
+            new_asset.mkdir(
+                parents=True, exist_ok=True, image_collection=self.is_image_collection()
+            )
             for asset in self.iterdir():
                 loc_asset = new_asset / asset._path.relative_to(self._path)
                 asset.move(loc_asset, overwrite=overwrite)
         else:
             ee.data.copyAsset(self.as_posix(), new_asset.as_posix(), allowOverwrite=True)
 
-        if self.is_folder():
+        if self.is_folder() or self.is_image_collection():
             for asset in self.iterdir():
                 loc_asset = new_asset / asset._path.relative_to(self._path)
                 asset.move(loc_asset, overwrite=overwrite)
@@ -558,14 +565,15 @@ class Asset(YamlAble):
         return new_asset
 
     def rmdir(self, recursive: bool = False, dry_run: Optional[bool] = None) -> list:
-        """Remove the asset folder.
+        """Remove the asset container.
 
-        This method will delete a folder asset and all its childrend. by default it is not recursive and will raise an error if the folder is not empty.
-        By setting the recursive argument to True, the method will delete all the children and the folder asset.
+        This method will delete a container asset and all its children. by default it is not recursive and will raise an error if the container is not empty.
+        By setting the recursive argument to True, the method will delete all the children and the container asset (including potential subfolders).
         To avoid deleting important assets by accident the method is set to dry_run by default.
+        Container asset can be either ``ImageCollection`` or ``Folder``.
 
         Args:
-            recursive: If True, delete all the children and the folder asset. Defaults to False.
+            recursive: If True, delete all the children and the container asset. Defaults to False.
             dry_run: If True, do not delete the asset simply pass them to the output list. Defaults to True.
 
         Returns:
@@ -577,8 +585,11 @@ class Asset(YamlAble):
                 asset = ee.Asset("projects/ee-geetools/assets/folder")
                 asset.rmdir(recursive=True)
         """
-        # raise an error if the asset is not a folder
-        self.is_type("FOLDER", raised=True)
+        # sanity check on variables
+        if not (self.is_project() or self.is_folder() or self.is_image_collection()):
+            raise ValueError(
+                f"Asset {self.as_posix()} is not a container and cannot contain other assets."
+            )
 
         # init if it should be a dry-run or not
         # if we run a recursive rmdir the dry_run is set to True to avoid deleting too many things by accident
