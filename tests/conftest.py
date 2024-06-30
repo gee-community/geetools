@@ -18,29 +18,32 @@ def gee_folder_structure():
     """Override the default test folder structure."""
     point = ee.Geometry.Point([0, 0])
     return {
-        "folder": {
+        "folder::Folder": {
             "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
-            "subfolder": {
+            "subfolder::Folder": {
                 "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
             },
         },
-        "rmdir_folder": {
+        "rmdir_folder::Folder": {
             "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
-            "subfolder": {
+            "subfolder::Folder": {
                 "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
             },
         },
-        "move_folder": {
+        "move_folder::Folder": {
             "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
-            "subfolder": {
+            "subfolder::Folder": {
                 "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
             },
         },
-        "copy_folder": {
+        "copy_folder::Folder": {
             "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
-            "subfolder": {
+            "subfolder::Folder": {
                 "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
             },
+        },
+        "unlink_folder::Folder": {
+            "image": ee.Image(1).clipToBoundsAndScale(point.buffer(100), scale=30),
         },
     }
 
