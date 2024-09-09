@@ -79,7 +79,7 @@ class TestGetSTAC:
 
     def test_get_stac(self, s2_sr):
         stac = s2_sr.geetools.getSTAC()
-        assert stac["id"] == "COPERNICUS/S2_SR"
+        assert stac["id"] == "COPERNICUS/S2_SR_HARMONIZED"
 
     def test_get_stac_schema(self, s2_sr, stac_schema):
         stac = s2_sr.geetools.getSTAC()

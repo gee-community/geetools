@@ -64,7 +64,8 @@ def s2_sr(amazonas) -> ee.ImageCollection:
     the 100 first images of the Sentinel-2 Surface Reflectance ImageCollection centered on the amazonas state of colombia and from 2021-01-01 to 2021-12-01.
     """
     return (
-        ee.ImageCollection("COPERNICUS/S2_SR")
+        ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+        .select(["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B11", "B12", "SCL"])
         .filterBounds(amazonas)
         .filterDate("2021-01-01", "2021-12-01")
     )
@@ -80,7 +81,9 @@ def vatican_buffer():
 def s2_sr_vatican_2020():
     """A single image from 2020 on top of vatican city from S2 SR collection."""
     src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
-    return ee.Image(src)
+    return ee.Image(src).select(
+        ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B10", "B11", "B12", "SCL"]
+    )
 
 
 @pytest.fixture
@@ -90,7 +93,25 @@ def s2(amazonas) -> ee.ImageCollection:
     the 100 first images of the Sentinel-2 Surface Reflectance ImageCollection centered on the amazonas state of colombia and from 2021-01-01 to 2021-12-01.
     """
     return (
-        ee.ImageCollection("COPERNICUS/S2")
+        ee.ImageCollection("COPERNICUS/S2_HARMONIZED")
+        .select(
+            [
+                "B1",
+                "B2",
+                "B3",
+                "B4",
+                "B5",
+                "B6",
+                "B7",
+                "B8",
+                "B8A",
+                "B9",
+                "B10",
+                "B11",
+                "B12",
+                "SCL",
+            ]
+        )
         .filterBounds(amazonas)
         .filterDate("2021-01-01", "2021-12-01")
     )
@@ -103,7 +124,8 @@ def l8_toa(amazonas) -> ee.ImageCollection:
     the 100 first images of the landast 8 TOA ImageCollection centered on the amazonas state of colombia and from 2021-01-01 to 2021-12-01.
     """
     return (
-        ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+        ee.ImageCollection("LANDSAT/LC08/C02/T1_RT_TOA")
+        .select(["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11"])
         .filterBounds(amazonas)
         .filterDate("2021-01-01", "2021-12-01")
     )
@@ -112,7 +134,9 @@ def l8_toa(amazonas) -> ee.ImageCollection:
 @pytest.fixture
 def l8_sr_raw():
     """Return a defined image collection."""
-    return ee.ImageCollection("LANDSAT/LC08/C01/T1_SR")
+    return ee.ImageCollection("LANDSAT/LC08/C02/T1").select(
+        ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11"]
+    )
 
 
 @pytest.fixture
@@ -236,5 +260,5 @@ def climSamp():
 @pytest.fixture(scope="session")
 def stac_schema():
     """Return the STAC collection schema."""
-    url = "https://raw.githubusercontent.com/radiantearth/stac-spec/master/collection-spec/json-schema/collection.json"
+    url = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/collection-spec/json-schema/collection.json"
     return requests.get(url).json()
