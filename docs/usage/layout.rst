@@ -261,6 +261,7 @@ Data extraction
 -  :py:meth:`ee.ImageCollection.geetools.collectionMask <geetools.ImageCollection.ImageCollectionAccessor.collectionMask>`: :docstring:`geetools.ImageCollectionAccessor.collectionMask`
 - :py:meth:`ee.ImageCollection.geetools.iloc <geetools.ImageCollection.ImageCollectionAccessor.iloc>`: :docstring:`geetools.ImageCollectionAccessor.iloc`
 - :py:meth:`ee.ImageCollection.geetools.integral <geetools.ImageCollection.ImageCollectionAccessor.integral>`: :docstring:`geetools.ImageCollectionAccessor.integral`
+- :py:meth:`ee.ImageCollection.geetools.validPixel <geetools.ImageCollection.ImageCollectionAccessor.validPixel>`: :docstring:`geetools.ImageCollectionAccessor.validPixel`
 
 Filter
 ######
