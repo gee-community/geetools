@@ -784,3 +784,34 @@ class ImageCollectionAccessor:
                 print(filtered.getInfo())
         """
         return self.containsBandNames(bandNames, "ANY")
+
+    def aggregateArray(self, properties: Optional[ee_list] = None) -> ee.Dict:
+        """Aggregate the ImageCollection selected properties into a dictionary.
+
+        Args:
+            properties: list of properties to aggregate. If None, all properties are aggregated.
+
+        Returns:
+            A dictionary with the properties as keys and the aggregated values as values.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                aggregated = collection.ldc.aggregateArray(["CLOUD_COVER", "system:time_start"])
+                print(aggregated.getInfo())
+        """
+        properties = (
+            ee.List(properties) if properties is not None else self._obj.first().propertyNames()
+        )
+        values = properties.map(lambda p: self._obj.aggregate_array(p))
+        return ee.Dictionary.fromLists(properties, values)
