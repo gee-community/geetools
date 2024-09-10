@@ -810,8 +810,6 @@ class ImageCollectionAccessor:
                 aggregated = collection.ldc.aggregateArray(["CLOUD_COVER", "system:time_start"])
                 print(aggregated.getInfo())
         """
-        properties = (
-            ee.List(properties) if properties is not None else self._obj.first().propertyNames()
-        )
-        values = properties.map(lambda p: self._obj.aggregate_array(p))
-        return ee.Dictionary.fromLists(properties, values)
+        keys = ee.List(properties) if properties is not None else self._obj.first().propertyNames()
+        values = keys.map(lambda p: self._obj.aggregate_array(p))
+        return ee.Dictionary.fromLists(keys, values)
