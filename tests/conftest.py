@@ -98,20 +98,6 @@ def l8_sr_vatican_2020():
 
 
 @pytest.fixture
-def s2(amazonas) -> ee.ImageCollection:
-    """Return a copernicus based collection.
-
-    the 100 first images of the Sentinel-2 Surface Reflectance ImageCollection centered on the amazonas state of colombia and from 2021-01-01 to 2021-12-01.
-    """
-    return (
-        ee.ImageCollection("COPERNICUS/S2_HARMONIZED")
-        .select(S2_BAND_COMBO)
-        .filterBounds(amazonas)
-        .filterDate("2021-01-01", "2021-12-01")
-    )
-
-
-@pytest.fixture
 def l8_toa(amazonas) -> ee.ImageCollection:
     """Return a landsat based collection.
 
