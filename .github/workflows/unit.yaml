@@ -90,9 +90,9 @@ jobs:
           name: coverage
           path: coverage.xml
       - name: codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
-          files: ./coverage.xml
+          fail_ci_if_error: true
