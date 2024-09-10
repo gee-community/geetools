@@ -694,22 +694,19 @@ class ImageCollectionAccessor:
 
         Args:
             band: the band to evaluate for valid pixels. If empty, use the first band
-
         Returns:
             an Image with the number of valid pixels or the percentage of valid pixels.
 
         Examples:
             .. code-block:: python
-
                 import ee, LDCGEETools
-
                 collection = (
                     ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
                     .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
                     .filterDate("2014-01-01", "2014-12-31")
                 )
                 valid = collection.ldc.validPixels("B1")
-                print(valid.getInfo())
+                print(valid.getInfo()).
         """
         # compute the mask for the specified band
         band = self._obj.first().bandNames().get(0) if band == "" else ee.String(band)
@@ -738,6 +735,7 @@ class ImageCollectionAccessor:
                     .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
                     .filterDate("2014-01-01", "2014-12-31")
                 )
+
                 filtered = collection.ldc.containsBandNames(["B1", "B2"], "ALL")
                 print(filtered.getInfo())
         """
@@ -815,3 +813,32 @@ class ImageCollectionAccessor:
                 print(filtered.getInfo())
         """
         return self.containsBandNames(bandNames, "ANY")
+
+    def aggregateArray(self, properties: Optional[ee_list] = None) -> ee.Dict:
+        """Aggregate the ImageCollection selected properties into a dictionary.
+
+        Args:
+            properties: list of properties to aggregate. If None, all properties are aggregated.
+
+        Returns:
+            A dictionary with the properties as keys and the aggregated values as values.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                aggregated = collection.ldc.aggregateArray(["CLOUD_COVER", "system:time_start"])
+                print(aggregated.getInfo())
+        """
+        keys = ee.List(properties) if properties is not None else self._obj.first().propertyNames()
+        values = keys.map(lambda p: self._obj.aggregate_array(p))
+        return ee.Dictionary.fromLists(keys, values)

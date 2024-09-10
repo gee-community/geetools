@@ -291,3 +291,32 @@ class TestContainsBandNames:
         with pytest.deprecated_call():
             ic = geetools.imagecollection.containsAnyBand(s2_sr, ["B2", "B3", "B5"])
             assert ic.size().getInfo() == 2449
+
+
+class TestAggregateArray:
+    """Test the ``aggregateArray`` method."""
+
+    def test_aggregate_array(self, s2_sr, data_regression):
+        # reduce the number of properties beforehand to avoid the test to fail
+        keys = s2_sr.first().propertyNames()
+        keys = keys.filter(ee.Filter.stringStartsWith("item", "system:")).remove("system:version")
+        s2_sr_filtered = s2_sr.limit(3).map(
+            lambda i: ee.Image().addBands(i).copyProperties(i, keys)
+        )
+        aggregated = s2_sr_filtered.geetools.aggregateArray()
+        data_regression.check(aggregated.getInfo())
+
+    def test_aggregate_array_with_properties(self, s2_sr, data_regression):
+        aggregated = s2_sr.limit(10).geetools.aggregateArray(["system:time_start", "system:index"])
+        data_regression.check(aggregated.getInfo())
+
+    def test_deprecated_aggregate_array(self, s2_sr, data_regression):
+        # reduce the number of properties beforehand to avoid the test to fail
+        keys = s2_sr.first().propertyNames()
+        keys = keys.filter(ee.Filter.stringStartsWith("item", "system:")).remove("system:version")
+        s2_sr_filtered = s2_sr.limit(3).map(
+            lambda i: ee.Image().addBands(i).copyProperties(i, keys)
+        )
+        with pytest.deprecated_call():
+            aggregated = geetools.imagecollection.aggregate_array_all(s2_sr_filtered)
+            data_regression.check(aggregated.getInfo())

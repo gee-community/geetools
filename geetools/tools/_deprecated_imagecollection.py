@@ -1029,12 +1029,19 @@ def moving_average(collection, back=5, reducer=None, use_original=True):
     return ee.ImageCollection.fromImages(ee.List(final.get("stats")))
 
 
+@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.aggregate_array instead")
 def aggregate_array_all(collection):
     """Aggregate array in all images and return a list of dicts."""
-    props = collection.first().propertyNames()
-    allprops = props.map(lambda p: collection.aggregate_array(p))
-    transposed = ee_list.transpose(allprops)
-    return transposed.map(lambda ps: ee.Dictionary.fromLists(props, ps))
+    dict = collection.geetools.aggregateArray()
+    keys = dict.keys()
+    imageIndex = ee.List.sequence(0, collection.size().subtract(1))
+
+    def transpose(index):
+        i = ee.Number(index)
+        values = keys.map(lambda k: ee.List(dict.get(k)).get(i))
+        return ee.Dictionary.fromLists(keys, values)
+
+    return imageIndex.map(transpose)
 
 
 @deprecated(version="1.0.0", reason="Use vanilla ee.ImageCollection.toBands instead")
