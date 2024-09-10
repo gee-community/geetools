@@ -13,7 +13,7 @@ from xarray import Dataset
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from geetools.accessors import register_class_accessor
-from geetools.types import ee_list, ee_number, number
+from geetools.types import ee_list, ee_number, ee_str, number
 
 
 @register_class_accessor(ee.ImageCollection, "geetools")
@@ -685,6 +685,35 @@ class ImageCollectionAccessor:
             ee_mask_value=ee_mask_value,
             request_byte_limit=request_byte_limit,
         )
+
+    def validPixel(self, band: ee_str = "") -> ee.Image:
+        """Compute the number of valid pixels in the specified band.
+
+        Compute the number of valid pixels in the specified band. 2 bands will be created:
+        one with the number of valid pixels (``valid``) and another with the percentage of valid pixels (``pct_valid``).
+
+        Args:
+            band: the band to evaluate for valid pixels. If empty, use the first band
+        Returns:
+            an Image with the number of valid pixels or the percentage of valid pixels.
+
+        Examples:
+            .. code-block:: python
+                import ee, LDCGEETools
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+                valid = collection.ldc.validPixels("B1")
+                print(valid.getInfo()).
+        """
+        # compute the mask for the specified band
+        band = self._obj.first().bandNames().get(0) if band == "" else ee.String(band)
+        masks = self._obj.select([band]).map(lambda i: i.mask().eq(1))
+        validPixel = masks.sum().rename("valid").clip(self._obj.geometry())
+        validPct = validPixel.divide(self._obj.size()).multiply(100).rename("pct_valid")
+        return validPixel.addBands(validPct)
 
     def containsBandNames(self, bandNames: ee_list, filter: str) -> ee.ImageCollection:
         """Filter the ImageCollection by band names using the provided filter.
