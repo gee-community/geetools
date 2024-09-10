@@ -697,7 +697,7 @@ class ImageCollectionAccessor:
 
         Returns:
             an Image with the number of valid pixels or the percentage of valid pixels.
-            
+
         Examples:
             .. code-block:: python
 
@@ -717,7 +717,7 @@ class ImageCollectionAccessor:
         validPixel = masks.sum().rename("valid").clip(self._obj.geometry())
         validPct = validPixel.divide(self._obj.size()).multiply(100).rename("pct_valid")
         return validPixel.addBands(validPct)
-            
+
     def containsBandNames(self, bandNames: ee_list, filter: str) -> ee.ImageCollection:
         """Filter the ImageCollection by band names using the provided filter.
 
