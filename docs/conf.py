@@ -21,7 +21,7 @@ sys.path.append(str(Path(".").resolve()))
 project = "geetools"
 author = "Rodrigo E. Principe"
 copyright = f"2017-{datetime.now().year}, {author}"
-release = "1.3.0"
+release = "1.4.0"
 
 # -- General configuration -----------------------------------------------------
 extensions = [

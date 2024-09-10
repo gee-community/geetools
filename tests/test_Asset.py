@@ -261,8 +261,8 @@ class TestServerMethods:
 
     def test_unlink(self, gee_test_folder):
         gee_test_folder = ee.Asset(gee_test_folder)
-        asset = (gee_test_folder / "new_unlink_folder").mkdir()
-        assert asset.is_folder() is True
+        asset = gee_test_folder / "unlink_folder" / "image"
+        assert asset.is_image() is True
         asset.unlink()
         assert asset.exists() is False
 
@@ -345,3 +345,12 @@ class TestServerMethods:
         asset.move(new_asset)
         assert asset.exists() is False
         assert new_asset.exists() is True
+
+
+class TestSetProperties:
+    """Test the ``set_properties`` method."""
+
+    def test_set_properties(self, gee_test_folder):
+        asset = ee.Asset(gee_test_folder) / "folder" / "image"
+        asset.setProperties(foo="bar")
+        assert ee.Image(asset.as_posix()).get("foo").getInfo() == "bar"

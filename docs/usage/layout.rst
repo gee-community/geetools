@@ -263,6 +263,13 @@ Data extraction
 - :py:meth:`ee.ImageCollection.geetools.integral <geetools.ImageCollection.ImageCollectionAccessor.integral>`: :docstring:`geetools.ImageCollectionAccessor.integral`
 - :py:meth:`ee.ImageCollection.geetools.validPixel <geetools.ImageCollection.ImageCollectionAccessor.validPixel>`: :docstring:`geetools.ImageCollectionAccessor.validPixel`
 
+Filter
+######
+
+- :py:meth:`ee.ImageCollection.geetools.containsBandNames <geetools.ImageCollection.ImageCollectionAccessor.containsBandNames>`: :docstring:`geetools.ImageCollectionAccessor.containsBandNames`
+- :py:meth:`ee.ImageCollection.geetools.containsAllBands <geetools.ImageCollection.ImageCollectionAccessor.containsAllBands>`: :docstring:`geetools.ImageCollectionAccessor.containsAllBands`
+- :py:meth:`ee.ImageCollection.geetools.containsAnyBands <geetools.ImageCollection.ImageCollectionAccessor.containsAnyBands>`: :docstring:`geetools.ImageCollectionAccessor.containsAnyBands`
+
 Converter
 #########
 
@@ -372,6 +379,7 @@ Operation
 - :py:meth:`ee.Asset.copy <geetools.Asset.Asset.copy>`: :docstring:`geetools.Asset.copy`
 - :py:meth:`ee.Asset.glob <geetools.Asset.Asset.glob>`: :docstring:`geetools.Asset.glob`
 - :py:meth:`ee.Asset.rglob <geetools.Asset.Asset.rglob>`: :docstring:`geetools.Asset.rglob`
+- :py:meth:`ee.Asset.setProperties <geetools.Asset.Asset.setProperties>`: :docstring:`geetools.Asset.setProperties`
 
 Property
 ########

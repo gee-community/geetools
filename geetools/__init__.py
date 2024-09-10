@@ -54,7 +54,7 @@ from .Authenticate import AuthenticateAccessor
 __title__ = "geetools"
 __summary__ = "A set of useful tools to use with Google Earth Engine Python" "API"
 __uri__ = "http://geetools.readthedocs.io"
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 __author__ = "Rodrigo E. Principe"
 __email__ = "fitoprincipe82@gmail.com"

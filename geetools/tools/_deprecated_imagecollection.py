@@ -18,54 +18,16 @@ def allMasked(collection):
     return ee.ImageCollection(collection).geetools.collectionMask()
 
 
+@deprecated(version="1.0.0", reason="Use ee.imageCollection.geetools.containsAllBands instead")
 def containsAllBands(collection, bands):
-    """Filter a collection with images containing all bands specified in.
-
-    parameter `bands`
-    .
-    """
-    bands = ee.List(bands)
-    # add bands as metadata
-    collection = collection.map(lambda i: ee.Image(i).set("_BANDS_", ee.Image(i).bandNames()))
-
-    band0 = ee.String(bands.get(0))
-    rest = ee.List(bands.slice(1))
-    filt0 = ee.Filter.listContains(leftField="_BANDS_", rightValue=band0)
-
-    # Get filter
-    def wrap(band, filt):
-        band = ee.String(band)
-        filt = ee.Filter(filt)
-        newfilt = ee.Filter.listContains(leftField="_BANDS_", rightValue=band)
-        return ee.Filter.And(filt, newfilt)
-
-    filt = ee.Filter(rest.iterate(wrap, filt0))
-    return collection.filter(filt)
+    """Filter a collection with images containing all the specified bands"""
+    return ee.ImageCollection(collection).geetools.containsAllBands(bands)
 
 
+@deprecated(version="1.0.0", reason="Use ee.imageCollection.geetools.containsAnyBands instead")
 def containsAnyBand(collection, bands):
-    """Filter a collection with images cotaining any of the bands specified in.
-
-    parameter `bands`
-    .
-    """
-    bands = ee.List(bands)
-    # add bands as metadata
-    collection = collection.map(lambda i: ee.Image(i).set("_BANDS_", ee.Image(i).bandNames()))
-
-    band0 = ee.String(bands.get(0))
-    rest = ee.List(bands.slice(1))
-    filt0 = ee.Filter.listContains(leftField="_BANDS_", rightValue=band0)
-
-    # Get filter
-    def wrap(band, filt):
-        band = ee.String(band)
-        filt = ee.Filter(filt)
-        newfilt = ee.Filter.listContains(leftField="_BANDS_", rightValue=band)
-        return ee.Filter.Or(filt, newfilt)
-
-    filt = ee.Filter(rest.iterate(wrap, filt0))
-    return collection.filter(filt)
+    """Filter a collection with images cotaining any of the specified bands"""
+    return ee.ImageCollection(collection).geetools.containsAnyBands(bands)
 
 
 @deprecated(version="1.0.0", reason="It is error prone as some collection have no ID.")

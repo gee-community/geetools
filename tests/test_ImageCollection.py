@@ -20,6 +20,9 @@ def reduce(collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = Non
 class TestMaskClouds:
     """Test the ``maskClouds`` method."""
 
+    @pytest.mark.xfail(
+        reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x."
+    )
     def test_mask_s2_sr(self, s2_sr, num_regression):
         masked = s2_sr.geetools.maskClouds(prob=75, buffer=300, cdi=-0.5)
         num_regression.check(reduce(masked).getInfo())
@@ -68,6 +71,9 @@ class TestScaleAndOffset:
 class TestPreprocess:
     """Test the ``preprocess`` method."""
 
+    @pytest.mark.xfail(
+        reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x."
+    )
     def test_preprocess(self, s2_sr, num_regression):
         preprocessed = s2_sr.geetools.preprocess()
         values = {k: np.nan if v is None else v for k, v in reduce(preprocessed).getInfo().items()}
@@ -79,7 +85,7 @@ class TestGetSTAC:
 
     def test_get_stac(self, s2_sr):
         stac = s2_sr.geetools.getSTAC()
-        assert stac["id"] == "COPERNICUS/S2_SR"
+        assert stac["id"] == "COPERNICUS/S2_SR_HARMONIZED"
 
     def test_get_stac_schema(self, s2_sr, stac_schema):
         stac = s2_sr.geetools.getSTAC()
@@ -105,6 +111,7 @@ class TestGetCitation:
 class TestPanSharpen:
     """Test the ``panSharpen`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra does not accept C02 L08 collection yet.")
     def test_pan_sharpen(self, l8_toa, num_regression):
         sharpened = l8_toa.geetools.panSharpen()
         num_regression.check(reduce(sharpened).getInfo())
@@ -113,8 +120,8 @@ class TestPanSharpen:
 class TestTasseledCap:
     """Test the ``tasseledCap`` method."""
 
-    def test_tasseled_cap(self, s2, num_regression):
-        tc = s2.geetools.tasseledCap()
+    def test_tasseled_cap(self, l8_sr, num_regression):
+        tc = l8_sr.geetools.tasseledCap()
         num_regression.check(reduce(tc).getInfo())
 
 
@@ -250,3 +257,37 @@ class TestValidPixel:
                 k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()
             }
             num_regression.check(values)
+
+
+class TestContainsBandNames:
+    """Test the ``containsBandNames`` method and derivated."""
+
+    def test_contains_all(self, s2_sr):
+        ic = s2_sr.select(["B2", "B3", "B4"])
+        ic = ic.geetools.containsAllBands(["B2", "B3"])
+        assert ic.size().getInfo() == 2449
+
+    def test_contains_all_mismatch(self, s2_sr):
+        ic = s2_sr.select(["B2", "B3", "B4"])
+        ic = ic.geetools.containsAllBands(["B2", "B3", "B5"])
+        assert ic.size().getInfo() == 0
+
+    def test_deprecated_contains_all(self, s2_sr):
+        with pytest.deprecated_call():
+            ic = geetools.imagecollection.containsAllBands(s2_sr, ["B2", "B3"])
+            assert ic.size().getInfo() == 2449
+
+    def test_contains_any(self, s2_sr):
+        ic = s2_sr.select(["B2", "B3", "B4"])
+        ic = ic.geetools.containsAnyBands(["B2", "B3", "B5"])
+        assert ic.size().getInfo() == 2449
+
+    def test_contains_any_mismatch(self, s2_sr):
+        ic = s2_sr.select(["B2", "B3", "B4"])
+        ic = ic.geetools.containsAnyBands(["B5", "B6"])
+        assert ic.size().getInfo() == 0
+
+    def test_deprecated_contains_any(self, s2_sr):
+        with pytest.deprecated_call():
+            ic = geetools.imagecollection.containsAnyBand(s2_sr, ["B2", "B3", "B5"])
+            assert ic.size().getInfo() == 2449
