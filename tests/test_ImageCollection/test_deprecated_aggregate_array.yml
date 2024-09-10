@@ -278,7 +278,6 @@
   system:index: 20210102T150719_20210102T150942_T18MYC
   system:time_end: 1609600422628
   system:time_start: 1609600422628
-  system:version: 1725995988462951
 - system:asset_size: 207607455
   system:band_names:
   - B1
@@ -559,7 +558,6 @@
   system:index: 20210102T150719_20210102T150942_T18MYD
   system:time_end: 1609600409366
   system:time_start: 1609600409366
-  system:version: 1725995988462951
 - system:asset_size: 1145104866
   system:band_names:
   - B1
@@ -846,4 +844,3 @@
   system:index: 20210102T150719_20210102T150942_T18MZC
   system:time_end: 1609600419630
   system:time_start: 1609600419630
-  system:version: 1725995988462951

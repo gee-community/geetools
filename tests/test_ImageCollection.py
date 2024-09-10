@@ -298,7 +298,12 @@ class TestAggregateArray:
 
     def test_aggregate_array(self, s2_sr, data_regression):
         # reduce the number of properties beforehand to avoid the test to fail
-        keys = s2_sr.first().propertyNames().filter(ee.Filter.stringStartsWith("item", "system:"))
+        keys = (
+            s2_sr.first()
+            .propertyNames()
+            .filter(ee.Filter.stringStartsWith("item", "system:"))
+            .remove("system:version")
+        )
         s2_sr_filtered = s2_sr.limit(3).map(
             lambda i: ee.Image().addBands(i).copyProperties(i, keys)
         )
@@ -311,7 +316,12 @@ class TestAggregateArray:
 
     def test_deprecated_aggregate_array(self, s2_sr, data_regression):
         # reduce the number of properties beforehand to avoid the test to fail
-        keys = s2_sr.first().propertyNames().filter(ee.Filter.stringStartsWith("item", "system:"))
+        keys = (
+            s2_sr.first()
+            .propertyNames()
+            .filter(ee.Filter.stringStartsWith("item", "system:"))
+            .remove("system:version")
+        )
         s2_sr_filtered = s2_sr.limit(3).map(
             lambda i: ee.Image().addBands(i).copyProperties(i, keys)
         )
