@@ -20,6 +20,9 @@ def reduce(collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = Non
 class TestMaskClouds:
     """Test the ``maskClouds`` method."""
 
+    @pytest.mark.xfail(
+        reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x."
+    )
     def test_mask_s2_sr(self, s2_sr, num_regression):
         masked = s2_sr.geetools.maskClouds(prob=75, buffer=300, cdi=-0.5)
         num_regression.check(reduce(masked).getInfo())
@@ -68,6 +71,9 @@ class TestScaleAndOffset:
 class TestPreprocess:
     """Test the ``preprocess`` method."""
 
+    @pytest.mark.xfail(
+        reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x."
+    )
     def test_preprocess(self, s2_sr, num_regression):
         preprocessed = s2_sr.geetools.preprocess()
         values = {k: np.nan if v is None else v for k, v in reduce(preprocessed).getInfo().items()}
@@ -105,6 +111,7 @@ class TestGetCitation:
 class TestPanSharpen:
     """Test the ``panSharpen`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra does not accept C02 L08 collection yet.")
     def test_pan_sharpen(self, l8_toa, num_regression):
         sharpened = l8_toa.geetools.panSharpen()
         num_regression.check(reduce(sharpened).getInfo())
@@ -113,8 +120,8 @@ class TestPanSharpen:
 class TestTasseledCap:
     """Test the ``tasseledCap`` method."""
 
-    def test_tasseled_cap(self, s2, num_regression):
-        tc = s2.geetools.tasseledCap()
+    def test_tasseled_cap(self, l8_sr, num_regression):
+        tc = l8_sr.geetools.tasseledCap()
         num_regression.check(reduce(tc).getInfo())
 
 

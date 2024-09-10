@@ -7,6 +7,12 @@ import pytest
 import pytest_gee
 import requests
 
+S2_BAND_COMBO = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B11", "B12", "SCL"]
+"""Sentinel-2 band combination."""
+
+L8_BAND_COMBO = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11"]
+"""Landsat-8 band combination."""
+
 
 def pytest_configure() -> None:
     """Initialize earth engine according to the environment."""
@@ -65,7 +71,7 @@ def s2_sr(amazonas) -> ee.ImageCollection:
     """
     return (
         ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
-        .select(["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B11", "B12", "SCL"])
+        .select(S2_BAND_COMBO)
         .filterBounds(amazonas)
         .filterDate("2021-01-01", "2021-12-01")
     )
@@ -81,9 +87,14 @@ def vatican_buffer():
 def s2_sr_vatican_2020():
     """A single image from 2020 on top of vatican city from S2 SR collection."""
     src = "COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM"
-    return ee.Image(src).select(
-        ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B10", "B11", "B12", "SCL"]
-    )
+    return ee.Image(src).select(S2_BAND_COMBO)
+
+
+@pytest.fixture
+def l8_sr_vatican_2020():
+    """A single image from 2020 on top of vatican city from L8 SR collection."""
+    src = "LANDSAT/LC08/C02/T1/LC08_191031_20130711"
+    return ee.Image(src).select(L8_BAND_COMBO)
 
 
 @pytest.fixture
@@ -94,24 +105,7 @@ def s2(amazonas) -> ee.ImageCollection:
     """
     return (
         ee.ImageCollection("COPERNICUS/S2_HARMONIZED")
-        .select(
-            [
-                "B1",
-                "B2",
-                "B3",
-                "B4",
-                "B5",
-                "B6",
-                "B7",
-                "B8",
-                "B8A",
-                "B9",
-                "B10",
-                "B11",
-                "B12",
-                "SCL",
-            ]
-        )
+        .select(S2_BAND_COMBO)
         .filterBounds(amazonas)
         .filterDate("2021-01-01", "2021-12-01")
     )
@@ -125,7 +119,20 @@ def l8_toa(amazonas) -> ee.ImageCollection:
     """
     return (
         ee.ImageCollection("LANDSAT/LC08/C02/T1_RT_TOA")
-        .select(["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11"])
+        .select(L8_BAND_COMBO)
+        .filterBounds(amazonas)
+        .filterDate("2021-01-01", "2021-12-01")
+    )
+
+
+@pytest.fixture
+def l8_sr(amazonas):
+    """Return a landsat based collection.
+
+    the 100 first images of the landast 8 SR ImageCollection centered on the amazonas state of colombia and from 2021-01-01 to 2021-12-01.
+    """
+    return (
+        ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
         .filterBounds(amazonas)
         .filterDate("2021-01-01", "2021-12-01")
     )
@@ -134,9 +141,7 @@ def l8_toa(amazonas) -> ee.ImageCollection:
 @pytest.fixture
 def l8_sr_raw():
     """Return a defined image collection."""
-    return ee.ImageCollection("LANDSAT/LC08/C02/T1").select(
-        ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11"]
-    )
+    return ee.ImageCollection("LANDSAT/LC08/C02/T1").select(L8_BAND_COMBO)
 
 
 @pytest.fixture
