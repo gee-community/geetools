@@ -23,7 +23,5 @@ jobs:
         run: pip install .[test]
       - name: Install EE pre-release
         run: pip install --pre earthengine-api
-      - name: Install nox
-        run: pip install nox
       - name: test with pytest
-        run: nox -s test --no-venv
+        run: pytest --color=yes tests
