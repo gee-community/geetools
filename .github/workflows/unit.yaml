@@ -88,7 +88,6 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: coverage
-          path: coverage.xml
       - name: codecov
         uses: codecov/codecov-action@v4
         with:
