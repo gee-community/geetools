@@ -22,6 +22,6 @@ jobs:
       - name: Install dependencies
         run: pip install .[test]
       - name: Install EE pre-release
-        run: pip install --pre earthengine-api
+        run: pip install --pre --upgrade earthengine-api
       - name: test with pytest
         run: pytest --color=yes tests
