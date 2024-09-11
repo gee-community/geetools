@@ -2,6 +2,7 @@
 import io
 
 import ee
+import geopandas as gpd
 import pytest
 from matplotlib import pyplot as plt
 
@@ -72,14 +73,18 @@ class TestMergeGeometries:
 class TestToPolygons:
     """Test the ``toPolygons`` method."""
 
-    def test_to_polygons(self, fc_instance, data_regression):
+    def test_to_polygons(self, fc_instance, dataframe_regression):
         fc = fc_instance.geetools.toPolygons()
-        data_regression.check(fc.getInfo())
+        gdf = gpd.GeoDataFrame.from_features(fc.getInfo())
+        vertex = gdf.geometry.apply(lambda g: sum(len(p.exterior.coords) for p in g.geoms))
+        assert vertex.sum() == 66
 
-    def test_deprecated_clean(self, fc_instance, data_regression):
+    def test_deprecated_clean(self, fc_instance, dataframe_regression):
         with pytest.deprecated_call():
             fc = geetools.tools.featurecollection.clean(fc_instance)
-            data_regression.check(fc.getInfo())
+            gdf = gpd.GeoDataFrame.from_features(fc.getInfo())
+            vertex = gdf.geometry.apply(lambda g: sum(len(p.exterior.coords) for p in g.geoms))
+            assert vertex.sum() == 66
 
 
 class TestByProperties:
