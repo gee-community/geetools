@@ -20,9 +20,9 @@ def reduce(collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = Non
 class TestMaskClouds:
     """Test the ``maskClouds`` method."""
 
-    @pytest.mark.xfail(
-        reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x."
-    )
+    # @pytest.mark.xfail(
+    #    reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x."
+    # )
     def test_mask_s2_sr(self, s2_sr, num_regression):
         masked = s2_sr.geetools.maskClouds(prob=75, buffer=300, cdi=-0.5)
         num_regression.check(reduce(masked).getInfo())
