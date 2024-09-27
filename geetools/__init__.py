@@ -14,6 +14,7 @@ from . import _deprecated_expressions as expressions
 from . import _deprecated_utils as utils
 from . import _deprecated_decision_tree as decision_tree
 from . import _deprecated_indices as indices
+from . import _deprecated_algorithms as algorithms
 from .tools import array
 from .tools import collection
 from .tools import date

@@ -153,3 +153,15 @@ class TestImageCollection:
     def test_normal_distribution_band(self):
         with pytest.raises(NotImplementedError):
             geetools.imagecollection.normalDistributionBand(None, None, None, None, None)
+
+
+class TestAlgorithm:
+    """Test the deprecated_algorithms module."""
+
+    def test_pansharpenkernel(self):
+        with pytest.raises(NotImplementedError):
+            geetools.algorithms.pansharpenKernel(None, None)
+
+    def test_pansharpenihsFusion(self):
+        with pytest.raises(NotImplementedError):
+            geetools.algorithms.pansharpenIhsFusion(None)
