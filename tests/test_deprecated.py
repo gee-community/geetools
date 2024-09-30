@@ -165,3 +165,11 @@ class TestAlgorithm:
     def test_pansharpenihsFusion(self):
         with pytest.raises(NotImplementedError):
             geetools.algorithms.pansharpenIhsFusion(None)
+
+
+class TestComposite:
+    """Test the deprecated_composite module."""
+
+    def test_max(self, s2_sr):
+        with pytest.deprecated_call():
+            geetools.composite.max(s2_sr)

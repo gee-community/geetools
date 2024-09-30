@@ -167,20 +167,13 @@ def euclideanDistance(image1, image2, bands=None, discard_zeros=False, name="dis
     return d.rename(name)
 
 
+@deprecated(
+    version="1.4.0",
+    reason="Should not be used as a wrapper as the method is too computational heavy.",
+)
 def sumDistance(image, collection, bands=None, discard_zeros=False, name="sumdist"):
-    """Compute de sum of all distances between the given image and the.
-
-    collection passed.
-
-    :param image:
-    :param collection:
-    :return:
-    """
-    condition = isinstance(collection, ee.ImageCollection)
-
-    if condition:
-        collection = collection.toList(collection.size())
-
+    """Compute de sum of all distances between the given image and the collection passed."""
+    collection = collection.toList(collection.size())
     accum = ee.Image(0).rename(name)
 
     def over_rest(im, ini):

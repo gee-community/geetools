@@ -1,10 +1,10 @@
-# coding=utf-8
 """Module holding tools for creating composites."""
 from uuid import uuid4
 
 import ee
+from deprecated.sphinx import deprecated
 
-from . import algorithms, tools
+from . import _deprecated_algorithms, tools
 
 
 def medoidScore(collection, bands=None, discard_zeros=False, bandname="sumdist", normalize=True):
@@ -39,7 +39,7 @@ def medoidScore(collection, bands=None, discard_zeros=False, bandname="sumdist",
 
         # Compute the sum of the euclidean distance between the current image
         # and every image in the rest of the collection
-        dist = algorithms.sumDistance(
+        dist = _deprecated_algorithms.sumDistance(
             to_process, filtered, name=bandname, discard_zeros=discard_zeros
         )
 
@@ -252,13 +252,7 @@ def compositeByMonth(
     return ee.ImageCollection.fromImages(images.flatten())
 
 
-def max(collection, band):
+@deprecated(version="1.4.0", reason="Use the vanilla Earth Engine API")
+def max(collection, band=None):
     """Make a max composite using the specified band."""
-    band = ee.String(band)
-    first = collection.first()
-    originalbands = first.bandNames()
-    bands = originalbands.remove(band)
-    bands = bands.insert(0, band)
-    col = collection.map(lambda img: img.select(bands))  # change bands order
-    comp = col.reduce(ee.Reducer.max(originalbands.size()))
-    return comp.rename(bands).select(originalbands)
+    return collection.max()
