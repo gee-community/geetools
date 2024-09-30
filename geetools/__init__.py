@@ -47,8 +47,8 @@ from .Authenticate import AuthenticateAccessor
 # waiting for a fix in
 # https://github.com/gee-community/geetools/issues/173
 # https://github.com/gee-community/geetools/issues/206
-# from .Array import ArrayAccessor
-# from .DateRange import DateRangeAccessor
+from .Array import ArrayAccessor
+from .DateRange import DateRangeAccessor
 
 
 __title__ = "geetools"

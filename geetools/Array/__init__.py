@@ -1,14 +1,4 @@
-"""Extra methods for the ``ee.Array`` class.
-
-.. warning::
-
-    As reported in https://github.com/gee-community/geetools/issues/173, this object cannot be extended before the API of
-    Earth Enfine is initialized. So to use the following methods, you will be forced to manually import the following:
-
-    .. code-block:: python
-
-        from geetools.Array import ArrayAccessor
-"""
+"""Extra methods for the ``ee.Array`` class."""
 from __future__ import annotations
 
 import ee
