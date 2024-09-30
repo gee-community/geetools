@@ -28,6 +28,7 @@ def ci_test(session):
         *test_files,
     )
 
+
 @nox.session(reuse_venv=True)
 def test(session):
     """Run all the test using the environment variable of the running machine."""
