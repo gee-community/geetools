@@ -3,7 +3,6 @@ import ee
 import pytest
 
 import geetools
-from geetools.Array import ArrayAccessor  # noqa: F401
 
 
 class TestFull:
