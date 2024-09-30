@@ -706,3 +706,24 @@ class TestRemoveProperties:
     def test_remove_properties(self, s2_sr_vatican_2020, data_regression):
         image = s2_sr_vatican_2020.geetools.removeProperties(["system:time_start"])
         data_regression.check(image.propertyNames().getInfo())
+
+
+class TestDistanceToMask:
+    """Test the distanceToMask method."""
+
+    def test_distance_to_mask(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
+        centerBuffer = vatican_buffer.centroid().buffer(100)
+        BufferMask = ee.Image.constant(1).clip(centerBuffer)
+        mask = ee.Image.constant(0).where(BufferMask, 1)
+        distance = s2_sr_vatican_2020.geetools.distanceToMask(mask)
+        values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
+        num_regression.check(values.getInfo())
+
+    def test_deprecated_distance_to_mask(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
+        centerBuffer = vatican_buffer.centroid().buffer(100)
+        BufferMask = ee.Image.constant(1).clip(centerBuffer)
+        mask = ee.Image.constant(0).where(BufferMask, 1)
+        with pytest.deprecated_call():
+            distance = geetools.algorithms.distanceToMask(s2_sr_vatican_2020, mask)
+            values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
+            num_regression.check(values.getInfo())

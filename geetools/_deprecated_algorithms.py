@@ -8,8 +8,10 @@ from deprecated.sphinx import deprecated
 from . import tools
 
 
+@deprecated(version="1.4.0", reason="Use ee.Image.geetools.distanceToMask instead.")
 def distanceToMask(
     image,
+    mask,
     kernel=None,
     radius=1000,
     unit="meters",
@@ -18,68 +20,12 @@ def distanceToMask(
     band_name="distance_to_mask",
     normalize=False,
 ):
-    """Compute the distance to the mask in meters.
-
-    :param image: Image holding the mask
-    :type image: ee.Image
-    :param kernel: Kernel to use for computing the distance. By default uses
-        euclidean
-    :type kernel: ee.Kernel
-    :param radius: radius for the kernel. Defaults to 1000
-    :type radius: int
-    :param unit: units for the kernel radius. Defaults to 'meters'
-    :type unit: str
-    :param scale: scale for reprojection. If None, will reproject on the fly
-        (according to EE lazy computing)
-    :type scale: int
-    :param geometry: compute the distance only inside this geometry. If you
-        want to compute the distance inside a clipped image, using this
-        parameter will make the edges not be considered as a mask.
-    :type geometry: ee.Geometry or ee.Feature
-    :param band_name: name of the resulting band. Defaults to
-        'distance_to_mask'
-    :type band_name: str
-    :param normalize: Normalize result (between 0 and 1)
-    :type normalize: bool
-    :return: A one band image with the distance to the mask
-    :rtype: ee.Image
-    """
-    if not kernel:
-        kernel = ee.Kernel.euclidean(radius, unit)
-
-    # select first band
-    image = image.select(0)
-
-    # get mask
-    mask = image.mask()
-    inverse = mask.Not()
-
-    if geometry:
-        # manage geometry types
-        if isinstance(geometry, (ee.Feature, ee.FeatureCollection)):
-            geometry = geometry.geometry()
-
-        inverse = inverse.clip(geometry)
-
-    # Compute distance to the mask (inverse)
-    distance = inverse.distance(kernel)
-
-    if scale:
-        proj = image.projection()
-        distance = distance.reproject(proj.atScale(scale))
-
-    # make mask to be the max distance
-    dist_mask = distance.mask().Not().remap([0, 1], [0, radius])
-
-    if geometry:
-        dist_mask = dist_mask.clip(geometry)
-
-    final = distance.unmask().add(dist_mask)
-
-    if normalize:
-        final = tools.image.parametrize(final, (0, radius), (0, 1))
-
-    return final.rename(band_name)
+    """Compute the distance to the mask in meters."""
+    return (
+        ee.Image(image)
+        .geetools.distanceToMask(mask, radius=radius, band_name=band_name)
+        .select(band_name)
+    )
 
 
 def maskCover(
