@@ -70,7 +70,7 @@ jobs:
       - name: Install nox
         run: pip install nox
       - name: test with pytest
-        run: nox -s test
+        run: nox -s ci-test
       - name: assess dead fixtures
         if: ${{ matrix.python-version == '3.10' }}
         shell: bash

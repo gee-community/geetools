@@ -15,6 +15,20 @@ def lint(session):
     session.run("pre-commit", "run", "--all-files", *session.posargs)
 
 
+@nox.session(reuse_venv=True, name="ci-test")
+def ci_test(session):
+    """Run all the test using the environment variable of the running machine."""
+    session.install(".[test]")
+    test_files = session.posargs or ["tests"]
+    session.run(
+        "pytest",
+        "--color=yes",
+        "--cov",
+        "--cov-report=xml",
+        *test_files,
+    )
+
+
 @nox.session(reuse_venv=True)
 def test(session):
     """Run all the test using the environment variable of the running machine."""
@@ -24,7 +38,7 @@ def test(session):
         "pytest",
         "--color=yes",
         "--cov",
-        "--cov-report=xml",
+        "--cov-report=html",
         *test_files,
     )
 
