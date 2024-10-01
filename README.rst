@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgee-community%2Fgeetools.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgee-community%2Fgeetools?ref=badge_shield)
+
 .. |license| image:: https://img.shields.io/badge/License-MIT-yellow.svg?logo=opensourceinitiative&logoColor=white
     :target: LICENSE
     :alt: License: MIT
@@ -94,3 +96,6 @@ This small example wrapping of the excellent ``ee_extra`` package functionalitie
       .geetools.maskClouds(prob = 70) # Extended (pre-processing)
       .geetools.scaleAndOffset() # Extended (pre-processing)
       .geetools.spectralIndices(['NDVI','NDWI','BAIS2'])) # Extended (processing)
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgee-community%2Fgeetools.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgee-community%2Fgeetools?ref=badge_large)
