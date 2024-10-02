@@ -1250,3 +1250,45 @@ class ImageAccessor:
         properties = ee.List(properties)
         proxy = self._obj.multiply(1)  # drop properties
         return ee.Image(proxy.copyProperties(self._obj, exclude=properties))
+
+    def distanceToMask(
+        self,
+        mask: ee.Image,
+        kernel: str = "euclidean",
+        radius: int = 1000,
+        band_name: ee_str = "distance_to_mask",
+    ) -> ee.Image:
+        """Compute the distance from each pixel to the nearest non-masked pixel.
+
+        Parameters:
+            mask: The mask to compute the distance to.
+            kernel: The kernel type to use for the distance computation default to "euclidean".
+            radius: The radius of the kernel.
+            band_name: The name of the band to store the distance values.
+
+        Returns:
+            The original images with the distance band added.
+
+        Examples:
+            .. code-block:: python
+
+                    import ee, geetools
+
+                    ee.Initialize()
+
+                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                    centerBuffer = image.geometry().centroid().buffer(100)
+                    BufferMask = ee.Image.constant(1).clip(centerBuffer)
+                    mask = ee.Image.constant(0).where(BufferMask, 1).clip(image.geometry())
+                    image = image.distanceToMask(mask)
+        """
+        # gather the parameters
+        kernel = getattr(ee.Kernel, kernel)(radius, "meters")
+        bandName = ee.String(band_name)
+
+        # compute the distance
+        distance = self._obj.select(0).mask().Not().distance(kernel).rename(bandName)
+        distMask = distance.mask().Not().remap([0, 1], [0, radius])
+        final = distance.unmask().add(distMask)
+
+        return self._obj.addBands(final)

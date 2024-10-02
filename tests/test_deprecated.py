@@ -109,3 +109,76 @@ class TestImageCollection:
         with pytest.deprecated_call():
             image = geetools.imagecollection.toBands(s2_sr.limit(3))
             data_regression.check(image.bandNames().getInfo())
+
+    def test_enumerate_property(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.enumerateProperty(None, None)
+
+    def test_enumerate_simple(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.enumerateSimple(None)
+
+    def test_get_values(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.getValues(None, None)
+
+    def test_parametrize_property(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.parametrizeProperty(None, None, None, None)
+
+    def test_linear_function_band(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.linearFunctionBand(None, None, None, None)
+
+    def test_linear_function_property(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.linearFunctionProperty(None, None, None, None)
+
+    def linear_interpolation_property(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.linearInterpolationProperty(None, None, None, None)
+
+    def test_gauss_function_band(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.gaussFunctionBand(None, None, None, None, None)
+
+    def test_gauss_function_property(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.gaussFunctionProperty(None, None, None, None, None)
+
+    def testnormal_distribution_property(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.normalDistributionProperty(None, None, None, None, None)
+
+    def test_normal_distribution_band(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.normalDistributionBand(None, None, None, None, None)
+
+
+class TestAlgorithm:
+    """Test the deprecated_algorithms module."""
+
+    def test_pansharpenkernel(self):
+        with pytest.raises(NotImplementedError):
+            geetools.algorithms.pansharpenKernel(None, None)
+
+    def test_pansharpenihsFusion(self):
+        with pytest.raises(NotImplementedError):
+            geetools.algorithms.pansharpenIhsFusion(None)
+
+
+class TestComposite:
+    """Test the deprecated_composite module."""
+
+    def test_max(self, s2_sr):
+        with pytest.deprecated_call():
+            geetools.composite.max(s2_sr)
+
+
+class TestList:
+    """Test the deprecated_list module."""
+
+    def test_remove_duplicates(self):
+        with pytest.deprecated_call():
+            list = geetools.tools.ee_list.removeDuplicates(ee.List([1, 2, 2]))
+            assert list.getInfo() == [1, 2]
