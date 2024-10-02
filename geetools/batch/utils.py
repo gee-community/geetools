@@ -27,7 +27,7 @@ def format_description(description: str) -> str:
     desc = anyascii(description)
     for chars, rep in replacements:
         pattern = "|".join(re.escape(c) for c in chars)
-        desc = re.sub(pattern, rep, desc)
+        desc = re.sub(pattern, rep, desc)  # type: ignore
 
     return desc[:100]
 
@@ -55,6 +55,6 @@ def format_asset_id(description: str) -> str:
     desc = anyascii(description)
     for chars, rep in replacements:
         pattern = "|".join(re.escape(c) for c in chars)
-        desc = re.sub(pattern, rep, desc)
+        desc = re.sub(pattern, rep, desc)  # type: ignore
 
     return desc
