@@ -12,7 +12,6 @@ from . import _deprecated_decision_tree as decision_tree
 from . import _deprecated_indices as indices
 from . import _deprecated_algorithms as algorithms
 from . import _deprecated_composite as composite
-from .tools import collection
 from .tools import date
 from .tools import element
 from .tools import feature
