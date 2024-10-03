@@ -6,7 +6,6 @@
 from . import _deprecated_collection as collection  # noqa: F401
 from . import _deprecated_computedobject as computedobject  # noqa: F401
 from . import _deprecated_date as date  # noqa: F401
-from . import _deprecated_dictionary as dictionary  # noqa: F401
 from . import _deprecated_ee_list as ee_list  # noqa: F401
 from . import _deprecated_element as element  # noqa: F401
 from . import _deprecated_feature as feature  # noqa: F401

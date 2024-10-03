@@ -14,7 +14,6 @@ from . import _deprecated_algorithms as algorithms
 from . import _deprecated_composite as composite
 from .tools import collection
 from .tools import date
-from .tools import dictionary
 from .tools import element
 from .tools import feature
 from .tools import featurecollection
