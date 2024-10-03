@@ -1,20 +1,10 @@
 """Test all the deprecated methods that have not been kept in the new implementation."""
 
-from datetime import datetime
 
 import ee
 import pytest
 
 import geetools
-
-
-class TestDate:
-    """Test methods from the deprecated_date module."""
-
-    def test_millis_to_datetime(self):
-        with pytest.deprecated_call():
-            date = geetools.date.millisToDatetime(1527811200000)
-            assert date == datetime.strptime("2018-06-01", "%Y-%m-%d")
 
 
 class TestDecisionTree:

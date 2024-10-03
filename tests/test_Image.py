@@ -25,13 +25,6 @@ class TestAddDate:
         values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
         num_regression.check({k: np.nan if v is None else v for k, v in values.getInfo().items()})
 
-    def test_deprecated_make_date_band(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
-        with pytest.deprecated_call():
-            image = geetools.tools.date.makeDateBand(s2_sr_vatican_2020)
-            values = image.reduceRegion(ee.Reducer.first(), vatican_buffer, 10)
-            values = {k: np.nan if v is None else v for k, v in values.getInfo().items()}
-            num_regression.check(values)
-
 
 class TestAddSuffix:
     """Test the ``addSuffix`` method."""
