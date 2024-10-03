@@ -10,7 +10,6 @@ from . import _deprecated_filters as filters
 from . import _deprecated_manager as manager
 from . import _deprecated_oauth as oauth
 from . import _deprecated_visualization as visualization
-from . import _deprecated_expressions as expressions
 from . import _deprecated_utils as utils
 from . import _deprecated_decision_tree as decision_tree
 from . import _deprecated_indices as indices
