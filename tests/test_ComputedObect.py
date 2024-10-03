@@ -75,12 +75,6 @@ class TestSave:
         ee.Number(1.1).save(file)
         assert file.exists()
 
-    def test_deprecated_method(self, tmp_path):
-        file = tmp_path / "test.gee"
-        with pytest.deprecated_call():
-            geetools.manager.esave(ee.Number(1.1), file)
-            assert file.exists()
-
 
 class TestOpen:
     """Test the ``open`` method."""
@@ -93,9 +87,3 @@ class TestOpen:
     def test_open_not_correct_suffix(self):
         with pytest.raises(ValueError):
             ee.Number.open("file.toto")
-
-    def test_deprecated_method(self, tmp_path):
-        (object := ee.Number(1.1)).save((file := tmp_path / "test.gee"))
-        with pytest.deprecated_call():
-            opened = geetools.manager.eopen(file)
-            assert object.eq(opened).getInfo()
