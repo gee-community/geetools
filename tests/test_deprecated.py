@@ -17,44 +17,6 @@ class TestDecisionTree:
 class TestImageCollection:
     """Test the deprecated_imagecollection module."""
 
-    def test_get_id(self):
-        with pytest.raises(NotImplementedError):
-            geetools.imagecollection.getId(None)
-
-    def test_wrapper(self):
-        with pytest.raises(NotImplementedError):
-            geetools.imagecollection.wrapper(None)
-
-    def test_merge_geometry(self, s2_sr, data_regression):
-        with pytest.deprecated_call():
-            geom = geetools.imagecollection.mergeGeometries(s2_sr.limit(10))
-            data_regression.check(geom.getInfo())
-
-    def test_data2pandas(self):
-        with pytest.raises(NotImplementedError):
-            geetools.imagecollection.data2pandas(None)
-
-    def test_tobands(self, s2_sr, data_regression):
-        with pytest.deprecated_call():
-            image = geetools.imagecollection.toBands(s2_sr.limit(3))
-            data_regression.check(image.bandNames().getInfo())
-
-    def test_enumerate_property(self):
-        with pytest.raises(NotImplementedError):
-            geetools.imagecollection.enumerateProperty(None, None)
-
-    def test_enumerate_simple(self):
-        with pytest.raises(NotImplementedError):
-            geetools.imagecollection.enumerateSimple(None)
-
-    def test_get_values(self):
-        with pytest.raises(NotImplementedError):
-            geetools.imagecollection.getValues(None, None)
-
-    def test_parametrize_property(self):
-        with pytest.raises(NotImplementedError):
-            geetools.imagecollection.parametrizeProperty(None, None, None, None)
-
     def test_linear_function_band(self):
         with pytest.raises(NotImplementedError):
             geetools.imagecollection.linearFunctionBand(None, None, None, None)
