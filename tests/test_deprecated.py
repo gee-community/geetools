@@ -17,14 +17,6 @@ class TestDate:
             assert date == datetime.strptime("2018-06-01", "%Y-%m-%d")
 
 
-class TestElement:
-    """Test the methods from the deprecated_element module."""
-
-    def test_fillNull(self):
-        with pytest.raises(NotImplementedError):
-            geetools.element.fillNull(None, None)
-
-
 class TestDecisionTree:
     """Test the methods from the deprecated_decision_tree module."""
 
