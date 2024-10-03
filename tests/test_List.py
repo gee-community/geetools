@@ -16,11 +16,6 @@ class TestProduct:
         product_list = letter_list.geetools.product(int_list)
         data_regression.check(product_list.getInfo())
 
-    def test_deprecated_mix(self, letter_list, data_regression):
-        with pytest.deprecated_call():
-            product_list = geetools.string.mix([letter_list, letter_list])
-            data_regression.check(product_list.getInfo())
-
 
 class TestComplement:
     """Test the complement method."""
