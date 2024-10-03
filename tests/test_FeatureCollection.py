@@ -6,8 +6,6 @@ import geopandas as gpd
 import pytest
 from matplotlib import pyplot as plt
 
-import geetools
-
 
 class TestToImage:
     """Test the ``toImage`` method."""
@@ -21,13 +19,6 @@ class TestToImage:
         image = fc_instance.geetools.toImage(color="ADM0_CODE")
         values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
         assert values.getInfo() == {"constant": 110}
-
-    @pytest.mark.skip(reason="Not working yet")
-    def test_deprecated_method(self, fc_instance, vatican):
-        with pytest.deprecated_call():
-            image = geetools.tools.image.paint(ee.Image(), fc_instance)
-            values = image.reduceRegion(ee.Reducer.mean(), vatican, 1)
-            assert values.getInfo() == {"constant": 110}
 
     @pytest.fixture
     def fc_instance(self):
