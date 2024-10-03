@@ -4,7 +4,6 @@ import os
 import ee
 
 from .. import tools
-from .._deprecated_utils import makeName
 from . import utils
 
 
@@ -201,7 +200,7 @@ def toDriveByFeature(
             feat = ee.Feature(collist.get(i))
             props = feat.toDictionary()
 
-            n = makeName(image, namePattern, datePattern)
+            n = makeName(image, namePattern, datePattern)  # noqa: F821
             n = tools.string.format(n, props)
             n = n.getInfo()
             n = n.replace("{", "").replace("}", "")

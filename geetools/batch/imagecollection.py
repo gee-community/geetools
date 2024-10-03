@@ -3,7 +3,6 @@
 import ee
 
 from .. import tools
-from .._deprecated_utils import makeName
 from . import utils
 
 
@@ -67,7 +66,7 @@ def toDrive(
         try:
             img = ee.Image(img_list.get(n))
 
-            name = makeName(img, namePattern, datePattern, extra)
+            name = makeName(img, namePattern, datePattern, extra)  # noqa: F821
             name = name.getInfo()
             description = utils.matchDescription(name)
 
@@ -155,7 +154,7 @@ def toCloudStorage(
         try:
             img = ee.Image(img_list.get(n))
 
-            name = makeName(img, namePattern, datePattern, extra)
+            name = makeName(img, namePattern, datePattern, extra)  # noqa: F821
             name = name.getInfo()
             description = utils.matchDescription(name)
 
@@ -251,7 +250,7 @@ def toAsset(
                 else:
                     extra = dict(position=idx)
                     added = True
-                name = makeName(img, namePattern, datePattern, extra)
+                name = makeName(img, namePattern, datePattern, extra)  # noqa: F821
                 name = name.getInfo()
                 description = utils.matchDescription(name)
                 assetId = assetPath + "/" + name
