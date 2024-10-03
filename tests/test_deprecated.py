@@ -6,14 +6,6 @@ import pytest
 import geetools
 
 
-class TestDecisionTree:
-    """Test the methods from the deprecated_decision_tree module."""
-
-    def test_deprecated_binary(self):
-        with pytest.raises(NotImplementedError):
-            geetools.decision_tree.binary(None, None)
-
-
 class TestImageCollection:
     """Test the deprecated_imagecollection module."""
 
