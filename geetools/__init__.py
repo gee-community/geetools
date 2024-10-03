@@ -8,7 +8,6 @@ from . import ComputedObject
 # will be removed along the deprecation cycle
 from . import _deprecated_oauth as oauth
 from . import _deprecated_decision_tree as decision_tree
-from . import _deprecated_indices as indices
 from . import _deprecated_algorithms as algorithms
 from . import _deprecated_composite as composite
 from .tools import imagecollection
