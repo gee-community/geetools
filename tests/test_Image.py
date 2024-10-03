@@ -301,11 +301,6 @@ class testFormat:
             string = geetools.tools.image.makeName(s2_sr_vatican_2020, "date: {system_date}")
             assert string.getInfo() == "date: 2020-01-01"
 
-    def test_deprecated_utils_make_name(self, s2_sr_vatican_2020):
-        with pytest.deprecated_call():
-            string = geetools.utils.makeName(s2_sr_vatican_2020, "date: {system_date}")
-            assert string.getInfo() == "date: 2020-01-01"
-
 
 class TestPrefixSuffix:
     """Test the ``prefix`` and ``suffix`` methods."""
@@ -484,12 +479,6 @@ class TestIsletMask:
         image = image_instance.geetools.isletMask(20)
         file = self.get_image(image, tmp_path / "test.tif")
         image_regression.check(file.read_bytes())
-
-    def test_deprecated_mask_island(self, image_instance, tmp_path, image_regression):
-        with pytest.deprecated_call():
-            image = geetools.utils.maskIslands(image_instance, 20)
-            file = self.get_image(image, tmp_path / "test.tif")
-            image_regression.check(file.read_bytes())
 
     def get_image(self, image, dst):
 

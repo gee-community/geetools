@@ -7,7 +7,6 @@ from . import ComputedObject
 # reproduce older structure of the lib (deprecated)
 # will be removed along the deprecation cycle
 from . import _deprecated_oauth as oauth
-from . import _deprecated_utils as utils
 from . import _deprecated_decision_tree as decision_tree
 from . import _deprecated_indices as indices
 from . import _deprecated_algorithms as algorithms
