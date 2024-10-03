@@ -2,8 +2,6 @@
 import ee
 import pytest
 
-import geetools
-
 
 class TestByProperty:
     """Test the ``byProperty`` method."""
@@ -15,11 +13,6 @@ class TestByProperty:
     def test_by_property_outer(self, fc1, fc2, data_regression):
         joined = ee.Join.geetools.byProperty(fc1, fc2, "id", outer=True)
         data_regression.check(joined.getInfo())
-
-    def test_deprecated_join(self, fc1, fc2, data_regression):
-        with pytest.deprecated_call():
-            joined = geetools.tools.collection.joinByProperty(fc1, fc2, "id")
-            data_regression.check(joined.getInfo())
 
     @pytest.fixture
     def fc1(self):

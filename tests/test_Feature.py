@@ -1,7 +1,4 @@
 """Test the ``Feature`` class."""
-import pytest
-
-import geetools
 
 
 class TestToFeatureCollection:
@@ -10,11 +7,6 @@ class TestToFeatureCollection:
     def test_to_feature_collection(self, multipoint_feature, data_regression):
         fc = multipoint_feature.geetools.toFeatureCollection()
         data_regression.check(fc.getInfo())
-
-    def test_deprecated_to_feature_collection(self, multipoint_feature, data_regression):
-        with pytest.deprecated_call():
-            fc = geetools.feature.GeometryCollection_to_FeatureCollection(multipoint_feature)
-            data_regression.check(fc.getInfo())
 
 
 class TestRemoveProperties:

@@ -1,8 +1,5 @@
 """Test the Array class methods."""
 import ee
-import pytest
-
-import geetools
 
 
 class TestFull:
@@ -23,11 +20,6 @@ class TestFull:
     def test_full_with_ee_numbers(self):
         full_array = ee.Array.geetools.full(ee.Number(3), ee.Number(3), ee.Number(1))
         assert full_array.getInfo() == [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
-
-    def test_deprecated_method(self):
-        with pytest.deprecated_call():
-            full_array = geetools.array.constant2DArray(3, 3, 1)
-            assert full_array.getInfo() == [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
 
 
 class TestSet:
@@ -51,9 +43,3 @@ class TestSet:
         array = ee.Array.geetools.full(3, 3, ee.Number(1))
         set_array = array.geetools.set(1, 1, ee.Number(0))
         assert set_array.getInfo() == [[1, 1, 1], [1, 0, 1], [1, 1, 1]]
-
-    def test_deprecated_method(self):
-        with pytest.deprecated_call():
-            array = ee.Array.geetools.full(3, 3, 1)
-            set_array = geetools.array.set2DValue(array, (1, 1), 0)
-            assert set_array.getInfo() == [[1, 1, 1], [1, 0, 1], [1, 1, 1]]

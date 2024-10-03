@@ -6,8 +6,6 @@ import numpy as np
 import pytest
 from jsonschema import validate
 
-import geetools
-
 
 def reduce(collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = None) -> ee.Dictionary:
     """Compute the mean reduction on the first image of the imageCollection."""
@@ -132,11 +130,6 @@ class TestAppend:
         appended = s2_sr.geetools.append(s2_sr.first())
         data_regression.check(appended.size().getInfo())
 
-    def test_deprecated_add(self, s2_sr, data_regression):
-        with pytest.deprecated_call():
-            appended = geetools.imagecollection.add(s2_sr, s2_sr.first())
-            data_regression.check(appended.size().getInfo())
-
 
 class TestcollectionMask:
     """Test the ``collectionMask`` method."""
@@ -144,11 +137,6 @@ class TestcollectionMask:
     def test_collection_mask(self, s2_sr, amazonas, num_regression):
         masked = s2_sr.geetools.collectionMask()
         num_regression.check(reduce(ee.ImageCollection([masked]), amazonas).getInfo())
-
-    def test_deprecated_mask(self, s2_sr, amazonas, num_regression):
-        with pytest.deprecated_call():
-            masked = geetools.imagecollection.allMasked(s2_sr)
-            num_regression.check(reduce(ee.ImageCollection([masked]), amazonas).getInfo())
 
 
 class TestIloc:
@@ -159,13 +147,6 @@ class TestIloc:
         values = {k: np.nan if v is None else v for k, v in reduce(ic).getInfo().items()}
         num_regression.check(values)
 
-    def test_deprecated_get_image(self, s2_sr, num_regression):
-        with pytest.deprecated_call():
-            image = geetools.imagecollection.getImage(s2_sr, 0).subtract(s2_sr.first())
-            ic = ee.ImageCollection([image])
-            values = {k: np.nan if v is None else v for k, v in reduce(ic).getInfo().items()}
-            num_regression.check(values)
-
 
 class TestIntegral:
     """Test the ``integral`` method."""
@@ -175,17 +156,6 @@ class TestIntegral:
         ic = ee.ImageCollection([integral])
         values = {k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()}
         num_regression.check(values)
-
-    def test_deprecated_integral(self, s2_sr, amazonas, num_regression):
-        with pytest.deprecated_call():
-            integral = geetools.imagecollection.area_under_curve(s2_sr.limit(10), "B4").select(
-                "under_curve"
-            )
-            ic = ee.ImageCollection([integral])
-            values = {
-                k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()
-            }
-            num_regression.check(values)
 
 
 class TestOutliers:
@@ -210,14 +180,6 @@ class TestOutliers:
         ic = s2_sr.limit(10).geetools.outliers(drop=True)
         values = {k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()}
         num_regression.check(values)
-
-    def test_deprecated_outliers(self, s2_sr, amazonas, num_regression):
-        with pytest.deprecated_call():
-            ic = geetools.imagecollection.outliers(s2_sr.limit(10), ["B4"])
-            values = {
-                k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()
-            }
-            num_regression.check(values)
 
 
 class TestToXarray:
@@ -249,15 +211,6 @@ class TestValidPixel:
         values = {k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()}
         num_regression.check(values)
 
-    def test_deprecated_masked_size(self, s2_sr, amazonas, num_regression):
-        with pytest.deprecated_call():
-            s2_sr = s2_sr.filterDate("2021-01-01", "2021-01-31")
-            ic = ee.ImageCollection([geetools.imagecollection.maskedSize(s2_sr)])
-            values = {
-                k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()
-            }
-            num_regression.check(values)
-
 
 class TestContainsBandNames:
     """Test the ``containsBandNames`` method and derivated."""
@@ -272,11 +225,6 @@ class TestContainsBandNames:
         ic = ic.geetools.containsAllBands(["B2", "B3", "B5"])
         assert ic.size().getInfo() == 0
 
-    def test_deprecated_contains_all(self, s2_sr):
-        with pytest.deprecated_call():
-            ic = geetools.imagecollection.containsAllBands(s2_sr, ["B2", "B3"])
-            assert ic.size().getInfo() == 2449
-
     def test_contains_any(self, s2_sr):
         ic = s2_sr.select(["B2", "B3", "B4"])
         ic = ic.geetools.containsAnyBands(["B2", "B3", "B5"])
@@ -286,11 +234,6 @@ class TestContainsBandNames:
         ic = s2_sr.select(["B2", "B3", "B4"])
         ic = ic.geetools.containsAnyBands(["B5", "B6"])
         assert ic.size().getInfo() == 0
-
-    def test_deprecated_contains_any(self, s2_sr):
-        with pytest.deprecated_call():
-            ic = geetools.imagecollection.containsAnyBand(s2_sr, ["B2", "B3", "B5"])
-            assert ic.size().getInfo() == 2449
 
 
 class TestAggregateArray:
@@ -309,14 +252,3 @@ class TestAggregateArray:
     def test_aggregate_array_with_properties(self, s2_sr, data_regression):
         aggregated = s2_sr.limit(10).geetools.aggregateArray(["system:time_start", "system:index"])
         data_regression.check(aggregated.getInfo())
-
-    def test_deprecated_aggregate_array(self, s2_sr, data_regression):
-        # reduce the number of properties beforehand to avoid the test to fail
-        keys = s2_sr.first().propertyNames()
-        keys = keys.filter(ee.Filter.stringStartsWith("item", "system:")).remove("system:version")
-        s2_sr_filtered = s2_sr.limit(3).map(
-            lambda i: ee.Image().addBands(i).copyProperties(i, keys)
-        )
-        with pytest.deprecated_call():
-            aggregated = geetools.imagecollection.aggregate_array_all(s2_sr_filtered)
-            data_regression.check(aggregated.getInfo())

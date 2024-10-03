@@ -6,70 +6,6 @@ from deprecated.sphinx import deprecated
 import geetools  # noqa: F401
 
 
-@deprecated(version="1.0.0", reason="Use geetools.tools.imagecollection.append instead")
-def add(collection, image):
-    """Add an Image to the Collection."""
-    return ee.ImageCollection(collection).geetools.append(image)
-
-
-@deprecated(version="1.0.0", reason="Use geetools.tools.imagecollection.collectionMask instead")
-def allMasked(collection):
-    """Get a mask which indicates pixels that are masked in all images (0) from the others"""
-    return ee.ImageCollection(collection).geetools.collectionMask()
-
-
-@deprecated(version="1.0.0", reason="Use ee.imageCollection.geetools.containsAllBands instead")
-def containsAllBands(collection, bands):
-    """Filter a collection with images containing all the specified bands"""
-    return ee.ImageCollection(collection).geetools.containsAllBands(bands)
-
-
-@deprecated(version="1.0.0", reason="Use ee.imageCollection.geetools.containsAnyBands instead")
-def containsAnyBand(collection, bands):
-    """Filter a collection with images cotaining any of the specified bands"""
-    return ee.ImageCollection(collection).geetools.containsAnyBands(bands)
-
-
-@deprecated(version="1.0.0", reason="It is error prone as some collection have no ID.")
-def getId(collection):
-    """Get the ID of an ImageCollection."""
-    raise NotImplementedError("It is error prone as some collection have no ID.")
-
-
-@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.iloc instead")
-def getImage(collection, index):
-    """Get an Image using its collection index."""
-    return ee.ImageCollection(collection).geetools.iloc(index)
-
-
-@deprecated(version="1.0.0", reason="Underefficient, use the vanilla map method instead")
-def wrapper(f, *arg, **kwargs):
-    """Wrap a function and its arguments into a mapping function for ImageCollection"""
-    raise NotImplementedError("Underefficient, use the vanilla map method instead")
-
-
-@deprecated(
-    version="1.0.0",
-    reason="Bad practice, Use vanilla mapping function instead of indexing imageCollection.",
-)
-def enumerateProperty(collection, name="enumeration"):
-    """add an enumeration property to a imagecollection"""
-    raise NotImplementedError(
-        "Bad practice, Use vanilla mapping function instead of indexing imageCollection."
-    )
-
-
-@deprecated(
-    version="1.0.0",
-    reason="Bad practice, Use vanilla mapping function instead of indexing featureCollections.",
-)
-def enumerateSimple(collection, name="ENUM"):
-    """Add an enumeration property to a featureCollection"""
-    raise NotImplementedError(
-        "Bad practice, Use vanilla mapping function instead of indexing featureCollections."
-    )
-
-
 def fillWithLast(collection, reverse=False, proxy=-999):
     """Fill each masked pixels with the last available not masked pixel. If reverse, it goes backwards.
 
@@ -129,12 +65,6 @@ def fillWithLast(collection, reverse=False, proxy=-999):
         return im.updateMask(im.neq(proxy))
 
     return ee.ImageCollection.fromImages(indices.map(wrap))
-
-
-@deprecated(version="1.0.0", reason="Use vanilla ee.ImageCollection.geometry instead")
-def mergeGeometries(collection):
-    """Merge the geometries of many images. Return ee.Geometry."""
-    return ee.ImageCollection(collection).geometry()
 
 
 def mosaicSameDay(collection, qualityBand=None):
@@ -341,38 +271,7 @@ def reduceDayIntervals(collection, reducer, interval=30, reverse=False, buffer="
     return ee.ImageCollection.fromImages(reduced)
 
 
-@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.reduceRegions instead")
-def getValues(*args, **kwargs):
-    """Get values from an image collection in a geometry."""
-    raise NotImplementedError("Use ee.ImageCollection.geetools.reduceRegions instead")
-
-
-@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.outliers instead")
-def outliers(collection, bands, sigma=2, updateMask=False):
-    """Compute outliers in the collection"""
-    return ee.ImageCollection(collection).geetools.outliers(bands, sigma, updateMask)
-
-
-@deprecated(version="1.0.0", reason="geetools will mostly focus on server-side methods now")
-def data2pandas(data):
-    """Convert data coming from tools.imagecollection.get_values to a pandas DataFrame."""
-    raise NotImplementedError("geetools will mostly focus on server-side methods now")
-
-
-@deprecated(
-    version="1.0.0",
-    reason="Use a mapping function with the ee.String.geetools.format method instead",
-)
-def parametrizeProperty(
-    collection, property, range_from, range_to, pattern="{property}_PARAMETRIZED"
-):
-    """Parametrize a property."""
-    raise NotImplementedError(
-        "Use a mapping function with the ee.String.geetools.format method instead"
-    )
-
-
-@deprecated(version="1.0.0", reason="Removed from the lib as untested")
+@deprecated(version="1.4.0", reason="Removed from the lib as untested")
 def linearFunctionBand(*args, **kwargs):
     """Apply a linear function over the bands across every image of the ImageCollection"""
     raise NotImplementedError(
@@ -381,7 +280,7 @@ def linearFunctionBand(*args, **kwargs):
     )
 
 
-@deprecated(version="1.0.0", reason="Removed from the lib as untested")
+@deprecated(version="1.4.0", reason="Removed from the lib as untested")
 def linearFunctionProperty(*args, **kwargs):
     """Apply a linear function over the properties across every image of the ImageCollection"""
     raise NotImplementedError(
@@ -390,7 +289,7 @@ def linearFunctionProperty(*args, **kwargs):
     )
 
 
-@deprecated(version="1.0.0", reason="Removed from the lib as untested.")
+@deprecated(version="1.4.0", reason="Removed from the lib as untested.")
 def linearInterpolation(collection, date_property="system:time_start"):
     """TODO missing docstring."""
     raise NotImplementedError(
@@ -399,7 +298,7 @@ def linearInterpolation(collection, date_property="system:time_start"):
     )
 
 
-@deprecated(version="1.0.0", reason="Removed from the lib as untested.")
+@deprecated(version="1.4.0", reason="Removed from the lib as untested.")
 def gaussFunctionBand(*args, **kwargs):
     """Compute a Gauss function using a specified band over an ImageCollection, See: https://en.wikipedia.org/wiki/Gaussian_function."""
     raise NotImplementedError(
@@ -408,7 +307,7 @@ def gaussFunctionBand(*args, **kwargs):
     )
 
 
-@deprecated(version="1.0.0", reason="Removed from the lib as untested.")
+@deprecated(version="1.4.0", reason="Removed from the lib as untested.")
 def gaussFunctionProperty(*args, **kwargs):
     """Compute a Gauss function using a specified property over an ImageCollection."""
     raise NotImplementedError(
@@ -417,7 +316,7 @@ def gaussFunctionProperty(*args, **kwargs):
     )
 
 
-@deprecated(version="1.0.0", reason="Removed from the lib as untested.")
+@deprecated(version="1.4.0", reason="Removed from the lib as untested.")
 def normalDistributionProperty(*args, **kwargs):
     """Compute a normal distribution using a specified property, over an ImageCollection"""
     raise NotImplementedError(
@@ -426,26 +325,13 @@ def normalDistributionProperty(*args, **kwargs):
     )
 
 
-@deprecated(version="1.0.0", reason="Removed from the lib as untested.")
+@deprecated(version="1.4.0", reason="Removed from the lib as untested.")
 def normalDistributionBand(collection, band, mean=None, std=None, name="normal_distribution"):
     """Compute a normal distribution using a specified band, over an ImageCollection."""
     raise NotImplementedError(
         "As it was vastly untested this method has been removed from the lib."
         "If a real use case for this method can be provided, please open an issue and we'll reimplement it."
     )
-
-
-@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.validPixels instead")
-def maskedSize(collection):
-    """Return an image with the percentage of masked pixels"""
-    valid = ee.ImageCollection(collection).geetools.validPixel().select("pct_valid")
-    return ee.Image(100).subtract(valid)
-
-
-@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.integral instead")
-def area_under_curve(collection, band, x_property="system:time_start", name="under_curve"):
-    """Compute the area under the curve taking the x axis from an image property."""
-    return ee.ImageCollection(collection).geetools.integral(band, x_property).rename(name)
 
 
 def moving_average(collection, back=5, reducer=None, use_original=True):
@@ -513,24 +399,3 @@ def moving_average(collection, back=5, reducer=None, use_original=True):
 
     final = ee.Dictionary(collection.iterate(wrap, ee.Dictionary({"original": [], "stats": []})))
     return ee.ImageCollection.fromImages(ee.List(final.get("stats")))
-
-
-@deprecated(version="1.0.0", reason="Use ee.ImageCollection.geetools.aggregate_array instead")
-def aggregate_array_all(collection):
-    """Aggregate array in all images and return a list of dicts."""
-    dict = collection.geetools.aggregateArray()
-    keys = dict.keys()
-    imageIndex = ee.List.sequence(0, collection.size().subtract(1))
-
-    def transpose(index):
-        i = ee.Number(index)
-        values = keys.map(lambda k: ee.List(dict.get(k)).get(i))
-        return ee.Dictionary.fromLists(keys, values)
-
-    return imageIndex.map(transpose)
-
-
-@deprecated(version="1.0.0", reason="Use vanilla ee.ImageCollection.toBands instead")
-def toBands(collection):
-    """Convert an ImageCollection into an Image"""
-    return ee.Image(collection.toBands())
