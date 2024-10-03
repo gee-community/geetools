@@ -15,7 +15,6 @@ from . import _deprecated_composite as composite
 from .tools import date
 from .tools import featurecollection
 from .tools import geometry
-from .tools import number
 from .tools import imagecollection
 
 # then we extend all the other classes

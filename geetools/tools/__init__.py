@@ -7,4 +7,3 @@ from . import _deprecated_featurecollection as featurecollection  # noqa: F401
 from . import _deprecated_geometry as geometry  # noqa: F401
 from . import _deprecated_image as image  # noqa: F401
 from . import _deprecated_imagecollection as imagecollection  # noqa: F401
-from . import _deprecated_number as number  # noqa: F401
