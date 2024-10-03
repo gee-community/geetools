@@ -1,8 +1,5 @@
 """Test the Dictionary class methods."""
 import ee
-import pytest
-
-import geetools
 
 
 class TestFromPairs:
@@ -31,9 +28,3 @@ class TestGetMany:
     def test_getMany(self):
         d = ee.Dictionary({"foo": 1, "bar": 2}).geetools.getMany(["foo"])
         assert d.getInfo() == [1]
-
-    def test_deprecated_method(self):
-        with pytest.deprecated_call():
-            d = ee.Dictionary({"foo": 1, "bar": 2})
-            li = geetools.tools.dictionary.extractList(d, ["foo"])
-            assert li.getInfo() == [1]

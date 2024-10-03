@@ -1,7 +1,6 @@
 """Test all the deprecated methods that have not been kept in the new implementation."""
 
 
-import ee
 import pytest
 
 import geetools
@@ -103,12 +102,3 @@ class TestComposite:
     def test_max(self, s2_sr):
         with pytest.deprecated_call():
             geetools.composite.max(s2_sr)
-
-
-class TestList:
-    """Test the deprecated_list module."""
-
-    def test_remove_duplicates(self):
-        with pytest.deprecated_call():
-            list = geetools.tools.ee_list.removeDuplicates(ee.List([1, 2, 2]))
-            assert list.getInfo() == [1, 2]
