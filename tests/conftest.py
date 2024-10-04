@@ -253,3 +253,9 @@ def stac_schema():
     """Return the STAC collection schema."""
     url = "https://raw.githubusercontent.com/radiantearth/stac-spec/v1.0.0/collection-spec/json-schema/collection.json"
     return requests.get(url).json()
+
+
+@pytest.fixture(scope="session")
+def jaxa_rainfall():
+    """Return the JAXA rain collection."""
+    return ee.ImageCollection("JAXA/GPM_L3/GSMaP/v6/operational")

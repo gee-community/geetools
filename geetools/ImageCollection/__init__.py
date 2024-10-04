@@ -842,3 +842,89 @@ class ImageCollectionAccessor:
         keys = ee.List(properties) if properties is not None else self._obj.first().propertyNames()
         values = keys.map(lambda p: self._obj.aggregate_array(p))
         return ee.Dictionary.fromLists(keys, values)
+
+    def groupInterval(self, unit: str = "month", duration: int = 1) -> ee.List:
+        """Transform the ImageCollection into a list of smaller collection of the specified duration.
+
+        For example using unit as "month" and duration as 1, the ImageCollection will be transformed
+        into a list of ImageCollection with each ImageCollection containing images for each month.
+        Make sure the collection is filtered beforeend to reduce the number of images that needs to be
+        processed.
+
+        Args:
+            unit: The unit of time to split the collection. Available units: 'year', 'month', 'week', 'day', 'hour', 'minute' or 'second'.
+            duration: The duration of each split.
+
+        Returns:
+            A list of imagecollection grouped by interval
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                split = collection.geetools.groupInterval("month", 1)
+                print(split.getInfo())
+        """
+        # transform the interval into a duration in milliseconds
+        # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
+        # I don't know if it should be properly imported here, let's see with user feedback
+        timeList = self._obj.aggregate_array("system:time_start")
+        start, end = timeList.sort().get(0), timeList.sort().get(timeList.size().subtract(1))
+        DateRangeList = ee.DateRange(start, end).geetools.split(duration, unit)
+        imageCollectionList = DateRangeList.map(
+            lambda dr: self._obj.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
+        )
+
+        return ee.List(imageCollectionList)
+
+    def reduceInterval(
+        self, reducer: str = "mean", unit: str = "month", duration: int = 1
+    ) -> ee.ImageCollection:
+        """Reduce the images included in the same duration interval using the provided reducer.
+
+        For example using unit as "month" and duration as 1, the ImageCollection will be reduced
+        into a new ImageCollection with each image containing the reduced values for each month.
+        Make sure the collection is filtered beforeend to reduce the number of images that needs to be
+        processed.
+
+        Args:
+            reducer: The reducer to use. Default is "mean". Available reducers: "mean", "median", "max", "min", "sum", "stdDev", "count", "product", "first" or "last".
+            unit: The unit of time to split the collection. Available units: 'year', 'month', 'week', 'day', 'hour', 'minute' or 'second'.
+            duration: The duration of each split.
+
+        Returns:
+            A new ImageCollection with the reduced images.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                reduced = collection.geetools.reduceInterval("mean", "month", 1)
+                print(reduced.getInfo())
+        """
+        # create a list of image collections to be reduced
+        imageCollectionList = self.groupInterval(unit, duration)
+        reducedImagesList = imageCollectionList.map(
+            lambda ic: getattr(ee.ImageCollection(ic), reducer)()
+        )
+        imageCollection = ee.ImageCollection(reducedImagesList)
+
+        return imageCollection

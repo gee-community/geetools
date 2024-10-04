@@ -6,6 +6,8 @@ import numpy as np
 import pytest
 from jsonschema import validate
 
+import geetools
+
 
 def reduce(collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = None) -> ee.Dictionary:
     """Compute the mean reduction on the first image of the imageCollection."""
@@ -252,3 +254,45 @@ class TestAggregateArray:
     def test_aggregate_array_with_properties(self, s2_sr, data_regression):
         aggregated = s2_sr.limit(10).geetools.aggregateArray(["system:time_start", "system:index"])
         data_regression.check(aggregated.getInfo())
+
+
+class TestGroupInterval:
+    """Test the ``groupInterval`` method."""
+
+    def test_group_interval(self, jaxa_rainfall):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        grouped = ic.geetools.groupInterval()
+        assert grouped.size().getInfo() == 3
+        assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 720
+
+    def test_group_interval_with_interval(self, jaxa_rainfall):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        grouped = ic.geetools.groupInterval(duration=2)
+        assert grouped.size().getInfo() == 2
+        assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 1440
+        assert ee.ImageCollection(grouped.get(1)).size().getInfo() == 719
+
+    def test_group_interval_with_interval_and_unit(self, jaxa_rainfall):
+        # get 3 days worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
+        grouped = ic.geetools.groupInterval(duration=1, unit="day")
+        assert grouped.size().getInfo() == 3
+        assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 24
+
+    def test_deprecated_make_equal_interval(self, jaxa_rainfall):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        with pytest.deprecated_call():
+            grouped = geetools.imagecollection.makeEqualInterval(ic)
+            assert grouped.size().getInfo() == 3
+            assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 720
+
+    def test_deprecated_make_day_intervals(self, jaxa_rainfall):
+        # get 3 days worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
+        with pytest.deprecated_call():
+            grouped = geetools.imagecollection.makeDayIntervals(ic)
+            assert grouped.size().getInfo() == 3
+            assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 24

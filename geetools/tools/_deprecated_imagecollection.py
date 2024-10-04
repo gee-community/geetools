@@ -202,24 +202,10 @@ def reduceEqualInterval(
     return ee.ImageCollection.fromImages(imlist)
 
 
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.groupInterval instead.")
 def makeEqualInterval(collection, interval=1, unit="month"):
-    """Make a list of image collections filtered by the given interval.
-
-    for example, one month. Starts from the end of the parsed collection.
-
-    :param collection: the collection
-    :type collection: ee.ImageCollection
-    :param interval: the interval
-    :type interval: int
-    :param unit: unit of the interval. Can be 'day', 'month', 'year'
-    :rtype: ee.List
-    """
-    interval = int(interval)  # force to int
-    collist = collection.sort("system:time_start").toList(collection.size())
-    start_date = ee.Image(collist.get(0)).date()
-    end_date = ee.Image(collist.get(-1)).date()
-
-    ranges = date.daterangeList(start_date, end_date, interval, unit)
+    """Make a list of image collections filtered by the given interval."""
+    return ee.ImageCollection(collection).geetools.groupInterval(unit, interval)
 
     def over_ranges(drange, ini):
         ini = ee.List(ini)
@@ -235,26 +221,10 @@ def makeEqualInterval(collection, interval=1, unit="month"):
     return imlist
 
 
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.groupInterval instead..")
 def makeDayIntervals(collection, interval=30, reverse=False, buffer="second"):
     """Make day intervals."""
-    interval = int(interval)
-    collection = collection.sort("system:time_start", True)
-    start = collection.first().date()
-    end = collection.sort("system:time_start", False).first().date()
-    ranges = date.dayRangeIntervals(start, end, interval, reverse, buffer)
-
-    def over_ranges(drange, ini):
-        ini = ee.List(ini)
-        drange = ee.DateRange(drange)
-        start = drange.start()
-        end = drange.end()
-        filtered = collection.filterDate(start, end)
-        condition = ee.Number(filtered.size()).gt(0)
-        return ee.List(ee.Algorithms.If(condition, ini.add(filtered), ini))
-
-    imlist = ee.List(ranges.iterate(over_ranges, ee.List([])))
-
-    return imlist
+    return ee.ImageCollection(collection).geetools.groupInterval("day", 1)
 
 
 def reduceDayIntervals(collection, reducer, interval=30, reverse=False, buffer="second"):
