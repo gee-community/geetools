@@ -101,6 +101,7 @@ def closestDate(col, clip_to_first=False):
     return ee.ImageCollection(col).geetools.closestDate()
 
 
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.reduceInterval instead")
 def compositeRegularIntervals(
     collection,
     interval=1,
@@ -114,116 +115,16 @@ def compositeRegularIntervals(
     composite_args=None,
     composite_kwargs=None,
 ):
-    """Make a composite at regular intervals parsing a composite.
-
-    function. This function MUST return an ImageCollection and its first
-    argument must be the input collection. The default function
-    (if the argument is None) is `lambda col: col.median()`.
-    """
-    if composite_function is None:
-
-        def composite_function(col):
-            return col.median()
-
-    sorted_list = collection.sort("system:time_start").toList(collection.size())
-
-    if start is None:
-        start_date = ee.Image(sorted_list.get(0)).date()
-    else:
-        start_date = ee.Date(start)
-
-    if end is None:
-        end_date = ee.Image(sorted_list.get(-1)).date()
-    else:
-        end_date = ee.Date(end)
-
-    date_ranges = tools.date.regularIntervals(
-        start_date, end_date, interval, unit, date_range, date_range_unit, direction
-    )
-
-    def wrap(dr, li):
-        li = ee.List(li)
-        dr = ee.DateRange(dr)
-        middle = ee.Number(dr.end().difference(dr.start(), "day")).divide(2).floor()
-        filtered = collection.filterDate(dr.start(), dr.end().advance(1, "day"))
-        dates = ee.List(filtered.aggregate_array("system:time_start")).map(
-            lambda d: ee.Date(d).format()
-        )
-
-        def true(filt, ll):
-            if not composite_args and not composite_kwargs:
-                comp = composite_function(filtered)
-            elif composite_args and not composite_kwargs:
-                comp = composite_function(filtered, *composite_args)
-            elif composite_kwargs and not composite_args:
-                comp = composite_function(filtered, **composite_kwargs)
-            else:
-                comp = composite_function(filtered, *composite_args, **composite_kwargs)
-
-            comp = comp.set("system:time_start", dr.start().advance(middle, "day").millis())
-            comp = (
-                comp.set("dates", dates)
-                .set("composite:time_start", dr.start().format())
-                .set("composite:time_end", dr.end().format())
-            )
-            return ll.add(comp)
-
-        return ee.Algorithms.If(filtered.size(), true(filtered, li), li)
-
-    return ee.ImageCollection.fromImages(ee.List(date_ranges.iterate(wrap, ee.List([]))))
+    """Make a composite at regular intervals parsing a composite."""
+    return ee.ImageCollection(collection).geetools.reduceInterval(unit=unit)
 
 
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.reduceInterval instead")
 def compositeByMonth(
     collection, composite_function=None, composite_args=None, composite_kwargs=None
 ):
-    """Make a composite at regular intervals parsing a composite.
-
-    function. This function MUST return an ImageCollection and its first
-    argument must be the input collection. The default function
-    (if the argument is None) is `lambda col: col.median()`.
-    """
-    if composite_function is None:
-
-        def composite_function(col):
-            return col.median()
-
-    years = (
-        ee.List(collection.aggregate_array("system:time_start"))
-        .map(lambda d: ee.Date(d).get("year"))
-        .distinct()
-        .sort()
-    )
-
-    months = ee.List.sequence(1, 12)
-
-    def wrapY(year):
-        year = ee.Number(year)
-        filteredY = collection.filter(ee.Filter.calendarRange(year, year, "year"))
-
-        def wrap(month, ilist):
-            month = ee.Number(month)
-            date = ee.Date.fromYMD(year, month, 1)
-            filtered = filteredY.filter(ee.Filter.calendarRange(month, month, "month"))
-
-            def true(filt, ll):
-                if not composite_args and not composite_kwargs:
-                    comp = composite_function(filtered)
-                elif composite_args and not composite_kwargs:
-                    comp = composite_function(filtered, *composite_args)
-                elif composite_kwargs and not composite_args:
-                    comp = composite_function(filtered, **composite_kwargs)
-                else:
-                    comp = composite_function(filtered, *composite_args, **composite_kwargs)
-
-                comp = comp.set("system:time_start", date.millis())
-                return ee.List(ll).add(comp)
-
-            return ee.Algorithms.If(filtered.size(), true(filtered, ilist), ilist)
-
-        return ee.List(months.iterate(wrap, ee.List([])))
-
-    images = ee.List(years.map(wrapY))
-    return ee.ImageCollection.fromImages(images.flatten())
+    """Make a composite at regular intervals parsing a composite."""
+    return ee.ImageCollection(collection).geetools.reduceInterval(unit="month")
 
 
 @deprecated(version="1.4.0", reason="Use the vanilla Earth Engine API")

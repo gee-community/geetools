@@ -352,11 +352,20 @@ class TestReduceInterval:
             values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)
 
-    def test_deprecated_mosaic_same_day(self, jaxa_rainfall, amazonas, num_regression):
+    def test_deprecated_composite_regular_intervals(self, jaxa_rainfall, amazonas, num_regression):
         # get 3 days worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
         with pytest.deprecated_call():
-            reduced = geetools.imagecollection.mosaicSameDay(ic)
+            reduced = geetools.composite.compositeRegularIntervals(ic, unit="day")
+            values = reduce(reduced, amazonas).getInfo()
+            values = {k: np.nan if v is None else v for k, v in values.items()}
+            num_regression.check(values)
+
+    def test_deprecated_composite_by_month(self, jaxa_rainfall, amazonas, num_regression):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-01")
+        with pytest.deprecated_call():
+            reduced = geetools.composite.compositeByMonth(ic)
             values = reduce(reduced, amazonas).getInfo()
             values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)
