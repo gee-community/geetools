@@ -67,208 +67,37 @@ def fillWithLast(collection, reverse=False, proxy=-999):
     return ee.ImageCollection.fromImages(indices.map(wrap))
 
 
-def mosaicSameDay(collection, qualityBand=None):
-    """Return a collection where images from the same day are mosaicked.
-
-    :param qualityBand: the band that holds the quality score for mosaiking.
-        If None it will use the simpler mosaic() function
-    :type qualityBand: str
-    :return: a new image collection with 1 image per day. The only property
-        kept is `system:time_start`
-    :rtype: ee.ImageCollection
-    """
-    all_dates = collection.aggregate_array("system:time_start")
-
-    def overdates(d, l):
-        l = ee.List(l)
-        date = ee.Date(d)
-        day = date.get("day")
-        month = date.get("month")
-        year = date.get("year")
-        clean_date = ee.Date.fromYMD(year, month, day)
-        condition = l.contains(clean_date)
-        return ee.Algorithms.If(condition, l, l.add(clean_date))
-
-    date_list = ee.List(all_dates.iterate(overdates, ee.List([])))
-    first_img = ee.Image(collection.first())
-    bands = first_img.bandNames()
-
-    def make_col(date):
-        date = ee.Date(date)
-        filtered = collection.filterDate(date, date.advance(1, "day"))
-
-        if qualityBand:
-            mosaic = filtered.qualityMosaic(qualityBand)
-        else:
-            mosaic = filtered.mosaic()
-
-        mosaic = mosaic.set(
-            "system:time_start",
-            date.millis(),
-            "system:footprint",
-            mergeGeometries(filtered),
-        )
-
-        # mosaic = mosaic.rename(bands)
-        mosaic = mosaic.select(bands)
-
-        def reproject(bname, mos):
-            mos = ee.Image(mos)
-            mos_bnames = mos.bandNames()
-            bname = ee.String(bname)
-            proj = first_img.select(bname).projection()
-
-            newmos = ee.Image(
-                ee.Algorithms.If(
-                    mos_bnames.contains(bname),
-                    image_module.replace(mos, bname, mos.select(bname).setDefaultProjection(proj)),
-                    mos,
-                )
-            )
-
-            return newmos
-
-        mosaic = ee.Image(bands.iterate(reproject, mosaic))
-        return mosaic
-
-    new_col = ee.ImageCollection.fromImages(date_list.map(make_col))
-    return new_col
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.reduceInterval instead.")
+def mosaicSameDay(collection, qualityBand=""):
+    """Return a collection where images from the same day are mosaicked."""
+    reducer = "mosaic" if qualityBand == "" else "qualityMosaic"
+    return ee.ImageCollection(collection).geetools.reduceInterval(reducer, "day", 1, qualityBand)
 
 
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.reduceInterval instead.")
 def reduceEqualInterval(
     collection, interval=30, unit="day", reducer=None, start_date=None, end_date=None
 ):
-    """Reduce an ImageCollection into a new one that has one image per.
-
-        reduced interval, for example, one image per month.
-
-    :param collection: the collection
-    :type collection: ee.ImageCollection
-    :param interval: the interval to reduce
-    :type interval: int
-    :param unit: unit of the interval. Can be 'day', 'month', 'year'
-    :param reducer: the reducer to apply where images overlap. If None, uses
-        a median reducer
-    :type reducer: ee.Reducer
-    :param start_date: fix the start date. If None, uses the date of the first
-        image in the collection
-    :type start_date: ee.Date
-    :param end_date: fix the end date. If None, uses the date of the last image
-        in the collection
-    :type end_date: ee.Date
-    :return:
-    """
-    interval = int(interval)  # force to int
-    first = ee.Image(collection.sort("system:time_start").first())
-    bands = first.bandNames()
-
-    if not start_date:
-        start_date = first.date()
-    if not end_date:
-        last = ee.Image(collection.sort("system:time_start", False).first())
-        end_date = last.date()
-    if not reducer:
-        reducer = ee.Reducer.median()
-
-    def apply_reducer(red, col):
-        return ee.Image(col.reduce(red))
-
-    ranges = date.daterangeList(start_date, end_date, interval, unit)
-
-    def over_ranges(drange, ini):
-        ini = ee.List(ini)
-        drange = ee.DateRange(drange)
-        start = drange.start()
-        end = drange.end()
-        filtered = collection.filterDate(start, end)
-        condition = ee.Number(filtered.size()).gt(0)
-
-        def true():
-            image = (
-                apply_reducer(reducer, filtered)
-                .set("system:time_start", end.millis())
-                .set("reduced_from", start.format())
-                .set("reduced_to", end.format())
-            )
-            # rename to original names
-            image = image.select(image.bandNames(), bands)
-            result = ini.add(image)
-            return result
-
-        return ee.List(ee.Algorithms.If(condition, true(), ini))
-
-    imlist = ee.List(ranges.iterate(over_ranges, ee.List([])))
-
-    return ee.ImageCollection.fromImages(imlist)
+    """Reduce an ImageCollection into a new one that has one image per reduced interval."""
+    return ee.ImageCollection(collection).geetools.reduceInterval(reducer, unit, interval)
 
 
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.groupInterval instead.")
 def makeEqualInterval(collection, interval=1, unit="month"):
-    """Make a list of image collections filtered by the given interval.
-
-    for example, one month. Starts from the end of the parsed collection.
-
-    :param collection: the collection
-    :type collection: ee.ImageCollection
-    :param interval: the interval
-    :type interval: int
-    :param unit: unit of the interval. Can be 'day', 'month', 'year'
-    :rtype: ee.List
-    """
-    interval = int(interval)  # force to int
-    collist = collection.sort("system:time_start").toList(collection.size())
-    start_date = ee.Image(collist.get(0)).date()
-    end_date = ee.Image(collist.get(-1)).date()
-
-    ranges = date.daterangeList(start_date, end_date, interval, unit)
-
-    def over_ranges(drange, ini):
-        ini = ee.List(ini)
-        drange = ee.DateRange(drange)
-        start = drange.start()
-        end = drange.end()
-        filtered = collection.filterDate(start, end)
-        condition = ee.Number(filtered.size()).gt(0)
-        return ee.List(ee.Algorithms.If(condition, ini.add(filtered), ini))
-
-    imlist = ee.List(ranges.iterate(over_ranges, ee.List([])))
-
-    return imlist
+    """Make a list of image collections filtered by the given interval."""
+    return ee.ImageCollection(collection).geetools.groupInterval(unit, interval)
 
 
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.groupInterval instead..")
 def makeDayIntervals(collection, interval=30, reverse=False, buffer="second"):
     """Make day intervals."""
-    interval = int(interval)
-    collection = collection.sort("system:time_start", True)
-    start = collection.first().date()
-    end = collection.sort("system:time_start", False).first().date()
-    ranges = date.dayRangeIntervals(start, end, interval, reverse, buffer)
-
-    def over_ranges(drange, ini):
-        ini = ee.List(ini)
-        drange = ee.DateRange(drange)
-        start = drange.start()
-        end = drange.end()
-        filtered = collection.filterDate(start, end)
-        condition = ee.Number(filtered.size()).gt(0)
-        return ee.List(ee.Algorithms.If(condition, ini.add(filtered), ini))
-
-    imlist = ee.List(ranges.iterate(over_ranges, ee.List([])))
-
-    return imlist
+    return ee.ImageCollection(collection).geetools.groupInterval("day", 1)
 
 
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.reduceInterval instead.")
 def reduceDayIntervals(collection, reducer, interval=30, reverse=False, buffer="second"):
-    """Reduce Day Intervals.
-
-    :param reducer: a function that takes as only argument a collection
-        and returns an image
-    :type reducer: function
-    :return: an image collection
-    :rtype: ee.ImageCollection
-    """
-    intervals = makeDayIntervals(collection, interval, reverse, buffer)
-    reduced = intervals.map(reducer)
-    return ee.ImageCollection.fromImages(reduced)
+    """Reduce Day Intervals."""
+    return ee.ImageCollection(collection).geetools.reduceInterval(reducer, "day", 1)
 
 
 @deprecated(version="1.4.0", reason="Removed from the lib as untested")
