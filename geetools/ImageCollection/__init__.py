@@ -921,10 +921,15 @@ class ImageCollectionAccessor:
                 print(reduced.getInfo())
         """
         # create a list of image collections to be reduced
+        # Every subcollection is sorted in case one use the "first" reducer
         imageCollectionList = self.groupInterval(unit, duration)
-        reducedImagesList = imageCollectionList.map(
-            lambda ic: getattr(ee.ImageCollection(ic), reducer)()
-        )
-        imageCollection = ee.ImageCollection(reducedImagesList)
+        try:
+            reducedImagesList = imageCollectionList.map(
+                lambda ic: getattr(ee.ImageCollection(ic).sort("system:time_start"), reducer)()
+            )
+        except AttributeError:
+            raise AttributeError(
+                f'Reducer "{reducer}" not available in the ee.ImageCollection class'
+            )
 
-        return imageCollection
+        return ee.ImageCollection(reducedImagesList)

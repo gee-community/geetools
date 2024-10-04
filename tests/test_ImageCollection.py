@@ -296,3 +296,53 @@ class TestGroupInterval:
             grouped = geetools.imagecollection.makeDayIntervals(ic)
             assert grouped.size().getInfo() == 3
             assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 24
+
+
+class TestReduceInterval:
+    """Test the ``reduceInterval`` method."""
+
+    def test_reduce_interval(self, jaxa_rainfall, amazonas, num_regression):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        reduced = ic.geetools.reduceInterval()
+        values = {
+            k: np.nan if v is None else v for k, v in reduce(reduced, amazonas).getInfo().items()
+        }
+        num_regression.check(values)
+
+    def test_reduce_interval_with_reducer(self, jaxa_rainfall, amazonas, num_regression):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        reduced = ic.geetools.reduceInterval("max")
+        values = {
+            k: np.nan if v is None else v for k, v in reduce(reduced, amazonas).getInfo().items()
+        }
+        num_regression.check(values)
+
+    def test_reduce_interval_with_non_existing_reducer_and_properties(self, jaxa_rainfall):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        with pytest.raises(AttributeError):
+            ic.geetools.reduceInterval("toto")
+
+    def test_deprecated_reduce_equal_interval(self, jaxa_rainfall, amazonas, num_regression):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        with pytest.deprecated_call():
+            reduced = geetools.imagecollection.reduceEqualInterval(ic, reducer="mean")
+            values = {
+                k: np.nan if v is None else v
+                for k, v in reduce(reduced, amazonas).getInfo().items()
+            }
+            num_regression.check(values)
+
+    def test_deprecated_reduce_day_intervals(self, jaxa_rainfall, amazonas, num_regression):
+        # get 3 days worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
+        with pytest.deprecated_call():
+            reduced = geetools.imagecollection.reduceDayIntervals(ic, reducer="mean")
+            values = {
+                k: np.nan if v is None else v
+                for k, v in reduce(reduced, amazonas).getInfo().items()
+            }
+            num_regression.check(values)
