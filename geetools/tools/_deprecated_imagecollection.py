@@ -6,65 +6,10 @@ from deprecated.sphinx import deprecated
 import geetools  # noqa: F401
 
 
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.fillWithFirst instead.")
 def fillWithLast(collection, reverse=False, proxy=-999):
-    """Fill each masked pixels with the last available not masked pixel. If reverse, it goes backwards.
-
-    Images must contain a valid date (system:time_start property by default)
-    .
-    """
-    axis = 0
-
-    def shift(array):
-        if reverse:
-            right = array.arraySlice(axis, 1)
-            last = array.arraySlice(axis, -1)
-            return right.arrayCat(last, axis)
-        else:
-            left = array.arraySlice(axis, 0, -1)
-            first = array.arraySlice(axis, 0, 1)
-            return first.arrayCat(left, axis)
-
-    def move(array):
-        shifted = shift(array)
-        masked = array.neq(proxy)
-        maskednot = array.eq(proxy)
-        t1 = array.multiply(masked)
-        t2 = shifted.multiply(maskednot)
-        final = t1.add(t2)
-        return final
-
-    def fill(array, size):
-        size = ee.Number(size)
-        indices = ee.List.sequence(0, size.subtract(1))
-
-        def wrap(i, a):
-            a = ee.Image(a)
-            return move(a)
-
-        return ee.Image(indices.iterate(wrap, array))
-
-    collection = collection.map(
-        lambda i: image_module.emptyBackground(i, proxy).copyProperties(
-            source=i, properties=i.propertyNames()
-        )
-    )
-    bands = ee.Image(collection.first()).bandNames()
-    size = collection.size()
-    array = collection.toArray()
-    fill_array = fill(array, size)
-
-    props = aggregate_array_all(collection)
-    indices = ee.List.sequence(0, size.subtract(1))
-
-    def wrap(index):
-        index = ee.Number(index).toInt()
-        sliced = fill_array.arraySlice(axis, index, index.add(1))
-        im = sliced.arrayProject([1]).arrayFlatten([bands])
-        prop = ee.Dictionary(props.get(index))
-        im = ee.Image(im.setMulti(prop))
-        return im.updateMask(im.neq(proxy))
-
-    return ee.ImageCollection.fromImages(indices.map(wrap))
+    """Fill each masked pixels with the last available not masked pixel."""
+    return ee.ImageCollection(collection).geetools.fillWithFirst()
 
 
 @deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.reduceInterval instead.")

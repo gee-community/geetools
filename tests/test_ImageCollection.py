@@ -9,12 +9,14 @@ from jsonschema import validate
 import geetools
 
 
-def reduce(collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = None) -> ee.Dictionary:
+def reduce(
+    collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = None, reducer: str = "first"
+) -> ee.Dictionary:
     """Compute the mean reduction on the first image of the imageCollection."""
-    first = collection.first()
-    geometry = first.geometry() if geometry is None else geometry.geometry()
+    image = getattr(collection, reducer)()
+    geometry = image.geometry() if geometry is None else geometry.geometry()
     geometry = geometry.centroid(1).buffer(100)
-    return first.reduceRegion(ee.Reducer.mean(), geometry, 1)
+    return image.reduceRegion(ee.Reducer.mean(), geometry, 1)
 
 
 class TestMaskClouds:
@@ -314,9 +316,8 @@ class TestReduceInterval:
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         reduced = ic.geetools.reduceInterval("max")
-        values = {
-            k: np.nan if v is None else v for k, v in reduce(reduced, amazonas).getInfo().items()
-        }
+        values = reduce(reduced, amazonas).getInfo()
+        values = {k: np.nan if v is None else v for k, v in values.items()}
         num_regression.check(values)
 
     def test_reduce_interval_with_non_existing_reducer_and_properties(self, jaxa_rainfall):
@@ -329,9 +330,8 @@ class TestReduceInterval:
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         reduced = ic.geetools.reduceInterval("qualityMosaic", qualityBand="gaugeQualityInfo")
-        values = {
-            k: np.nan if v is None else v for k, v in reduce(reduced, amazonas).getInfo().items()
-        }
+        values = reduce(reduced, amazonas).getInfo()
+        values = {k: np.nan if v is None else v for k, v in values.items()}
         num_regression.check(values)
 
     def test_deprecated_reduce_equal_interval(self, jaxa_rainfall, amazonas, num_regression):
@@ -339,10 +339,8 @@ class TestReduceInterval:
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         with pytest.deprecated_call():
             reduced = geetools.imagecollection.reduceEqualInterval(ic, reducer="mean")
-            values = {
-                k: np.nan if v is None else v
-                for k, v in reduce(reduced, amazonas).getInfo().items()
-            }
+            values = reduce(reduced, amazonas).getInfo()
+            values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)
 
     def test_deprecated_reduce_day_intervals(self, jaxa_rainfall, amazonas, num_regression):
@@ -350,10 +348,8 @@ class TestReduceInterval:
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
         with pytest.deprecated_call():
             reduced = geetools.imagecollection.reduceDayIntervals(ic, reducer="mean")
-            values = {
-                k: np.nan if v is None else v
-                for k, v in reduce(reduced, amazonas).getInfo().items()
-            }
+            values = reduce(reduced, amazonas).getInfo()
+            values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)
 
     def test_deprecated_mosaic_same_day(self, jaxa_rainfall, amazonas, num_regression):
@@ -361,8 +357,26 @@ class TestReduceInterval:
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
         with pytest.deprecated_call():
             reduced = geetools.imagecollection.mosaicSameDay(ic)
-            values = {
-                k: np.nan if v is None else v
-                for k, v in reduce(reduced, amazonas).getInfo().items()
-            }
+            values = reduce(reduced, amazonas).getInfo()
+            values = {k: np.nan if v is None else v for k, v in values.items()}
+            num_regression.check(values)
+
+
+class TestFillWithFirst:
+    """Test the ``fillWithFirst`` method."""
+
+    def test_fill_with_first(self, s2_sr, amazonas, num_regression):
+        # we need less images as the test will fail otherwise
+        filled = s2_sr.filterDate("2021-01-01", "2021-01-15").geetools.fillWithFirst()
+        values = reduce(filled, amazonas, "mean").getInfo()
+        values = {k: np.nan if v is None else v for k, v in values.items()}
+        num_regression.check(values)
+
+    def test_deprecated_fill_with_last(self, s2_sr, amazonas, num_regression):
+        with pytest.deprecated_call():
+            filled = geetools.imagecollection.fillWithLast(
+                s2_sr.filterDate("2021-01-01", "2021-01-15")
+            )
+            values = reduce(filled, amazonas, "mean").getInfo()
+            values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)

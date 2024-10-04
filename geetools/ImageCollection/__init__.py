@@ -939,3 +939,41 @@ class ImageCollectionAccessor:
             )
 
         return ee.ImageCollection(reducedImagesList)
+
+    def fillWithFirst(self) -> ee.ImageCollection:
+        """Fill masked pixels with the first valid pixel in the stack of images.
+
+        The method will for every image, fill all the pixels with the latest nono masked pixel in the stack of images.
+        I requires the image to have a valid "system:time_start" property.
+        As the imageCollection will need to be sorted limit the analysis to a reasonable number of image by filtering your data beforehand.
+
+        Returns:
+            An ImageCollection with all pixels unmasked in every image.
+
+        Examples:
+            .. code:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                filled = collection.geetools.fillWithFirst()
+                print(filled.getInfo())
+        """
+        # retrieve all the time starts as an ordered list to iterate
+        timeList = self._obj.aggregate_array("system:time_start").sort()
+
+        # for each time start find all the images thata are before and use the mosaic reducer
+        # to only keep the first one with a non masked pixel
+        def fill(date):
+            return self._obj.filter(ee.Filter.lte("system:time_start", date)).mosaic()
+
+        imageList = timeList.map(fill)
+
+        return ee.ImageCollection(imageList)
