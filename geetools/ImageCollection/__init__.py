@@ -940,7 +940,7 @@ class ImageCollectionAccessor:
 
         return ee.ImageCollection(reducedImagesList)
 
-    def fillWithFirst(self) -> ee.ImageCollection:
+    def closestDate(self) -> ee.ImageCollection:
         """Fill masked pixels with the first valid pixel in the stack of images.
 
         The method will for every image, fill all the pixels with the latest nono masked pixel in the stack of images.

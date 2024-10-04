@@ -1,5 +1,4 @@
 """Module holding tools for creating composites."""
-from uuid import uuid4
 
 import ee
 from deprecated.sphinx import deprecated
@@ -96,35 +95,10 @@ def medoid(collection, bands=None, discard_zeros=False):
     return final
 
 
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.closestDate instead")
 def closestDate(col, clip_to_first=False):
-    """Make a composite in which masked pixels are filled with the.
-
-    last available pixel. Make sure all image bands are casted.
-
-    :param clip_to_first: whether to clip with the 'first' image
-        geometry
-    """
-    col = col.sort("system:time_start", False)
-    first = ee.Image(col.first())
-
-    # band names
-    bandnames = first.bandNames()
-
-    if clip_to_first:
-        col = col.map(lambda img: img.clip(first.geometry()))
-
-    tempname = "a{}".format(uuid4().hex)
-
-    # add millis band (for compositing)
-    col = col.map(
-        lambda img: img.addBands(ee.Image.constant(img.date().millis()).rename(tempname).toInt())
-    )
-
-    col = col.sort("system:time_start")
-
-    composite = col.qualityMosaic(tempname)
-
-    return composite.select(bandnames).set("system:time_start", first.date().millis())
+    """Make a composite in which masked pixels are filled with the last available pixel."""
+    return ee.ImageCollection(col).geetools.closestDate()
 
 
 def compositeRegularIntervals(

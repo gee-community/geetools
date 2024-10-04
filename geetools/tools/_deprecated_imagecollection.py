@@ -6,10 +6,10 @@ from deprecated.sphinx import deprecated
 import geetools  # noqa: F401
 
 
-@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.fillWithFirst instead.")
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.closestDate instead.")
 def fillWithLast(collection, reverse=False, proxy=-999):
     """Fill each masked pixels with the last available not masked pixel."""
-    return ee.ImageCollection(collection).geetools.fillWithFirst()
+    return ee.ImageCollection(collection).geetools.closestDate()
 
 
 @deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.reduceInterval instead.")

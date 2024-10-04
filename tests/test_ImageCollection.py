@@ -362,12 +362,12 @@ class TestReduceInterval:
             num_regression.check(values)
 
 
-class TestFillWithFirst:
-    """Test the ``fillWithFirst`` method."""
+class TestClosestDate:
+    """Test the ``closestDate`` method."""
 
-    def test_fill_with_first(self, s2_sr, amazonas, num_regression):
+    def test_closest_date(self, s2_sr, amazonas, num_regression):
         # we need less images as the test will fail otherwise
-        filled = s2_sr.filterDate("2021-01-01", "2021-01-15").geetools.fillWithFirst()
+        filled = s2_sr.filterDate("2021-01-01", "2021-01-15").geetools.closestDate()
         values = reduce(filled, amazonas, "mean").getInfo()
         values = {k: np.nan if v is None else v for k, v in values.items()}
         num_regression.check(values)
@@ -377,6 +377,13 @@ class TestFillWithFirst:
             filled = geetools.imagecollection.fillWithLast(
                 s2_sr.filterDate("2021-01-01", "2021-01-15")
             )
+            values = reduce(filled, amazonas, "mean").getInfo()
+            values = {k: np.nan if v is None else v for k, v in values.items()}
+            num_regression.check(values)
+
+    def test_deprecated_closest_date(self, s2_sr, amazonas, num_regression):
+        with pytest.deprecated_call():
+            filled = geetools.composite.closestDate(s2_sr.filterDate("2021-01-01", "2021-01-15"))
             values = reduce(filled, amazonas, "mean").getInfo()
             values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)
