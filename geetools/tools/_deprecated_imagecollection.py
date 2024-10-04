@@ -67,72 +67,11 @@ def fillWithLast(collection, reverse=False, proxy=-999):
     return ee.ImageCollection.fromImages(indices.map(wrap))
 
 
-def mosaicSameDay(collection, qualityBand=None):
-    """Return a collection where images from the same day are mosaicked.
-
-    :param qualityBand: the band that holds the quality score for mosaiking.
-        If None it will use the simpler mosaic() function
-    :type qualityBand: str
-    :return: a new image collection with 1 image per day. The only property
-        kept is `system:time_start`
-    :rtype: ee.ImageCollection
-    """
-    all_dates = collection.aggregate_array("system:time_start")
-
-    def overdates(d, l):
-        l = ee.List(l)
-        date = ee.Date(d)
-        day = date.get("day")
-        month = date.get("month")
-        year = date.get("year")
-        clean_date = ee.Date.fromYMD(year, month, day)
-        condition = l.contains(clean_date)
-        return ee.Algorithms.If(condition, l, l.add(clean_date))
-
-    date_list = ee.List(all_dates.iterate(overdates, ee.List([])))
-    first_img = ee.Image(collection.first())
-    bands = first_img.bandNames()
-
-    def make_col(date):
-        date = ee.Date(date)
-        filtered = collection.filterDate(date, date.advance(1, "day"))
-
-        if qualityBand:
-            mosaic = filtered.qualityMosaic(qualityBand)
-        else:
-            mosaic = filtered.mosaic()
-
-        mosaic = mosaic.set(
-            "system:time_start",
-            date.millis(),
-            "system:footprint",
-            mergeGeometries(filtered),
-        )
-
-        # mosaic = mosaic.rename(bands)
-        mosaic = mosaic.select(bands)
-
-        def reproject(bname, mos):
-            mos = ee.Image(mos)
-            mos_bnames = mos.bandNames()
-            bname = ee.String(bname)
-            proj = first_img.select(bname).projection()
-
-            newmos = ee.Image(
-                ee.Algorithms.If(
-                    mos_bnames.contains(bname),
-                    image_module.replace(mos, bname, mos.select(bname).setDefaultProjection(proj)),
-                    mos,
-                )
-            )
-
-            return newmos
-
-        mosaic = ee.Image(bands.iterate(reproject, mosaic))
-        return mosaic
-
-    new_col = ee.ImageCollection.fromImages(date_list.map(make_col))
-    return new_col
+@deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.reduceInterval instead.")
+def mosaicSameDay(collection, qualityBand=""):
+    """Return a collection where images from the same day are mosaicked."""
+    reducer = "mosaic" if qualityBand == "" else "qualityMosaic"
+    return ee.ImageCollection(collection).geetools.reduceInterval(reducer, "day", 1, qualityBand)
 
 
 @deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.reduceInterval instead.")

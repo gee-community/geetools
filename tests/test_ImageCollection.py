@@ -325,6 +325,15 @@ class TestReduceInterval:
         with pytest.raises(AttributeError):
             ic.geetools.reduceInterval("toto")
 
+    def test_reduce_interval_quality_mosaic(self, jaxa_rainfall, amazonas, num_regression):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        reduced = ic.geetools.reduceInterval("qualityMosaic", qualityBand="gaugeQualityInfo")
+        values = {
+            k: np.nan if v is None else v for k, v in reduce(reduced, amazonas).getInfo().items()
+        }
+        num_regression.check(values)
+
     def test_deprecated_reduce_equal_interval(self, jaxa_rainfall, amazonas, num_regression):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
@@ -341,6 +350,17 @@ class TestReduceInterval:
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
         with pytest.deprecated_call():
             reduced = geetools.imagecollection.reduceDayIntervals(ic, reducer="mean")
+            values = {
+                k: np.nan if v is None else v
+                for k, v in reduce(reduced, amazonas).getInfo().items()
+            }
+            num_regression.check(values)
+
+    def test_deprecated_mosaic_same_day(self, jaxa_rainfall, amazonas, num_regression):
+        # get 3 days worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
+        with pytest.deprecated_call():
+            reduced = geetools.imagecollection.mosaicSameDay(ic)
             values = {
                 k: np.nan if v is None else v
                 for k, v in reduce(reduced, amazonas).getInfo().items()

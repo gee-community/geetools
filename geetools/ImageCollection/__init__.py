@@ -887,7 +887,7 @@ class ImageCollectionAccessor:
         return ee.List(imageCollectionList)
 
     def reduceInterval(
-        self, reducer: str = "mean", unit: str = "month", duration: int = 1
+        self, reducer: str = "mean", unit: str = "month", duration: int = 1, qualityBand: str = ""
     ) -> ee.ImageCollection:
         """Reduce the images included in the same duration interval using the provided reducer.
 
@@ -897,9 +897,10 @@ class ImageCollectionAccessor:
         processed.
 
         Args:
-            reducer: The reducer to use. Default is "mean". Available reducers: "mean", "median", "max", "min", "sum", "stdDev", "count", "product", "first" or "last".
+            reducer: The reducer to use. Default is "mean". Available reducers: "mean", "median", "max", "min", "sum", "stdDev", "count", "product", "first", "mosaic", "qualityMosaic" or "last".
             unit: The unit of time to split the collection. Available units: 'year', 'month', 'week', 'day', 'hour', 'minute' or 'second'.
             duration: The duration of each split.
+            qualityBand: The band to use as quality band. Only available for "qualityMosaic" reducer.
 
         Returns:
             A new ImageCollection with the reduced images.
@@ -923,10 +924,15 @@ class ImageCollectionAccessor:
         # create a list of image collections to be reduced
         # Every subcollection is sorted in case one use the "first" reducer
         imageCollectionList = self.groupInterval(unit, duration)
+
+        def reduce(ic):
+            reduced = getattr(ee.ImageCollection(ic).sort("system:time_start"), reducer)
+            return reduced(qualityBand) if reducer == "qualityMosaic" else reduced()
+
+        # catch the error if the reducer is not available in the ee.ImageCollection class
+        # and provide a more meaningful error message.
         try:
-            reducedImagesList = imageCollectionList.map(
-                lambda ic: getattr(ee.ImageCollection(ic).sort("system:time_start"), reducer)()
-            )
+            reducedImagesList = imageCollectionList.map(reduce)
         except AttributeError:
             raise AttributeError(
                 f'Reducer "{reducer}" not available in the ee.ImageCollection class'
