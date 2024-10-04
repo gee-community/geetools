@@ -878,7 +878,7 @@ class ImageCollectionAccessor:
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
         # I don't know if it should be properly imported here, let's see with user feedback
         timeList = self._obj.aggregate_array("system:time_start")
-        start, end = timeList.sort().get(0), timeList.sort().get(timeList.size().subtract(1))
+        start, end = timeList.sort().get(0), timeList.sort().get(-1)
         DateRangeList = ee.DateRange(start, end).geetools.split(duration, unit)
         imageCollectionList = DateRangeList.map(
             lambda dr: self._obj.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
