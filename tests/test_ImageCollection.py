@@ -396,3 +396,22 @@ class TestClosestDate:
             values = reduce(filled, amazonas, "mean").getInfo()
             values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)
+
+
+class TestMedoid:
+    """Test the ``medoid`` method."""
+
+    def test_medoid(self, s2_sr, amazonas, num_regression):
+        # we need less images as the test will fail otherwise
+        medoid = s2_sr.filterDate("2021-01-01", "2021-01-05").geetools.medoid()
+        values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
+        values = {k: np.nan if v is None else v for k, v in values.items()}
+        num_regression.check(values)
+
+    def test_deprecated_medoid(self, s2_sr, amazonas, num_regression):
+        with pytest.deprecated_call():
+            # we need less images as the test will fail otherwise
+            medoid = geetools.composite.medoid(s2_sr.filterDate("2021-01-01", "2021-01-05"))
+            values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
+            values = {k: np.nan if v is None else v for k, v in values.items()}
+            num_regression.check(values)

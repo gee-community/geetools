@@ -56,3 +56,7 @@ class TestComposite:
     def test_max(self, s2_sr):
         with pytest.deprecated_call():
             geetools.composite.max(s2_sr)
+
+    def test_medoidScore(self, s2_sr):
+        with pytest.deprecated_call():
+            geetools.composite.medoidScore(s2_sr)
