@@ -1292,3 +1292,28 @@ class ImageAccessor:
         final = distance.unmask().add(distMask)
 
         return self._obj.addBands(final)
+
+    def distance(self, other: ee.image) -> ee.Image:
+        """Compute the sum of all spectral distance between two images.
+
+        Parameters:
+            other: The image to compute the distance to.
+
+        Returns:
+            and Image with the euclidean distance between the two images for each band.
+
+        Examples:
+            .. code-block:: python
+
+                    import ee, geetools
+
+                    ee.Initialize()
+
+                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                    other = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                    image = image.distance(other)
+        """
+        # compute the distance
+        distance = self._obj.subtract(other).pow(2).reduce("sum").sqrt().rename("sum_distance")
+
+        return ee.Image(distance)

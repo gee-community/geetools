@@ -534,3 +534,32 @@ class TestDistanceToMask:
             distance = geetools.algorithms.distanceToMask(s2_sr_vatican_2020, mask)
             values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
             num_regression.check(values.getInfo())
+
+
+class TestDistance:
+    """Test the ``distance`` method."""
+
+    def test_distance(self, vatican_buffer, image, other, num_regression):
+        # 2 images from june in vatican
+        distance = image.geetools.distance(other)
+        values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
+        num_regression.check(values.getInfo())
+
+    def test_deprecated_euclidian_distance(self, vatican_buffer, image, other, num_regression):
+        # 2 images from june in vatican
+        with pytest.deprecated_call():
+            distance = geetools.algorithms.euclideanDistance(image, other)
+            values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
+            num_regression.check(values.getInfo())
+
+    @pytest.fixture
+    def image(self):
+        """Return an image from june in vatican."""
+        image_id = "COPERNICUS/S2_SR_HARMONIZED/20210604T100029_20210604T100027_T32TQM"
+        return ee.Image(image_id).select(["B4", "B3", "B2"])
+
+    @pytest.fixture
+    def other(self):
+        """Return another image from june in vatican."""
+        other_id = "COPERNICUS/S2_SR_HARMONIZED/20210604T100029_20210604T100027_T33TTG"
+        return ee.Image(other_id).select(["B4", "B3", "B2"])

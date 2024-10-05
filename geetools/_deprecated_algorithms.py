@@ -121,68 +121,10 @@ def maskCover(
     return image.set(property_name, final)
 
 
+@deprecated(version="1.5.0", reason="Use ee.Image.geetools.distance instead.")
 def euclideanDistance(image1, image2, bands=None, discard_zeros=False, name="distance"):
-    """Compute the Euclidean distance between two images. The image's bands.
-
-    is the dimension of the arrays.
-
-    :param image1:
-    :type image1: ee.Image
-    :param image2:
-    :type image2: ee.Image
-    :param bands: the bands that want to be computed
-    :type bands: list
-    :param discard_zeros: pixel values equal to zero will not count in the
-        distance computation
-    :type discard_zeros: bool
-    :param name: the name of the resulting band
-    :type name: str
-    :return: a distance image
-    :rtype: ee.Image
-    """
-    if not bands:
-        bands = image1.bandNames()
-
-    image1 = image1.select(bands)
-    image2 = image2.select(bands)
-
-    proxy = tools.image.empty(0, bands)
-    image1 = proxy.where(image1.gt(0), image1)
-    image2 = proxy.where(image2.gt(0), image2)
-
-    if discard_zeros:
-        # zeros
-        zeros1 = image1.eq(0)
-        zeros2 = image2.eq(0)
-
-        # fill zeros with values from the other image
-        image1 = image1.where(zeros1, image2)
-        image2 = image2.where(zeros2, image1)
-
-    a = image1.subtract(image2)
-    b = a.pow(2)
-    c = b.reduce("sum")
-    d = c.sqrt()
-
-    return d.rename(name)
-
-
-@deprecated(
-    version="1.4.0",
-    reason="Should not be used as a wrapper as the method is too computational heavy.",
-)
-def sumDistance(image, collection, bands=None, discard_zeros=False, name="sumdist"):
-    """Compute de sum of all distances between the given image and the collection passed."""
-    collection = collection.toList(collection.size())
-    accum = ee.Image(0).rename(name)
-
-    def over_rest(im, ini):
-        ini = ee.Image(ini)
-        im = ee.Image(im)
-        dist = ee.Image(euclideanDistance(image, im, bands, discard_zeros)).rename(name)
-        return ini.add(dist)
-
-    return ee.Image(collection.iterate(over_rest, accum))
+    """Compute the Euclidean distance between two images."""
+    return ee.Image(image1).geetools.distance(image2)
 
 
 @deprecated(version="1.4.0", reason="It's included in the ee_extra bindings.")
