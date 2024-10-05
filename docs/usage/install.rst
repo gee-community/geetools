@@ -15,6 +15,12 @@ the python package is available on `pypi <https://pypi.org/project/geetools/>`__
 conda
 -----
 
+The python package is available on `conda <https://anaconda.org/conda-forge/geetools>`__ and can be installed using ``conda`` and the ``conda-forge`` channel:
+
+.. code-block:: console
+
+    conda install -c conda-forge geetools
+
 .. important::
 
     A release of the package will be done on conda-forge along with v1.0.0.
