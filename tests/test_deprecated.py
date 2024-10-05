@@ -37,6 +37,10 @@ class TestImageCollection:
         with pytest.raises(NotImplementedError):
             geetools.imagecollection.normalDistributionBand(None, None, None, None, None)
 
+    def test_moving_average(self):
+        with pytest.raises(NotImplementedError):
+            geetools.imagecollection.moving_average(None)
+
 
 class TestAlgorithm:
     """Test the deprecated_algorithms module."""
@@ -58,5 +62,5 @@ class TestComposite:
             geetools.composite.max(s2_sr)
 
     def test_medoidScore(self, s2_sr):
-        with pytest.deprecated_call():
+        with pytest.raises(NotImplementedError):
             geetools.composite.medoidScore(s2_sr)
