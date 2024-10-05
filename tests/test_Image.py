@@ -1,5 +1,6 @@
 """Test the ``Image`` class."""
 import zipfile
+from math import isclose
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.request import urlretrieve
@@ -539,27 +540,50 @@ class TestDistanceToMask:
 class TestDistance:
     """Test the ``distance`` method."""
 
-    def test_distance(self, vatican_buffer, image, other, num_regression):
+    def test_distance(self, vatican_buffer, num_regression):
         # 2 images from june in vatican
-        distance = image.geetools.distance(other)
+        distance = self.image.geetools.distance(self.other)
         values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
         num_regression.check(values.getInfo())
 
-    def test_deprecated_euclidian_distance(self, vatican_buffer, image, other, num_regression):
+    def test_deprecated_euclidian_distance(self, vatican_buffer, num_regression):
         # 2 images from june in vatican
         with pytest.deprecated_call():
-            distance = geetools.algorithms.euclideanDistance(image, other)
+            distance = geetools.algorithms.euclideanDistance(self.image, self.other)
             values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
             num_regression.check(values.getInfo())
 
-    @pytest.fixture
+    @property
     def image(self):
         """Return an image from june in vatican."""
         image_id = "COPERNICUS/S2_SR_HARMONIZED/20210604T100029_20210604T100027_T32TQM"
         return ee.Image(image_id).select(["B4", "B3", "B2"])
 
-    @pytest.fixture
+    @property
     def other(self):
         """Return another image from june in vatican."""
         other_id = "COPERNICUS/S2_SR_HARMONIZED/20210604T100029_20210604T100027_T33TTG"
         return ee.Image(other_id).select(["B4", "B3", "B2"])
+
+
+class TestMaskCover:
+    """Test the ``maskCover`` method."""
+
+    def test_mask_cover(self):
+        image = self.image.geetools.maskCover()
+        assert isclose(image.get("mask_cover").getInfo(), 99.2)
+
+    def test_deprecated_mask_cover(self):
+        with pytest.deprecated_call():
+            image = geetools.algorithms.maskCover(self.image)
+            assert isclose(image.get("mask_cover").getInfo(), 99.2)
+
+    @property
+    def image(self):
+        image_id = "COPERNICUS/S2_SR_HARMONIZED/20210105T100319_20210105T100317_T32TQM"
+        image = ee.Image(image_id)
+        qa = image.select("QA60")
+        cloudBitMask, cirrusBitMask = 1 << 10, 1 << 11
+        mask = qa.bitwiseAnd(cloudBitMask).eq(0).And(qa.bitwiseAnd(cirrusBitMask).eq(0))
+        image = image.updateMask(mask)
+        return image.select(["B4", "B3", "B2"])

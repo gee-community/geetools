@@ -1317,3 +1317,35 @@ class ImageAccessor:
         distance = self._obj.subtract(other).pow(2).reduce("sum").sqrt().rename("sum_distance")
 
         return ee.Image(distance)
+
+    def maskCover(self) -> ee.Image:
+        """return an image with the mask cover ratio as an image property.
+
+        Returns:
+            The image with the mask cover ratio as an image property.
+
+        Examples:
+            .. code-block:: python
+
+                    import ee, geetools
+
+                    ee.Initialize()
+
+                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                    image = image.maskCover()
+        """
+        # compute the mask cover
+        mask, geometry = self._obj.select(0).mask(), self._obj.geometry()
+        cover = mask.reduceRegion(ee.Reducer.frequencyHistogram(), geometry, bestEffort=True)
+
+        # The cover result is a dictionary with each band as key (in our case the first one).
+        # For each band key the number of 0 and 1 is stored in a dictionary.
+        # We need to extract the number of 1 and 0 to compute the ratio which implys lots of casting.
+        values = ee.Dictionary(cover.values().get(0)).values()
+        zeros, ones = ee.Number(values.get(0)), ee.Number(values.get(1))
+        ratio = zeros.divide(zeros.add(ones))
+
+        # we want to display this resutl as a 1 digit float
+        ratio = ratio.multiply(1000).toInt().divide(10)
+
+        return ee.Image(self._obj.set("mask_cover", ratio))
