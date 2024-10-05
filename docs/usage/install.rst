@@ -21,11 +21,6 @@ The python package is available on `conda <https://anaconda.org/conda-forge/geet
 
     conda install -c conda-forge geetools
 
-.. important::
-
-    A release of the package will be done on conda-forge along with v1.0.0.
-    For now, the package is not available on conda-forge.
-
 from source
 -----------
 
