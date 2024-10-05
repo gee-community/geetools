@@ -352,22 +352,31 @@ class TestReduceInterval:
             values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)
 
-    def test_deprecated_mosaic_same_day(self, jaxa_rainfall, amazonas, num_regression):
+    def test_deprecated_composite_regular_intervals(self, jaxa_rainfall, amazonas, num_regression):
         # get 3 days worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
         with pytest.deprecated_call():
-            reduced = geetools.imagecollection.mosaicSameDay(ic)
+            reduced = geetools.composite.compositeRegularIntervals(ic, unit="day")
+            values = reduce(reduced, amazonas).getInfo()
+            values = {k: np.nan if v is None else v for k, v in values.items()}
+            num_regression.check(values)
+
+    def test_deprecated_composite_by_month(self, jaxa_rainfall, amazonas, num_regression):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-01")
+        with pytest.deprecated_call():
+            reduced = geetools.composite.compositeByMonth(ic)
             values = reduce(reduced, amazonas).getInfo()
             values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)
 
 
-class TestFillWithFirst:
-    """Test the ``fillWithFirst`` method."""
+class TestClosestDate:
+    """Test the ``closestDate`` method."""
 
-    def test_fill_with_first(self, s2_sr, amazonas, num_regression):
+    def test_closest_date(self, s2_sr, amazonas, num_regression):
         # we need less images as the test will fail otherwise
-        filled = s2_sr.filterDate("2021-01-01", "2021-01-15").geetools.fillWithFirst()
+        filled = s2_sr.filterDate("2021-01-01", "2021-01-15").geetools.closestDate()
         values = reduce(filled, amazonas, "mean").getInfo()
         values = {k: np.nan if v is None else v for k, v in values.items()}
         num_regression.check(values)
@@ -378,5 +387,31 @@ class TestFillWithFirst:
                 s2_sr.filterDate("2021-01-01", "2021-01-15")
             )
             values = reduce(filled, amazonas, "mean").getInfo()
+            values = {k: np.nan if v is None else v for k, v in values.items()}
+            num_regression.check(values)
+
+    def test_deprecated_closest_date(self, s2_sr, amazonas, num_regression):
+        with pytest.deprecated_call():
+            filled = geetools.composite.closestDate(s2_sr.filterDate("2021-01-01", "2021-01-15"))
+            values = reduce(filled, amazonas, "mean").getInfo()
+            values = {k: np.nan if v is None else v for k, v in values.items()}
+            num_regression.check(values)
+
+
+class TestMedoid:
+    """Test the ``medoid`` method."""
+
+    def test_medoid(self, s2_sr, amazonas, num_regression):
+        # we need less images as the test will fail otherwise
+        medoid = s2_sr.filterDate("2021-01-01", "2021-01-05").geetools.medoid()
+        values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
+        values = {k: np.nan if v is None else v for k, v in values.items()}
+        num_regression.check(values)
+
+    def test_deprecated_medoid(self, s2_sr, amazonas, num_regression):
+        with pytest.deprecated_call():
+            # we need less images as the test will fail otherwise
+            medoid = geetools.composite.medoid(s2_sr.filterDate("2021-01-01", "2021-01-05"))
+            values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
             values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)

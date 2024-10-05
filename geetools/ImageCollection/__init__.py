@@ -940,7 +940,7 @@ class ImageCollectionAccessor:
 
         return ee.ImageCollection(reducedImagesList)
 
-    def fillWithFirst(self) -> ee.ImageCollection:
+    def closestDate(self) -> ee.ImageCollection:
         """Fill masked pixels with the first valid pixel in the stack of images.
 
         The method will for every image, fill all the pixels with the latest nono masked pixel in the stack of images.
@@ -977,3 +977,66 @@ class ImageCollectionAccessor:
         imageList = timeList.map(fill)
 
         return ee.ImageCollection(imageList)
+
+    def medoid(self) -> ee.image:
+        """Compute the medoid of the ImageCollection.
+
+        The medoid is the image that has the smallest sum of distances to all other images in the collection.
+        The distance is computed using the Euclidean distance between the pixels of the images.
+
+        Returns:
+            An Image that is the medoid of the ImageCollection.
+
+        Examples:
+            .. code:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                medoid = collection.geetools.medoid()
+                print(medoid.getInfo())
+        """
+        # create a random name for the sum of distances band to avoid conflicts
+        sumOfDistancesName = uuid.uuid4().hex
+
+        # discover bandname from the first image of the collection
+        bandNames = self._obj.first().bandNames()
+
+        # normalize the band used to compute the distance
+        # first extract the min and max value of each band pixelwizse along the stac and then
+        # normalize the pixel values.
+        minMax = self._obj.reduce(ee.Reducer.minMax())
+
+        def normalizeBands(image):
+            def normalizeBand(bandName):
+                band = image.select([bandName])
+                bandMin = minMax.select(ee.String(bandName).cat("_min"))
+                bandMax = minMax.select(ee.String(bandName).cat("_max"))
+                return band.subtract(bandMin).divide(bandMax.subtract(bandMin))
+
+            return ee.ImageCollection(bandNames.map(normalizeBand)).toBands().rename(bandNames)
+
+        normalized = self._obj.map(normalizeBands)
+
+        # compute the distance between each image and all the others
+        def computeSumDistance(image):
+            def computeDistance(other):
+                return image.subtract(other).pow(2).reduce(ee.Reducer.sum()).sqrt()
+
+            sumDistances = normalized.map(computeDistance).reduce(ee.Reducer.sum())
+            return image.addBands(sumDistances.rename(sumOfDistancesName))
+
+        sumDistance = normalized.map(computeSumDistance)
+
+        # use the computed sum of distances as a sorting band for a quality mossaic
+        # to get the image with the smallest sum of distances
+        medoid = sumDistance.qualityMosaic(sumOfDistancesName)
+
+        return ee.Image(medoid).select(bandNames)
