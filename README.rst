@@ -23,7 +23,7 @@
     :alt: PyPI version
 
 .. |conda| image:: https://img.shields.io/conda/vn/conda-forge/geetools?color=blue&logo=anaconda&logoColor=white
-    :target: https://anaconda.org/conda-forge/geetools
+    :target: https://github.com/conda-forge/geetools-feedstock
     :alt: Conda-forge version
 
 .. |build| image:: https://img.shields.io/github/actions/workflow/status/gee-community/geetools/unit.yaml?logo=github&logoColor=white

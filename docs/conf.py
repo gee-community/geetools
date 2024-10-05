@@ -67,11 +67,19 @@ html_theme_options = {
             "name": "GitHub",
             "url": "https://github.com/gee-community/geetools",
             "icon": "fa-brands fa-github",
+            "type": "fontawesome",
         },
         {
             "name": "Pypi",
             "url": "https://pypi.org/project/geetools/",
             "icon": "fa-brands fa-python",
+            "type": "fontawesome",
+        },
+        {
+            "name": "Conda",
+            "url": "https://anaconda.org/conda-forge/geetools",
+            "icon": "fa-custom fa-conda",
+            "type": "fontawesome",
         },
     ],
     "secondary_sidebar_items": [
@@ -92,6 +100,7 @@ html_context = {
     "doc_path": "docs",
 }
 html_css_files = ["custom.css"]
+html_js_files = ["custom-icon.js"]
 
 # -- Options for autosummary/autodoc output ------------------------------------
 autodoc_typehints = "description"
