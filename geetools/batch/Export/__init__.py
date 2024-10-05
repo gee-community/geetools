@@ -67,11 +67,12 @@ class ExportAccessor:
                 ```
             """
             # sanity check on parameters
-            description = description or ee.Asset(assetId).name
-            assetId = ee.Asset(assetId) or ee.Asset("~").expanduser() / description
+            # renaming them for mypy type reassignment and compactness
+            desc = description or ee.Asset(assetId).name
+            aid = ee.Asset(assetId) or ee.Asset("~").expanduser() / description
 
             # create the ImageCollection asset
-            ee.data.createAsset({"type": "IMAGE_COLLECTION"}, assetId.as_posix())
+            ee.data.createAsset({"type": "IMAGE_COLLECTION"}, aid.as_posix())
 
             # loop over the collection and export each image
             nb_images = imagecollection.size().getInfo()
@@ -84,8 +85,8 @@ class ExportAccessor:
 
                 # override the parameters related to the image itself
                 kwargs["image"] = locImage
-                kwargs["description"] = utils.format_description(f"{description}_{loc_id}")
-                kwargs["assetId"] = (assetId / utils.format_asset_id(loc_id)).as_posix()
+                kwargs["description"] = utils.format_description(f"{desc}_{loc_id}")
+                kwargs["assetId"] = (aid / utils.format_asset_id(loc_id)).as_posix()
 
                 # create the task
                 task_list.append(ee.batch.Export.image.toAsset(**kwargs))
