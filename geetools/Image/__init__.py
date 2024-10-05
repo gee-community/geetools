@@ -6,7 +6,9 @@ from typing import Optional
 import ee
 import ee_extra
 import ee_extra.Algorithms.core
+import numpy as np
 import requests
+from matplotlib.axes import Axes
 
 from geetools.accessors import register_class_accessor
 from geetools.types import (
@@ -1349,3 +1351,56 @@ class ImageAccessor:
         ratio = ratio.multiply(1000).toInt().divide(10)
 
         return ee.Image(self._obj.set("mask_cover", ratio))
+
+    def plot(
+        self,
+        bands: list,
+        geometry: ee.Geometry,
+        ax: Axes,
+        crs: str = "EPSG:4326",
+        scale: float = 0.1,
+    ):
+        """Plot the image on a matplotlib axis.
+
+        Parameters:
+            bands: The bands to plot.
+            geometry: The geometry to plot the image on.
+            ax: The matplotlib axis to plot the image on.
+            crs: The coordinate reference system of the image.
+            scale: The scale of the image.
+
+        Examples:
+            .. code-block:: python
+
+                    import ee, geetools
+                    import matplotlib.pyplot as plt
+
+                    ee.Initialize()
+
+                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                    fig, ax = plt.subplots()
+                    image.plot(["B2", "B3", "B4"], image.geometry(), ax)
+        """
+        # reproject the image in the required crs and select the bands
+        image = self._obj.select(bands).reproject(crs, scale=scale).select(bands)
+
+        # extract the data using SampleRectangle
+        # it has a very small extraction capacity we should use other tools
+        # like getPixels or computePixels
+        pixels = image.sampleRectangle(region=geometry.bounds(), defaultValue=0)
+
+        array_list = []
+        for b in bands:
+            array_list.append(np.array(pixels.get(b).getInfo()))
+        composite = np.dstack(array_list)
+
+        # Normalize the image to the [0, 1] range for display
+        rgb_image = (composite - np.min(composite)) / (np.max(composite) - np.min(composite))
+
+        # Get the bounding box (extent) of the region in terms of longitude and latitude
+        region_bounds = geometry.bounds().coordinates().get(0).getInfo()
+        min_lon, min_lat = region_bounds[0]
+        max_lon, max_lat = region_bounds[2]
+
+        # Plot the image
+        ax.imshow(rgb_image, extent=[min_lon, max_lon, min_lat, max_lat])

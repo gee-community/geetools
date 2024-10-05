@@ -1,5 +1,6 @@
 """Test the ``Image`` class."""
 import zipfile
+from io import BytesIO
 from math import isclose
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -9,6 +10,7 @@ import ee
 import numpy as np
 import pytest
 from jsonschema import validate
+from matplotlib import pyplot as plt
 
 import geetools
 
@@ -587,3 +589,16 @@ class TestMaskCover:
         mask = qa.bitwiseAnd(cloudBitMask).eq(0).And(qa.bitwiseAnd(cirrusBitMask).eq(0))
         image = image.updateMask(mask)
         return image.select(["B4", "B3", "B2"])
+
+
+class TestPlot:
+    """Test the ``plot`` method."""
+
+    def test_plot(self, s2_sr_vatican_2020, vatican_buffer, image_regression):
+        fig, ax = plt.subplots()
+        s2_sr_vatican_2020.geetools.plot(["B4", "B3", "B2"], vatican_buffer, ax, scale=1)
+
+        with BytesIO() as image_byte:
+            fig.savefig(image_byte, format="png")
+            image_byte.seek(0)
+            image_regression.check(image_byte.getvalue())
