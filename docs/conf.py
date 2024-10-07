@@ -96,7 +96,7 @@ html_theme_options = {
 html_context = {
     "github_user": "gee-community",
     "github_repo": "geetools",
-    "github_version": "master",
+    "github_version": "main",
     "doc_path": "docs",
 }
 html_css_files = ["custom.css"]
