@@ -594,9 +594,48 @@ class TestMaskCover:
 class TestPlot:
     """Test the ``plot`` method."""
 
-    def test_plot(self, s2_sr_vatican_2020, vatican_buffer, image_regression):
+    def test_plot(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
-        s2_sr_vatican_2020.geetools.plot(["B4", "B3", "B2"], vatican_buffer, ax, scale=1)
+        s2_sr_vatican_2020.geetools.plot(["B4", "B3", "B2"], vatican.geometry(), ax)
+
+        with BytesIO() as image_byte:
+            fig.savefig(image_byte, format="png")
+            image_byte.seek(0)
+            image_regression.check(image_byte.getvalue())
+
+    def test_plot_one_band(self, s2_sr_vatican_2020, vatican, image_regression):
+        fig, ax = plt.subplots()
+        ndvi = s2_sr_vatican_2020.geetools.spectralIndices("NDVI")
+        ndvi.geetools.plot(["NDVI"], vatican.geometry(), ax)
+
+        with BytesIO() as image_byte:
+            fig.savefig(image_byte, format="png")
+            image_byte.seek(0)
+            image_regression.check(image_byte.getvalue())
+
+    def test_plot_one_band_cmap(self, s2_sr_vatican_2020, vatican, image_regression):
+        fig, ax = plt.subplots()
+        ndvi = s2_sr_vatican_2020.geetools.spectralIndices("NDVI")
+        ndvi.geetools.plot(["NDVI"], vatican.geometry(), ax, cmap="RdYlGn")
+
+        with BytesIO() as image_byte:
+            fig.savefig(image_byte, format="png")
+            image_byte.seek(0)
+            image_regression.check(image_byte.getvalue())
+
+    def test_plot_with_fc(self, s2_sr_vatican_2020, vatican, image_regression):
+        fig, ax = plt.subplots()
+        s2_sr_vatican_2020.geetools.plot(["B4", "B3", "B2"], vatican.geometry(), ax, fc=vatican)
+
+        with BytesIO() as image_byte:
+            fig.savefig(image_byte, format="png")
+            image_byte.seek(0)
+            image_regression.check(image_byte.getvalue())
+
+    def test_plot_with_crs(self, s2_sr_vatican_2020, vatican, image_regression):
+        fig, ax = plt.subplots()
+        ndvi = s2_sr_vatican_2020.geetools.spectralIndices("NDVI")
+        ndvi.geetools.plot(["NDVI"], vatican.geometry(), ax, crs="EPSG:3857", scale=10)
 
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
