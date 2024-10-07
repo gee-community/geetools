@@ -5,7 +5,7 @@ repos:
     rev: "22.3.0"
     hooks:
       - id: black
-        stages: [commit]
+        stages: [pre-commit]
 
   - repo: "https://github.com/commitizen-tools/commitizen"
     rev: "v2.18.0"
@@ -17,31 +17,31 @@ repos:
     rev: "v2.7.1"
     hooks:
       - id: prettier
-        stages: [commit]
+        stages: [pre-commit]
         exclude: tests\/test_.+\.
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: "v0.0.215"
     hooks:
       - id: ruff
-        stages: [commit]
+        stages: [pre-commit]
 
   #  - repo: https://github.com/PyCQA/doc8
   #    rev: "v1.1.1"
   #    hooks:
   #      - id: doc8
-  #        stages: [commit]
+  #        stages: [pre-commit]
 
   - repo: https://github.com/FHPythonUtils/LicenseCheck
     rev: "2023.1.1"
     hooks:
       - id: licensecheck
-        stages: [commit]
+        stages: [pre-commit]
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.4
     hooks:
       - id: codespell
-        stages: [commit]
+        stages: [pre-commit]
         additional_dependencies:
           - tomli
