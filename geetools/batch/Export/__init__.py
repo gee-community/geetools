@@ -135,7 +135,7 @@ class ExportAccessor:
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
             desc = description or folder
-            folder or description
+            fid = folder or description
 
             # loop over the collection and export each image
             nb_images = imagecollection.size().getInfo()
@@ -149,7 +149,7 @@ class ExportAccessor:
                 # override the parameters related to the image itself
                 # the folder will be created by the first task
                 kwargs["image"] = locImage
-                kwargs["folder"] = utils.format_asset_id(folder)
+                kwargs["folder"] = utils.format_asset_id(f"{fid}")
                 kwargs["description"] = utils.format_description(f"{desc}_{loc_id}")
 
                 # create the task
@@ -199,7 +199,7 @@ class ExportAccessor:
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
             desc = description or folder
-            folder or description
+            fid = folder or description
 
             # loop over the collection and export each image
             nb_images = imagecollection.size().getInfo()
@@ -213,7 +213,7 @@ class ExportAccessor:
                 # override the parameters related to the image itself
                 # the folder will be created by the first task
                 kwargs["image"] = locImage
-                kwargs["fileNamePrefix"] = f"{utils.format_asset_id(folder)}/"
+                kwargs["fileNamePrefix"] = utils.format_asset_id(f"{fid}") + "/"
                 kwargs["description"] = utils.format_description(f"{desc}_{loc_id}")
 
                 # create the task
