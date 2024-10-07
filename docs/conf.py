@@ -86,6 +86,7 @@ html_theme_options = {
         "page-toc.html",
         "edit-this-page.html",
     ],
+    "announcement": "https://raw.githubusercontent.com/gee-community/geetool/anoucment/docs/_static/custom-template.html",
     "switcher": {
         "json_url": json_url,
         "version_match": version_match,
