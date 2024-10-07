@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Optional, Union
 
 import ee
+import geopandas as gpd
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
@@ -507,3 +508,49 @@ class FeatureCollectionAccessor:
         ax.figure.canvas.draw_idle()
 
         return ax
+
+    def plot(
+        self,
+        ax: Axes,
+        property: str = "",
+        crs: str = "EPSG:4326",
+        cmap: str = "viridis",
+        boundaries: bool = False,
+        color: str = "k",
+    ):
+        """Plot the featureCollection on a map using the provided property.
+
+        Parameters:
+            property: The property to use to color the features.
+            ax: The axes to plot the map on.
+            crs: The CRS to use for the map.
+            cmap: The colormap to use for the colors.
+            boundaries: Whether to plot the features values or only the boundaries.
+            color: The color to use for the boundaries.
+
+        Examples:
+            .. code-block:: python
+
+                import ee
+                import geetools
+
+                ee.Initialize()
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
+                fig, ax = plt.subplots()
+                fc.geetools.plot("ADM2_CODE", ax)
+        """
+        # get the data from the server
+        names = self._obj.first().propertyNames()
+        names = names.filter(ee.Filter.stringStartsWith("item", "system:").Not())
+        property = property if property != "" else names.get(0).getInfo()
+        data = self._obj.select([property]).getInfo()
+
+        # transform the data to a geodataframe and reproject it to the destination crs
+        gdf = gpd.GeoDataFrame.from_features(data["features"]).set_crs(4326).to_crs(crs)
+
+        # plot the data on the map either as contours or a valued features
+        if boundaries is True:
+            gdf.boundary.plot(ax=ax, color=color)
+        else:
+            gdf.plot(column=property, ax=ax, cmap=cmap)
