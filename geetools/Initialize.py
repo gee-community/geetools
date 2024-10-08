@@ -8,7 +8,7 @@ from typing import Optional
 import ee
 from google.oauth2.credentials import Credentials
 
-from geetools.accessors import register_function_accessor
+from .accessors import register_function_accessor
 
 _project_id: Optional[str] = None
 "The project Id used by the current user."

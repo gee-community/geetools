@@ -28,7 +28,7 @@ from .Initialize import InitializeAccessor
 from .Authenticate import AuthenticateAccessor
 from .Array import ArrayAccessor
 from .DateRange import DateRangeAccessor
-from .batch.Export import ExportAccessor
+from .Export import ExportAccessor
 
 
 __title__ = "geetools"

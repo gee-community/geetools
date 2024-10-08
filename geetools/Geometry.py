@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import ee
 
-from geetools.accessors import register_class_accessor
+from .accessors import register_class_accessor
 
 
 @register_class_accessor(ee.Geometry, "geetools")

@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 
 import ee
 
-from geetools.accessors import register_function_accessor
+from .accessors import register_function_accessor
 
 
 @register_function_accessor(ee.Authenticate, "geetools")

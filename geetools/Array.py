@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import ee
 
-from geetools.accessors import register_class_accessor
-from geetools.types import ee_int, ee_number
+from .accessors import register_class_accessor
+from .types import ee_int, ee_number
 
 # hack to have the generated Array class available
 # it might create issues in the future with libs that have exotic init methods

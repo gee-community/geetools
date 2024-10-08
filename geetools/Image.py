@@ -14,8 +14,8 @@ from matplotlib.axes import Axes
 from pyproj import CRS, Transformer
 from xee.ext import REQUEST_BYTE_LIMIT
 
-from geetools.accessors import register_class_accessor
-from geetools.types import (
+from .accessors import register_class_accessor
+from .types import (
     ee_dict,
     ee_geomlike,
     ee_int,

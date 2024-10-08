@@ -5,8 +5,8 @@ from typing import List, Optional
 
 import ee
 
-from geetools.accessors import register_class_accessor
-from geetools.batch import utils
+from .accessors import register_class_accessor
+from .utils import format_asset_id, format_description
 
 
 @register_class_accessor(ee.batch.Export, "geetools")
@@ -85,8 +85,8 @@ class ExportAccessor:
 
                 # override the parameters related to the image itself
                 kwargs["image"] = locImage
-                kwargs["description"] = utils.format_description(f"{desc}_{loc_id}")
-                kwargs["assetId"] = (aid / utils.format_asset_id(loc_id)).as_posix()
+                kwargs["description"] = format_description(f"{desc}_{loc_id}")
+                kwargs["assetId"] = (aid / format_asset_id(loc_id)).as_posix()
 
                 # create the task
                 task_list.append(ee.batch.Export.image.toAsset(**kwargs))
@@ -149,8 +149,8 @@ class ExportAccessor:
                 # override the parameters related to the image itself
                 # the folder will be created by the first task
                 kwargs["image"] = locImage
-                kwargs["folder"] = utils.format_asset_id(f"{fid}")
-                kwargs["description"] = utils.format_description(f"{desc}_{loc_id}")
+                kwargs["folder"] = format_asset_id(f"{fid}")
+                kwargs["description"] = format_description(f"{desc}_{loc_id}")
 
                 # create the task
                 task_list.append(ee.batch.Export.image.toDrive(**kwargs))
@@ -213,8 +213,8 @@ class ExportAccessor:
                 # override the parameters related to the image itself
                 # the folder will be created by the first task
                 kwargs["image"] = locImage
-                kwargs["fileNamePrefix"] = utils.format_asset_id(f"{fid}") + "/"
-                kwargs["description"] = utils.format_description(f"{desc}_{loc_id}")
+                kwargs["fileNamePrefix"] = format_asset_id(f"{fid}") + "/"
+                kwargs["description"] = format_description(f"{desc}_{loc_id}")
 
                 # create the task
                 task_list.append(ee.batch.Export.image.toCloudStorage(**kwargs))

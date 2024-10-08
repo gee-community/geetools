@@ -8,8 +8,8 @@ from typing import Optional
 import ee
 from anyascii import anyascii
 
-from geetools.accessors import _register_extention
-from geetools.types import pathlike
+from .accessors import _register_extention
+from .types import pathlike
 
 
 @_register_extention(ee)

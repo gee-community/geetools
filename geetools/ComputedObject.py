@@ -7,8 +7,8 @@ from typing import Type
 
 import ee
 
-from geetools.accessors import _register_extention
-from geetools.types import pathlike
+from .accessors import _register_extention
+from .types import pathlike
 
 
 # -- types management ----------------------------------------------------------

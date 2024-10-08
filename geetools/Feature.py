@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import ee
 
-from geetools.accessors import register_class_accessor
-from geetools.types import ee_list
+from .accessors import register_class_accessor
+from .types import ee_list
 
 
 @register_class_accessor(ee.Feature, "geetools")
