@@ -6,6 +6,8 @@ import geopandas as gpd
 import pytest
 from matplotlib import pyplot as plt
 
+import geetools  # noqa: F401
+
 
 class TestToImage:
     """Test the ``toImage`` method."""
@@ -231,3 +233,48 @@ class TestPlotHist:
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
             image_regression.check(buffer.getvalue())
+
+
+class TestPlot:
+    """Test the ``plot`` method."""
+
+    def test_plot(self, image_regression):
+        fig, ax = plt.subplots()
+        self.hydroshed.select(["UP_AREA"]).geetools.plot(ax=ax)
+
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_with_property(self, image_regression):
+        fig, ax = plt.subplots()
+        self.hydroshed.geetools.plot(ax=ax, property="UP_AREA")
+
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_with_cmap(self, image_regression):
+        fig, ax = plt.subplots()
+        self.hydroshed.geetools.plot(ax=ax, property="UP_AREA", cmap="magma")
+
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_with_boundaries(self, image_regression):
+        fig, ax = plt.subplots()
+        self.hydroshed.geetools.plot(
+            ax=ax, property="UP_AREA", cmap="magma", boundaries=True, color="g"
+        )
+
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    @property
+    def hydroshed(self):
+        """The level 4 hydroshed of South america."""
+        dataset = "WWF/HydroATLAS/v1/Basins/level04"
+        region = ee.Geometry.BBox(-80, -60, -20, 20)
+        return ee.FeatureCollection(dataset).filterBounds(region)
