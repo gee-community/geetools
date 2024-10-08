@@ -6,7 +6,13 @@ from typing import Optional
 import ee
 import ee_extra
 import ee_extra.Algorithms.core
+import geopandas as gpd
+import numpy as np
 import requests
+import xarray
+from matplotlib.axes import Axes
+from pyproj import CRS, Transformer
+from xee.ext import REQUEST_BYTE_LIMIT
 
 from geetools.accessors import register_class_accessor
 from geetools.types import (
@@ -1349,3 +1355,74 @@ class ImageAccessor:
         ratio = ratio.multiply(1000).toInt().divide(10)
 
         return ee.Image(self._obj.set("mask_cover", ratio))
+
+    def plot(
+        self,
+        bands: list,
+        region: ee.Geometry,
+        ax: Axes,
+        fc: ee.FeatureCollection = None,
+        cmap: str = "viridis",
+        crs: str = "EPSG:4326",
+        scale: float = 0.0001,  # 0.0001 is the default scale for Sentinel-2
+    ):
+        """Plot the image on a matplotlib axis.
+
+        Parameters:
+            bands: The bands to plot.
+            region: The geometry borders to plot the image on.
+            ax: The matplotlib axis to plot the image on.
+            fc: a FeatureCollection object to overlay on top of the image. Default is None, it can be a different object from the region.
+            cmap: The colormap to use for the image. Default is 'viridis'. can only ber used for single band images.
+            crs: The coordinate reference system of the image.
+            scale: The scale of the image.
+
+        Examples:
+            .. code-block:: python
+
+                    import ee, geetools
+                    import matplotlib.pyplot as plt
+
+                    ee.Initialize()
+
+                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                    fig, ax = plt.subplots()
+                    image.plot(["B2", "B3", "B4"], image.geometry(), ax)
+        """
+        # extract the image as a xarray dataset
+        ds = xarray.open_dataset(
+            ee.ImageCollection([self._obj]),
+            engine="ee",
+            crs=crs,
+            scale=scale,
+            geometry=region.bounds(),
+            request_byte_limit=REQUEST_BYTE_LIMIT,
+        )
+
+        # extract all the bands as dataarrays objects
+        # x and y coordinates need to be transposed to match imshow requirements
+        bands_da = [ds[b][0, :, :].transpose() for b in bands]
+
+        # compute the extend of the image so the unit displayed for x and y are matching the required crs
+        proj = Transformer.from_crs(CRS("EPSG:4326"), CRS(crs), always_xy=True)
+        region_bounds = region.bounds().coordinates().get(0).getInfo()
+        min_x, min_y = proj.transform(*region_bounds[0])
+        max_x, max_y = proj.transform(*region_bounds[2])
+
+        # For single band image, we use the dataarray directly as source image
+        # for multi band image, we need to stack the dataarrays to create a RGB image
+        # and normalized them
+        if len(bands) == 1:
+            ax.imshow(bands_da[0], extent=[min_x, max_x, min_y, max_y], cmap=cmap)
+            print(bands_da[0].shape)
+        else:
+            da = np.dstack(bands_da)
+            rgb_image = (da - np.min(da)) / (np.max(da) - np.min(da))
+            ax.imshow(rgb_image, extent=[min_x, max_x, min_y, max_y])
+
+        # add the feature collection if provided
+        # we need to extract the geometries and plot them
+        if fc is not None:
+            gdf = gpd.GeoDataFrame.from_features(fc.getInfo()["features"])
+            gdf = gdf.set_crs("EPSG:4326").to_crs(crs)
+            gdf.boundary.plot(ax=ax)
