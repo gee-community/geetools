@@ -32,12 +32,6 @@ repos:
   #      - id: doc8
   #        stages: [pre-commit]
 
-  - repo: https://github.com/FHPythonUtils/LicenseCheck
-    rev: "2023.1.1"
-    hooks:
-      - id: licensecheck
-        stages: [pre-commit]
-
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.4
     hooks:
