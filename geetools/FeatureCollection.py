@@ -9,8 +9,8 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.colors import to_rgba
 
-from geetools.accessors import register_class_accessor
-from geetools.types import ee_int, ee_list, ee_str
+from .accessors import register_class_accessor
+from .types import ee_int, ee_list, ee_str
 
 
 @register_class_accessor(ee.FeatureCollection, "geetools")

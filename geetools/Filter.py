@@ -5,7 +5,7 @@ from typing import Any
 
 import ee
 
-from geetools.accessors import register_class_accessor
+from .accessors import register_class_accessor
 
 
 @register_class_accessor(ee.Filter, "geetools")

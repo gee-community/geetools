@@ -5,7 +5,7 @@ from datetime import datetime
 
 import ee
 
-from geetools.accessors import register_class_accessor
+from .accessors import register_class_accessor
 
 EE_EPOCH = datetime(1970, 1, 1, 0, 0, 0)
 

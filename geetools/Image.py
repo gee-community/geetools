@@ -8,8 +8,8 @@ import ee_extra
 import ee_extra.Algorithms.core
 import requests
 
-from geetools.accessors import register_class_accessor
-from geetools.types import (
+from .accessors import register_class_accessor
+from .types import (
     ee_dict,
     ee_geomlike,
     ee_int,

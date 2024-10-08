@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import ee
 
-from geetools.accessors import register_class_accessor
-from geetools.types import ee_int
+from .accessors import register_class_accessor
+from .types import ee_int
 
 
 @register_class_accessor(ee.DateRange, "geetools")
