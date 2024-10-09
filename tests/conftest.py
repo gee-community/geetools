@@ -78,6 +78,13 @@ def s2_sr(amazonas) -> ee.ImageCollection:
 
 
 @pytest.fixture
+def vatican():
+    """Return the vatican city."""
+    level0 = ee.FeatureCollection("FAO/GAUL/2015/level0")
+    return level0.filter(ee.Filter.eq("ADM0_NAME", "Holy See"))
+
+
+@pytest.fixture
 def vatican_buffer():
     """A 100 buffer around vatican city."""
     return ee.Geometry.Point([12.4534, 41.9033]).buffer(100)
