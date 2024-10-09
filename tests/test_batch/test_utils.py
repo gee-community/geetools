@@ -1,6 +1,6 @@
 """Test the utils module."""
 
-from geetools.batch import utils
+from geetools import utils
 
 
 class TestFormatDescription:
