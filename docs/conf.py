@@ -7,12 +7,11 @@ https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # -- Path setup ----------------------------------------------------------------
 import os
-import re
 import sys
 from datetime import datetime
 from pathlib import Path
 
-import ee
+import pytest_gee
 
 # add . to sys to import local extensions
 sys.path.append(str(Path(".").resolve()))
@@ -124,40 +123,17 @@ intersphinx_mapping = {}
 autosectionlabel_prefix_document = True
 
 # -- options for myst-nb ------------------------------------------------------
-nb_execution_mode = "off"
+# nb_execution_mode = "off"
 
 # -- Script to authenticate to Earthengine using a token -----------------------
 def gee_configure() -> None:
-    """Initialize earth engine according to the environment.
-
-    It will use the creddential file if the EARTHENGINE_TOKEN env variable exist.
-    Otherwise it use the simple Initialize command (asking the user to register if necessary).
-    """
-    # only do the initialization if the credential are missing
-    if False:
-        # if not ee.data._credentials:
-
-        # if the credentials token is asved in the environment use it
-        if "EARTHENGINE_TOKEN" in os.environ:
-
-            # get the token from environment variable
-            ee_token = os.environ["EARTHENGINE_TOKEN"]
-
-            # as long as RDT quote the token, we need to remove the quotes before writing
-            # the string to the file
-            pattern = r"^'[^']*'$"
-            if re.match(pattern, ee_token) is not None:
-                ee_token = ee_token[1:-1]
-
-            # write the token to the appropriate folder
-            credential_folder_path = Path.home() / ".config" / "earthengine"
-            credential_folder_path.mkdir(parents=True, exist_ok=True)
-            credential_file_path = credential_folder_path / "credentials"
-            credential_file_path.write_text(ee_token)
-
-        # if the user is in local development the authentication should
-        # already be available
-        ee.Initialize()
+    """Initialize earth engine according to the environment."""
+    if "EARTHENGINE_PROJECT" in os.environ:
+        pytest_gee.init_ee_from_token()
+    elif "EARTHENGINE_SERVICE_ACCOUNT" in os.environ:
+        pytest_gee.init_ee_from_service_account()
+    else:
+        raise ValueError("Cannot authenticate with Earth Engine.")
 
 
 gee_configure()
