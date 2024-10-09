@@ -940,12 +940,12 @@ class ImageCollectionAccessor:
 
         # catch the error if the reducer is not available in the ee.ImageCollection class
         # and provide a more meaningful error message.
-        # try:
-        reducedImagesList = imageCollectionList.map(reduce)
-        # except AttributeError:
-        #    raise AttributeError(
-        #        f'Reducer "{reducer}" not available in the ee.ImageCollection class'
-        #    )
+        try:
+            reducedImagesList = imageCollectionList.map(reduce)
+        except AttributeError:
+            raise AttributeError(
+                f'Reducer "{reducer}" not available in the ee.ImageCollection class'
+            )
 
         return ee.ImageCollection(reducedImagesList)
 
