@@ -935,8 +935,7 @@ class ImageCollectionAccessor:
             start, end = timeList.get(0), timeList.get(-1)
             reduced = getattr(ee.ImageCollection(ic), reducer)
             image = reduced(qualityBand) if reducer == "qualityMosaic" else reduced()
-            image = ee.Image(image).set("system:time_start", start, "system:time_end", end)
-            return ee.Image(image)
+            return image.set("system:time_start", start, "system:time_end", end)
 
         # catch the error if the reducer is not available in the ee.ImageCollection class
         # and provide a more meaningful error message.
@@ -947,7 +946,10 @@ class ImageCollectionAccessor:
                 f'Reducer "{reducer}" not available in the ee.ImageCollection class'
             )
 
-        return ee.ImageCollection(reducedImagesList)
+        # set back the original properties
+        ic = ee.ImageCollection(reducedImagesList).copyProperties(self._obj)
+
+        return ee.ImageCollection(ic)
 
     def closestDate(self) -> ee.ImageCollection:
         """Fill masked pixels with the first valid pixel in the stack of images.
