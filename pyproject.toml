@@ -78,6 +78,7 @@ doc = [
   "jupyter-sphinx",
   "myst-nb",
   "pytest-gee",
+  "sphinx-icon",
 ]
 
 [tool.hatch.build.targets.wheel]

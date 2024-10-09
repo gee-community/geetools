@@ -1365,6 +1365,7 @@ class ImageAccessor:
         cmap: str = "viridis",
         crs: str = "EPSG:4326",
         scale: float = 0.0001,  # 0.0001 is the default scale for Sentinel-2
+        color="k",
     ):
         """Plot the image on a matplotlib axis.
 
@@ -1376,6 +1377,7 @@ class ImageAccessor:
             cmap: The colormap to use for the image. Default is 'viridis'. can only ber used for single band images.
             crs: The coordinate reference system of the image.
             scale: The scale of the image.
+            color: The color of the overlaid feature collection. Default is "k" (black).
 
         Examples:
             .. code-block:: python
@@ -1414,7 +1416,6 @@ class ImageAccessor:
         # and normalized them
         if len(bands) == 1:
             ax.imshow(bands_da[0], extent=[min_x, max_x, min_y, max_y], cmap=cmap)
-            print(bands_da[0].shape)
         else:
             da = np.dstack(bands_da)
             rgb_image = (da - np.min(da)) / (np.max(da) - np.min(da))
@@ -1425,4 +1426,4 @@ class ImageAccessor:
         if fc is not None:
             gdf = gpd.GeoDataFrame.from_features(fc.getInfo()["features"])
             gdf = gdf.set_crs("EPSG:4326").to_crs(crs)
-            gdf.boundary.plot(ax=ax)
+            gdf.boundary.plot(ax=ax, color=color)

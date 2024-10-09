@@ -32,10 +32,10 @@ content
 
    .. grid-item::
 
-      .. card:: Usage
-         :link: usage/install.html
+      .. card:: :icon:`fa-solid fa-chart-simple` plot
+         :link: usage/plot/index.html
 
-         Usage and installation
+         Extension methods to display EE objects directly as matplotlib plots.
 
    .. grid-item::
 

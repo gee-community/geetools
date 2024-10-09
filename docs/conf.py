@@ -28,12 +28,14 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosectionlabel",
+    "sphinxcontrib.icon",
     "sphinx_design",
     "sphinx_copybutton",
     "autoapi.extension",
     "jupyter_sphinx",
     "myst_nb",
     "_extension.docstring",
+    "_extension.api_admonition",
 ]
 exclude_patterns = ["**.ipynb_checkpoints"]
 
@@ -123,7 +125,7 @@ intersphinx_mapping = {}
 autosectionlabel_prefix_document = True
 
 # -- options for myst-nb ------------------------------------------------------
-# nb_execution_mode = "off"
+nb_execution_mode = "force"
 
 # -- Script to authenticate to Earthengine using a token -----------------------
 def gee_configure() -> None:
