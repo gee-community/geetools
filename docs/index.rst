@@ -7,8 +7,8 @@ geetools
 .. toctree::
    :hidden:
 
+   setup/index
    usage/index
-   example/index
    autoapi/index
    Changelogs <https://github.com/gee-community/geetools/releases>
    earth-engine API <https://developers.google.com/earth-engine/apidocs>
@@ -32,10 +32,10 @@ content
 
    .. grid-item::
 
-      .. card:: Usage
-         :link: usage/install.html
+      .. card:: :icon:`fa-solid fa-chart-simple` plot
+         :link: usage/plot/index.html
 
-         Usage and installation
+         Extension methods to display EE objects directly as matplotlib plots.
 
    .. grid-item::
 
