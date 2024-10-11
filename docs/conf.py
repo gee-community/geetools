@@ -130,10 +130,10 @@ nb_execution_mode = "force"
 # -- Script to authenticate to Earthengine using a token -----------------------
 def gee_configure() -> None:
     """Initialize earth engine according to the environment."""
-    if "EARTHENGINE_PROJECT" in os.environ:
-        pytest_gee.init_ee_from_token()
-    elif "EARTHENGINE_SERVICE_ACCOUNT" in os.environ:
+    if "EARTHENGINE_SERVICE_ACCOUNT" in os.environ:
         pytest_gee.init_ee_from_service_account()
+    elif "EARTHENGINE_PROJECT" in os.environ:
+        pytest_gee.init_ee_from_token()
     else:
         raise ValueError("Cannot authenticate with Earth Engine.")
 
