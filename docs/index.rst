@@ -35,21 +35,14 @@ content
       .. card:: :icon:`fa-solid fa-chart-simple` plot
          :link: usage/plot/index.html
 
-         Extension methods to display EE objects directly as matplotlib plots.
+         Display EE objects directly as static plots.
 
    .. grid-item::
 
-      .. card:: Contribute
-         :link: usage/contribute.html
+      .. card:: :icon:`fa-solid fa-handshake-angle` Contribute
+         :link: setup/contribute.html
 
          Help us improve the lib.
-
-   .. grid-item::
-
-      .. card:: API
-         :link: autoapi/index.html
-
-         Discover the lib API.
 
 Why using it ?
 --------------
