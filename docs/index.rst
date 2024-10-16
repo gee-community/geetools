@@ -46,6 +46,13 @@ content
 
    .. grid-item::
 
+      .. card:: :icon:`fa-solid fa-images` export ImageCollections
+         :link: usage/export.html
+
+         Useful wrapper to export ImageCollections as simply as Images.
+
+   .. grid-item::
+
       .. card:: :icon:`fa-solid fa-handshake-angle` Contribute
          :link: setup/contribute.html
 
