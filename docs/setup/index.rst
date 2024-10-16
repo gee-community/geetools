@@ -8,7 +8,7 @@ The User Guide covers all of **geetools** by topic area. The :doc:`quickstart` p
 
 The use of the package requires a basic understanding of the **Python** programming language and the **GEE Python API**. Users brand-new to Earth Engine should refer to the `Google documentation <https://developers.google.com/earth-engine>`__ first.
 
-Further hands-on example of specific tasks can be found in the :doc:`../example/index` section. and for the most advance user please refe to the :doc:`../autoapi/index` section for a complete description of each individual functionality.
+Further hands-on example of specific tasks can be found in the :doc:`../usage/index` section. and for the most advance user please refe to the :doc:`../autoapi/index` section for a complete description of each individual functionality.
 
 Refactoring
 -----------

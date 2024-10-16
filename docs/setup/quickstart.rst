@@ -57,7 +57,7 @@ This small example shows how **geetools** is wrapping the excellent ``ee_extra``
       .geetools.scaleAndOffset() # Extended (pre-processing)
       .geetools.spectralIndices(['NDVI','NDWI','BAIS2'])) # Extended (processing)
 
-More examples of more complex and meaningful analysis can be found in the :doc:`../example/index` gallery.
+More examples of more complex and meaningful analysis can be found in the :doc:`../usage/index` gallery.
 
 F401 ?
 ------
