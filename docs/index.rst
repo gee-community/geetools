@@ -39,6 +39,13 @@ content
 
    .. grid-item::
 
+      .. card:: :icon:`fa-solid fa-folder` asset
+         :link: usage/asset.html
+
+         Manage your assets as a object-oriented file system.
+
+   .. grid-item::
+
       .. card:: :icon:`fa-solid fa-handshake-angle` Contribute
          :link: setup/contribute.html
 
