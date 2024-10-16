@@ -874,14 +874,19 @@ class ImageCollectionAccessor:
                 split = collection.geetools.groupInterval("month", 1)
                 print(split.getInfo())
         """
+        # as everything is relyin on the "system:time_start" property
+        # we sort the image collection in the first place. In most collection it will change nothing
+        # so free of charge unless for plumbing
+        ic = self._obj.sort("system:time_start")
+
         # transform the interval into a duration in milliseconds
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
         # I don't know if it should be properly imported here, let's see with user feedback
-        timeList = self._obj.aggregate_array("system:time_start")
-        start, end = timeList.sort().get(0), timeList.sort().get(-1)
+        timeList = ic.aggregate_array("system:time_start")
+        start, end = timeList.get(0), timeList.get(-1)
         DateRangeList = ee.DateRange(start, end).geetools.split(duration, unit)
         imageCollectionList = DateRangeList.map(
-            lambda dr: self._obj.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
+            lambda dr: ic.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
         )
 
         return ee.List(imageCollectionList)
@@ -926,8 +931,11 @@ class ImageCollectionAccessor:
         imageCollectionList = self.groupInterval(unit, duration)
 
         def reduce(ic):
-            reduced = getattr(ee.ImageCollection(ic).sort("system:time_start"), reducer)
-            return reduced(qualityBand) if reducer == "qualityMosaic" else reduced()
+            timeList = ee.ImageCollection(ic).aggregate_array("system:time_start")
+            start, end = timeList.get(0), timeList.get(-1)
+            reduced = getattr(ee.ImageCollection(ic), reducer)
+            image = reduced(qualityBand) if reducer == "qualityMosaic" else reduced()
+            return image.set("system:time_start", start, "system:time_end", end)
 
         # catch the error if the reducer is not available in the ee.ImageCollection class
         # and provide a more meaningful error message.
@@ -938,7 +946,10 @@ class ImageCollectionAccessor:
                 f'Reducer "{reducer}" not available in the ee.ImageCollection class'
             )
 
-        return ee.ImageCollection(reducedImagesList)
+        # set back the original properties
+        ic = ee.ImageCollection(reducedImagesList).copyProperties(self._obj)
+
+        return ee.ImageCollection(ic)
 
     def closestDate(self) -> ee.ImageCollection:
         """Fill masked pixels with the first valid pixel in the stack of images.

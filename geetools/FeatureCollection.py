@@ -290,6 +290,10 @@ class FeatureCollectionAccessor:
         # get the data from server
         data = self.byProperties(featureId, props, labels).getInfo()
 
+        # reorder the data according to the lapbes or properties set by the user
+        labels = labels if labels else props.getInfo()
+        data = {k: data[k] for k in labels}
+
         return self._plot(
             type=type, data=data, label_name=featureId, colors=colors, ax=ax, **kwargs
         )
@@ -341,6 +345,10 @@ class FeatureCollectionAccessor:
 
         # get the data from server
         data = self.byFeatures(featureId, props, labels).getInfo()
+
+        # reorder the data according to the lapbes or properties set by the user
+        labels = labels if labels else props.getInfo()
+        data = {f: {k: data[f][k] for k in labels} for f in data.keys()}
 
         return self._plot(
             type=type, data=data, label_name=featureId, colors=colors, ax=ax, **kwargs
