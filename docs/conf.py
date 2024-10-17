@@ -82,6 +82,7 @@ html_theme_options = {
             "type": "fontawesome",
         },
     ],
+    "announcement": "https://raw.githubusercontent.com/gee-community/geetools/main/docs/_static/banner.html",
     "secondary_sidebar_items": [
         "page-toc.html",
         "edit-this-page.html",
