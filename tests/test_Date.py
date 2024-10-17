@@ -2,6 +2,8 @@
 import ee
 import pytest
 
+import geetools  # noqa: F401
+
 
 class TestToDatetime:
     """Test the toDatetime method."""
@@ -69,3 +71,11 @@ class TestIsLeap:
     def test_is_leap_1900(self):
         leap = ee.Date("1900-01-01").geetools.isLeap()
         assert leap.getInfo() == 0
+
+
+class TestNow:
+    """Test the now method."""
+
+    def test_now(self):
+        date = ee.Date.geetools.now()
+        assert date.getInfo() is not None
