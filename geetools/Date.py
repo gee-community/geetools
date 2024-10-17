@@ -67,6 +67,25 @@ class DateAccessor:
         d, y = ee.Number(doy).toInt(), ee.Number(year).toInt()
         return ee.Date.fromYMD(y, 1, 1).advance(d.subtract(1), "day")
 
+    @classmethod
+    def now(cls) -> ee.Date:
+        """Create a date on current date.
+
+        Returns:
+            The date as a ``ee.Date`` object.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                d = ee.Date.geetools.now()
+                d.getInfo()
+        """
+        return ee.Date(datetime.now().isoformat())
+
     # -- export date -----------------------------------------------------------
     def to_datetime(self) -> datetime:
         """Convert a ``ee.Date`` to a ``datetime.datetime``.
