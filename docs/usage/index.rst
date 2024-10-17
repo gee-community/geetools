@@ -1,46 +1,45 @@
-User guide
-==========
+Usage
+=====
 
 Overview
 --------
 
-The User Guide covers all of **geetools** by topic area. The :doc:`quickstart` page is a good place to start if you are new to the package or just want to refresh your memory. The :doc:`layout` page provides a high-level overview of the package's layout, and the :doc:`pattern` page provides a high-level overview of the package's design decsisions.
+This section gathered many real life examples of the Lib usage gathered by the community.
+If you think your workflow should be shared please open a PR and follow the contribution guildelines shared in the next section.
 
-The use of the package requires a basic understanding of the **Python** programming language and the **GEE Python API**. Users brand-new to Earth Engine should refer to the `Google documentation <https://developers.google.com/earth-engine>`__ first.
+.. warning::
 
-Further hands-on example of specific tasks can be found in the :doc:`../example/index` section. and for the most advance user please refe to the :doc:`../autoapi/index` section for a complete description of each individual functionality.
+    The example gallery is a work in progress as the library was recently refactored.
+    All contributions are welcolmed!
 
-Refactoring
------------
+Add a new example
+-----------------
 
-Since version v1.0.0, the package has been drastically modified to adopt the extension pattern (see :doc:`pattern` for more information). Many functions have also bee dropped or fully refactored to improve overall performances, and to make the package more consistent and easy to use. For more information about the miregation process please refer to the :doc:`migration` page.
+.. image:: /_static/we-need-you.jpg
+    :alt: We need you!
+    :align: center
 
-.. important::
+Currently most of the examples built by `@Rodrigo <https://github.com/fitoprincipe>`__ are still using the old implementation of the library.
+They should be transformed into modern example and moved from the old `notebook <https://github.com/gee-community/geetools/tree/main/notebooks>`__ folder to the new `example <https://github.com/gee-community/geetools/tree/main/docs/example>`__ one to be displayed in our doc.
 
-    The refactoring process is not finished yet, we will progressively reintegrate all the methods in the new pattern and add many cool functionalities. If any of your previous is not working anymore and the :doc:`migration` page did not provided any solution, please open an issue in the `GitHub repository <https://github.com/gee-community/geetools/issues/new>`__.
+The examples are regular notebook files that are interpreted by the ``myst-nb`` lib and displayed in the doc, clicking on the :guilabel:`open in colab` button will open a colab notebook with the code ready to be executed and the :guilabel:`view source` will bring you back to github.
+
+To add a new example, you can use the `example template <https://github.com/gee-community/geetools/tree/main/docs/example/template.ipynb>`__ and replace things with your code.
+
+Adapt the code of the 2 first buttons to your file so users can lunch it in collab and view the source in github.
+
+.. code-block:: md
+
+    [![github](https://img.shields.io/badge/-see%20sources-white?logo=github&labelColor=555)](https://github.com/gee_community/geetools/blob/main/docs/example/template.ipynb)
+    [![colab](https://img.shields.io/badge/-open%20in%20colab-blue?logo=googlecolab&labelColor=555)](https://colab.research.google.com/github/gee_community/gee_tools/blob/main/docs/example/template.ipynb)
+
+
+Then you can open a PR with the new file and it will be reviewed and merged.
 
 .. toctree::
     :hidden:
-    :caption: Get started
 
-    install
-    quickstart
-    layout
-
-.. toctree::
-    :hidden:
-    :caption: Extension Layout
-
-    pattern
-    migration
-    inspiration
-
-.. toctree::
-    :hidden:
-    :caption: Contributor guide
-
-    contribute
-    author
-    license
-
-
+    template
+    export
+    plot/index
+    asset

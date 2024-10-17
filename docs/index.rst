@@ -7,8 +7,8 @@ geetools
 .. toctree::
    :hidden:
 
+   setup/index
    usage/index
-   example/index
    autoapi/index
    Changelogs <https://github.com/gee-community/geetools/releases>
    earth-engine API <https://developers.google.com/earth-engine/apidocs>
@@ -32,24 +32,31 @@ content
 
    .. grid-item::
 
-      .. card:: Usage
-         :link: usage/install.html
+      .. card:: :icon:`fa-solid fa-chart-simple` plot
+         :link: usage/plot/index.html
 
-         Usage and installation
+         Display EE objects directly as static plots.
 
    .. grid-item::
 
-      .. card:: Contribute
-         :link: usage/contribute.html
+      .. card:: :icon:`fa-solid fa-folder` asset
+         :link: usage/asset.html
+
+         Manage your assets as a object-oriented file system.
+
+   .. grid-item::
+
+      .. card:: :icon:`fa-solid fa-images` export ImageCollections
+         :link: usage/export.html
+
+         Useful wrapper to export ImageCollections as simply as Images.
+
+   .. grid-item::
+
+      .. card:: :icon:`fa-solid fa-handshake-angle` Contribute
+         :link: setup/contribute.html
 
          Help us improve the lib.
-
-   .. grid-item::
-
-      .. card:: API
-         :link: autoapi/index.html
-
-         Discover the lib API.
 
 Why using it ?
 --------------

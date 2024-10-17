@@ -76,7 +76,9 @@ doc = [
   "ipykernel",
   "httplib2",
   "jupyter-sphinx",
-  "nbsphinx",
+  "myst-nb",
+  "pytest-gee",
+  "sphinx-icon",
 ]
 
 [tool.hatch.build.targets.wheel]

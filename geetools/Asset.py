@@ -1,6 +1,7 @@
 """An Asset management class mimicking the ``pathlib.Path`` class behaviour."""
 from __future__ import annotations
 
+import os
 import re
 from pathlib import PurePosixPath
 from typing import Optional
@@ -13,7 +14,7 @@ from .types import pathlike
 
 
 @_register_extention(ee)
-class Asset:
+class Asset(os.PathLike):
     """An Asset management class mimicking the ``pathlib.Path`` class behaviour."""
 
     def __init__(self, *args):
@@ -64,6 +65,14 @@ class Asset:
     def __idiv__(self, other: pathlike) -> Asset:
         """Override the in-place division operator to join the asset with other paths."""
         return Asset(self._path / str(other))
+
+    def __fspath__(self):
+        """Implement the os.Pathlike interface."""
+        return self.as_posix()
+
+    def __hash__(self):
+        """make the Asset object hashable."""
+        return hash(self.as_posix())
 
     @classmethod
     def home(cls) -> Asset:
@@ -439,6 +448,10 @@ class Asset:
         Args:
             recursive: If True, get all the children recursively. Defaults to False.
 
+        See Also:
+            - :py:meth:`glob <geetools.Asset.Asset.glob>`: :docstring:`geetools.Asset.glob`
+            - :py:meth:`rglob <geetools.Asset.Asset.rglob>`: :docstring:`geetools.Asset.rglob`
+
         Examples:
             .. code-block:: python
 
@@ -682,6 +695,10 @@ class Asset:
         Args:
             pattern: The pattern to match with the asset name.
 
+        See Also:
+            - :py:meth:`iterdir <geetools.Asset.Asset.iterdir>`: :docstring:`geetools.Asset.iterdir`
+            - :py:meth:`glob <geetools.Asset.Asset.rglob>`: :docstring:`geetools.Asset.rglob`
+
         Examples:
             .. code-block:: python
 
@@ -695,6 +712,10 @@ class Asset:
 
         Args:
             pattern: The pattern to match with the asset name.
+
+        See Also:
+            - :py:meth:`glob <geetools.Asset.Asset.glob>`: :docstring:`geetools.Asset.glob`
+            - :py:meth:`iterdir <geetools.Asset.Asset.iterdir>`: :docstring:`geetools.Asset.iterdir`
 
         Examples:
             .. code-block:: python

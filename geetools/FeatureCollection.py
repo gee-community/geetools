@@ -152,6 +152,10 @@ class FeatureCollectionAccessor:
         Returns:
             A dictionary with all the properties as keys and their values in each feaure as a list.
 
+        See Also:
+            - :py:meth:`byFeatures <geetools.FeatureCollection.FeatureCollectionAccessor.byFeatures>`: :docstring:`geetools.FeatureCollectionAccessor.byFeatures`
+            - :py:meth:`plot_by_properties <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_properties>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_properties`
+
         Example:
             .. code-block:: python
 
@@ -204,6 +208,10 @@ class FeatureCollectionAccessor:
         Returns:
             A dictionary with all the feature ids as keys and their properties as a dictionary.
 
+        See Also:
+            - :py:meth:`byProperties <geetools.FeatureCollection.FeatureCollectionAccessor.byProperties>`: :docstring:`geetools.FeatureCollectionAccessor.byProperties`
+            - :py:meth:`plot_by_features <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_features>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_features`
+
         Examples:
             .. code-block:: python
 
@@ -249,6 +257,9 @@ class FeatureCollectionAccessor:
         If no ``properties`` are provided, all properties will be plotted.
         If no ``featureId`` is provided, the "system:index" property will be used.
 
+        Warning:
+            This function is a client-side function.
+
         Args:
             type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             featureId: The property to use as the x-axis (name the features). Defaults to "system:index".
@@ -258,6 +269,12 @@ class FeatureCollectionAccessor:
             ax: The matplotlib axes to use. If not provided, the plot will be send to a new figure.
             kwargs: Additional arguments from the ``pyplot`` function.
 
+        See Also:
+            - :py:meth:`byFeatures <geetools.FeatureCollection.FeatureCollectionAccessor.byFeatures>`: :docstring:`geetools.FeatureCollectionAccessor.byFeatures`
+            - :py:meth:`plot_by_properties <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_properties>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_properties`
+            - :py:meth:`plot_hist <geetools.FeatureCollection.FeatureCollectionAccessor.plot_hist>`: :docstring:`geetools.FeatureCollectionAccessor.plot_hist`
+            - :py:meth:`plot <geetools.FeatureCollection.FeatureCollectionAccessor.plot>`: :docstring:`geetools.FeatureCollectionAccessor.plot`
+
         Examples:
             .. code-block:: python
 
@@ -265,9 +282,6 @@ class FeatureCollectionAccessor:
 
                 fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
                 fc.geetools.plot_by_features(properties=["ADM1_CODE", "ADM2_CODE"])
-
-        Note:
-            This function is a client-side function.
         """
         # Get the features and properties
         props = ee.List(properties) if properties else self._obj.first().propertyNames().getInfo()
@@ -298,6 +312,9 @@ class FeatureCollectionAccessor:
 
         Each features will be represented by a color and each property will be a bar of the bar chart.
 
+        Warning:
+            This function is a client-side function.
+
         Args:
             type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             featureId: The property to use as the y-axis (name the features). Defaults to "system:index".
@@ -307,6 +324,12 @@ class FeatureCollectionAccessor:
             ax: The matplotlib axes to use. If not provided, the plot will be send to a new figure.
             kwargs: Additional arguments from the ``pyplot`` function.
 
+        See Also:
+            - :py:meth:`byProperties <geetools.FeatureCollection.FeatureCollectionAccessor.byProperties>`: :docstring:`geetools.FeatureCollectionAccessor.byProperties`
+            - :py:meth:`plot_by_features <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_features>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_features`
+            - :py:meth:`plot_hist <geetools.FeatureCollection.FeatureCollectionAccessor.plot_hist>`: :docstring:`geetools.FeatureCollectionAccessor.plot_hist`
+            - :py:meth:`plot <geetools.FeatureCollection.FeatureCollectionAccessor.plot>`: :docstring:`geetools.FeatureCollectionAccessor.plot`
+
         Examples:
             .. code-block:: python
 
@@ -314,9 +337,6 @@ class FeatureCollectionAccessor:
 
                 fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
                 fc.geetools.plot_by_properties(xProperties=["ADM1_CODE", "ADM2_CODE"])
-
-        Note:
-            This function is a client-side function.
         """
         # Get the features and properties
         fc = self._obj
@@ -339,12 +359,20 @@ class FeatureCollectionAccessor:
     ) -> Axes:
         """Plot the histogram of a specific property.
 
+        Warning:
+            This function is a client-side function.
+
         Args:
             property: The property to display
             label: The label to use for the property. If not provided, the property name will be used.
             ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
             color: The color to use for the plot. If not provided, the default colors from the matplotlib library will be used.
             kwargs: Additional arguments from the ``pyplot.hist`` function.
+
+        See Also:
+            - :py:meth:`plot_by_features <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_features>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_features`
+            - :py:meth:`plot_by_properties <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_properties>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_properties`
+            - :py:meth:`plot <geetools.FeatureCollection.FeatureCollectionAccessor.plot>`: :docstring:`geetools.FeatureCollectionAccessor.plot`
 
         Examples:
             .. code-block:: python
@@ -528,6 +556,9 @@ class FeatureCollectionAccessor:
     ):
         """Plot the featureCollection on a map using the provided property.
 
+        Warning:
+            This function is a client-side function.
+
         Parameters:
             property: The property to use to color the features.
             ax: The axes to plot the map on.
@@ -535,6 +566,11 @@ class FeatureCollectionAccessor:
             cmap: The colormap to use for the colors.
             boundaries: Whether to plot the features values or only the boundaries.
             color: The color to use for the boundaries.
+
+        See Also:
+            - :py:meth:`plot_by_features <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_features>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_features`
+            - :py:meth:`plot_by_properties <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_properties>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_properties`
+            - :py:meth:`plot_hist <geetools.FeatureCollection.FeatureCollectionAccessor.plot_hist>`: :docstring:`geetools.FeatureCollectionAccessor.plot_hist`
 
         Examples:
             .. code-block:: python
