@@ -86,10 +86,11 @@ html_theme_options = {
         "page-toc.html",
         "edit-this-page.html",
     ],
-    "switcher": {
-        "json_url": json_url,
-        "version_match": version_match,
-    },
+    # remove the switcher for now as the version management is not satisfying
+    # "switcher": {
+    #    "json_url": json_url,
+    #    "version_match": version_match,
+    # },
     "navbar_start": ["navbar-logo", "version-switcher"],
     "show_toc_level": 2,
 }
