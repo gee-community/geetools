@@ -7,10 +7,10 @@ from pathlib import PurePosixPath
 from typing import Optional
 
 import ee
-from anyascii import anyascii
 
 from .accessors import _register_extention
 from .types import pathlike
+from .utils import format_description
 
 
 @_register_extention(ee)
@@ -731,36 +731,7 @@ class Asset(os.PathLike):
         Returns:
             The formatted description.
         """
-        return self.format_description(self.name)
-
-    @staticmethod
-    def format_description(description: str) -> str:
-        """Format a name to be accepted as a Task description.
-
-        The rule is:
-        The description must contain only the following characters: a..z, A..Z,
-        0..9, ".", ",", ":", ";", "_" or "-". The description must be at most 100
-        characters long.
-
-        Args:
-            description: The description to format.
-
-        Returns:
-            The formatted description.
-        """
-        replacements = [
-            [[" "], "_"],
-            [["/"], "-"],
-            [["?", "!", "¿", "*"], "."],
-            [["(", ")", "[", "]", "{", "}"], ":"],
-        ]
-
-        desc = anyascii(description)
-        for chars, rep in replacements:
-            pattern = "|".join(re.escape(c) for c in chars)
-            desc = re.sub(pattern, rep, desc)  # type: ignore
-
-        return desc[:100]
+        return format_description(self.name)
 
     def setProperties(self, **kwargs) -> ee.Asset:
         """Set properties of the asset.
