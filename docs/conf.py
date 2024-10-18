@@ -91,7 +91,6 @@ html_theme_options = {
     #    "json_url": json_url,
     #    "version_match": version_match,
     # },
-    "navbar_start": ["navbar-logo", "version-switcher"],
     "show_toc_level": 2,
 }
 html_context = {
