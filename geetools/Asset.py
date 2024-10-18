@@ -745,5 +745,14 @@ class Asset(os.PathLike):
                 asset = ee.Asset("projects/ee-geetools/assets/folder/image")
                 asset.setProperties(description="new_description")
         """
-        ee.data.setAssetProperties(self.as_posix(), kwargs)
+
+        def FieldMaskPathForKey(key):
+            return 'properties."%s"' % key
+
+        # Specifying an update mask of 'properties' results in full replacement,
+        # which isn't what we want. Instead, we name each property that we'll be
+        # updating.
+        update_mask = [FieldMaskPathForKey(key) for key in kwargs.keys()]
+        ee.data.updateAsset(self.as_posix(), {"properties": kwargs}, update_mask)
+
         return self
