@@ -11,8 +11,6 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import pytest_gee
-
 # add . to sys to import local extensions
 sys.path.append(str(Path(".").resolve()))
 
@@ -88,11 +86,11 @@ html_theme_options = {
         "page-toc.html",
         "edit-this-page.html",
     ],
-    "switcher": {
-        "json_url": json_url,
-        "version_match": version_match,
-    },
-    "navbar_start": ["navbar-logo", "version-switcher"],
+    # remove the switcher for now as the version management is not satisfying
+    # "switcher": {
+    #    "json_url": json_url,
+    #    "version_match": version_match,
+    # },
     "show_toc_level": 2,
 }
 html_context = {
@@ -126,17 +124,4 @@ intersphinx_mapping = {}
 autosectionlabel_prefix_document = True
 
 # -- options for myst-nb ------------------------------------------------------
-nb_execution_mode = "force"
-
-# -- Script to authenticate to Earthengine using a token -----------------------
-def gee_configure() -> None:
-    """Initialize earth engine according to the environment."""
-    if "EARTHENGINE_SERVICE_ACCOUNT" in os.environ:
-        pytest_gee.init_ee_from_service_account()
-    elif "EARTHENGINE_PROJECT" in os.environ:
-        pytest_gee.init_ee_from_token()
-    else:
-        raise ValueError("Cannot authenticate with Earth Engine.")
-
-
-gee_configure()
+nb_execution_mode = "auto"
