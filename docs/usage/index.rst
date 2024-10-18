@@ -24,14 +24,14 @@ They should be transformed into modern example and moved from the old `notebook 
 
 The examples are regular notebook files that are interpreted by the ``myst-nb`` lib and displayed in the doc, clicking on the :guilabel:`open in colab` button will open a colab notebook with the code ready to be executed and the :guilabel:`view source` will bring you back to github.
 
-To add a new example, you can use the `example template <https://github.com/gee-community/geetools/tree/main/docs/example/template.ipynb>`__ and replace things with your code.
+To add a new example, you can use the `example template <https://github.com/gee-community/geetools/tree/main/docs/usage/template.ipynb>`__ and replace things with your code.
 
 Adapt the code of the 2 first buttons to your file so users can lunch it in collab and view the source in github.
 
 .. code-block:: md
 
-    [![github](https://img.shields.io/badge/-see%20sources-white?logo=github&labelColor=555)](https://github.com/gee_community/geetools/blob/main/docs/example/template.ipynb)
-    [![colab](https://img.shields.io/badge/-open%20in%20colab-blue?logo=googlecolab&labelColor=555)](https://colab.research.google.com/github/gee_community/gee_tools/blob/main/docs/example/template.ipynb)
+    [![github](https://img.shields.io/badge/-see%20sources-white?logo=github&labelColor=555)](https://github.com/gee-community/geetools/blob/main/docs/usage/template.ipynb)
+    [![colab](https://img.shields.io/badge/-open%20in%20colab-blue?logo=googlecolab&labelColor=555)](https://colab.research.google.com/github/gee-community/geetools/blob/main/docs/usage/template.ipynb)
 
 
 Then you can open a PR with the new file and it will be reviewed and merged.
