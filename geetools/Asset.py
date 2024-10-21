@@ -21,8 +21,12 @@ class Asset(os.PathLike):
         .. note::
             An asset cannot be an absolute path like in a normal filesystem and thus any trailing "/" will be removed.
         """
-        self._path = args[0]._path if isinstance(args[0], Asset) else PurePosixPath(*args)
-        self._path = PurePosixPath(str(self._path)[1:]) if self._path.is_absolute() else self._path
+        if len(args) == 0:
+            self._path = f"projects/{ee.data._cloud_api_user_project}/assets/"
+        else:
+            self._path = args[0]._path if isinstance(args[0], Asset) else PurePosixPath(*args)
+            project_assets = PurePosixPath(str(self._path)[1:])
+            self._path = project_assets if self._path.is_absolute() else self._path
 
     def __str__(self):
         """Transform the asset id to a string."""
