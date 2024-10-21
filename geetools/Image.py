@@ -1540,7 +1540,7 @@ class ImageAccessor:
             A dictionary with all the bands as keys and their values in each region as a list.
 
         See Also:
-            - :py:meth:`byRegions <geetools.Image.ImageAccessor.byRegions>`: :docstring:`geetools.ImageAccessor.bybands`
+            - :py:meth:`byBands <geetools.Image.ImageAccessor.byBands>`: :docstring:`geetools.ImageAccessor.byBands`
             - :py:meth:`plot_by_bands <geetools.Image.ImageAccessor.plot_by_bands>`: :docstring:`geetools.ImageAccessor.plot_by_regions`
 
         Examples:
