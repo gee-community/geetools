@@ -65,4 +65,4 @@ class StringAccessor:
             pattern = ee.String("{").cat(key).cat(ee.String("}"))
             return ee.String(s).replace(pattern, value)
 
-        return templateList.iterate(replace_format, self._obj)
+        return ee.String(templateList.iterate(replace_format, self._obj))
