@@ -1,4 +1,6 @@
 """Test the ImageCollection class."""
+from __future__ import annotations
+
 import ee
 import numpy as np
 import pytest
