@@ -2,18 +2,17 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
-from typing import Type
 
 import ee
 
 from .accessors import _register_extention
-from .types import pathlike
 
 
 # -- types management ----------------------------------------------------------
 @_register_extention(ee.ComputedObject)
-def isInstance(self, klass: Type) -> ee.Number:
+def isInstance(self, klass: type) -> ee.Number:
     """Return 1 if the element is the passed type or 0 if not.
 
     Parameters:
@@ -37,7 +36,7 @@ def isInstance(self, klass: Type) -> ee.Number:
 
 # -- .gee files ----------------------------------------------------------------
 @_register_extention(ee.ComputedObject)  # type: ignore
-def save(self, path: pathlike) -> Path:
+def save(self, path: os.PathLike) -> Path:
     """Save a ``ComputedObject`` to a .gee file.
 
     The file contains the JSON representation of the object. it still need to be computed via ``getInfo()`` to be used.
@@ -70,7 +69,7 @@ def save(self, path: pathlike) -> Path:
 
 @staticmethod  # type: ignore
 @_register_extention(ee.ComputedObject)  # type: ignore
-def open(path: pathlike) -> ee.ComputedObject:
+def open(path: os.PathLike) -> ee.ComputedObject:
     """Open a .gee file as a ComputedObject.
 
     Parameters:

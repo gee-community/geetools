@@ -1,8 +1,6 @@
 """Toolbox for the ``ee.Export`` class."""
 from __future__ import annotations
 
-from typing import List, Optional
-
 import ee
 
 from .accessors import register_class_accessor
@@ -30,10 +28,10 @@ class ExportAccessor:
         def toAsset(
             imagecollection: ee.ImageCollection,
             index_property: str = "system:id",
-            description: Optional[str] = None,
-            assetId: Optional[str] = None,
+            description: str = "",
+            assetId: str = "",
             **kwargs,
-        ) -> List[ee.batch.Task]:
+        ) -> list[ee.batch.Task]:
             """Creates a task to export an EE ImageCollection to an EE Asset.
 
             The method will create the imagecollection asset beforehand and launching the task will
@@ -68,8 +66,8 @@ class ExportAccessor:
             """
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
-            desc = description or ee.Asset(assetId).name
-            aid = ee.Asset(assetId) or ee.Asset("~").expanduser() / description
+            desc = description if description else ee.Asset(assetId).name
+            aid = ee.Asset(assetId) if assetId else ee.Asset("~").expanduser() / description
 
             # create the ImageCollection asset
             ee.data.createAsset({"type": "IMAGE_COLLECTION"}, aid.as_posix())
@@ -97,10 +95,10 @@ class ExportAccessor:
         def toDrive(
             imagecollection: ee.ImageCollection,
             index_property: str = "system:id",
-            description: Optional[str] = None,
-            folder: Optional[str] = None,
+            description: str = "",
+            folder: str = "",
             **kwargs,
-        ) -> List[ee.batch.Task]:
+        ) -> list[ee.batch.Task]:
             """Creates a list of tasks to export an EE ImageCollection to Google Drive.
 
             The method will create a folder in Google Drive with the description value and populate
@@ -134,8 +132,8 @@ class ExportAccessor:
             """
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
-            desc = description or folder
-            fid = folder or description
+            desc = description if description else folder
+            fid = folder if folder else description
 
             # loop over the collection and export each image
             nb_images = imagecollection.size().getInfo()
@@ -161,10 +159,10 @@ class ExportAccessor:
         def toCloudStorage(
             imagecollection: ee.ImageCollection,
             index_property: str = "system:id",
-            description: Optional[str] = None,
-            folder: Optional[str] = None,
+            description: str = "",
+            folder: str = "",
             **kwargs,
-        ) -> List[ee.batch.Task]:
+        ) -> list[ee.batch.Task]:
             """Creates a list of tasks to export an EE ImageCollection to Google cloud.
 
             The method will create a folder in Google cloud bucket with the description value and populate
@@ -198,8 +196,8 @@ class ExportAccessor:
             """
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
-            desc = description or folder
-            fid = folder or description
+            desc = description if description else folder
+            fid = folder if folder else description
 
             # loop over the collection and export each image
             nb_images = imagecollection.size().getInfo()

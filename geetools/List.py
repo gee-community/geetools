@@ -4,7 +4,6 @@ from __future__ import annotations
 import ee
 
 from .accessors import register_class_accessor
-from .types import ee_dict, ee_int, ee_list, ee_str
 
 
 @register_class_accessor(ee.List, "geetools")
@@ -15,7 +14,7 @@ class ListAccessor:
         """Initialize the List class."""
         self._obj = obj
 
-    def product(self, other: ee_list) -> ee.List:
+    def product(self, other: list | ee.List) -> ee.List:
         """Compute the cartesian product of 2 list.
 
         Values will all be considered as string and will be joined with **no spaces**.
@@ -45,7 +44,7 @@ class ListAccessor:
         )
         return product.flatten()
 
-    def complement(self, other: ee_list) -> ee.List:
+    def complement(self, other: list | ee.List) -> ee.List:
         """Compute the complement of the current list and the ``other`` list.
 
         The mthematical complement is the list of elements that are in the current list but not in the ``other`` list and vice-versa.
@@ -71,7 +70,7 @@ class ListAccessor:
         l1, l2 = ee.List(self._obj), ee.List(other)
         return l1.removeAll(l2).cat(l2.removeAll(l1))
 
-    def intersection(self, other: ee_list) -> ee.List:
+    def intersection(self, other: list | ee.List) -> ee.List:
         """Compute the intersection of the current list and the ``other`` list.
 
         The intersection is the list of elements that are in both lists.
@@ -97,7 +96,7 @@ class ListAccessor:
         l1, l2 = ee.List(self._obj), ee.List(other)
         return l1.removeAll(l1.removeAll(l2))
 
-    def union(self, other: ee_list) -> ee.List:
+    def union(self, other: list | ee.List) -> ee.List:
         """Compute the union of the current list and the ``other`` list.
 
         This list will drop duplicated items.
@@ -124,7 +123,7 @@ class ListAccessor:
         return l1.cat(l2).distinct()
 
     # this method is simply a del but the name is protected in the GEE context
-    def delete(self, index: ee_int) -> ee.List:
+    def delete(self, index: int | ee.Number) -> ee.List:
         """Delete an element from a list.
 
         Parameters:
@@ -149,9 +148,9 @@ class ListAccessor:
     @classmethod
     def sequence(
         cls,
-        ini: ee_int,
-        end: ee_int,
-        step: ee_int = 1,
+        ini: int | ee.Number,
+        end: int | ee.Number,
+        step: int | ee.Number = 1,
     ) -> ee.List:
         """Create a sequence from ini to end by step.
 
@@ -179,7 +178,7 @@ class ListAccessor:
         step = ee.Number(step).toInt().max(1)
         return ee.List.sequence(ini, end, step).add(end.toFloat()).distinct()
 
-    def replaceMany(self, replace: ee_dict) -> ee.List:
+    def replaceMany(self, replace: dict | ee.Dictionary) -> ee.List:
         """Replace many values in a list.
 
         Parameters:
@@ -205,7 +204,7 @@ class ListAccessor:
         list = keys.iterate(lambda k, p: ee.List(p).replace(k, replace.get(k)), self._obj)
         return ee.List(list)  # to avoid returning a COmputedObject
 
-    def join(self, separator: ee_str = ", ") -> ee.string:
+    def join(self, separator: str | ee.String = ", ") -> ee.string:
         """Format a list to a string.
 
         Same as the join method but elements that cannot be stringified will be returned as the object type.

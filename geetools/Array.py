@@ -4,11 +4,6 @@ from __future__ import annotations
 import ee
 
 from .accessors import register_class_accessor
-from .types import ee_int, ee_number
-
-# hack to have the generated Array class available
-# it might create issues in the future with libs that have exotic init methods
-# ee.Initialize()
 
 
 @register_class_accessor(ee.Array, "geetools")
@@ -22,9 +17,9 @@ class ArrayAccessor:
     # -- alternative constructor -----------------------------------------------
     def full(
         self,
-        width: ee_number,
-        height: ee_number,
-        value: ee_number,
+        width: float | int | ee.Number,
+        height: float | int | ee.Number,
+        value: float | int | ee.Number,
     ) -> ee.Array:
         """Create an array with the given dimensions, initialized to the given value.
 
@@ -52,9 +47,9 @@ class ArrayAccessor:
     # -- data maniputlation ----------------------------------------------------
     def set(
         self,
-        x: ee_int,
-        y: ee_int,
-        value: ee_number,
+        x: int | ee.Number,
+        y: int | ee.Number,
+        value: float | int | ee.Number,
     ) -> ee.Array:
         """Set the value of a cell in an array.
 

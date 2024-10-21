@@ -1,8 +1,6 @@
 """Toolbox for the `ee.FeatureCollection` class."""
 from __future__ import annotations
 
-from typing import Optional, Union
-
 import ee
 import geopandas as gpd
 import numpy as np
@@ -11,7 +9,6 @@ from matplotlib.axes import Axes
 from matplotlib.colors import to_rgba
 
 from .accessors import register_class_accessor
-from .types import ee_int, ee_list, ee_str
 
 
 @register_class_accessor(ee.FeatureCollection, "geetools")
@@ -24,8 +21,8 @@ class FeatureCollectionAccessor:
 
     def toImage(
         self,
-        color: Union[ee_str, ee_int] = 0,
-        width: Union[ee_str, ee_int] = "",
+        color: str | ee.String | int | ee.Number = 0,
+        width: str | ee.String | int | ee.Number = "",
     ) -> ee.Image:
         """Paint the current FeatureCollection to an Image.
 
@@ -39,7 +36,9 @@ class FeatureCollectionAccessor:
         width == "" or params.update(width=width)
         return ee.Image().paint(self._obj, **params)
 
-    def addId(self, name: ee_str = "id", start: ee_int = 1) -> ee.FeatureCollection:
+    def addId(
+        self, name: str | ee.String = "id", start: int | ee.Number = 1
+    ) -> ee.FeatureCollection:
         """Add a unique numeric identifier, starting from parameter ``start``.
 
         Returns:
@@ -128,7 +127,10 @@ class FeatureCollectionAccessor:
         return self._obj.map(removeNonPoly)
 
     def byProperties(
-        self, featureId: ee_str = "system:index", properties: ee_list = [], labels: list = []
+        self,
+        featureId: str | ee.String = "system:index",
+        properties: list | ee.List = [],
+        labels: list = [],
     ) -> ee.Dictionary:
         """Get a dictionary with all feature values for each properties.
 
@@ -184,7 +186,10 @@ class FeatureCollectionAccessor:
         return ee.Dictionary.fromLists(labels, values)
 
     def byFeatures(
-        self, featureId: ee_str = "system:index", properties: ee_list = [], labels: list = []
+        self,
+        featureId: str | ee.String = "system:index",
+        properties: list | ee.List = [],
+        labels: list = [],
     ) -> ee.Dictionary:
         """Get a dictionary with all property values for each feature.
 
@@ -248,7 +253,7 @@ class FeatureCollectionAccessor:
         properties: list = [],
         labels: list = [],
         colors: list = [],
-        ax: Optional[Axes] = None,
+        ax: Axes | None = None,
         **kwargs,
     ) -> Axes:
         """Plot the values of a ``ee.FeatureCollection`` by feature.
@@ -302,10 +307,10 @@ class FeatureCollectionAccessor:
         self,
         type: str = "bar",
         featureId: str = "system:index",
-        properties: ee_list = [],
+        properties: list | ee.List = [],
         labels: list = [],
         colors: list = [],
-        ax: Optional[Axes] = None,
+        ax: Axes | None = None,
         **kwargs,
     ) -> Axes:
         """Plot the values of a FeatureCollection by property.
@@ -355,7 +360,12 @@ class FeatureCollectionAccessor:
         )
 
     def plot_hist(
-        self, property: ee_str, label: str = "", ax: Optional[Axes] = None, color=None, **kwargs
+        self,
+        property: str | ee.String,
+        label: str = "",
+        ax: Axes | None = None,
+        color=None,
+        **kwargs,
     ) -> Axes:
         """Plot the histogram of a specific property.
 
@@ -422,7 +432,7 @@ class FeatureCollectionAccessor:
         data: dict,
         label_name: str,
         colors: list = [],
-        ax: Optional[Axes] = None,
+        ax: Axes | None = None,
         **kwargs,
     ) -> Axes:
         """Plotting mechanism used in all the plotting functions.

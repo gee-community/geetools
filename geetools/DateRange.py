@@ -4,7 +4,6 @@ from __future__ import annotations
 import ee
 
 from .accessors import register_class_accessor
-from .types import ee_int
 
 
 @register_class_accessor(ee.DateRange, "geetools")
@@ -16,7 +15,7 @@ class DateRangeAccessor:
         self._obj = obj
 
     # -- date range operations -------------------------------------------------
-    def split(self, interval: ee_int, unit: str = "day") -> ee.List:
+    def split(self, interval: int | ee.Number, unit: str = "day") -> ee.List:
         """Convert a ``ee.DateRange`` to a list of ``ee.DateRange``.
 
         The DateRange will be split in multiple DateRanges of the specified interval and Unit.

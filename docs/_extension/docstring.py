@@ -1,8 +1,6 @@
 """A docstring role to read the docstring from a Python method."""
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
-
 from docutils import nodes
 from sphinx.application import Sphinx
 from sphinx.util import logging
@@ -16,7 +14,7 @@ logger = logging.getLogger(__name__)
 class DocstringRole(SphinxRole):
     """The docstring role interpreter."""
 
-    def run(self) -> Tuple[List[nodes.Node], List[str]]:
+    def run(self) -> tuple[list[nodes.Node], list[str]]:
         """Setup the role in the builder context."""
         members = self.text.split(".")[1:]
         o = geetools
@@ -25,7 +23,7 @@ class DocstringRole(SphinxRole):
         return [nodes.Text(o.__doc__.splitlines()[0])], []
 
 
-def setup(app: Sphinx) -> Dict[str, Any]:
+def setup(app: Sphinx) -> dict[str, object]:
     """Add custom configuration to sphinx application."""
     app.add_role("docstring", DocstringRole())
 

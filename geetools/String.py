@@ -4,7 +4,6 @@ from __future__ import annotations
 import ee
 
 from .accessors import register_class_accessor
-from .types import ee_dict, ee_str
 
 
 @register_class_accessor(ee.String, "geetools")
@@ -15,7 +14,7 @@ class StringAccessor:
         """Initialize the String class."""
         self._obj = obj
 
-    def eq(self, other: ee_str) -> ee.Number:
+    def eq(self, other: str | ee.String) -> ee.Number:
         """Compare two strings and return a ``ee.Number``.
 
         Parameters:
@@ -36,7 +35,7 @@ class StringAccessor:
         """
         return self._obj.compareTo(ee.String(other)).Not()
 
-    def format(self, template: ee_dict) -> ee.String:
+    def format(self, template: dict | ee.Dictionary) -> ee.String:
         """Format a string with a dictionary.
 
         Replace the keys in the string using the values provided in the dictionary. Follow the same pattern: value format as Python string.format method.
