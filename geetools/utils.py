@@ -1,6 +1,7 @@
 """Utils methods for file and asset manipulation in the context of batch processing."""
+from __future__ import annotations
+
 import re
-from typing import Optional
 
 import numpy as np
 from anyascii import anyascii
@@ -70,7 +71,7 @@ def plot_data(
     data: dict,
     label_name: str,
     colors: list = [],
-    ax: Optional[Axes] = None,
+    ax: Axes | None = None,
     **kwargs,
 ) -> Axes:
     """Plotting mechanism used in all the plotting functions.

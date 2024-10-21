@@ -1424,9 +1424,9 @@ class ImageAccessor:
         regions: ee.featurecollection,
         reducer: str = "mean",
         scale: int = 10000,
-        bands: Optional[List] = None,
+        bands: list = [],
         regionId: str = "system:index",
-        labels: Optional[List] = None,
+        labels: list = [],
     ) -> ee.Dictionary:
         """Compute a reducer for each band of the image in each region.
 
@@ -1474,10 +1474,10 @@ class ImageAccessor:
         features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # get the bands to be used in the reducer
-        eeBands = ee.List(bands) if bands else self._obj.bandNames()
+        eeBands = ee.List(bands) if len(bands) else self._obj.bandNames()
 
         # retrieve the label to use for each bands if provided
-        eeLabels = ee.List(labels) if labels else eeBands
+        eeLabels = ee.List(labels) if len(labels) else eeBands
 
         # by default for 1 band image, the reducers are renaming the output band. To ensure it keeps
         #  the original band name we add setOutputs that is ignored for multi band images.
@@ -1501,9 +1501,9 @@ class ImageAccessor:
         regions: ee.featurecollection,
         reducer: str = "mean",
         scale: int = 10000,
-        bands: Optional[List] = None,
+        bands: list = [],
         regionId: str = "system:index",
-        labels: Optional[List] = None,
+        labels: list = [],
     ) -> ee.Dictionary:
         """Compute a reducer in each region of the image for eah band.
 
@@ -1551,10 +1551,10 @@ class ImageAccessor:
         features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # get the bands to be used in the reducer
-        bands = ee.List(bands) if bands else self._obj.bandNames()
+        bands = ee.List(bands) if len(bands) else self._obj.bandNames()
 
         # retrieve the label to use for each bands if provided
-        labels = ee.List(labels) if labels else bands
+        labels = ee.List(labels) if len(labels) else bands
 
         # by default for 1 band image, the reducers are renaming the output band. To ensure it keeps
         #  the original band name we add setOutputs that is ignored for multi band images.
@@ -1581,11 +1581,11 @@ class ImageAccessor:
         regions: ee.FeatureCollection,
         reducer: str = "mean",
         scale: int = 10000,
-        bands: Optional[List] = None,
+        bands: list = [],
         regionId: str = "system:index",
-        labels: Optional[List] = None,
+        labels: list = [],
         colors: list = [],
-        ax: Optional[Axes] = None,
+        ax: Axes | None = None,
     ):
         """Plot the reduced values for each region.
 
@@ -1637,8 +1637,8 @@ class ImageAccessor:
         features = features.getInfo()
 
         # extract the labels from the parameters
-        eeBands = ee.List(bands) if bands else self._obj.bandNames()
-        labels = labels if labels else eeBands.getInfo()
+        eeBands = ee.List(bands) if len(bands) else self._obj.bandNames()
+        labels = labels if len(labels) else eeBands.getInfo()
 
         # reorder the data according to the labels id set by the user
         data = {b: {f: data[b][f] for f in features} for b in labels}
@@ -1651,11 +1651,11 @@ class ImageAccessor:
         regions: ee.FeatureCollection,
         reducer: str = "mean",
         scale: int = 10000,
-        bands: Optional[List] = None,
+        bands: list = [],
         regionId: str = "system:index",
-        labels: Optional[List] = None,
+        labels: list = [],
         colors: list = [],
-        ax: Optional[Axes] = None,
+        ax: Axes | None = None,
     ):
         """Plot the reduced values for each bands.
 
@@ -1708,8 +1708,8 @@ class ImageAccessor:
         features = features.getInfo()
 
         # extract the labels from the parameters
-        eeBands = ee.List(bands) if bands else self._obj.bandNames()
-        labels = labels if labels else eeBands.getInfo()
+        eeBands = ee.List(bands) if len(bands) else self._obj.bandNames()
+        labels = labels if len(labels) else eeBands.getInfo()
 
         # reorder the data according to the labels id set by the user
         data = {f: {b: data[f][b] for b in labels} for f in features}
@@ -1720,7 +1720,7 @@ class ImageAccessor:
         self,
         ax: Axes,
         bins: int = 30,
-        region: Optional[ee.Geometry] = None,
+        region: ee.Geometry | None = None,
         bands: list = [],
         labels: list = [],
         colors: list = [],
