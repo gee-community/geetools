@@ -4,7 +4,6 @@ from __future__ import annotations
 import ee
 
 from .accessors import register_class_accessor
-from .types import ee_int
 
 
 @register_class_accessor(ee.Number, "geetools")
@@ -15,7 +14,7 @@ class NumberAccessor:
         """Initialize the Number class."""
         self._obj = obj
 
-    def truncate(self, nbDecimals: ee_int = 2) -> ee.Number:
+    def truncate(self, nbDecimals: int | ee.Number = 2) -> ee.Number:
         """Truncate a number to a given number of decimals.
 
         Parameters:

@@ -4,7 +4,6 @@ from __future__ import annotations
 import ee
 
 from .accessors import register_class_accessor
-from .types import ee_str
 
 
 @register_class_accessor(ee.Join, "geetools")
@@ -19,7 +18,7 @@ class JoinAccessor:
     def byProperty(
         primary: ee.Collection,
         secondary: ee.Collection,
-        field: ee_str,
+        field: str | ee.String,
         outer: bool = False,
     ) -> ee.Collection:
         """Join 2 collections by a given property field.

@@ -1,5 +1,5 @@
 """Test the ImageCollection class."""
-from typing import Optional
+from __future__ import annotations
 
 import ee
 import numpy as np
@@ -10,7 +10,7 @@ import geetools
 
 
 def reduce(
-    collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = None, reducer: str = "first"
+    collection: ee.ImageCollection, geometry: ee.Geometry | None = None, reducer: str = "first"
 ) -> ee.Dictionary:
     """Compute the mean reduction on the first image of the imageCollection."""
     image = getattr(collection, reducer)()

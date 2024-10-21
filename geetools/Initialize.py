@@ -3,14 +3,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional
 
 import ee
 from google.oauth2.credentials import Credentials
 
 from .accessors import register_function_accessor
 
-_project_id: Optional[str] = None
+_project_id: str | None = None
 "The project Id used by the current user."
 
 

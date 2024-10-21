@@ -4,7 +4,6 @@ from __future__ import annotations
 import ee
 
 from .accessors import register_class_accessor
-from .types import ee_list
 
 
 @register_class_accessor(ee.Dictionary, "geetools")
@@ -16,7 +15,7 @@ class DictionaryAccessor:
         self._obj = obj
 
     # -- alternative constructor -----------------------------------------------
-    def fromPairs(self, list: ee_list) -> ee.Dictionary:
+    def fromPairs(self, list: list | ee.List) -> ee.Dictionary:
         """Create a dictionary from a list of [[key, value], ...]] pairs.
 
         Parameters:
@@ -61,7 +60,7 @@ class DictionaryAccessor:
         values = orderededKeys.map(lambda key: self._obj.get(key))
         return ee.Dictionary.fromLists(orderededKeys, values)
 
-    def getMany(self, list: ee_list) -> ee.List:
+    def getMany(self, list: list | ee.List) -> ee.List:
         """Extract values from a list of keys.
 
         Parameters:

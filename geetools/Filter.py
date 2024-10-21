@@ -1,8 +1,6 @@
 """Extra method for the ``ee.Filter`` class."""
 from __future__ import annotations
 
-from typing import Any
-
 import ee
 
 from .accessors import register_class_accessor
@@ -17,7 +15,7 @@ class FilterAccessor:
         self._obj = obj
 
     # -- date filters ----------------------------------------------------------
-    def dateRange(self, range: ee.DateRange) -> Any:
+    def dateRange(self, range: ee.DateRange) -> ee.Filter:
         """Filter by daterange.
 
         Parameters:

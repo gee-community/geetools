@@ -4,12 +4,10 @@ from __future__ import annotations
 import os
 import re
 from pathlib import PurePosixPath
-from typing import Optional
 
 import ee
 
 from .accessors import _register_extention
-from .types import pathlike
 from .utils import format_description
 
 
@@ -23,8 +21,12 @@ class Asset(os.PathLike):
         .. note::
             An asset cannot be an absolute path like in a normal filesystem and thus any trailing "/" will be removed.
         """
-        self._path = args[0]._path if isinstance(args[0], Asset) else PurePosixPath(*args)
-        self._path = PurePosixPath(str(self._path)[1:]) if self._path.is_absolute() else self._path
+        if len(args) == 0:
+            self._path = f"projects/{ee.data._cloud_api_user_project}/assets/"
+        else:
+            self._path = args[0]._path if isinstance(args[0], Asset) else PurePosixPath(*args)
+            project_assets = PurePosixPath(str(self._path)[1:])
+            self._path = project_assets if self._path.is_absolute() else self._path
 
     def __str__(self):
         """Transform the asset id to a string."""
@@ -34,23 +36,23 @@ class Asset(os.PathLike):
         """Return the asset object representation as a string."""
         return f"ee.{type(self).__name__}('{self.as_posix()}')"
 
-    def __truediv__(self, other: pathlike) -> Asset:
+    def __truediv__(self, other: os.PathLike) -> Asset:
         """Override the division operator to join the asset with other paths."""
         return Asset(self._path / str(other))
 
-    def __lt__(self, other: pathlike) -> bool:
+    def __lt__(self, other: os.PathLike) -> bool:
         """Override the less than operator to compare the asset with other paths."""
         return self._path < PurePosixPath(str(other))
 
-    def __gt__(self, other: pathlike) -> bool:
+    def __gt__(self, other: os.PathLike) -> bool:
         """Override the greater than operator to compare the asset with other paths."""
         return self._path > PurePosixPath(str(other))
 
-    def __le__(self, other: pathlike) -> bool:
+    def __le__(self, other: os.PathLike) -> bool:
         """Override the less than or equal operator to compare the asset with other paths."""
         return self._path <= PurePosixPath(str(other))
 
-    def __ge__(self, other: pathlike) -> bool:
+    def __ge__(self, other: os.PathLike) -> bool:
         """Override the greater than or equal operator to compare the asset with other paths."""
         return self._path >= PurePosixPath(str(other))
 
@@ -62,7 +64,7 @@ class Asset(os.PathLike):
         """Override the not equal operator to compare the asset with other paths."""
         return self._path != PurePosixPath(str(other))
 
-    def __idiv__(self, other: pathlike) -> Asset:
+    def __idiv__(self, other: os.PathLike) -> Asset:
         """Override the in-place division operator to join the asset with other paths."""
         return Asset(self._path / str(other))
 
@@ -271,7 +273,7 @@ class Asset(os.PathLike):
 
         return int(ee.data.getAsset(self.as_posix())["sizeBytes"])
 
-    def is_relative_to(self, other: pathlike) -> bool:
+    def is_relative_to(self, other: os.PathLike) -> bool:
         """Return True if the asset is relative to another asset.
 
         Args:
@@ -569,7 +571,7 @@ class Asset(os.PathLike):
 
         return new_asset
 
-    def delete(self, recursive: bool = False, dry_run: Optional[bool] = None) -> list:
+    def delete(self, recursive: bool = False, dry_run: bool | None = None) -> list:
         """Remove the asset.
 
         This method will delete an asset (any type) asset and all its potential children. by default it is not recursive and will raise an error if the container is not empty.
@@ -639,7 +641,7 @@ class Asset(os.PathLike):
         self.exists(raised=True)
         return self.delete()
 
-    def rmdir(self, recursive: bool = False, dry_run: Optional[bool] = None) -> list:
+    def rmdir(self, recursive: bool = False, dry_run: bool | None = None) -> list:
         """``delete`` alias for containers."""
         if not (self.is_project() or self.is_folder() or self.is_image_collection()):
             raise ValueError(f"Asset {self.as_posix()} is not a container, use unlink instead.")
