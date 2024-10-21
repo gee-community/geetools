@@ -1,4 +1,5 @@
 """Test the ``Image`` class."""
+import io
 import zipfile
 from io import BytesIO
 from math import isclose
@@ -641,3 +642,217 @@ class TestPlot:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
             image_regression.check(image_byte.getvalue())
+
+
+class TestPlotByRegions:
+    """Test the ``plot_by_regions`` method."""
+
+    def test_plot_by_regions_bar(self, image_regression):
+        fig, ax = plt.subplots()
+        # fmt: off
+        self.image.geetools.plot_by_regions(
+            type = "bar",
+            regions = self.ecoregions,
+            reducer = "mean",
+            scale = 500,
+            regionId = "label",
+            bands = ["01_tmean", "02_tmean", "03_tmean", "04_tmean", "05_tmean", "06_tmean", "07_tmean", "08_tmean", "09_tmean", "10_tmean", "11_tmean", "12_tmean"],
+            labels = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+            colors = ['#604791', '#1d6b99', '#39a8a7', '#0f8755', '#76b349', '#f0af07', '#e37d05', '#cf513e', '#96356f', '#724173', '#9c4f97', '#696969'],
+            ax = ax
+        )
+        # fmt: on
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_regions_barh(self, image_regression):
+        fig, ax = plt.subplots()
+        # fmt: off
+        self.image.geetools.plot_by_regions(
+            type = "barh",
+            regions = self.ecoregions,
+            reducer = "mean",
+            scale = 500,
+            regionId = "label",
+            bands = ["01_tmean", "02_tmean", "03_tmean", "04_tmean", "05_tmean", "06_tmean", "07_tmean", "08_tmean", "09_tmean", "10_tmean", "11_tmean", "12_tmean"],
+            labels = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+            colors = ['#604791', '#1d6b99', '#39a8a7', '#0f8755', '#76b349', '#f0af07', '#e37d05', '#cf513e', '#96356f', '#724173', '#9c4f97', '#696969'],
+            ax = ax
+        )
+        # fmt: on
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_regions_stacked(self, image_regression):
+        fig, ax = plt.subplots()
+        # fmt: off
+        self.image.geetools.plot_by_regions(
+            type = "stacked",
+            regions = self.ecoregions,
+            reducer = "mean",
+            scale = 500,
+            regionId = "label",
+            bands = ["01_tmean", "02_tmean", "03_tmean", "04_tmean", "05_tmean", "06_tmean", "07_tmean", "08_tmean", "09_tmean", "10_tmean", "11_tmean", "12_tmean"],
+            labels = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+            colors = ['#604791', '#1d6b99', '#39a8a7', '#0f8755', '#76b349', '#f0af07', '#e37d05', '#cf513e', '#96356f', '#724173', '#9c4f97', '#696969'],
+            ax = ax
+        )
+        # fmt: on
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    @property
+    def ecoregions(self):
+        return ee.FeatureCollection("projects/google/charts_feature_example").select(
+            ["label", "value", "warm"]
+        )
+
+    @property
+    def image(self):
+        return ee.ImageCollection("OREGONSTATE/PRISM/Norm91m").toBands()
+
+
+class TestPlotByBands:
+    """Test the ``plot_by_bands`` method."""
+
+    def test_plot_by_bands_bar(self, image_regression):
+        fig, ax = plt.subplots()
+        # fmt: off
+        self.image.geetools.plot_by_bands(
+            type = "bar",
+            regions = self.ecoregions,
+            reducer = "mean",
+            scale = 500,
+            regionId = "label",
+            bands = ['01_ppt', '02_ppt', '03_ppt', '04_ppt', '05_ppt', '06_ppt', '07_ppt', '08_ppt', '09_ppt', '10_ppt', '11_ppt', '12_ppt'],
+            labels = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+            colors = ["#f0af07", "#0f8755", "#76b349"],
+            ax = ax
+        )
+        # fmt: on
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_bands_plot(self, image_regression):
+        fig, ax = plt.subplots()
+        # fmt: off
+        self.image.geetools.plot_by_bands(
+            type = "plot",
+            regions = self.ecoregions,
+            reducer = "mean",
+            scale = 500,
+            regionId = "label",
+            bands = ['01_ppt', '02_ppt', '03_ppt', '04_ppt', '05_ppt', '06_ppt', '07_ppt', '08_ppt', '09_ppt', '10_ppt', '11_ppt', '12_ppt'],
+            labels = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+            colors = ["#f0af07", "#0f8755", "#76b349"],
+            ax = ax
+        )
+        # fmt: on
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_bands_area(self, image_regression):
+        fig, ax = plt.subplots()
+        # fmt: off
+        self.image.geetools.plot_by_bands(
+            type = "fill_between",
+            regions = self.ecoregions,
+            reducer = "mean",
+            scale = 500,
+            regionId = "label",
+            bands = ['01_ppt', '02_ppt', '03_ppt', '04_ppt', '05_ppt', '06_ppt', '07_ppt', '08_ppt', '09_ppt', '10_ppt', '11_ppt', '12_ppt'],
+            labels = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+            colors = ["#f0af07", "#0f8755", "#76b349"],
+            ax = ax
+        )
+        # fmt: on
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_bands_pie(self, image_regression):
+        fig, ax = plt.subplots()
+        # fmt: off
+        ecoregion = self.ecoregions.filter(ee.Filter.eq("label", "Forest"))
+        self.image.geetools.plot_by_bands(
+            type = "pie",
+            regions = ecoregion,
+            reducer = "mean",
+            scale = 500,
+            regionId = "label",
+            bands = ['01_ppt', '02_ppt', '03_ppt', '04_ppt', '05_ppt', '06_ppt', '07_ppt', '08_ppt', '09_ppt', '10_ppt', '11_ppt', '12_ppt'],
+            labels = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+            colors = ['#604791', '#1d6b99', '#39a8a7', '#0f8755', '#76b349', '#f0af07', '#e37d05', '#cf513e', '#96356f', '#724173', '#9c4f97', '#696969'],
+            ax = ax
+        )
+        # fmt: on
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    def test_plot_by_bands_donut(self, image_regression):
+        fig, ax = plt.subplots()
+        # fmt: off
+        ecoregion = self.ecoregions.filter(ee.Filter.eq("label", "Forest"))
+        self.image.geetools.plot_by_bands(
+            type = "donut",
+            regions = ecoregion,
+            reducer = "mean",
+            scale = 500,
+            regionId = "label",
+            bands = ['01_ppt', '02_ppt', '03_ppt', '04_ppt', '05_ppt', '06_ppt', '07_ppt', '08_ppt', '09_ppt', '10_ppt', '11_ppt', '12_ppt'],
+            labels = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+            colors = ['#604791', '#1d6b99', '#39a8a7', '#0f8755', '#76b349', '#f0af07', '#e37d05', '#cf513e', '#96356f', '#724173', '#9c4f97', '#696969'],
+            ax = ax
+        )
+        # fmt: on
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    @property
+    def ecoregions(self):
+        return ee.FeatureCollection("projects/google/charts_feature_example").select(
+            ["label", "value", "warm"]
+        )
+
+    @property
+    def image(self):
+        return ee.ImageCollection("OREGONSTATE/PRISM/Norm91m").toBands()
+
+
+class TestPlotHist:
+    """Test the ``plot_hist`` method."""
+
+    def test_plot_hist(self, image_regression):
+        fig, ax = plt.subplots()
+        self.image.geetools.plot_hist(
+            bands=["sur_refl_b01", "sur_refl_b02", "sur_refl_b06"],
+            labels=[["Red", "NIR", "SWIR"]],
+            colors=["#cf513e", "#1d6b99", "#f0af07"],
+            ax=ax,
+            bins=100,
+            scale=500,
+            region=self.region,
+        )
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    @property
+    def image(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD09A1")
+            .filter(ee.Filter.date("2018-06-01", "2018-09-01"))
+            .select(["sur_refl_b01", "sur_refl_b02", "sur_refl_b06"])
+            .mean()
+        )
+
+    @property
+    def region(self):
+        return ee.Geometry.Rectangle([-112.60, 40.60, -111.18, 41.22])
