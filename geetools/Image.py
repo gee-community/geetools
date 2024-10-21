@@ -1427,3 +1427,18 @@ class ImageAccessor:
             gdf = gpd.GeoDataFrame.from_features(fc.getInfo()["features"])
             gdf = gdf.set_crs("EPSG:4326").to_crs(crs)
             gdf.boundary.plot(ax=ax, color=color)
+
+    @classmethod
+    def fromList(cls, image_list: ee_list):
+        """Create a single image by passing a list of images.
+
+        Parameters:
+            image_list: a list of ee.Image
+
+        Returns:
+            A single ee.Image with one band per image in the passed list
+        """
+        ilist = ee.List(image_list)
+        i0 = ee.Image(ilist.get(0))
+        rest = ee.List(ilist.slice(1))
+        return i0.geetools.merge(rest)

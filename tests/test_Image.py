@@ -641,3 +641,27 @@ class TestPlot:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
             image_regression.check(image_byte.getvalue())
+
+
+class TestFromList:
+    """Test ``fromList`` method."""
+
+    def test_from_list(self):
+        """This test is meant to fail."""
+        esa = ee.ImageCollection("ESA/WorldCover/v200")
+        esai = esa.first()
+        values = [10, 20, 30]
+        names = ["trees", "shrubs", "grass"]
+
+        def over_values_names(zipped):
+            z = ee.List(zipped)
+            value = ee.Number(z.get(0))
+            name = ee.String(z.get(1))
+            mask = esai.eq(value).rename(name)
+            return mask
+
+        combined = ee.List(values).zip(ee.List(names))
+        images = combined.map(over_values_names)
+        final = ee.Image.geetools.fromList(images)
+        bands = final.bandNames().getInfo()
+        assert bands == names
