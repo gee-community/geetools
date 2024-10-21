@@ -4,7 +4,6 @@ from __future__ import annotations
 import ee
 
 from .accessors import register_class_accessor
-from .types import ee_list
 
 
 @register_class_accessor(ee.Feature, "geetools")
@@ -38,7 +37,7 @@ class FeatureAccessor:
         fc = geoms.map(lambda g: self._obj.setGeometry(g))
         return ee.FeatureCollection(fc)
 
-    def removeProperties(self, properties: ee_list) -> ee.Feature:
+    def removeProperties(self, properties: list | ee.List) -> ee.Feature:
         """Remove properties from a feature.
 
         Args:

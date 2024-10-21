@@ -1,8 +1,6 @@
 """Toolbox for the ``ee.Image`` class."""
 from __future__ import annotations
 
-from typing import Optional
-
 import ee
 import ee_extra
 import ee_extra.Algorithms.core
@@ -15,15 +13,6 @@ from pyproj import CRS, Transformer
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
-from .types import (
-    ee_dict,
-    ee_geomlike,
-    ee_int,
-    ee_list,
-    ee_number,
-    ee_str,
-    number,
-)
 
 
 @register_class_accessor(ee.Image, "geetools")
@@ -35,7 +24,7 @@ class ImageAccessor:
         self._obj = obj
 
     # -- band manipulation -----------------------------------------------------
-    def addDate(self, format: ee_str = "") -> ee.Image:
+    def addDate(self, format: str | ee.String = "") -> ee.Image:
         """Add a band with the date of the image in the provided format.
 
         If no format is provided, the date is stored as a Timestamp in millisecond in a band "date". If format band is provided, the date is store in a int8 band with the date in the provided format. This format needs to be a string that can be converted to a number.
@@ -72,7 +61,7 @@ class ImageAccessor:
 
         return self._obj.addBands(dateBand)
 
-    def addSuffix(self, suffix: ee_str, bands: ee_list = []) -> ee.Image:
+    def addSuffix(self, suffix: str | ee.String, bands: list | ee.List = []) -> ee.Image:
         """Add a suffix to the image selected band.
 
         Add a suffix to the selected band. If no band is specified, the suffix is added to all bands.
@@ -103,7 +92,7 @@ class ImageAccessor:
         )
         return self._obj.rename(bandNames)
 
-    def addPrefix(self, prefix: ee_str, bands: ee_list = []):
+    def addPrefix(self, prefix: str | ee.String, bands: list | ee.List = []):
         """Add a prefix to the image selected band.
 
         Add a prefix to the selected band. If no band is specified, the prefix is added to all bands.
@@ -134,7 +123,7 @@ class ImageAccessor:
         )
         return self._obj.rename(bandNames)
 
-    def rename(self, names: ee_dict) -> ee.Image:
+    def rename(self, names: dict | ee.Dictionary) -> ee.Image:
         """Rename the bands of the image based on a dictionary.
 
         It's the same function as the one from GEE but it takes a dictionary as input.
@@ -164,7 +153,7 @@ class ImageAccessor:
         )
         return self._obj.rename(bands)
 
-    def remove(self, bands: ee_list) -> ee.Image:
+    def remove(self, bands: list | ee.List) -> ee.Image:
         """Remove bands from the image.
 
         Parameters:
@@ -191,8 +180,8 @@ class ImageAccessor:
     def doyToDate(
         self,
         year,
-        dateFormat: ee_str = "yyyyMMdd",
-        band: ee_str = "",
+        dateFormat: str | ee.String = "yyyyMMdd",
+        band: str | ee.String = "",
     ) -> ee.Image:
         """Convert the DOY band to a date band.
 
@@ -233,7 +222,7 @@ class ImageAccessor:
 
     # -- the rest --------------------------------------------------------------
 
-    def getValues(self, point: ee.Geometry.Point, scale: ee_int = 0) -> ee.Dictionary:
+    def getValues(self, point: ee.Geometry.Point, scale: int | ee.Number = 0) -> ee.Dictionary:
         """Get the value of the image at the given point using specified geometry.
 
         The result is presented as a dictionary where the keys are the bands name and the value the mean value of the band at the given point.
@@ -281,7 +270,7 @@ class ImageAccessor:
         scales = bandNames.map(lambda b: self._obj.select(ee.String(b)).projection().nominalScale())
         return ee.Number(scales.sort().get(0))
 
-    def merge(self, images: ee_list) -> ee.Image:
+    def merge(self, images: list | ee.List) -> ee.Image:
         """Merge images into a single image.
 
         Parameters:
@@ -309,9 +298,9 @@ class ImageAccessor:
 
     def toGrid(
         self,
-        size: ee_int = 1,
-        band: ee_str = "",
-        geometry: Optional[ee.Geometry] = None,
+        size: int | ee.Number = 1,
+        band: str | ee.String = "",
+        geometry: ee.Geometry | None = None,
     ) -> ee.FeatureCollection:
         """Convert an image to a grid of polygons.
 
@@ -368,7 +357,7 @@ class ImageAccessor:
         return ee.FeatureCollection(features)
 
     def clipOnCollection(
-        self, fc: ee.FeatureCollection, keepProperties: ee_int = 1
+        self, fc: ee.FeatureCollection, keepProperties: int | ee.Number = 1
     ) -> ee.ImageCollection:
         """Clip an image to a FeatureCollection.
 
@@ -405,9 +394,9 @@ class ImageAccessor:
 
     def bufferMask(
         self,
-        radius: ee_int = 1.5,
-        kernelType: ee_str = "square",
-        units: ee_str = "pixels",
+        radius: int | ee.Number = 1.5,
+        kernelType: str | ee.String = "square",
+        units: str | ee.String = "pixels",
     ) -> ee.Image:
         """Make a buffer around every masked pixel of the Image.
 
@@ -442,8 +431,8 @@ class ImageAccessor:
     @classmethod
     def full(
         self,
-        values: ee_list = [0],
-        names: ee_list = ["constant"],
+        values: list | ee.List = [0],
+        names: list | ee.List = ["constant"],
     ) -> ee.Image:
         """Create an image with the given values and names.
 
@@ -478,10 +467,10 @@ class ImageAccessor:
 
     def fullLike(
         self,
-        fillValue: ee_number,
-        copyProperties: ee_int = 0,
-        keepMask: ee_int = 0,
-        keepFootprint: ee_int = 1,
+        fillValue: float | int | ee.Number,
+        copyProperties: int | ee.Number = 0,
+        keepMask: int | ee.Number = 0,
+        keepFootprint: int | ee.Number = 1,
     ) -> ee.Image:
         """Create an image with the same band names, projection and scale as the original image.
 
@@ -540,8 +529,8 @@ class ImageAccessor:
     def reduceBands(
         self,
         reducer: str,
-        bands: ee_list = [],
-        name: ee_str = "",
+        bands: list | ee.List = [],
+        name: str | ee.String = "",
     ) -> ee.Image:
         """Reduce the image using the selected reducer and adding the result as a band using the selected name.
 
@@ -574,7 +563,7 @@ class ImageAccessor:
         reduceImage = self._obj.select(ee.List(bands)).reduce(reducer).rename([name])
         return self._obj.addBands(reduceImage)
 
-    def negativeClip(self, geometry: ee_geomlike) -> ee.Image:
+    def negativeClip(self, geometry: ee.Geometry | ee.Feature | ee.FeatureCollection) -> ee.Image:
         """The opposite of the clip method.
 
         The inside of the geometry will be masked from the image.
@@ -603,8 +592,8 @@ class ImageAccessor:
 
     def format(
         self,
-        string: ee_str,
-        dateFormat: ee_str = "yyyy-MM-dd",
+        string: str | ee.String,
+        dateFormat: str | ee.String = "yyyy-MM-dd",
     ) -> ee.String:
         """Create a string from using the given pattern and using the image properties.
 
@@ -642,7 +631,7 @@ class ImageAccessor:
 
         return patternList.iterate(replaceProperties, string)
 
-    def gauss(self, band: ee_str = "") -> ee.Image:
+    def gauss(self, band: str | ee.String = "") -> ee.Image:
         """Apply a gaussian filter to the image.
 
         We apply the following function to the image: "exp(((val-mean)**2)/(-2*(std**2)))"
@@ -683,7 +672,7 @@ class ImageAccessor:
             },
         ).rename(band.cat("_gauss"))
 
-    def repeat(self, band, repeats: ee_int) -> ee.image:
+    def repeat(self, band, repeats: int | ee.Number) -> ee.image:
         """Repeat a band of the image.
 
         Args:
@@ -749,7 +738,7 @@ class ImageAccessor:
 
         return ee.ImageCollection(bands.map(remove)).toBands().rename(bands)
 
-    def interpolateBands(self, src: ee_list, to: ee_list) -> ee.Image:
+    def interpolateBands(self, src: list | ee.List, to: list | ee.List) -> ee.Image:
         """Interpolate bands from the "src" value range to the "to" value range.
 
         The Interpolation is performed linearly using the "extrapolate" option of the "interpolate" method.
@@ -784,7 +773,7 @@ class ImageAccessor:
 
         return ee.ImageCollection(bands.map(interpolate)).toBands().rename(bands)
 
-    def isletMask(self, offset: ee_number) -> ee.Image:
+    def isletMask(self, offset: float | int | ee.Number) -> ee.Image:
         """Compute the islet mask from an image.
 
         An islet is a set of non-masked pixels connected together by their edges of very small surface. The user define the offset of the island size and we compute the max number of pixels to improve computation speed. The inpt Image needs to be a single band binary image.
@@ -838,28 +827,28 @@ class ImageAccessor:
     def spectralIndices(
         self,
         index: str = "NDVI",
-        G: number = 2.5,
-        C1: number = 6.0,
-        C2: number = 7.5,
-        L: number = 1.0,
-        cexp: number = 1.16,
-        nexp: number = 2.0,
-        alpha: number = 0.1,
-        slope: number = 1.0,
-        intercept: number = 0.0,
-        gamma: number = 1.0,
-        omega: number = 2.0,
-        beta: number = 0.05,
-        k: number = 0.0,
-        fdelta: number = 0.581,
+        G: float | int = 2.5,
+        C1: float | int = 6.0,
+        C2: float | int = 7.5,
+        L: float | int = 1.0,
+        cexp: float | int = 1.16,
+        nexp: float | int = 2.0,
+        alpha: float | int = 0.1,
+        slope: float | int = 1.0,
+        intercept: float | int = 0.0,
+        gamma: float | int = 1.0,
+        omega: float | int = 2.0,
+        beta: float | int = 0.05,
+        k: float | int = 0.0,
+        fdelta: float | int = 0.581,
         kernel: str = "RBF",
         sigma: str = "0.5 * (a + b)",
-        p: number = 2.0,
-        c: number = 1.0,
-        lambdaN: number = 858.5,
-        lambdaR: number = 645.0,
-        lambdaG: number = 555.0,
-        online: number = False,
+        p: float | int = 2.0,
+        c: float | int = 1.0,
+        lambdaN: float | int = 858.5,
+        lambdaR: float | int = 645.0,
+        lambdaG: float | int = 555.0,
+        online: float | int = False,
     ) -> ee.Image:
         """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
 
@@ -1136,7 +1125,7 @@ class ImageAccessor:
         self,
         target: ee.Image,
         bands: dict,
-        geometry: Optional[ee.Geometry] = None,
+        geometry: ee.Geometry | None = None,
         maxBuckets: int = 256,
     ) -> ee.Image:
         """Adjust the image's histogram to match a target image.
@@ -1185,7 +1174,7 @@ class ImageAccessor:
         dark: float = 0.15,
         cloudDist: int = 1000,
         buffer: int = 250,
-        cdi: Optional[int] = None,
+        cdi: int | None = None,
     ):
         """Masks clouds and shadows in an image (valid just for Surface Reflectance products).
 
@@ -1234,7 +1223,7 @@ class ImageAccessor:
             cdi,
         )
 
-    def removeProperties(self, properties: ee_list) -> ee.Image:
+    def removeProperties(self, properties: list | ee.List) -> ee.Image:
         """Remove a list of properties from an image.
 
         Args:
@@ -1262,7 +1251,7 @@ class ImageAccessor:
         mask: ee.Image,
         kernel: str = "euclidean",
         radius: int = 1000,
-        band_name: ee_str = "distance_to_mask",
+        band_name: str | ee.String = "distance_to_mask",
     ) -> ee.Image:
         """Compute the distance from each pixel to the nearest non-masked pixel.
 

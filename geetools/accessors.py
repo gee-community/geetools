@@ -1,9 +1,10 @@
 """Generic accessor to add extra function to the base GEE API classes."""
+from __future__ import annotations
 
-from typing import Any, Callable, Type
+from typing import Callable
 
 
-def register_class_accessor(klass: Type, name: str) -> Callable:
+def register_class_accessor(klass: type, name: str) -> Callable:
     """Create an accessor through the provided namespace to a given class.
 
     Parameters:
@@ -14,12 +15,12 @@ def register_class_accessor(klass: Type, name: str) -> Callable:
         The accessor function to to the class.
     """
 
-    def decorator(accessor: Any) -> Any:
+    def decorator(accessor: Callable) -> object:
         class ClassAccessor:
-            def __init__(self, name: str, accessor: Any):
+            def __init__(self, name: str, accessor: Callable):
                 self.name, self.accessor = name, accessor
 
-            def __get__(self, obj: Any, *args) -> Any:
+            def __get__(self, obj: object, *args) -> object:
                 return self.accessor(obj)
 
         # check if the accessor already exists for this class
@@ -34,7 +35,7 @@ def register_class_accessor(klass: Type, name: str) -> Callable:
     return decorator
 
 
-def register_function_accessor(func: Type, name: str) -> Callable:
+def register_function_accessor(func: type, name: str) -> Callable:
     """Add a Accessor class to function through the provided namespace.
 
     Parameters:
@@ -45,7 +46,7 @@ def register_function_accessor(func: Type, name: str) -> Callable:
         The accessor function to to the function.
     """
 
-    def decorator(accessor: Any) -> Any:
+    def decorator(accessor: Callable) -> object:
 
         # check if the accessor already exists for this class
         if hasattr(func, name):
@@ -61,6 +62,6 @@ def register_function_accessor(func: Type, name: str) -> Callable:
 # this private method should not be exposed to end user as it perform 0 checks it can overwrite
 # existing methods/class/member. Only used in the lib for the Computed object as the method need
 # to be shared by every other child of the class.
-def _register_extention(obj: Any) -> Callable:
+def _register_extention(obj: object) -> Callable:
     """Add the function to any object."""
     return lambda f: (setattr(obj, f.__name__, f) or f)  # type: ignore

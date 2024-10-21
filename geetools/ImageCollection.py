@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional, Tuple, Union
 
 import ee
 import ee_extra
@@ -13,7 +12,6 @@ from xarray import Dataset
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from geetools.accessors import register_class_accessor
-from geetools.types import ee_list, ee_number, ee_str, number
 
 
 @register_class_accessor(ee.ImageCollection, "geetools")
@@ -35,7 +33,7 @@ class ImageCollectionAccessor:
         dark: float = 0.15,
         cloudDist: int = 1000,
         buffer: int = 250,
-        cdi: Optional[int] = None,
+        cdi: int | None = None,
     ) -> ee.ImageCollection:
         """Masks clouds and shadows in each image of an ImageCollection (valid just for Surface Reflectance products).
 
@@ -87,7 +85,7 @@ class ImageCollectionAccessor:
         )
 
     def closest(
-        self, date: Union[ee.Date, str], tolerance: int = 1, unit: str = "month"
+        self, date: ee.Date | str, tolerance: int = 1, unit: str = "month"
     ) -> ee.ImageCollection:
         """Gets the closest image (or set of images if the collection intersects a region that requires multiple scenes) to the specified date.
 
@@ -113,28 +111,28 @@ class ImageCollectionAccessor:
     def spectralIndices(
         self,
         index: str = "NDVI",
-        G: number = 2.5,
-        C1: number = 6.0,
-        C2: number = 7.5,
-        L: number = 1.0,
-        cexp: number = 1.16,
-        nexp: number = 2.0,
-        alpha: number = 0.1,
-        slope: number = 1.0,
-        intercept: number = 0.0,
-        gamma: number = 1.0,
-        omega: number = 2.0,
-        beta: number = 0.05,
-        k: number = 0.0,
-        fdelta: number = 0.581,
+        G: float | int = 2.5,
+        C1: float | int = 6.0,
+        C2: float | int = 7.5,
+        L: float | int = 1.0,
+        cexp: float | int = 1.16,
+        nexp: float | int = 2.0,
+        alpha: float | int = 0.1,
+        slope: float | int = 1.0,
+        intercept: float | int = 0.0,
+        gamma: float | int = 1.0,
+        omega: float | int = 2.0,
+        beta: float | int = 0.05,
+        k: float | int = 0.0,
+        fdelta: float | int = 0.581,
         kernel: str = "RBF",
         sigma: str = "0.5 * (a + b)",
-        p: number = 2.0,
-        c: number = 1.0,
-        lambdaN: number = 858.5,
-        lambdaR: number = 645.0,
-        lambdaG: number = 555.0,
-        online: number = False,
+        p: float | int = 2.0,
+        c: float | int = 1.0,
+        lambdaN: float | int = 858.5,
+        lambdaR: float | int = 645.0,
+        lambdaG: float | int = 555.0,
+        online: bool = False,
     ) -> ee.ImageCollection:
         """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
 
@@ -544,7 +542,7 @@ class ImageCollectionAccessor:
         return ee.Image(self._obj.iterate(computeIntegral, s))
 
     def outliers(
-        self, bands: ee_list = [], sigma: ee_number = 2, drop: bool = False
+        self, bands: list | ee.List = [], sigma: float | int | ee.Number = 2, drop: bool = False
     ) -> ee.ImageCollection:
         """Compute the outlier for each pixel in the specified bands.
 
@@ -622,22 +620,22 @@ class ImageCollectionAccessor:
 
     def to_xarray(
         self,
-        drop_variables: Optional[Tuple[str, ...]] = None,
-        io_chunks: Optional[Any] = None,
+        drop_variables: tuple[str, ...] | None = None,
+        io_chunks: object = None,
         n_images: int = -1,
         mask_and_scale: bool = True,
         decode_times: bool = True,
-        decode_timedelta: Optional[bool] = None,
-        use_cftime: Optional[bool] = None,
+        decode_timedelta: bool | None = None,
+        use_cftime: bool | None = None,
         concat_characters: bool = True,
         decode_coords: bool = True,
-        crs: Optional[str] = None,
-        scale: Union[float, int, None] = None,
-        projection: Optional[ee.Projection] = None,
-        geometry: Optional[ee.Geometry] = None,
-        primary_dim_name: Optional[str] = None,
-        primary_dim_property: Optional[str] = None,
-        ee_mask_value: Optional[float] = None,
+        crs: str | None = None,
+        scale: float | int | None = None,
+        projection: ee.Projection | None = None,
+        geometry: ee.Geometry | None = None,
+        primary_dim_name: str | None = None,
+        primary_dim_property: str | None = None,
+        ee_mask_value: float | None = None,
         request_byte_limit: int = REQUEST_BYTE_LIMIT,
     ) -> Dataset:
         """Open an Earth Engine ImageCollection as an ``xarray.Dataset``.
@@ -686,7 +684,7 @@ class ImageCollectionAccessor:
             request_byte_limit=request_byte_limit,
         )
 
-    def validPixel(self, band: ee_str = "") -> ee.Image:
+    def validPixel(self, band: str | ee.String = "") -> ee.Image:
         """Compute the number of valid pixels in the specified band.
 
         Compute the number of valid pixels in the specified band. 2 bands will be created:
@@ -715,7 +713,7 @@ class ImageCollectionAccessor:
         validPct = validPixel.divide(self._obj.size()).multiply(100).rename("pct_valid")
         return validPixel.addBands(validPct)
 
-    def containsBandNames(self, bandNames: ee_list, filter: str) -> ee.ImageCollection:
+    def containsBandNames(self, bandNames: list | ee.List, filter: str) -> ee.ImageCollection:
         """Filter the ImageCollection by band names using the provided filter.
 
         Args:
@@ -760,7 +758,7 @@ class ImageCollectionAccessor:
 
         return ee.ImageCollection(ic)
 
-    def containsAllBands(self, bandNames: ee_list) -> ee.ImageCollection:
+    def containsAllBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
         """Filter the ImageCollection keeping only the images with all the provided bands.
 
         Args:
@@ -787,7 +785,7 @@ class ImageCollectionAccessor:
         """
         return self.containsBandNames(bandNames, "ALL")
 
-    def containsAnyBands(self, bandNames: ee_list) -> ee.ImageCollection:
+    def containsAnyBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
         """Filter the ImageCollection keeping only the images with any of the provided bands.
 
         Args:
@@ -814,7 +812,7 @@ class ImageCollectionAccessor:
         """
         return self.containsBandNames(bandNames, "ANY")
 
-    def aggregateArray(self, properties: Optional[ee_list] = None) -> ee.Dict:
+    def aggregateArray(self, properties: list | ee.List | None = None) -> ee.Dict:
         """Aggregate the ImageCollection selected properties into a dictionary.
 
         Args:
