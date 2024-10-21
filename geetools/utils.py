@@ -1,7 +1,12 @@
 """Utils methods for file and asset manipulation in the context of batch processing."""
 import re
+from typing import Optional
 
+import numpy as np
 from anyascii import anyascii
+from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.colors import to_rgba
 
 
 def format_description(description: str) -> str:
@@ -58,3 +63,144 @@ def format_asset_id(description: str) -> str:
         desc = re.sub(pattern, rep, desc)  # type: ignore
 
     return desc
+
+
+def plot_data(
+    type: str,
+    data: dict,
+    label_name: str,
+    colors: list = [],
+    ax: Optional[Axes] = None,
+    **kwargs,
+) -> Axes:
+    """Plotting mechanism used in all the plotting functions.
+
+    It binds the matplotlib capabilities with the data aggregated by different xes.
+    the shape of the data should as follows:
+
+    .. code-block::
+
+        {
+            "label1": {"properties1": value1, "properties2": value2, ...}
+            "label2": {"properties1": value1, "properties2": value2, ...},
+            ...
+        }
+
+    Args:
+        type: The type of plot to use. can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
+        data: the data to use as inputs of the graph. please follow the fomrmat specified in the documentation.
+        label_name: The name of the property that was used to generate the labels
+        property_names: The list of names that was used to name the values. They will be used to order the keys of the data dictionary.
+        colors: A list of colors to use for the plot. If not provided, the default colors from the matplotlib library will be used.
+        ax: The matplotlib axes to use. If not provided, the plot will be send to a new figure.
+        kwargs: Additional arguments from the ``pyplot`` chat type selected.
+    """
+    # define the ax if not provided by the user
+    if ax is None:
+        fig, ax = plt.subplots()
+
+    # gather the data from parameters
+    labels = list(data.keys())
+    props = list(data[labels[0]].keys())
+    colors = colors if colors else plt.get_cmap("tab10").colors
+
+    # draw the chart based on the type
+    if type == "plot":
+        for i, label in enumerate(labels):
+            kwargs["color"] = colors[i]
+            name = props[0] if len(props) == 1 else "Properties values"
+            values = list(data[label].values())
+            ax.plot(props, values, label=label, **kwargs)
+            ax.set_ylabel(name)
+            ax.set_xlabel(f"Features (labeled by {label_name})")
+
+    elif type == "scatter":
+        for i, label in enumerate(labels):
+            kwargs["color"] = colors[i]
+            name = props[0] if len(props) == 1 else "Properties values"
+            values = list(data[label].values())
+            ax.scatter(props, values, label=label, **kwargs)
+            ax.set_ylabel(name)
+            ax.set_xlabel(f"Features (labeled by {label_name})")
+
+    elif type == "fill_between":
+        for i, label in enumerate(labels):
+            kwargs["facecolor"] = to_rgba(colors[i], 0.2)
+            kwargs["edgecolor"] = to_rgba(colors[i], 1)
+            name = props[0] if len(props) == 1 else "Properties values"
+            values = list(data[label].values())
+            ax.fill_between(props, values, label=label, **kwargs)
+            ax.set_ylabel(name)
+            ax.set_xlabel(f"Features (labeled by {label_name})")
+
+    elif type == "bar":
+        x = np.arange(len(props))
+        width = 1 / (len(labels) + 0.8)
+        margin = width / 10
+        kwargs["width"] = width - margin
+        ax.set_xticks(x + width * len(labels) / 2, props)
+        for i, label in enumerate(labels):
+            kwargs["color"] = colors[i]
+            values = list(data[label].values())
+            ax.bar(x + width * i, values, label=label, **kwargs)
+
+    elif type == "barh":
+        y = np.arange(len(props))
+        height = 1 / (len(labels) + 0.8)
+        margin = height / 10
+        kwargs["height"] = height - margin
+        ax.set_yticks(y + height * len(labels) / 2, props)
+        for i, label in enumerate(labels):
+            kwargs["color"] = colors[i]
+            values = list(data[label].values())
+            ax.barh(y + height * i, values, label=label, **kwargs)
+
+    elif type == "stacked":
+        x = np.arange(len(props))
+        bottom = np.zeros(len(props))
+        ax.set_xticks(x, props)
+        for i, label in enumerate(labels):
+            kwargs.update(color=colors[i], bottom=bottom)
+            values = list(data[label].values())
+            ax.bar(x, values, label=label, **kwargs)
+            bottom += values
+
+    elif type == "pie":
+        if len(labels) != 1:
+            raise ValueError("Pie chart can only be used with one property")
+        kwargs["autopct"] = kwargs.get("autopct", "%1.1f%%")
+        kwargs["normalize"] = kwargs.get("normalize", True)
+        kwargs["labeldistance"] = kwargs.get("labeldistance", None)
+        kwargs["wedgeprops"] = kwargs.get("wedgeprops", {"edgecolor": "w"})
+        kwargs["textprops"] = kwargs.get("textprops", {"color": "w"})
+        kwargs.update(autopct="%1.1f%%", colors=colors)
+        values = [data[labels[0]][p] for p in props]
+        ax.pie(values, labels=props, **kwargs)
+
+    elif type == "donut":
+        if len(labels) != 1:
+            raise ValueError("Pie chart can only be used with one property")
+        kwargs["autopct"] = kwargs.get("autopct", "%1.1f%%")
+        kwargs["normalize"] = kwargs.get("normalize", True)
+        kwargs["labeldistance"] = kwargs.get("labeldistance", None)
+        kwargs["wedgeprops"] = kwargs.get("wedgeprops", {"width": 0.6, "edgecolor": "w"})
+        kwargs["textprops"] = kwargs.get("textprops", {"color": "w"})
+        kwargs["pctdistance"] = kwargs.get("pctdistance", 0.7)
+        kwargs.update(autopct="%1.1f%%", colors=colors)
+        values = [data[labels[0]][p] for p in props]
+        ax.pie(values, labels=props, **kwargs)
+
+    else:
+        raise ValueError(f"Type {type} is not (yet?) supported")
+
+    # customize the layout of the axis
+    ax.grid(axis="x" if type in ["barh"] else "y")
+    ax.set_axisbelow(True)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
+
+    # make sure the canvas is only rendered once.
+    ax.figure.canvas.draw_idle()
+
+    return ax

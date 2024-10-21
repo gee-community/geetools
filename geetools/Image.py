@@ -1,7 +1,7 @@
 """Toolbox for the ``ee.Image`` class."""
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional
 
 import ee
 import ee_extra
@@ -11,6 +11,7 @@ import numpy as np
 import requests
 import xarray
 from matplotlib.axes import Axes
+from matplotlib.colors import to_rgba
 from pyproj import CRS, Transformer
 from xee.ext import REQUEST_BYTE_LIMIT
 
@@ -24,6 +25,7 @@ from .types import (
     ee_str,
     number,
 )
+from .utils import plot_data
 
 
 @register_class_accessor(ee.Image, "geetools")
@@ -1427,3 +1429,384 @@ class ImageAccessor:
             gdf = gpd.GeoDataFrame.from_features(fc.getInfo()["features"])
             gdf = gdf.set_crs("EPSG:4326").to_crs(crs)
             gdf.boundary.plot(ax=ax, color=color)
+
+    def byBands(
+        self,
+        regions: ee.featurecollection,
+        reducer: ee.Reducer = ee.Reducer.mean(),
+        scale: int = 10000,
+        bands: Optional[List] = None,
+        regionId: str = "system:index",
+        labels: Optional[List] = None,
+    ) -> ee.Dictionary:
+        """Compute a reducer for each band of the image in each region.
+
+        This method is returning a dictionary with all the bands as keys and their reduced value in each region as values.
+
+        .. code-block::
+
+            {
+                "band1": {"feature1": value1, "feature2": value2, ...},
+                "band2": {"feature1": value1, "feature2": value2, ...},
+                ...
+            }
+
+        Parameters:
+            regions: The regions to compute the reducer in.
+            reducer: The reducer to use. Default is ee.Reducer.mean().
+            scale: The scale to use for the computation. Default is 10000m.
+            regionId: The property used to label region. Defaults to "system:index".
+            labels: The labels to use for the output dictionary. Default to the band names.
+            bands: The bands to compute the reducer on. Default to all bands.
+
+        Returns:
+            A dictionary with all the bands as keys and their values in each region as a list.
+
+        See Also:
+            - :py:meth:`byRegions <geetools.Image.ImageAccessor.byRegions>`: :docstring:`geetools.ImageAccessor.byRegions`
+            - :py:meth:`plot_by_bands <geetools.Image.ImageAccessor.plot_by_bands>`: :docstring:`geetools.ImageAccessor.plot_by_bands`
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
+                normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
+                d = normClim.byBands(ecoregions, ee.Reducer.mean(), scale=10000)
+                print(d.getInfo())
+        """
+        # get all the id values, they must be string so we are forced to cast them manually
+        # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
+        features = regions.aggregate_array(regionId)
+        isString = lambda i: ee.Algorithms.ObjectType(i).compareTo("String").eq(0)  # noqa: E731
+        features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
+
+        # get the bands to be used in the reducer
+        bands = ee.List(bands) if bands else self._obj.bandNames()
+
+        # retrieve the label to use for each bands if provided
+        labels = ee.List(labels) if labels else bands
+
+        # by default for 1 band image, the reducers are renaming the output band. To ensure it keeps
+        #  the original band name we add setOutputs that is ignored for multi band images.
+        # This is currently hidden because of https://issuetracker.google.com/issues/374285504
+        # It will have no impact on most of the cases as plt_hist should be used for single band images
+        # reducer = reducer.setOutputs(labels)
+
+        # retrieve the reduce bands for each feature
+        image = self._obj.select(bands).rename(labels)
+        fc = image.reduceRegions(collection=regions, reducer=reducer, scale=scale)
+
+        # extract the data as a list of dictionaries (one for each label) aggregating
+        # the values for each feature
+        values = labels.map(lambda b: ee.Dictionary.fromLists(features, fc.aggregate_array(b)))
+
+        return ee.Dictionary.fromLists(labels, values)
+
+    def byRegions(
+        self,
+        regions: ee.featurecollection,
+        reducer: ee.Reducer = ee.Reducer.mean(),
+        scale: int = 10000,
+        bands: Optional[List] = None,
+        regionId: str = "system:index",
+        labels: Optional[List] = None,
+    ) -> ee.Dictionary:
+        """Compute a reducer in each region of the image for eah band.
+
+        This method is returning a dictionary with all the features as keys and their reduced value for each band as values.
+
+        .. code-block::
+
+            {
+                "feature1": {"band1": value1, "band2": value2, ...},
+                "feature2": {"bands1": value1, "band2": value2, ...},
+                ...
+            }
+
+        Parameters:
+            regions: The regions to compute the reducer in.
+            reducer: The reducer to use. Default is ee.Reducer.mean().
+            scale: The scale to use for the computation. Default is 10000m.
+            regionId: The property used to label region. Defaults to "system:index".
+            labels: The labels to use for the output dictionary. Default to the band names.
+            bands: The bands to compute the reducer on. Default to all bands.
+
+        Returns:
+            A dictionary with all the bands as keys and their values in each region as a list.
+
+        See Also:
+            - :py:meth:`byRegions <geetools.Image.ImageAccessor.byRegions>`: :docstring:`geetools.ImageAccessor.bybands`
+            - :py:meth:`plot_by_bands <geetools.Image.ImageAccessor.plot_by_bands>`: :docstring:`geetools.ImageAccessor.plot_by_regions`
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
+                normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
+                d = normClim.byregions(ecoregions, ee.Reducer.mean(), scale=10000)
+                print(d.getInfo())
+        """
+        # get all the id values, they must be string so we are forced to cast them manually
+        # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
+        features = regions.aggregate_array(regionId)
+        isString = lambda i: ee.Algorithms.ObjectType(i).compareTo("String").eq(0)  # noqa: E731
+        features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
+
+        # get the bands to be used in the reducer
+        bands = ee.List(bands) if bands else self._obj.bandNames()
+
+        # retrieve the label to use for each bands if provided
+        labels = ee.List(labels) if labels else bands
+
+        # by default for 1 band image, the reducers are renaming the output band. To ensure it keeps
+        #  the original band name we add setOutputs that is ignored for multi band images.
+        # This is currently hidden because of https://issuetracker.google.com/issues/374285504
+        # It will have no impact on most of the cases as plt_hist should be used for single band images
+        # reducer = reducer.setOutputs(labels)
+
+        # retrieve the reduce bands for each feature
+        image = self._obj.select(bands).rename(labels)
+        fc = image.reduceRegions(collection=regions, reducer=reducer, scale=scale)
+
+        # extract the data as a list of dictionaries (one for each label) aggregating
+        # we are force to turn the fc into a list because GEE don't accept to map a featureCollection
+        # into something else (in our a case a dict)
+        fcList = fc.toList(fc.size())
+        values = fcList.map(lambda f: ee.Feature(f).select(labels).toDictionary())
+
+        return ee.Dictionary.fromLists(features, values)
+
+    def plot_by_regions(
+        self,
+        type: str,
+        regions: ee.FeatureCollection,
+        reducer: ee.Reducer = ee.Reducer.mean(),
+        scale: int = 10000,
+        bands: Optional[List] = None,
+        regionId: str = "system:index",
+        labels: Optional[List] = None,
+        colors: Optional[List] = None,
+        ax: Optional[Axes] = None,
+    ):
+        """Plot the reduced values for each region.
+
+        Each region will be plotted using the ``regionId`` as x-axis label defauting to "system:index" if not provided.
+        If no ``bands`` are provided, all bands will be plotted.
+        If no ``labels`` are provided, the band names will be used.
+
+        Warning:
+            This method is client-side.
+
+        Parameters:
+            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
+            regions: The regions to compute the reducer in.
+            reducer: The reducer to use. Default is ee.Reducer.mean().
+            scale: The scale to use for the computation. Default is 10000m.
+            bands: The bands to compute the reducer on. Default to all bands.
+            regionId: The property used to label region. Defaults to "system:index".
+            labels: The labels to use for the output dictionary. Default to the band names.
+            colors: The colors to use for the plot. Default to the default matplotlib colors.
+            ax: The matplotlib axis to plot the data on. If None, a new figure is created.
+
+        See Also:
+            - :py:meth:`byRegions <geetools.Image.ImageAccessor.byRegions>`: :docstring:`geetools.ImageAccessor.byRegions`
+            - :py:meth:`byBands <geetools.Image.ImageAccessor.byBands>`: :docstring:`geetools.ImageAccessor.byBands`
+            - :py:meth:`plot_by_bands <geetools.Image.ImageAccessor.plot_by_bands>`: :docstring:`geetools.ImageAccessor.plot_by_bands`
+            - :py:meth:`plot_hist <geetools.Image.ImageAccessor.plot_hist>`: :docstring:`geetools.ImageAccessor.plot_hist
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
+                normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
+
+
+                normClim.plot_by_regions(ecoregions, ee.Reducer.mean(), scale=10000)
+        """
+        # get the data from the server
+        data = self.byBands(regions, reducer, scale, bands, regionId, labels).getInfo()
+
+        # get all the id values, they must be string so we are forced to cast them manually
+        # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
+        features = regions.aggregate_array(regionId)
+        isString = lambda i: ee.Algorithms.ObjectType(i).compareTo("String").eq(0)  # noqa: E731
+        features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
+        features = features.getInfo()
+
+        # extract the labels from the parameters
+        bands = ee.List(bands) if bands else self._obj.bandNames()
+        labels = labels if labels else bands.getInfo()
+
+        # reorder the data according to the labels id set by the user
+        data = {b: {f: data[b][f] for f in features} for b in labels}
+
+        return plot_data(type=type, data=data, label_name=regionId, colors=colors, ax=ax)
+
+    def plot_by_bands(
+        self,
+        type: str,
+        regions: ee.FeatureCollection,
+        reducer: ee.Reducer = ee.Reducer.mean(),
+        scale: int = 10000,
+        bands: Optional[List] = None,
+        regionId: str = "system:index",
+        labels: Optional[List] = None,
+        colors: Optional[List] = None,
+        ax: Optional[Axes] = None,
+    ):
+        """Plot the reduced values for each bands.
+
+        Each band will be plotted using the ``labels`` as x-axis label defauting to band names if not provided.
+        If no ``bands`` are provided, all bands will be plotted.
+        If no ``regionId`` are provided, the "system;index" property will be used.
+
+
+        Warning:
+            This method is client-side.
+
+        Parameters:
+            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
+            regions: The regions to compute the reducer in.
+            reducer: The reducer to use. Default is ee.Reducer.mean().
+            scale: The scale to use for the computation. Default is 10000m.
+            bands: The bands to compute the reducer on. Default to all bands.
+            regionId: The property used to label region. Defaults to "system:index".
+            labels: The labels to use for the output dictionary. Default to the band names.
+            colors: The colors to use for the plot. Default to the default matplotlib colors.
+            ax: The matplotlib axis to plot the data on. If None, a new figure is created.
+
+        See Also:
+            - :py:meth:`byRegions <geetools.Image.ImageAccessor.byRegions>`: :docstring:`geetools.ImageAccessor.byRegions`
+            - :py:meth:`byBands <geetools.Image.ImageAccessor.byBands>`: :docstring:`geetools.ImageAccessor.byBands`
+            - :py:meth:`plot_by_bands <geetools.Image.ImageAccessor.plot_by_bands>`: :docstring:`geetools.ImageAccessor.plot_by_regions`
+            - :py:meth:`plot_hist <geetools.Image.ImageAccessor.plot_hist>`: :docstring:`geetools.ImageAccessor.plot_hist
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
+                normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
+
+
+                normClim.plot_by_bands(ecoregions, ee.Reducer.mean(), scale=10000)
+        """
+        # get the data from the server
+        data = self.byRegions(regions, reducer, scale, bands, regionId, labels).getInfo()
+
+        # get all the id values, they must be string so we are forced to cast them manually
+        # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
+        features = regions.aggregate_array(regionId)
+        isString = lambda i: ee.Algorithms.ObjectType(i).compareTo("String").eq(0)  # noqa: E731
+        features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
+        features = features.getInfo()
+
+        # extract the labels from the parameters
+        bands = ee.List(bands) if bands else self._obj.bandNames()
+        labels = labels if labels else bands.getInfo()
+
+        # reorder the data according to the labels id set by the user
+        data = {f: {b: data[f][b] for b in labels} for f in features}
+
+        return plot_data(type=type, data=data, label_name=regionId, colors=colors, ax=ax)
+
+    def plot_hist(
+        self,
+        bins: int = 30,
+        region: Optional[ee.Geometry] = None,
+        bands: Optional[List] = None,
+        labels: Optional[List] = None,
+        colors: Optional[List] = None,
+        scale: int = 10000,
+        precision: int = 2,
+        ax: Optional[Axes] = None,
+        **kwargs,
+    ):
+        """Plot the histogram of the image bands.
+
+        Parameters:
+            bins: The number of bins to use for the histogram. Default is 30.
+            bands: The bands to plot the histogram for. Default to all bands.
+            labels: The labels to use for the output dictionary. Default to the band names.
+            colors: The colors to use for the plot. Default to the default matplotlib colors.
+            ax: The matplotlib axis to plot the data on. If None, a new figure is created.
+            scale: The scale to use for the computation. Default is 10,000m.
+            prescision: The number of decimal to keep for the histogram bins values. Default is 2.
+            kwargs: Keyword arguments passed to the matplotlib fill_between() function.
+            region: The region to compute the histogram in. Default is the image geometry.
+
+        See Also:
+            - :py:meth:`byRegions <geetools.Image.ImageAccessor.byRegions>`: :docstring:`geetools.ImageAccessor.byRegions`
+            - :py:meth:`byBands <geetools.Image.ImageAccessor.byBands>`: :docstring:`geetools.ImageAccessor.byBands`
+            - :py:meth:`plot_by_bands <geetools.Image.ImageAccessor.plot_by_bands>`: :docstring:`geetools.ImageAccessor.plot_by_bands`
+            - :py:meth:`plot_by_regions <geetools.Image.ImageAccessor.plot_by_regions>`: :docstring:`geetools.ImageAccessor.plot_by_regions
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
+                normClim.plot_hist()
+        """
+        # extract the bands from the image
+        bands = ee.List(bands) if bands else self._obj.bandNames()
+        labels = ee.List(labels).flatten() if labels else bands
+
+        # retrieve the region from the parameters
+        region = region if region else self._obj.geometry()
+
+        # extract the data from the server
+        image = self._obj.select(bands).rename(labels).clip(region)
+
+        # compute the min and ma values of the bands so w can scale the bins of the histogram
+        min = image.reduceRegion(ee.Reducer.min(), region, scale).values().reduce(ee.Reducer.min())
+        max = image.reduceRegion(ee.Reducer.max(), region, scale).values().reduce(ee.Reducer.max())
+
+        # compute the histogram. The result is a dictionary with each band as key and the histogram
+        # as values. The histograp is a list of [start of bin, value] pairs
+        raw_data = image.reduceRegion(
+            ee.Reducer.fixedHistogram(min, max, bins), region, scale
+        ).getInfo()
+
+        # massage raw data to reqhape them as usable source for a Axes plot
+        # first extract the x coordinates of the plot as a list of bins borders
+        # every value is duplicated but the first one to create a scale like display.
+        # the values are treated the same way we simply drop the last duplication to get the same size.
+        p = 10**precision  # multiplier use to truncate the float values
+        x = [int(d[0] * p) / p for d in raw_data[labels.get(0).getInfo()] for _ in range(2)][1:]
+        # return raw_data
+        data = {
+            l: [int(d[1]) for d in raw_data[l] for _ in range(2)][:-1] for l in labels.getInfo()
+        }
+
+        # display the histogram as a fill_between plot to respect GEE lib design
+        for i, label in enumerate(labels.getInfo()):
+            kwargs["facecolor"] = to_rgba(colors[i], 0.2)
+            kwargs["edgecolor"] = to_rgba(colors[i], 1)
+            ax.fill_between(x, data[label], label=label, **kwargs)
+
+        # customize the layout of the axis
+        ax.set_ylabel("Count")
+        ax.grid(axis="x" if type in ["barh"] else "y")
+        ax.set_axisbelow(True)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
