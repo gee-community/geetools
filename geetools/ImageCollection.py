@@ -501,7 +501,7 @@ class ImageCollectionAccessor:
                     .filterDate("2014-01-01", "2014-12-31")
                 )
 
-                integral = collection.ldc.integral("B1")
+                integral = collection.geetools.integral("B1")
                 print(integral.getInfo())
         """
         # compute the intervals along the x axis
@@ -586,7 +586,7 @@ class ImageCollectionAccessor:
                     .filterDate("2014-01-01", "2014-12-31")
                 )
 
-                outliers = collection.ldc.outliers(["B1", "B2"], 2)
+                outliers = collection.geetools.outliers(["B1", "B2"], 2)
                 print(outliers.getInfo())
         """
         # cast parameters and compute the outlier band names
@@ -703,7 +703,7 @@ class ImageCollectionAccessor:
                     .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
                     .filterDate("2014-01-01", "2014-12-31")
                 )
-                valid = collection.ldc.validPixels("B1")
+                valid = collection.geetools.validPixels("B1")
                 print(valid.getInfo()).
         """
         # compute the mask for the specified band
@@ -734,7 +734,7 @@ class ImageCollectionAccessor:
                     .filterDate("2014-01-01", "2014-12-31")
                 )
 
-                filtered = collection.ldc.containsBandNames(["B1", "B2"], "ALL")
+                filtered = collection.geetools.containsBandNames(["B1", "B2"], "ALL")
                 print(filtered.getInfo())
         """
         # cast parameters
@@ -780,7 +780,7 @@ class ImageCollectionAccessor:
                     .filterDate("2014-01-01", "2014-12-31")
                 )
 
-                filtered = collection.ldc.containsAllBands(["B1", "B2"])
+                filtered = collection.geetools.containsAllBands(["B1", "B2"])
                 print(filtered.getInfo())
         """
         return self.containsBandNames(bandNames, "ALL")
@@ -807,7 +807,7 @@ class ImageCollectionAccessor:
                     .filterDate("2014-01-01", "2014-12-31")
                 )
 
-                filtered = collection.ldc.containsAnyBands(["B1", "B2"])
+                filtered = collection.geetools.containsAnyBands(["B1", "B2"])
                 print(filtered.getInfo())
         """
         return self.containsBandNames(bandNames, "ANY")
@@ -834,7 +834,7 @@ class ImageCollectionAccessor:
                     .filterDate("2014-01-01", "2014-12-31")
                 )
 
-                aggregated = collection.ldc.aggregateArray(["CLOUD_COVER", "system:time_start"])
+                aggregated = collection.geetools.aggregateArray(["CLOUD_COVER", "system:time_start"])
                 print(aggregated.getInfo())
         """
         keys = ee.List(properties) if properties is not None else self._obj.first().propertyNames()
