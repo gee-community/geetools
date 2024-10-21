@@ -1485,10 +1485,10 @@ class ImageAccessor:
         features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # get the bands to be used in the reducer
-        bands = ee.List(bands) if bands else self._obj.bandNames()
+        eeBands = ee.List(bands) if bands else self._obj.bandNames()
 
         # retrieve the label to use for each bands if provided
-        labels = ee.List(labels) if labels else bands
+        eeLabels = ee.List(labels) if labels else eeBands
 
         # by default for 1 band image, the reducers are renaming the output band. To ensure it keeps
         #  the original band name we add setOutputs that is ignored for multi band images.
@@ -1497,14 +1497,14 @@ class ImageAccessor:
         # reducer = reducer.setOutputs(labels)
 
         # retrieve the reduce bands for each feature
-        image = self._obj.select(bands).rename(labels)
+        image = self._obj.select(eeBands).rename(eeLabels)
         fc = image.reduceRegions(collection=regions, reducer=reducer, scale=scale)
 
         # extract the data as a list of dictionaries (one for each label) aggregating
         # the values for each feature
-        values = labels.map(lambda b: ee.Dictionary.fromLists(features, fc.aggregate_array(b)))
+        values = eeLabels.map(lambda b: ee.Dictionary.fromLists(features, fc.aggregate_array(b)))
 
-        return ee.Dictionary.fromLists(labels, values)
+        return ee.Dictionary.fromLists(eeLabels, values)
 
     def byRegions(
         self,
@@ -1593,7 +1593,7 @@ class ImageAccessor:
         bands: Optional[List] = None,
         regionId: str = "system:index",
         labels: Optional[List] = None,
-        colors: Optional[List] = None,
+        colors: list = [],
         ax: Optional[Axes] = None,
     ):
         """Plot the reduced values for each region.
@@ -1646,8 +1646,8 @@ class ImageAccessor:
         features = features.getInfo()
 
         # extract the labels from the parameters
-        bands = ee.List(bands) if bands else self._obj.bandNames()
-        labels = labels if labels else bands.getInfo()
+        eeBands = ee.List(bands) if bands else self._obj.bandNames()
+        labels = labels if labels else eeBands.getInfo()
 
         # reorder the data according to the labels id set by the user
         data = {b: {f: data[b][f] for f in features} for b in labels}
@@ -1663,7 +1663,7 @@ class ImageAccessor:
         bands: Optional[List] = None,
         regionId: str = "system:index",
         labels: Optional[List] = None,
-        colors: Optional[List] = None,
+        colors: list = [],
         ax: Optional[Axes] = None,
     ):
         """Plot the reduced values for each bands.
@@ -1717,8 +1717,8 @@ class ImageAccessor:
         features = features.getInfo()
 
         # extract the labels from the parameters
-        bands = ee.List(bands) if bands else self._obj.bandNames()
-        labels = labels if labels else bands.getInfo()
+        eeBands = ee.List(bands) if bands else self._obj.bandNames()
+        labels = labels if labels else eeBands.getInfo()
 
         # reorder the data according to the labels id set by the user
         data = {f: {b: data[f][b] for b in labels} for f in features}
@@ -1727,14 +1727,14 @@ class ImageAccessor:
 
     def plot_hist(
         self,
+        ax: Axes,
         bins: int = 30,
         region: Optional[ee.Geometry] = None,
-        bands: Optional[List] = None,
-        labels: Optional[List] = None,
-        colors: Optional[List] = None,
+        bands: list = [],
+        labels: list = [],
+        colors: list = [],
         scale: int = 10000,
         precision: int = 2,
-        ax: Optional[Axes] = None,
         **kwargs,
     ):
         """Plot the histogram of the image bands.
@@ -1767,14 +1767,15 @@ class ImageAccessor:
                 normClim.plot_hist()
         """
         # extract the bands from the image
-        bands = ee.List(bands) if bands else self._obj.bandNames()
-        labels = ee.List(labels).flatten() if labels else bands
+        eeBands = ee.List(bands) if len(bands) == 0 else self._obj.bandNames()
+        eeLabels = ee.List(labels).flatten() if len(labels) == 0 else eeBands
+        labels = eeLabels.getInfo()
 
         # retrieve the region from the parameters
         region = region if region else self._obj.geometry()
 
         # extract the data from the server
-        image = self._obj.select(bands).rename(labels).clip(region)
+        image = self._obj.select(eeBands).rename(eeLabels).clip(region)
 
         # compute the min and ma values of the bands so w can scale the bins of the histogram
         min = image.reduceRegion(ee.Reducer.min(), region, scale).values().reduce(ee.Reducer.min())
@@ -1782,23 +1783,19 @@ class ImageAccessor:
 
         # compute the histogram. The result is a dictionary with each band as key and the histogram
         # as values. The histograp is a list of [start of bin, value] pairs
-        raw_data = image.reduceRegion(
-            ee.Reducer.fixedHistogram(min, max, bins), region, scale
-        ).getInfo()
+        reduce = image.reduceRegion(ee.Reducer.fixedHistogram(min, max, bins), region, scale)
+        raw_data = reduce.getInfo()
 
         # massage raw data to reqhape them as usable source for a Axes plot
         # first extract the x coordinates of the plot as a list of bins borders
         # every value is duplicated but the first one to create a scale like display.
         # the values are treated the same way we simply drop the last duplication to get the same size.
         p = 10**precision  # multiplier use to truncate the float values
-        x = [int(d[0] * p) / p for d in raw_data[labels.get(0).getInfo()] for _ in range(2)][1:]
-        # return raw_data
-        data = {
-            l: [int(d[1]) for d in raw_data[l] for _ in range(2)][:-1] for l in labels.getInfo()
-        }
+        x = [int(d[0] * p) / p for d in raw_data[labels[0]] for _ in range(2)][1:]
+        data = {l: [int(d[1]) for d in raw_data[l] for _ in range(2)][:-1] for l in labels}
 
         # display the histogram as a fill_between plot to respect GEE lib design
-        for i, label in enumerate(labels.getInfo()):
+        for i, label in enumerate(labels):
             kwargs["facecolor"] = to_rgba(colors[i], 0.2)
             kwargs["edgecolor"] = to_rgba(colors[i], 1)
             ax.fill_between(x, data[label], label=label, **kwargs)
