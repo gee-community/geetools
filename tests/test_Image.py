@@ -653,7 +653,7 @@ class TestPlotByRegions:
         self.image.geetools.plot_by_regions(
             type = "bar",
             regions = self.ecoregions,
-            reducer = ee.Reducer.mean(),
+            reducer = "mean",
             scale = 500,
             regionId = "label",
             bands = ["01_tmean", "02_tmean", "03_tmean", "04_tmean", "05_tmean", "06_tmean", "07_tmean", "08_tmean", "09_tmean", "10_tmean", "11_tmean", "12_tmean"],
@@ -672,7 +672,7 @@ class TestPlotByRegions:
         self.image.geetools.plot_by_regions(
             type = "barh",
             regions = self.ecoregions,
-            reducer = ee.Reducer.mean(),
+            reducer = "mean",
             scale = 500,
             regionId = "label",
             bands = ["01_tmean", "02_tmean", "03_tmean", "04_tmean", "05_tmean", "06_tmean", "07_tmean", "08_tmean", "09_tmean", "10_tmean", "11_tmean", "12_tmean"],
@@ -691,7 +691,7 @@ class TestPlotByRegions:
         self.image.geetools.plot_by_regions(
             type = "stacked",
             regions = self.ecoregions,
-            reducer = ee.Reducer.mean(),
+            reducer = "mean",
             scale = 500,
             regionId = "label",
             bands = ["01_tmean", "02_tmean", "03_tmean", "04_tmean", "05_tmean", "06_tmean", "07_tmean", "08_tmean", "09_tmean", "10_tmean", "11_tmean", "12_tmean"],
@@ -724,7 +724,7 @@ class TestPlotByBands:
         self.image.geetools.plot_by_bands(
             type = "bar",
             regions = self.ecoregions,
-            reducer = ee.Reducer.mean(),
+            reducer = "mean",
             scale = 500,
             regionId = "label",
             bands = ['01_ppt', '02_ppt', '03_ppt', '04_ppt', '05_ppt', '06_ppt', '07_ppt', '08_ppt', '09_ppt', '10_ppt', '11_ppt', '12_ppt'],
@@ -743,7 +743,7 @@ class TestPlotByBands:
         self.image.geetools.plot_by_bands(
             type = "plot",
             regions = self.ecoregions,
-            reducer = ee.Reducer.mean(),
+            reducer = "mean",
             scale = 500,
             regionId = "label",
             bands = ['01_ppt', '02_ppt', '03_ppt', '04_ppt', '05_ppt', '06_ppt', '07_ppt', '08_ppt', '09_ppt', '10_ppt', '11_ppt', '12_ppt'],
@@ -762,7 +762,7 @@ class TestPlotByBands:
         self.image.geetools.plot_by_bands(
             type = "fill_between",
             regions = self.ecoregions,
-            reducer = ee.Reducer.mean(),
+            reducer = "mean",
             scale = 500,
             regionId = "label",
             bands = ['01_ppt', '02_ppt', '03_ppt', '04_ppt', '05_ppt', '06_ppt', '07_ppt', '08_ppt', '09_ppt', '10_ppt', '11_ppt', '12_ppt'],
@@ -782,7 +782,7 @@ class TestPlotByBands:
         self.image.geetools.plot_by_bands(
             type = "pie",
             regions = ecoregion,
-            reducer = ee.Reducer.mean(),
+            reducer = "mean",
             scale = 500,
             regionId = "label",
             bands = ['01_ppt', '02_ppt', '03_ppt', '04_ppt', '05_ppt', '06_ppt', '07_ppt', '08_ppt', '09_ppt', '10_ppt', '11_ppt', '12_ppt'],
@@ -802,7 +802,7 @@ class TestPlotByBands:
         self.image.geetools.plot_by_bands(
             type = "donut",
             regions = ecoregion,
-            reducer = ee.Reducer.mean(),
+            reducer = "mean",
             scale = 500,
             regionId = "label",
             bands = ['01_ppt', '02_ppt', '03_ppt', '04_ppt', '05_ppt', '06_ppt', '07_ppt', '08_ppt', '09_ppt', '10_ppt', '11_ppt', '12_ppt'],
