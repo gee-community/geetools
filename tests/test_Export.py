@@ -1,7 +1,7 @@
 """Test the ``Export`` class."""
 import ee
-from ee.cli.utils import wait_for_task
 import pytest
+from ee.cli.utils import wait_for_task
 
 import geetools  # noqa F401
 
