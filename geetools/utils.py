@@ -114,7 +114,7 @@ def plot_data(
             ax.plot(props, values, label=label, **kwargs)
             ax.set_ylabel(name)
             ax.set_xlabel(f"Features (labeled by {label_name})")
-            grid_axis = "x"
+            grid_axis = "y"
 
     elif type == "scatter":
         for i, label in enumerate(labels):
@@ -124,7 +124,7 @@ def plot_data(
             ax.scatter(props, values, label=label, **kwargs)
             ax.set_ylabel(name)
             ax.set_xlabel(f"Features (labeled by {label_name})")
-            grid_axis = "x"
+            grid_axis = "y"
 
     elif type == "fill_between":
         for i, label in enumerate(labels):
@@ -135,7 +135,7 @@ def plot_data(
             ax.fill_between(props, values, label=label, **kwargs)
             ax.set_ylabel(name)
             ax.set_xlabel(f"Features (labeled by {label_name})")
-            grid_axis = "x"
+            grid_axis = "y"
 
     elif type == "bar":
         x = np.arange(len(props))
@@ -147,7 +147,7 @@ def plot_data(
             kwargs["color"] = colors[i]
             values = list(data[label].values())
             ax.bar(x + width * i, values, label=label, **kwargs)
-        grid_axis = "x"
+        grid_axis = "y"
 
     elif type == "barh":
         y = np.arange(len(props))
@@ -159,7 +159,7 @@ def plot_data(
             kwargs["color"] = colors[i]
             values = list(data[label].values())
             ax.barh(y + height * i, values, label=label, **kwargs)
-        grid_axis = "y"
+        grid_axis = "x"
 
     elif type == "stacked":
         x = np.arange(len(props))
@@ -170,7 +170,7 @@ def plot_data(
             values = list(data[label].values())
             ax.bar(x, values, label=label, **kwargs)
             bottom += values
-        grid_axis = "x"
+        grid_axis = "y"
 
     elif type == "pie":
         if len(labels) != 1:
@@ -183,7 +183,7 @@ def plot_data(
         kwargs.update(autopct="%1.1f%%", colors=colors)
         values = [data[labels[0]][p] for p in props]
         ax.pie(values, labels=props, **kwargs)
-        grid_axis = None
+        grid_axis = "y"
 
     elif type == "donut":
         if len(labels) != 1:
@@ -197,7 +197,7 @@ def plot_data(
         kwargs.update(autopct="%1.1f%%", colors=colors)
         values = [data[labels[0]][p] for p in props]
         ax.pie(values, labels=props, **kwargs)
-        grid_axis = None
+        grid_axis = "y"
 
     elif type == "date":
         for i, label in enumerate(labels):
