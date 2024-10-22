@@ -1,6 +1,8 @@
 """Toolbox for the ``ee.Image`` class."""
 from __future__ import annotations
 
+from typing import Optional
+
 import ee
 import ee_extra
 import ee_extra.Algorithms.core
@@ -1315,11 +1317,27 @@ class ImageAccessor:
 
         return ee.Image(distance)
 
-    def maskCover(self) -> ee.Image:
-        """return an image with the mask cover ratio as an image property.
+    def maskCoverRegion(
+        self,
+        region: ee.Geometry,
+        scale: Optional[int] = None,
+        band: Optional[str] = None,
+        proxy_value: int = -999,
+        maxPixels: int = 1e8,
+        tileScale: int = 1,
+    ) -> ee.Number:
+        """Compute the coverage of masked pixels inside a Geometry.
+
+        Parameters:
+            region: The region to compute the mask coverage.
+            scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
+            band: The band to use. Defaults to the first band.
+            proxy_value: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
+            maxPixels: The maximum number of pixels to reduce.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
-            The image with the mask cover ratio as an image property.
+            The percentage of masked pixels within the region
 
         Examples:
             .. code-block:: python
@@ -1329,23 +1347,90 @@ class ImageAccessor:
                     ee.Initialize()
 
                     image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    image = image.maskCover()
+                    aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                    image = image.maskCoverRegion(aoi)
         """
         # compute the mask cover
-        mask, geometry = self._obj.select(0).mask(), self._obj.geometry()
-        cover = mask.reduceRegion(ee.Reducer.frequencyHistogram(), geometry, bestEffort=True)
-
+        band = band or 0
+        image = self._obj.select(band)
+        scale = scale or image.projection().nominalScale()
+        unmasked = image.unmask(proxy_value)
+        mask = unmasked.eq(proxy_value)
+        cover = mask.reduceRegion(
+            ee.Reducer.frequencyHistogram(),
+            region,
+            scale=scale,
+            bestEffort=True,
+            maxPixels=maxPixels,
+            tileScale=tileScale,
+        )
         # The cover result is a dictionary with each band as key (in our case the first one).
         # For each band key the number of 0 and 1 is stored in a dictionary.
         # We need to extract the number of 1 and 0 to compute the ratio which implys lots of casting.
-        values = ee.Dictionary(cover.values().get(0)).values()
-        zeros, ones = ee.Number(values.get(0)), ee.Number(values.get(1))
-        ratio = zeros.divide(zeros.add(ones))
+        values = ee.Dictionary(cover.values().get(0))
+        zeros, ones = ee.Number(values.get("0", 0)), ee.Number(values.get("1", 0))
+        ratio = ones.divide(zeros.add(ones)).multiply(100)
 
-        # we want to display this resutl as a 1 digit float
-        ratio = ratio.multiply(1000).toInt().divide(10)
+        # we want to display this result as a 1 digit float
+        return ratio
 
-        return ee.Image(self._obj.set("mask_cover", ratio))
+    def maskCoverRegions(
+        self,
+        collection: ee.FeatureCollection,
+        scale: Optional[int] = None,
+        band: Optional[str] = None,
+        proxy_value: int = -999,
+        column_name: str = "mask_cover",
+        tileScale: int = 1,
+    ) -> ee.FeatureCollection:
+        """Compute the coverage of masked pixels inside a Geometry.
+
+        Parameters:
+            collection: The collection to compute the mask coverage (in each Feature).
+            scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
+            band: The band to use. Defaults to the first band.
+            proxy_value: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
+            column_name: name of the column that will hold the value.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
+        Returns:
+            The passed table with the new column containing the percentage of masked pixels within the region
+
+        Examples:
+            .. code-block:: python
+
+                    import ee, geetools
+
+                    ee.Initialize()
+
+                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                    reg = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                    aoi = ee.FeatureCollection([ee.Feature(reg)])
+                    image = image.maskCoverRegions(aoi)
+        """
+        # compute the mask cover
+        band = band or 0
+        properties = collection.propertyNames()  # original properties
+        image = self._obj.select(band)
+        scale = scale or image.projection().nominalScale()
+        unmasked = image.unmask(proxy_value)
+        mask = unmasked.eq(proxy_value)
+        column = "_geetools_histo_"
+        cover = mask.reduceRegions(
+            collection=collection,
+            reducer=ee.Reducer.frequencyHistogram().setOutputs([column]),
+            scale=scale,
+            tileScale=tileScale,
+        )
+
+        def compute_percentage(feat):
+            """function to map over the resulting table and compute the percentage from the reducer's output."""
+            histo = ee.Dictionary(feat.get(column))
+            zeros, ones = ee.Number(histo.get("0", 0)), ee.Number(histo.get("1", 0))
+            ratio = ones.divide(zeros.add(ones)).multiply(100)
+            return feat.select(properties).set(column_name, ratio)
+
+        return cover.map(compute_percentage)
 
     def plot(
         self,
