@@ -12,6 +12,5 @@ div.admonition.admonition-api > .admonition-title::after {
 
 /* increase width of the main content */
 .bd-main .bd-content .bd-article-container {
-  max-width: 100%;  /* default is 60em */
+  max-width: 100%; /* default is 60em */
 }
-
