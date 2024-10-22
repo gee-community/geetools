@@ -114,6 +114,7 @@ def plot_data(
             ax.plot(props, values, label=label, **kwargs)
             ax.set_ylabel(name)
             ax.set_xlabel(f"Features (labeled by {label_name})")
+            grid_axis = "x"
 
     elif type == "scatter":
         for i, label in enumerate(labels):
@@ -123,6 +124,7 @@ def plot_data(
             ax.scatter(props, values, label=label, **kwargs)
             ax.set_ylabel(name)
             ax.set_xlabel(f"Features (labeled by {label_name})")
+            grid_axis = "x"
 
     elif type == "fill_between":
         for i, label in enumerate(labels):
@@ -133,6 +135,7 @@ def plot_data(
             ax.fill_between(props, values, label=label, **kwargs)
             ax.set_ylabel(name)
             ax.set_xlabel(f"Features (labeled by {label_name})")
+            grid_axis = "x"
 
     elif type == "bar":
         x = np.arange(len(props))
@@ -144,6 +147,7 @@ def plot_data(
             kwargs["color"] = colors[i]
             values = list(data[label].values())
             ax.bar(x + width * i, values, label=label, **kwargs)
+        grid_axis = "x"
 
     elif type == "barh":
         y = np.arange(len(props))
@@ -155,6 +159,7 @@ def plot_data(
             kwargs["color"] = colors[i]
             values = list(data[label].values())
             ax.barh(y + height * i, values, label=label, **kwargs)
+        grid_axis = "y"
 
     elif type == "stacked":
         x = np.arange(len(props))
@@ -165,6 +170,7 @@ def plot_data(
             values = list(data[label].values())
             ax.bar(x, values, label=label, **kwargs)
             bottom += values
+        grid_axis = "x"
 
     elif type == "pie":
         if len(labels) != 1:
@@ -177,6 +183,7 @@ def plot_data(
         kwargs.update(autopct="%1.1f%%", colors=colors)
         values = [data[labels[0]][p] for p in props]
         ax.pie(values, labels=props, **kwargs)
+        grid_axis = None
 
     elif type == "donut":
         if len(labels) != 1:
@@ -190,12 +197,29 @@ def plot_data(
         kwargs.update(autopct="%1.1f%%", colors=colors)
         values = [data[labels[0]][p] for p in props]
         ax.pie(values, labels=props, **kwargs)
+        grid_axis = None
+
+    elif type == "date":
+        for i, label in enumerate(labels):
+            kwargs["color"] = colors[i]
+            x, y = list(data[label].keys()), list(data[label].values())
+            ax.plot(x, y, label=label, **kwargs)
+        ax.set_xlabel("Date")
+        grid_axis = "both"
+
+    elif type == "doy":
+        for i, label in enumerate(labels):
+            kwargs["color"] = colors[i]
+            x, y = list(data[label].keys()), list(data[label].values())
+            ax.plot(x, y, label=label, **kwargs)
+            ax.set_xlabel("Day of year")
+            grid_axis = "both"
 
     else:
         raise ValueError(f"Type {type} is not (yet?) supported")
 
     # customize the layout of the axis
-    ax.grid(axis="x" if type in ["barh"] else "y")
+    ax.grid(axis=grid_axis)
     ax.set_axisbelow(True)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)

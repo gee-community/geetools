@@ -2,16 +2,25 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime as dt
 
 import ee
 import ee_extra
 import requests
 import xarray
 from ee import apifunction
+from matplotlib.axes import Axes
 from xarray import Dataset
 from xee.ext import REQUEST_BYTE_LIMIT
 
-from geetools.accessors import register_class_accessor
+from .accessors import register_class_accessor
+from .utils import plot_data
+
+PY_DATE_FORMAT = "%Y-%m-%dT%H-%M-%S"
+"The python format to use to parse dates coming from GEE."
+
+JS_DATE_FORMAT = "YYYY-MM-dd'T'HH-mm-ss"
+"The javascript format to use to burn date object in GEE."
 
 
 @register_class_accessor(ee.ImageCollection, "geetools")
@@ -896,7 +905,7 @@ class ImageCollectionAccessor:
 
         For example using unit as "month" and duration as 1, the ImageCollection will be reduced
         into a new ImageCollection with each image containing the reduced values for each month.
-        Make sure the collection is filtered beforeend to reduce the number of images that needs to be
+        Make sure the collection is filtered beforehand to reduce the number of images that needs to be
         processed.
 
         Args:
@@ -1049,3 +1058,686 @@ class ImageCollectionAccessor:
         medoid = sumDistance.qualityMosaic(sumOfDistancesName)
 
         return ee.Image(medoid).select(bandNames)
+
+    def datesByBands(
+        self,
+        region: ee.Geometry,
+        reducer: str = "mean",
+        scale: int = 10000,
+        dateProperty: str = "system:time_start",
+        bands: list = [],
+        labels: list = [],
+    ) -> ee.Dictionary:
+        """Reduce the data for each image in the collection by bands on a specific region.
+
+        This method is returning a dictionary with all the bands as keys and their reduced value for each date over the specified region as value.
+
+        .. code-block::
+
+            {
+                "band1": {"date1": value1, "date2": value2, ...},
+                "band2": {"date1": value1, "date2": value2, ...},
+                ...
+            }
+
+        Parameters:
+            region: The region to reduce the data on.
+            reducer: The name of the reducer to use. Default is "mean".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            bands: The bands to reduce. If empty, all bands are reduced.
+            labels: The labels to use for the bands. If empty, the bands names are used.
+
+        Returns:
+            A dictionary with the reduced values for each band and each date.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                region = ee.Geometry.Point(-122.262, 37.8719).buffer(10000)
+                reduced = collection.geetools.dateByBands(region, "mean", 10000, "system:time_start")
+                print(reduced.getInfo())
+        """
+        # cast parameters
+        bands = ee.List(bands) if len(bands) else self._obj.first().bandNames()
+        labels = ee.List(labels) if len(labels) else bands
+
+        # recast band names as labels in the source collection
+        ic = self._obj.select(bands).map(lambda i: i.rename(labels))
+
+        # aggregate all the dates contained in the collection
+        dateList = ic.aggregate_array(dateProperty).map(lambda d: ee.Date(d).format(JS_DATE_FORMAT))
+
+        # create a list of dictionaries with the reduced values for each band
+        def reduce(label: ee.String) -> ee.Dictionary:
+            image = ic.select([label]).toBands().rename(dateList)
+            return image.reduceRegion(
+                reducer=reducer,
+                geometry=region,
+                scale=scale,
+            )
+
+        return ee.Dictionary.fromLists(labels, labels.map(reduce))
+
+    def datesByRegions(
+        self,
+        band: str,
+        regions: ee.FeatureCollection,
+        label: str = "system:index",
+        reducer: str = "mean",
+        scale: int = 10000,
+        dateProperty: str = "system:time_start",
+    ) -> ee.Dictionary:
+        """Reduce the data for each image in the collection by regions for a single band.
+
+        This method is returning a dictionary with all the regions as keys and their reduced value for each date over the specified region for a specific band as value.
+
+        .. code-block::
+
+            {
+                "region1": {"date1": value1, "date2": value2, ...},
+                "region2": {"date1": value1, "date2": value2, ...},
+                ...
+            }
+
+        Parameters:
+            band: The band to reduce.
+            regions: The regions to reduce the data on.
+            label: The property to use as label for each region. Default is "system:index".
+            reducer: The name of the reducer to use. Default is "mean".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+
+        Returns:
+            A dictionary with the reduced values for each region and each date.
+
+        Examples:
+            .. code-block:: python
+
+            import ee, geetools
+
+            ee.Initialize()
+
+            collection = (
+                ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                .filterDate("2014-01-01", "2014-12-31")
+            )
+
+            regions = ee.FeatureCollection([
+                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
+                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
+            ])
+
+            reduced = collection.geetools.datesByRegions("B1", regions, "name", "mean", 10000, "system:time_start")
+            print(reduced.getInfo())
+        """
+        # aggregate all the dates of the image collection into bands of a single image
+        dateList = self._obj.aggregate_array(dateProperty).map(
+            lambda d: ee.Date(d).format(JS_DATE_FORMAT)
+        )
+        image = self._obj.select([band]).toBands().rename(dateList)
+
+        # reduce the data for each region
+        reduced = image.reduceRegions(
+            collection=regions,
+            reducer=getattr(ee.Reducer, reducer)(),
+            scale=scale,
+        )
+
+        # create a list of dictionaries for each region and aggregate them into a dictionary
+        values = reduced.toList(regions.size()).map(lambda f: ee.Feature(f).toDictionary(dateList))
+        keys = ee.List(regions.aggregate_array(label))
+
+        return ee.Dictionary.fromLists(keys, values)
+
+    def doyByBands(
+        self,
+        region: ee.Geometry,
+        spatialReducer: str = "mean",
+        timeReducer: str = "mean",
+        scale: int = 10000,
+        dateProperty: str = "system:time_start",
+        bands: list = [],
+        labels: list = [],
+    ) -> ee.Dictionary:
+        """Aggregate the images that occurs on the same day and then reduce each band on a single region.
+
+        This method is returning a dictionary with all the bands as keys and their reduced value for each day over the specified region as value.
+
+        .. code-block::
+
+            {
+                "band1": {"doy1": value1, "doy2": value2, ...},
+                "band2": {"doy1": value1, "doy2": value2, ...},
+                ...
+            }
+
+        Parameters:
+            region: The region to reduce the data on.
+            spatialReducer: The name of the reducer to use. Default is "mean".
+            timeReducer: The name of the reducer to use for the temporal reduction. Default is "mean".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            bands: The bands to reduce. If empty, all bands are reduced.
+            labels: The labels to use for the bands. If empty, the bands names are used.
+
+        Returns:
+            A dictionary with the reduced values for each band and each day.
+        """
+        # cast parameters
+        bands = ee.List(bands) if len(bands) else self._obj.first().bandNames()
+        labels = ee.List(labels) if len(labels) else bands
+
+        # recast band names as labels in the source collection
+        ic = self._obj.select(bands).map(lambda i: i.rename(labels))
+
+        # create 2 metadata name as random string to avoid any risk of conflicts
+        doy_metadata, size_metadata = uuid.uuid4().hex, uuid.uuid4().hex
+
+        # add the day of year as metadata to each image
+        def doy_tag(i: ee.Image) -> ee.Image:
+            doy = ee.Date(i.get(dateProperty)).getRelative("day", "year")
+            return i.set(doy_metadata, doy)
+
+        ic = self._obj.map(doy_tag)
+
+        # create a list of ImageCollection where every images of the same day are grouped together
+        dayList = ee.List.sequence(0, 366)
+
+        def filter_doy(d: ee.Number) -> ee.ImageCollection:
+            c = ic.filter(ee.Filter.eq(doy_metadata, d))
+            c = c.set(size_metadata, c.size())
+            return c.set(doy_metadata, d)
+
+        icList = dayList.map(filter_doy)
+
+        # reduce every sub ImageCollection in the list into images (it's the temporal reduction)
+        # and aggregate the result as a single ImageCollection
+        timeRed = getattr(ee.Reducer, timeReducer)()  # .setOutputs(labels)
+
+        def timeReduce(c: ee.imageCollection) -> ee.image:
+            c = ee.ImageCollection(c)
+            i = c.reduce(timeRed).rename(labels)
+            i = i.set(size_metadata, c.get(size_metadata))
+            return i.set(doy_metadata, c.get(doy_metadata))
+
+        ic = ee.ImageCollection(icList.map(timeReduce)).filter(ee.Filter.gt(size_metadata, 0))
+
+        # spatially reduce the generated imagecollection over the region for each band
+        doyList = ic.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
+        spatialRed = getattr(ee.Reducer, spatialReducer)()  # .setOutputs(doyList)
+
+        def spatialReduce(label: ee.String) -> ee.Dictionary:
+            image = ic.select([label]).toBands().rename(doyList)
+            return image.reduceRegion(
+                reducer=spatialRed,
+                geometry=region,
+                scale=scale,
+            )
+
+        return ee.Dictionary.fromLists(labels, ee.List(labels).map(spatialReduce))
+
+    def doyByRegions(
+        self,
+        band: str,
+        regions: ee.FeatureCollection,
+        label: str = "system:index",
+        spatialReducer: str = "mean",
+        timeReducer: str = "mean",
+        scale: int = 10000,
+        dateProperty: str = "system:time_start",
+    ) -> ee.Dictionary:
+        """Aggregate the images that occurs on the same day and then reduce a single band on multiple regions.
+
+        This method is returning a dictionary with all the regions as keys and their reduced value for each day over the specified region for a specific band as value.
+
+        .. code-block::
+
+            {
+                "region1": {"doy1": value1, "doy2": value2, ...},
+                "region2": {"doy1": value1, "doy2": value2, ...},
+                ...
+            }
+
+        Parameters:
+            band: The band to reduce.
+            regions: The regions to reduce the data on.
+            label: The property to use as label for each region. Default is "system:index".
+            spatialReducer: The name of the reducer to use. Default is "mean".
+            timeReducer: The name of the reducer to use for the temporal reduction. Default is "mean".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+
+        Returns:
+            A dictionary with the reduced values for each region and each day.
+        """
+        # create 2 metadata name as random string to avoid any risk of conflicts
+        doy_metadata, size_metadata = uuid.uuid4().hex, uuid.uuid4().hex
+
+        # add the day of year as metadata to each image
+        def doy_tag(i: ee.Image) -> ee.Image:
+            doy = ee.Date(i.get(dateProperty)).getRelative("day", "year")
+            return i.set(doy_metadata, doy)
+
+        ic = self._obj.select([band]).map(doy_tag)
+
+        # create a list of ImageCollection where every images of the same day are grouped together
+        dayList = ee.List.sequence(0, 366)
+
+        def filter_doy(d: ee.Number) -> ee.ImageCollection:
+            c = ic.filter(ee.Filter.eq(doy_metadata, d))
+            c = c.set(size_metadata, c.size())
+            return c.set(doy_metadata, d)
+
+        icList = dayList.map(filter_doy)
+
+        # reduce every sub ImageCollection in the list into images (it's the temporal reduction)
+        # and aggregate the result as a single ImageCollection
+        timeRed = getattr(ee.Reducer, timeReducer)()  # .setOutputs(band)
+
+        def timeReduce(c: ee.imageCollection) -> ee.image:
+            c = ee.ImageCollection(c)
+            i = c.reduce(timeRed).rename([band])
+            i = i.set(size_metadata, c.get(size_metadata))
+            return i.set(doy_metadata, c.get(doy_metadata))
+
+        ic = ee.ImageCollection(icList.map(timeReduce)).filter(ee.Filter.gt(size_metadata, 0))
+
+        # reduce the data for each region
+        doyList = ic.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
+        spatialRed = getattr(ee.Reducer, spatialReducer)()  # .setOutputs(doyList)
+        image = ic.toBands().rename(doyList)
+        reduced = image.reduceRegions(
+            collection=regions,
+            reducer=spatialRed,
+            scale=scale,
+        )
+
+        # create a list of dictionaries for each region and aggregate them into a dictionary
+        values = reduced.toList(regions.size()).map(lambda f: ee.Feature(f).toDictionary(doyList))
+        keys = ee.List(regions.aggregate_array(label))
+
+        return ee.Dictionary.fromLists(keys, values)
+
+    def doyByYears(
+        self,
+        band: str,
+        region: ee.Geometry,
+        reducer: str = "mean",
+        scale: int = 10000,
+        dateProperty: str = "system:time_start",
+    ) -> ee.Dictionary:
+        """Aggregate for each year on a single region a single band.
+
+        This method is returning a dictionary with all the years as keys and their reduced value for each day over the specified region for a specific band as value.
+
+        .. code-block::
+
+            {
+                "year1": {"doy1": value1, "doy2": value2, ...},
+                "year2": {"doy1": value1, "doy2": value2, ...},
+                ...
+            }
+
+        Parameters:
+            band: The band to reduce.
+            region: The region to reduce the data on.
+            spatialReducer: The name of the reducer to use. Default is "mean".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+
+        Returns:
+            A dictionary with the reduced values for each year and each day.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                reduced = collection.geetools.doyByYears("B1", ee.Geometry.Point(-122.262, 37.8719).buffer(10000), "mean", "mean", 10000, "system:time_start")
+                print(reduced.getInfo())
+        """
+        # add a doy metadata to the images
+        doy_metadata, year_metadata = uuid.uuid4().hex, uuid.uuid4().hex
+
+        def date_tag(i: ee.Image) -> ee.Image:
+            date = ee.Date(i.get(dateProperty))
+            doy = date.getRelative("day", "year")
+            year = date.get("year")
+            return i.set(doy_metadata, doy).set(year_metadata, year)
+
+        ic = self._obj.select([band]).map(date_tag)
+
+        # create a List of image collection where every images from the same year are grouped together
+        yearList = ic.aggregate_array(year_metadata).distinct().sort()
+        yearKeys = yearList.map(lambda y: ee.Number(y).int().format())
+
+        def reduce(year: ee.Number) -> ee.Dictionary:
+            c = ic.filter(ee.Filter.eq(year_metadata, year))
+            doyList = c.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
+            red = getattr(ee.Reducer, reducer)()  # .setOutputs(doyList)
+            return c.toBands().rename(doyList).reduceRegion(red, region, scale)
+
+        return ee.Dictionary.fromLists(yearKeys, yearList.map(reduce))
+
+    def plot_dates_by_bands(
+        self,
+        region: ee.Geometry,
+        reducer: str = "mean",
+        scale: int = 10000,
+        dateProperty: str = "system:time_start",
+        bands: list = [],
+        labels: list = [],
+        colors: list = [],
+        ax: Axes | None = None,
+    ):
+        """Plot the reduced data for each image in the collection by bands on a specific region.
+
+        This method is plotting the reduced data for each image in the collection by bands on a specific region.
+
+        Parameters:
+            region: The region to reduce the data on.
+            reducer: The name of the reducer to use. Default is "mean".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            bands: The bands to reduce. If empty, all bands are reduced.
+            labels: The labels to use for the bands. If empty, the bands names are used.
+            colors: The colors to use for the bands. If empty, the default colors are used.
+            ax: The matplotlib axes to plot the data on. If None, a new figure is created.
+
+        Returns:
+            A matplotlib axes with the reduced values for each band and each date.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                region = ee.Geometry.Point(-122.262, 37.8719).buffer(10000)
+                collection.geetools.plot_dates_by_bands(region, "mean", 10000, "system:time_start")
+        """
+        # get the reduced data
+        raw_data = self.datesByBands(region, reducer, scale, dateProperty, bands, labels).getInfo()
+
+        # transform all the dates int datetime objects
+        def to_date(dict):
+            return {dt.strptime(d, PY_DATE_FORMAT): v for d, v in dict.items()}
+
+        data = {l: to_date(dict) for l, dict in raw_data.items()}
+
+        # create the plot
+        ax = plot_data("date", data, "Date", colors, ax)
+
+        return ax
+
+    def plot_dates_by_regions(
+        self,
+        band: str,
+        regions: ee.FeatureCollection,
+        label: str = "system:index",
+        reducer: str = "mean",
+        scale: int = 10000,
+        dateProperty: str = "system:time_start",
+        colors: list = [],
+        ax: Axes | None = None,
+    ):
+        """Plot the reduced data for each image in the collection by regions for a single band.
+
+        This method is plotting the reduced data for each image in the collection by regions for a single band.
+
+        Parameters:
+            band: The band to reduce.
+            regions: The regions to reduce the data on.
+            label: The property to use as label for each region. Default is "system:index".
+            reducer: The name of the reducer to use. Default is "mean".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            colors: The colors to use for the regions. If empty, the default colors are used.
+            ax: The matplotlib axes to plot the data on. If None, a new figure is created.
+
+        Returns:
+            A matplotlib axes with the reduced values for each region and each date.
+
+        Examples:
+            .. code-block:: python
+
+            import ee, geetools
+
+            ee.Initialize()
+
+            collection = (
+                ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                .filterDate("2014-01-01", "2014-12-31")
+            )
+
+            regions = ee.FeatureCollection([
+                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
+                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
+            ])
+
+            collection.geetools.plot_dates_by_regions("B1", regions, "name", "mean", 10000, "system:time_start")
+        """
+        # get the reduced data
+        raw_data = self.datesByRegions(band, regions, label, reducer, scale, dateProperty).getInfo()
+
+        # transform all the dates int datetime objects
+        def to_date(dict):
+            return {dt.strptime(d, PY_DATE_FORMAT): v for d, v in dict.items()}
+
+        data = {l: to_date(dict) for l, dict in raw_data.items()}
+
+        # create the plot
+        ax = plot_data("date", data, "Date", colors, ax)
+
+        return ax
+
+    def plot_doy_by_bands(
+        self,
+        region: ee.Geometry,
+        spatialReducer: str = "mean",
+        timeReducer: str = "mean",
+        scale: int = 10000,
+        dateProperty: str = "system:time_start",
+        bands: list = [],
+        labels: list = [],
+        colors: list = [],
+        ax: Axes | None = None,
+    ):
+        """Plot the reduced data for each image in the collection by bands on a specific region.
+
+        This method is plotting the reduced data for each image in the collection by bands on a specific region.
+
+        Parameters:
+            region: The region to reduce the data on.
+            spatialReducer: The name of the reducer to use. Default is "mean".
+            timeReducer: The name of the reducer to use for the temporal reduction. Default is "mean".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            bands: The bands to reduce. If empty, all bands are reduced.
+            labels: The labels to use for the bands. If empty, the bands names are used.
+            colors: The colors to use for the bands. If empty, the default colors are used.
+            ax: The matplotlib axes to plot the data on. If None, a new figure is created.
+
+        Returns:
+            A matplotlib axes with the reduced values for each band and each day.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                region = ee.Geometry.Point(-122.262, 37.8719).buffer(10000)
+                collection.geetools.plot_doy_by_bands(region, "mean", "mean", 10000, "system:time_start")
+        """
+        # get the reduced data
+        raw_data = self.doyByBands(
+            region, spatialReducer, timeReducer, scale, dateProperty, bands, labels
+        ).getInfo()
+
+        # transform all the dates strings into int object and reorder the dictionary
+        def to_int(d):
+            return {int(k): v for k, v in d.items()}
+
+        data = {l: dict(sorted(to_int(raw_data[l]).items())) for l in raw_data}
+
+        # create the plot
+        ax = plot_data("doy", data, "Day of Year", colors, ax)
+
+        return ax
+
+    def plot_doy_by_regions(
+        self,
+        band: str,
+        regions: ee.FeatureCollection,
+        label: str = "system:index",
+        spatialReducer: str = "mean",
+        timeReducer: str = "mean",
+        scale: int = 10000,
+        dateProperty: str = "system:time_start",
+        colors: list = [],
+        ax: Axes | None = None,
+    ):
+        """Plot the reduced data for each image in the collection by regions for a single band.
+
+        This method is plotting the reduced data for each image in the collection by regions for a single band.
+
+        Parameters:
+            band: The band to reduce.
+            regions: The regions to reduce the data on.
+            label: The property to use as label for each region. Default is "system:index".
+            spatialReducer: The name of the reducer to use. Default is "mean".
+            timeReducer: The name of the reducer to use for the temporal reduction. Default is "mean".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            colors: The colors to use for the regions. If empty, the default colors are used.
+            ax: The matplotlib axes to plot the data on. If None, a new figure is created.
+
+        Returns:
+            A matplotlib axes with the reduced values for each region and each day.
+
+        Examples:
+            .. code-block:: python
+
+            import ee, geetools
+
+            ee.Initialize()
+
+            collection = (
+                ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                .filterDate("2014-01-01", "2014-12-31")
+            )
+
+            regions = ee.FeatureCollection([
+                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
+                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
+            ])
+
+            collection.geetools.plot_doy_by_regions("B1", regions, "name", "mean", "mean", 10000, "system:time_start")
+        """
+        # get the reduced data
+        raw_data = self.doyByRegions(
+            band, regions, label, spatialReducer, timeReducer, scale, dateProperty
+        ).getInfo()
+
+        # transform all the dates strings into int object and reorder the dictionary
+        def to_int(d):
+            return {int(k): v for k, v in d.items()}
+
+        data = {l: dict(sorted(to_int(raw_data[l]).items())) for l in raw_data}
+
+        # create the plot
+        ax = plot_data("doy", data, "Day of Year", colors, ax)
+
+        return ax
+
+    def plot_doy_by_years(
+        self,
+        band: str,
+        region: ee.Geometry,
+        reducer: str = "mean",
+        scale: int = 10000,
+        dateProperty: str = "system:time_start",
+        colors: list = [],
+        ax: Axes | None = None,
+    ):
+        """Plot the reduced data for each image in the collection by years for a single band.
+
+        This method is plotting the reduced data for each image in the collection by years for a single band.
+
+        Parameters:
+            band: The band to reduce.
+            region: The region to reduce the data on.
+            reducer: The name of the reducer to use. Default is "mean".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            colors: The colors to use for the regions. If empty, the default colors are used.
+            ax: The matplotlib axes to plot the data on. If None, a new figure is created.
+
+        Returns:
+            A matplotlib axes with the reduced values for each year and each day.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+
+                collection.geetools.plot_doy_by_years("B1", ee.Geometry.Point(-122.262, 37.8719).buffer(10000), "mean", 10000, "system:time_start")
+        """
+        # get the reduced data
+        raw_data = self.doyByYears(band, region, reducer, scale, dateProperty).getInfo()
+
+        # transform all the dates strings into int object and reorder the dictionary
+        def to_int(d):
+            return {int(k): v for k, v in d.items()}
+
+        data = {l: dict(sorted(to_int(raw_data[l]).items())) for l in raw_data}
+
+        # create the plot
+        ax = plot_data("doy", data, "Day of Year", colors, ax)
+
+        return ax
