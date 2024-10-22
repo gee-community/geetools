@@ -1109,25 +1109,21 @@ class ImageCollectionAccessor:
                 print(reduced.getInfo())
         """
         # cast parameters
-        bands = ee.List(bands) if len(bands) else self._obj.first().bandNames()
-        labels = ee.List(labels) if len(labels) else bands
+        eeBands = ee.List(bands) if len(bands) else self._obj.first().bandNames()
+        eeLabels = ee.List(labels) if len(labels) else eeBands
 
         # recast band names as labels in the source collection
-        ic = self._obj.select(bands).map(lambda i: i.rename(labels))
+        ic = self._obj.select(eeBands).map(lambda i: i.rename(eeLabels))
 
         # aggregate all the dates contained in the collection
         dateList = ic.aggregate_array(dateProperty).map(lambda d: ee.Date(d).format(JS_DATE_FORMAT))
 
         # create a list of dictionaries with the reduced values for each band
-        def reduce(label: ee.String) -> ee.Dictionary:
-            image = ic.select([label]).toBands().rename(dateList)
-            return image.reduceRegion(
-                reducer=reducer,
-                geometry=region,
-                scale=scale,
-            )
+        def reduce(lbl: ee.String) -> ee.Dictionary:
+            image = ic.select([lbl]).toBands().rename(dateList)
+            return image.reduceRegion(reducer, region, scale)
 
-        return ee.Dictionary.fromLists(labels, labels.map(reduce))
+        return ee.Dictionary.fromLists(eeLabels, eeLabels.map(reduce))
 
     def datesByRegions(
         self,
@@ -1183,17 +1179,15 @@ class ImageCollectionAccessor:
             print(reduced.getInfo())
         """
         # aggregate all the dates of the image collection into bands of a single image
-        dateList = self._obj.aggregate_array(dateProperty).map(
-            lambda d: ee.Date(d).format(JS_DATE_FORMAT)
-        )
-        image = self._obj.select([band]).toBands().rename(dateList)
+        def to_string(date: ee.Date) -> ee.String:
+            return ee.Date(date).format(JS_DATE_FORMAT)
+
+        dateList = self._obj.aggregate_array(dateProperty).map(to_string)
 
         # reduce the data for each region
-        reduced = image.reduceRegions(
-            collection=regions,
-            reducer=getattr(ee.Reducer, reducer)(),
-            scale=scale,
-        )
+        image = self._obj.select([band]).toBands().rename(dateList)
+        red = getattr(ee.Reducer, reducer)()
+        reduced = image.reduceRegions(regions, red, scale)
 
         # create a list of dictionaries for each region and aggregate them into a dictionary
         values = reduced.toList(regions.size()).map(lambda f: ee.Feature(f).toDictionary(dateList))
@@ -1280,11 +1274,7 @@ class ImageCollectionAccessor:
 
         def spatialReduce(label: ee.String) -> ee.Dictionary:
             image = ic.select([label]).toBands().rename(doyList)
-            return image.reduceRegion(
-                reducer=spatialRed,
-                geometry=region,
-                scale=scale,
-            )
+            return image.reduceRegion(spatialRed, region, scale)
 
         return ee.Dictionary.fromLists(labels, ee.List(labels).map(spatialReduce))
 
@@ -1358,11 +1348,7 @@ class ImageCollectionAccessor:
         doyList = ic.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
         spatialRed = getattr(ee.Reducer, spatialReducer)()  # .setOutputs(doyList)
         image = ic.toBands().rename(doyList)
-        reduced = image.reduceRegions(
-            collection=regions,
-            reducer=spatialRed,
-            scale=scale,
-        )
+        reduced = image.reduceRegions(regions, spatialRed, scale)
 
         # create a list of dictionaries for each region and aggregate them into a dictionary
         values = reduced.toList(regions.size()).map(lambda f: ee.Feature(f).toDictionary(doyList))
