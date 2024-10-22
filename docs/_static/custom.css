@@ -17,5 +17,5 @@ div.admonition.admonition-api > .admonition-title::after {
 
 /* increase width of the page */
 .bd-page-width {
-  max-width: 100%; /* default is 88rem */
+  max-width: 110rem; /* default is 88rem */
 }
