@@ -5,6 +5,17 @@ div.highlight-console pre span.go::before {
   margin-left: 5px;
 }
 
+/* Create a custom api admonition */
 div.admonition.admonition-api > .admonition-title::after {
   content: "\f121"; /* the fa-code icon */
+}
+
+/* increase width of the main content */
+.bd-main .bd-content .bd-article-container {
+  max-width: 100%; /* default is 60em */
+}
+
+/* increase width of the page */
+.bd-page-width {
+  max-width: 110rem; /* default is 88rem */
 }
