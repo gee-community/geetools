@@ -11,7 +11,7 @@ from . import _deprecated_composite as composite
 from .tools import imagecollection
 
 # then we extend all the other classes
-from .ee_Asset import Asset
+from .ee_asset import Asset
 from .ee_date import DateAccessor
 from .ee_dictionary import DictionaryAccessor
 from .ee_feature import FeatureAccessor
