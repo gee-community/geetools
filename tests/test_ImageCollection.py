@@ -329,14 +329,6 @@ class TestReduceInterval:
         with pytest.raises(AttributeError):
             ic.geetools.reduceInterval("toto")
 
-    def test_reduce_interval_quality_mosaic(self, jaxa_rainfall, amazonas, num_regression):
-        # get 3 month worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
-        reduced = ic.geetools.reduceInterval("qualityMosaic", qualityBand="gaugeQualityInfo")
-        values = reduce(reduced, amazonas).getInfo()
-        values = {k: np.nan if v is None else v for k, v in values.items()}
-        num_regression.check(values)
-
     def test_deprecated_reduce_equal_interval(self, jaxa_rainfall, amazonas, num_regression):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")

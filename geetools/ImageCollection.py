@@ -899,7 +899,10 @@ class ImageCollectionAccessor:
         return ee.List(imageCollectionList)
 
     def reduceInterval(
-        self, reducer: str = "mean", unit: str = "month", duration: int = 1, qualityBand: str = ""
+        self,
+        reducer: str | ee.Reducer = "mean",
+        unit: str = "month",
+        duration: int = 1,
     ) -> ee.ImageCollection:
         """Reduce the images included in the same duration interval using the provided reducer.
 
@@ -909,10 +912,9 @@ class ImageCollectionAccessor:
         processed.
 
         Args:
-            reducer: The reducer to use. Default is "mean". Available reducers: "mean", "median", "max", "min", "sum", "stdDev", "count", "product", "first", "mosaic", "qualityMosaic" or "last".
+            reducer: The name of the reducer to use or a Reducer object. Default is "mean".
             unit: The unit of time to split the collection. Available units: 'year', 'month', 'week', 'day', 'hour', 'minute' or 'second'.
             duration: The duration of each split.
-            qualityBand: The band to use as quality band. Only available for "qualityMosaic" reducer.
 
         Returns:
             A new ImageCollection with the reduced images.
@@ -937,21 +939,17 @@ class ImageCollectionAccessor:
         # Every subcollection is sorted in case one use the "first" reducer
         imageCollectionList = self.groupInterval(unit, duration)
 
+        # create a reducer from user parameters
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
+
         def reduce(ic):
             timeList = ee.ImageCollection(ic).aggregate_array("system:time_start")
             start, end = timeList.get(0), timeList.get(-1)
-            reduced = getattr(ee.ImageCollection(ic), reducer)
-            image = reduced(qualityBand) if reducer == "qualityMosaic" else reduced()
+            bandNames = ee.ImageCollection(ic).first().bandNames()
+            image = ee.ImageCollection(ic).reduce(red).rename(bandNames)
             return image.set("system:time_start", start, "system:time_end", end)
 
-        # catch the error if the reducer is not available in the ee.ImageCollection class
-        # and provide a more meaningful error message.
-        try:
-            reducedImagesList = imageCollectionList.map(reduce)
-        except AttributeError:
-            raise AttributeError(
-                f'Reducer "{reducer}" not available in the ee.ImageCollection class'
-            )
+        reducedImagesList = imageCollectionList.map(reduce)
 
         # set back the original properties
         ic = ee.ImageCollection(reducedImagesList).copyProperties(self._obj)
@@ -1062,7 +1060,7 @@ class ImageCollectionAccessor:
     def datesByBands(
         self,
         region: ee.Geometry,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         dateProperty: str = "system:time_start",
         bands: list = [],
@@ -1082,7 +1080,7 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            reducer: The name of the reducer to use. Default is "mean".
+            reducer: The name of the reducer or a reducer object use. Default is "mean".
             scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             bands: The bands to reduce. If empty, all bands are reduced.
@@ -1118,10 +1116,13 @@ class ImageCollectionAccessor:
         # aggregate all the dates contained in the collection
         dateList = ic.aggregate_array(dateProperty).map(lambda d: ee.Date(d).format(EE_DATE_FORMAT))
 
+        # create a reducer from the specified parameters
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
+
         # create a list of dictionaries with the reduced values for each band
         def reduce(lbl: ee.String) -> ee.Dictionary:
             image = ic.select([lbl]).toBands().rename(dateList)
-            return image.reduceRegion(reducer, region, scale)
+            return image.reduceRegion(red, region, scale)
 
         return ee.Dictionary.fromLists(eeLabels, eeLabels.map(reduce))
 
@@ -1130,7 +1131,7 @@ class ImageCollectionAccessor:
         band: str,
         regions: ee.FeatureCollection,
         label: str = "system:index",
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         dateProperty: str = "system:time_start",
     ) -> ee.Dictionary:
@@ -1150,7 +1151,7 @@ class ImageCollectionAccessor:
             band: The band to reduce.
             regions: The regions to reduce the data on.
             label: The property to use as label for each region. Default is "system:index".
-            reducer: The name of the reducer to use. Default is "mean".
+            reducer: The name of the reducer or a reducer object use. Default is "mean".
             scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
 
@@ -1186,7 +1187,7 @@ class ImageCollectionAccessor:
 
         # reduce the data for each region
         image = self._obj.select([band]).toBands().rename(dateList)
-        red = getattr(ee.Reducer, reducer)()
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
         reduced = image.reduceRegions(regions, red, scale)
 
         # create a list of dictionaries for each region and aggregate them into a dictionary
@@ -1198,8 +1199,8 @@ class ImageCollectionAccessor:
     def doyByBands(
         self,
         region: ee.Geometry,
-        spatialReducer: str = "mean",
-        timeReducer: str = "mean",
+        spatialReducer: str | ee.Reducer = "mean",
+        timeReducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         dateProperty: str = "system:time_start",
         bands: list = [],
@@ -1219,8 +1220,8 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            spatialReducer: The name of the reducer to use. Default is "mean".
-            timeReducer: The name of the reducer to use for the temporal reduction. Default is "mean".
+            spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is "mean".
+            timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is "mean".
             scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             bands: The bands to reduce. If empty, all bands are reduced.
@@ -1258,7 +1259,9 @@ class ImageCollectionAccessor:
 
         # reduce every sub ImageCollection in the list into images (it's the temporal reduction)
         # and aggregate the result as a single ImageCollection
-        timeRed = getattr(ee.Reducer, timeReducer)()  # .setOutputs(labels)
+        timeRed = (
+            getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
+        )
 
         def timeReduce(c: ee.imageCollection) -> ee.image:
             c = ee.ImageCollection(c)
@@ -1270,7 +1273,11 @@ class ImageCollectionAccessor:
 
         # spatially reduce the generated imagecollection over the region for each band
         doyList = ic.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
-        spatialRed = getattr(ee.Reducer, spatialReducer)()  # .setOutputs(doyList)
+        spatialRed = (
+            getattr(ee.Reducer, spatialReducer)()
+            if isinstance(spatialReducer, str)
+            else spatialReducer
+        )
 
         def spatialReduce(label: ee.String) -> ee.Dictionary:
             image = ic.select([label]).toBands().rename(doyList)
@@ -1283,8 +1290,8 @@ class ImageCollectionAccessor:
         band: str,
         regions: ee.FeatureCollection,
         label: str = "system:index",
-        spatialReducer: str = "mean",
-        timeReducer: str = "mean",
+        spatialReducer: str | ee.Reducer = "mean",
+        timeReducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         dateProperty: str = "system:time_start",
     ) -> ee.Dictionary:
@@ -1304,8 +1311,8 @@ class ImageCollectionAccessor:
             band: The band to reduce.
             regions: The regions to reduce the data on.
             label: The property to use as label for each region. Default is "system:index".
-            spatialReducer: The name of the reducer to use. Default is "mean".
-            timeReducer: The name of the reducer to use for the temporal reduction. Default is "mean".
+            spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is "mean".
+            timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is "mean".
             scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
 
@@ -1334,7 +1341,9 @@ class ImageCollectionAccessor:
 
         # reduce every sub ImageCollection in the list into images (it's the temporal reduction)
         # and aggregate the result as a single ImageCollection
-        timeRed = getattr(ee.Reducer, timeReducer)()  # .setOutputs(band)
+        timeRed = (
+            getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
+        )
 
         def timeReduce(c: ee.imageCollection) -> ee.image:
             c = ee.ImageCollection(c)
@@ -1346,7 +1355,11 @@ class ImageCollectionAccessor:
 
         # reduce the data for each region
         doyList = ic.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
-        spatialRed = getattr(ee.Reducer, spatialReducer)()  # .setOutputs(doyList)
+        spatialRed = (
+            getattr(ee.Reducer, spatialReducer)()
+            if isinstance(spatialReducer, str)
+            else spatialReducer
+        )
         image = ic.toBands().rename(doyList)
         reduced = image.reduceRegions(regions, spatialRed, scale)
 
@@ -1360,7 +1373,7 @@ class ImageCollectionAccessor:
         self,
         band: str,
         region: ee.Geometry,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         dateProperty: str = "system:time_start",
     ) -> ee.Dictionary:
@@ -1379,7 +1392,7 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             region: The region to reduce the data on.
-            spatialReducer: The name of the reducer to use. Default is "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
 
@@ -1416,11 +1429,11 @@ class ImageCollectionAccessor:
         # create a List of image collection where every images from the same year are grouped together
         yearList = ic.aggregate_array(year_metadata).distinct().sort()
         yearKeys = yearList.map(lambda y: ee.Number(y).int().format())
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
 
         def reduce(year: ee.Number) -> ee.Dictionary:
             c = ic.filter(ee.Filter.eq(year_metadata, year))
             doyList = c.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
-            red = getattr(ee.Reducer, reducer)()  # .setOutputs(doyList)
             return c.toBands().rename(doyList).reduceRegion(red, region, scale)
 
         return ee.Dictionary.fromLists(yearKeys, yearList.map(reduce))
@@ -1428,7 +1441,7 @@ class ImageCollectionAccessor:
     def plot_dates_by_bands(
         self,
         region: ee.Geometry,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         dateProperty: str = "system:time_start",
         bands: list = [],
@@ -1442,7 +1455,7 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            reducer: The name of the reducer to use. Default is "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             bands: The bands to reduce. If empty, all bands are reduced.
@@ -1488,7 +1501,7 @@ class ImageCollectionAccessor:
         band: str,
         regions: ee.FeatureCollection,
         label: str = "system:index",
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         dateProperty: str = "system:time_start",
         colors: list = [],
@@ -1502,7 +1515,7 @@ class ImageCollectionAccessor:
             band: The band to reduce.
             regions: The regions to reduce the data on.
             label: The property to use as label for each region. Default is "system:index".
-            reducer: The name of the reducer to use. Default is "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             colors: The colors to use for the regions. If empty, the default colors are used.
@@ -1548,8 +1561,8 @@ class ImageCollectionAccessor:
     def plot_doy_by_bands(
         self,
         region: ee.Geometry,
-        spatialReducer: str = "mean",
-        timeReducer: str = "mean",
+        spatialReducer: str | ee.Reducer = "mean",
+        timeReducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         dateProperty: str = "system:time_start",
         bands: list = [],
@@ -1563,8 +1576,8 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            spatialReducer: The name of the reducer to use. Default is "mean".
-            timeReducer: The name of the reducer to use for the temporal reduction. Default is "mean".
+            spatialReducer: The name of the reducer or a reducer object to use. Default is "mean".
+            timeReducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             bands: The bands to reduce. If empty, all bands are reduced.
@@ -1612,8 +1625,8 @@ class ImageCollectionAccessor:
         band: str,
         regions: ee.FeatureCollection,
         label: str = "system:index",
-        spatialReducer: str = "mean",
-        timeReducer: str = "mean",
+        spatialReducer: str | ee.Reducer = "mean",
+        timeReducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         dateProperty: str = "system:time_start",
         colors: list = [],
@@ -1627,8 +1640,8 @@ class ImageCollectionAccessor:
             band: The band to reduce.
             regions: The regions to reduce the data on.
             label: The property to use as label for each region. Default is "system:index".
-            spatialReducer: The name of the reducer to use. Default is "mean".
-            timeReducer: The name of the reducer to use for the temporal reduction. Default is "mean".
+            spatialReducer: The name of the reducer or a reducer object to use. Default is "mean".
+            timeReducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             colors: The colors to use for the regions. If empty, the default colors are used.
@@ -1677,7 +1690,7 @@ class ImageCollectionAccessor:
         self,
         band: str,
         region: ee.Geometry,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         dateProperty: str = "system:time_start",
         colors: list = [],
@@ -1690,7 +1703,7 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             region: The region to reduce the data on.
-            reducer: The name of the reducer to use. Default is "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             colors: The colors to use for the regions. If empty, the default colors are used.
