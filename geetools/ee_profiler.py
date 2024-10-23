@@ -62,6 +62,9 @@ class Profiler:
         # Match numbers with optional multipliers (k, M, etc.)
         # and apply the multiplier to the number
         match = re.match(r"([\d.]+)([kMGT]?)", mem_str)
+        if match is None:
+            raise ValueError(f"Invalid memory string: {mem_str}")
+
         number, multiplier = float(match.group(1)), match.group(2)
 
         return int(number * 10 ** mapping[multiplier])
@@ -72,20 +75,19 @@ class Profiler:
         lines = input.strip().splitlines()
 
         # First line contains column headers
-        headers = [h.strip() for h in lines[0].split()]
-
         # Initialize a dictionary to hold lists for each column
-        result = {header: [] for header in headers}
+        headers = [h.strip() for h in lines[0].split()]
+        result: dict = {header: [] for header in headers}
 
         # Process each line of data after the header
         for line in lines[1:]:
             # Split the line by spaces, considering multiple spaces as a separator
             # Handle missing values denoted by "-"
-            parts = [None if p == "-" else p for p in line.split()]
+            parts = line.split()
 
             # Populate the dictionary with values for each column
-            result[headers[0]].append(float(parts[0]) if parts[0] is not None else None)  # EECU
-            result[headers[1]].append(self.memory(parts[1]))  # Mem is a string with various units
+            result[headers[0]].append(float(parts[0]) if parts[0] != "-" else None)  # EECU
+            result[headers[1]].append(self.memory(parts[1]))  # Mem is a string to convert
             result[headers[2]].append(int(parts[2]))  # Count is an integer
             result[headers[3]].append(" ".join(parts[3:]))  # Description can have multiple words
 
