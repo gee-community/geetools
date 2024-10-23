@@ -19,7 +19,7 @@ from .utils import plot_data
 PY_DATE_FORMAT = "%Y-%m-%dT%H-%M-%S"
 "The python format to use to parse dates coming from GEE."
 
-JS_DATE_FORMAT = "YYYY-MM-dd'T'HH-mm-ss"
+EE_DATE_FORMAT = "YYYY-MM-dd'T'HH-mm-ss"
 "The javascript format to use to burn date object in GEE."
 
 
@@ -1116,7 +1116,7 @@ class ImageCollectionAccessor:
         ic = self._obj.select(eeBands).map(lambda i: i.rename(eeLabels))
 
         # aggregate all the dates contained in the collection
-        dateList = ic.aggregate_array(dateProperty).map(lambda d: ee.Date(d).format(JS_DATE_FORMAT))
+        dateList = ic.aggregate_array(dateProperty).map(lambda d: ee.Date(d).format(EE_DATE_FORMAT))
 
         # create a list of dictionaries with the reduced values for each band
         def reduce(lbl: ee.String) -> ee.Dictionary:
@@ -1180,7 +1180,7 @@ class ImageCollectionAccessor:
         """
         # aggregate all the dates of the image collection into bands of a single image
         def to_string(date: ee.Date) -> ee.String:
-            return ee.Date(date).format(JS_DATE_FORMAT)
+            return ee.Date(date).format(EE_DATE_FORMAT)
 
         dateList = self._obj.aggregate_array(dateProperty).map(to_string)
 
