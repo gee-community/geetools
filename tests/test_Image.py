@@ -659,3 +659,14 @@ class TestFromList:
         images = sequence.map(lambda i: ee.Image(ee.Number(i)).rename(ee.Number(i).int().format()))
         image = ee.Image.geetools.fromList(images)
         assert image.bandNames().getInfo() == ["1", "2", "2_1", "3"]
+
+    def test_from_list_multiband(self):
+        """Test using a list of multiband images."""
+        images = ee.List(
+            [
+                ee.Image([1, 2, 3]).rename(["1", "2", "3"]),
+                ee.Image([3, 4, 5]).rename(["3", "4", "5"]),
+            ]
+        )
+        image = ee.Image.geetools.fromList(images)
+        assert image.bandNames().getInfo() == ["1", "2", "3", "3_1", "4", "5"]
