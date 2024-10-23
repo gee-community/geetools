@@ -154,8 +154,8 @@ class FeatureCollectionAccessor:
             A dictionary with all the properties as keys and their values in each feaure as a list.
 
         See Also:
-            - :py:meth:`byFeatures <geetools.FeatureCollection.FeatureCollectionAccessor.byFeatures>`: :docstring:`geetools.FeatureCollectionAccessor.byFeatures`
-            - :py:meth:`plot_by_properties <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_properties>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_properties`
+            - :docstring:`ee.FeatureCollection.geetools.byFeatures`
+            - :docstring:`ee.FeatureCollection.geetools.plot_by_properties`
 
         Example:
             .. code-block:: python
@@ -213,8 +213,8 @@ class FeatureCollectionAccessor:
             A dictionary with all the feature ids as keys and their properties as a dictionary.
 
         See Also:
-            - :py:meth:`byProperties <geetools.FeatureCollection.FeatureCollectionAccessor.byProperties>`: :docstring:`geetools.FeatureCollectionAccessor.byProperties`
-            - :py:meth:`plot_by_features <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_features>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_features`
+            - :docstring:`ee.FeatureCollection.geetools.byProperties`
+            - :docstring:`ee.FeatureCollection.geetools.plot_by_features`
 
         Examples:
             .. code-block:: python
@@ -274,10 +274,10 @@ class FeatureCollectionAccessor:
             kwargs: Additional arguments from the ``pyplot`` function.
 
         See Also:
-            - :py:meth:`byFeatures <geetools.FeatureCollection.FeatureCollectionAccessor.byFeatures>`: :docstring:`geetools.FeatureCollectionAccessor.byFeatures`
-            - :py:meth:`plot_by_properties <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_properties>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_properties`
-            - :py:meth:`plot_hist <geetools.FeatureCollection.FeatureCollectionAccessor.plot_hist>`: :docstring:`geetools.FeatureCollectionAccessor.plot_hist`
-            - :py:meth:`plot <geetools.FeatureCollection.FeatureCollectionAccessor.plot>`: :docstring:`geetools.FeatureCollectionAccessor.plot`
+            - :docstring:`ee.FeatureCollection.geetools.byFeatures`
+            - :docstring:`ee.FeatureCollection.geetools.plot_by_properties`
+            - :docstring:`ee.FeatureCollection.geetools.plot_hist`
+            - :docstring:`ee.FeatureCollection.geetools.plot`
 
         Examples:
             .. code-block:: python
@@ -327,10 +327,10 @@ class FeatureCollectionAccessor:
             kwargs: Additional arguments from the ``pyplot`` function.
 
         See Also:
-            - :py:meth:`byProperties <geetools.FeatureCollection.FeatureCollectionAccessor.byProperties>`: :docstring:`geetools.FeatureCollectionAccessor.byProperties`
-            - :py:meth:`plot_by_features <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_features>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_features`
-            - :py:meth:`plot_hist <geetools.FeatureCollection.FeatureCollectionAccessor.plot_hist>`: :docstring:`geetools.FeatureCollectionAccessor.plot_hist`
-            - :py:meth:`plot <geetools.FeatureCollection.FeatureCollectionAccessor.plot>`: :docstring:`geetools.FeatureCollectionAccessor.plot`
+            - :docstring:`ee.FeatureCollection.geetools.byProperties`
+            - :docstring:`ee.FeatureCollection.geetools.plot_by_features`
+            - :docstring:`ee.FeatureCollection.geetools.plot_hist`
+            - :docstring:`ee.FeatureCollection.geetools.plot`
 
         Examples:
             .. code-block:: python
@@ -375,9 +375,9 @@ class FeatureCollectionAccessor:
             kwargs: Additional arguments from the ``pyplot.hist`` function.
 
         See Also:
-            - :py:meth:`plot_by_features <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_features>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_features`
-            - :py:meth:`plot_by_properties <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_properties>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_properties`
-            - :py:meth:`plot <geetools.FeatureCollection.FeatureCollectionAccessor.plot>`: :docstring:`geetools.FeatureCollectionAccessor.plot`
+            - :docstring:`ee.FeatureCollection.geetools.plot_by_features`
+            - :docstring:`ee.FeatureCollection.geetools.plot_by_properties`
+            - :docstring:`ee.FeatureCollection.geetools.plot`
 
         Examples:
             .. code-block:: python
@@ -444,9 +444,9 @@ class FeatureCollectionAccessor:
             color: The color to use for the boundaries.
 
         See Also:
-            - :py:meth:`plot_by_features <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_features>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_features`
-            - :py:meth:`plot_by_properties <geetools.FeatureCollection.FeatureCollectionAccessor.plot_by_properties>`: :docstring:`geetools.FeatureCollectionAccessor.plot_by_properties`
-            - :py:meth:`plot_hist <geetools.FeatureCollection.FeatureCollectionAccessor.plot_hist>`: :docstring:`geetools.FeatureCollectionAccessor.plot_hist`
+            - :docstring:`ee.FeatureCollection.geetools.plot_by_features`
+            - :docstring:`ee.FeatureCollection.geetools.plot_by_properties`
+            - :docstring:`ee.FeatureCollection.geetools.plot_hist`
 
         Examples:
             .. code-block:: python
