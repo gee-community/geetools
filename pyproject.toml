@@ -58,7 +58,6 @@ Homepage = "https://github.com/gee-community/geetools"
 ]
 "test" = [
     "pytest",
-    "pytest-sugar",
     "pytest-cov",
     "pytest-deadfixtures",
     "httplib2",
