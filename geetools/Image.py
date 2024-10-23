@@ -1429,7 +1429,7 @@ class ImageAccessor:
             gdf.boundary.plot(ax=ax, color=color)
 
     @classmethod
-    def fromList(cls, image_list: ee_list):
+    def fromList(cls, images: ee.List | list):
         """Create a single image by passing a list of images.
 
         Parameters:
@@ -1438,7 +1438,7 @@ class ImageAccessor:
         Returns:
             A single ee.Image with one band per image in the passed list
         """
-        ilist = ee.List(image_list)
+        ilist = ee.List(images)
         i0 = ee.Image(ilist.get(0))
         rest = ee.List(ilist.slice(1))
         return i0.geetools.merge(rest)
