@@ -29,7 +29,7 @@ from .Authenticate import AuthenticateAccessor
 from .Array import ArrayAccessor
 from .DateRange import DateRangeAccessor
 from .Export import ExportAccessor
-
+from .ee_profiler import Profiler
 
 __title__ = "geetools"
 __summary__ = "A set of useful tools to use with Google Earth Engine Python" "API"

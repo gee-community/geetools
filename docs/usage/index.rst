@@ -43,3 +43,4 @@ Then you can open a PR with the new file and it will be reviewed and merged.
     export
     plot/index
     asset
+    profile
