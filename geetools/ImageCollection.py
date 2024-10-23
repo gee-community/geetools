@@ -1099,7 +1099,7 @@ class ImageCollectionAccessor:
                 ee.Initialize()
 
                 collection = (
-                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    ee.ImageCollection("LANDSAT/LC08/C02/T1_TOA")
                     .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
                     .filterDate("2014-01-01", "2014-12-31")
                 )
