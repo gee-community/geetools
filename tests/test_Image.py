@@ -646,22 +646,16 @@ class TestPlot:
 class TestFromList:
     """Test ``fromList`` method."""
 
-    def test_from_list(self):
-        """This test is meant to fail."""
-        esa = ee.ImageCollection("ESA/WorldCover/v200")
-        esai = esa.first()
-        values = [10, 20, 30]
-        names = ["trees", "shrubs", "grass"]
+    def test_from_list_unique(self):
+        """Test using a list of unique band names."""
+        sequence = ee.List([1, 2, 3])
+        images = sequence.map(lambda i: ee.Image(ee.Number(i)).rename(ee.Number(i).int().format()))
+        image = ee.Image.geetools.fromList(images)
+        assert image.bandNames().getInfo() == ["1", "2", "3"]
 
-        def over_values_names(zipped):
-            z = ee.List(zipped)
-            value = ee.Number(z.get(0))
-            name = ee.String(z.get(1))
-            mask = esai.eq(value).rename(name)
-            return mask
-
-        combined = ee.List(values).zip(ee.List(names))
-        images = combined.map(over_values_names)
-        final = ee.Image.geetools.fromList(images)
-        bands = final.bandNames().getInfo()
-        assert bands == names
+    def test_from_list_repeated(self):
+        """Test using a list of repeated band names."""
+        sequence = ee.List([1, 2, 2, 3])
+        images = sequence.map(lambda i: ee.Image(ee.Number(i)).rename(ee.Number(i).int().format()))
+        image = ee.Image.geetools.fromList(images)
+        assert image.bandNames().getInfo() == ["1", "2", "2_1", "3"]
