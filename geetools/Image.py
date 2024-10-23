@@ -1351,8 +1351,7 @@ class ImageAccessor:
                     image = image.maskCoverRegion(aoi)
         """
         # compute the mask cover
-        band = band or 0
-        image = self._obj.select(band)
+        image = self._obj.select(band or 0)
         scale = scale or image.projection().nominalScale()
         unmasked = image.unmask(proxy_value)
         mask = unmasked.eq(proxy_value)
@@ -1409,9 +1408,8 @@ class ImageAccessor:
                     image = image.maskCoverRegions(aoi)
         """
         # compute the mask cover
-        band = band or 0
         properties = collection.propertyNames()  # original properties
-        image = self._obj.select(band)
+        image = self._obj.select(band or 0)
         scale = scale or image.projection().nominalScale()
         unmasked = image.unmask(proxy_value)
         mask = unmasked.eq(proxy_value)
@@ -1423,8 +1421,7 @@ class ImageAccessor:
             tileScale=tileScale,
         )
 
-        def compute_percentage(feat):
-            """function to map over the resulting table and compute the percentage from the reducer's output."""
+        def compute_percentage(feat: ee.Feature) -> ee.Feature:
             histo = ee.Dictionary(feat.get(column))
             zeros, ones = ee.Number(histo.get("0", 0)), ee.Number(histo.get("1", 0))
             ratio = ones.divide(zeros.add(ones)).multiply(100)
