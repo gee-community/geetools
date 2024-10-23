@@ -1105,7 +1105,7 @@ class ImageCollectionAccessor:
                 )
 
                 region = ee.Geometry.Point(-122.262, 37.8719).buffer(10000)
-                reduced = collection.geetools.dateByBands(region, "mean", 10000, "system:time_start")
+                reduced = collection.geetools.datesByBands(region, "mean", 10000, "system:time_start")
                 print(reduced.getInfo())
         """
         # cast parameters
