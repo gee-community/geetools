@@ -644,6 +644,28 @@ class TestPlot:
             image_regression.check(image_byte.getvalue())
 
 
+class TestFromList:
+    """Test ``fromList`` method."""
+
+    def test_from_list_unique(self):
+        """Test using a list of unique band names."""
+        sequence = ee.List([1, 2, 3])
+        images = sequence.map(lambda i: ee.Image(ee.Number(i)).rename(ee.Number(i).int().format()))
+        image = ee.Image.geetools.fromList(images)
+        assert image.bandNames().getInfo() == ["1", "2", "3"]
+
+    def test_from_list_multiband(self):
+        """Test using a list of multiband images."""
+        images = ee.List(
+            [
+                ee.Image([1, 2, 3]).rename(["1", "2", "3"]),
+                ee.Image([4, 5]).rename(["4", "5"]),
+            ]
+        )
+        image = ee.Image.geetools.fromList(images)
+        assert image.bandNames().getInfo() == ["1", "2", "3", "4", "5"]
+
+
 class TestPlotByRegions:
     """Test the ``plot_by_regions`` method."""
 
