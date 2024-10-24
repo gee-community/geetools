@@ -48,14 +48,14 @@ class Profiler:
         # Check if there's anything captured
         profile_output = self._output_capture.getvalue()
         if profile_output:
-            self.profile = self.to_dict(profile_output)
+            self.profile = self._to_dict(profile_output)
         else:
             self.profile = None  # Handle the case where no output is captured
             print("Warning: No profile output was captured.")
 
         self._output_capture.close()
 
-    def memory(self, mem_str: str) -> int:
+    def _memory(self, mem_str: str) -> int:
         """Transform a memory string to an integer."""
         mapping = {"": 1, "k": 3, "M": 6, "G": 9, "T": 12}
 
@@ -69,7 +69,7 @@ class Profiler:
 
         return int(number * 10 ** mapping[multiplier])
 
-    def to_dict(self, input: str) -> dict:
+    def _to_dict(self, input: str) -> dict:
         """Transform the output of a Earthengine profiler into a dictionary compatible with pandas DataFrame."""
         # Split the string into lines
         lines = input.strip().splitlines()
@@ -87,7 +87,7 @@ class Profiler:
 
             # Populate the dictionary with values for each column
             result[headers[0]].append(float(parts[0]) if parts[0] != "-" else None)  # EECU
-            result[headers[1]].append(self.memory(parts[1]))  # Mem is a string to convert
+            result[headers[1]].append(self._memory(parts[1]))  # Mem is a string to convert
             result[headers[2]].append(int(parts[2]))  # Count is an integer
             result[headers[3]].append(" ".join(parts[3:]))  # Description can have multiple words
 
