@@ -570,20 +570,46 @@ class TestDistance:
 
 
 class TestMaskCover:
-    """Test the ``maskCover`` method."""
+    """Test the ``maskCoverRegion`` method."""
 
-    def test_mask_cover(self):
-        image = self.image.geetools.maskCover()
-        assert isclose(image.get("mask_cover").getInfo(), 99.2)
+    def test_mask_cover_region(self):
+        aoi = ee.Geometry.Point([12.210900891755129, 41.928551351175386]).buffer(2200)
+        ratio = self.image.geetools.maskCoverRegion(aoi, scale=10)
+        assert isclose(ratio.getInfo(), 9.99, abs_tol=0.01)
+
+    def test_mask_cover_region_zero(self):
+        aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(1000)
+        ratio = self.image.geetools.maskCoverRegion(aoi, scale=10)
+        assert isclose(ratio.getInfo(), 0)
+
+    def test_mask_cover_regions(self):
+        geom = ee.Geometry.Point([12.210900891755129, 41.928551351175386]).buffer(2200)
+        aoi = ee.FeatureCollection([ee.Feature(geom, {"test_property": 1})])
+        result = self.image.geetools.maskCoverRegions(aoi, scale=10)
+        feat = ee.Feature(result.first())
+        ratio = feat.getInfo()["properties"]["mask_cover"]
+        # ratio = ee.Number(feat.get('mask_cover'))
+        # the last line should work, but it doesn't, I don't know why
+        assert isclose(ratio, 9.99, abs_tol=0.01)
+
+    def test_mask_cover_regions_zero(self):
+        geom = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(1000)
+        aoi = ee.FeatureCollection([ee.Feature(geom, {"test_property": 1})])
+        result = self.image.geetools.maskCoverRegions(aoi, scale=10)
+        feat = ee.Feature(result.first())
+        ratio = feat.getInfo()["properties"]["mask_cover"]
+        # ratio = ee.Number(feat.get('mask_cover'))
+        # the last line should work, but it doesn't, I don't know why
+        assert isclose(ratio, 0)
 
     def test_deprecated_mask_cover(self):
         with pytest.deprecated_call():
             image = geetools.algorithms.maskCover(self.image)
-            assert isclose(image.get("mask_cover").getInfo(), 99.2)
+            assert isclose(image.get("mask_cover").getInfo(), 18.04, rel_tol=0.01)
 
     @property
     def image(self):
-        image_id = "COPERNICUS/S2_SR_HARMONIZED/20210105T100319_20210105T100317_T32TQM"
+        image_id = "COPERNICUS/S2_SR_HARMONIZED/20180401T100019_20180401T100022_T32TQM"
         image = ee.Image(image_id)
         qa = image.select("QA60")
         cloudBitMask, cirrusBitMask = 1 << 10, 1 << 11
