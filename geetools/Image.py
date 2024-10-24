@@ -1323,8 +1323,7 @@ class ImageAccessor:
         scale: Optional[int] = None,
         band: Optional[str] = None,
         proxy_value: int = -999,
-        maxPixels: int = 1e8,
-        tileScale: int = 1,
+        **kwargs,
     ) -> ee.Number:
         """Compute the coverage of masked pixels inside a Geometry.
 
@@ -1333,6 +1332,8 @@ class ImageAccessor:
             scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
             band: The band to use. Defaults to the first band.
             proxy_value: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
+
+        Kwargs:
             maxPixels: The maximum number of pixels to reduce.
             tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
@@ -1356,12 +1357,7 @@ class ImageAccessor:
         unmasked = image.unmask(proxy_value)
         mask = unmasked.eq(proxy_value)
         cover = mask.reduceRegion(
-            ee.Reducer.frequencyHistogram(),
-            region,
-            scale=scale,
-            bestEffort=True,
-            maxPixels=maxPixels,
-            tileScale=tileScale,
+            ee.Reducer.frequencyHistogram(), region, scale=scale, bestEffort=True, **kwargs
         )
         # The cover result is a dictionary with each band as key (in our case the first one).
         # For each band key the number of 0 and 1 is stored in a dictionary.
@@ -1380,7 +1376,7 @@ class ImageAccessor:
         band: Optional[str] = None,
         proxy_value: int = -999,
         column_name: str = "mask_cover",
-        tileScale: int = 1,
+        **kwargs,
     ) -> ee.FeatureCollection:
         """Compute the coverage of masked pixels inside a Geometry.
 
@@ -1390,6 +1386,8 @@ class ImageAccessor:
             band: The band to use. Defaults to the first band.
             proxy_value: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
             column_name: name of the column that will hold the value.
+
+        Kwargs:
             tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
@@ -1418,7 +1416,7 @@ class ImageAccessor:
             collection=collection,
             reducer=ee.Reducer.frequencyHistogram().setOutputs([column]),
             scale=scale,
-            tileScale=tileScale,
+            **kwargs,
         )
 
         def compute_percentage(feat: ee.Feature) -> ee.Feature:
