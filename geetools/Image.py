@@ -1431,32 +1431,32 @@ class ImageAccessor:
 
         Returns:
             A single ee.Image with one band per image in the passed list
-            
+
         Examples:
             .. code-block:: python
 
                 import ee, geetools
 
                 ee.Initialize()
-            
+
                 sequence = ee.List([1, 2, 3])
                 images = sequence.map(lambda i: ee.Image(ee.Number(i)).rename(ee.Number(i).int().format()))
                 image = ee.Image.geetools.fromList(images)
                 print(image.bandNames().getInfo())
-                
+
             .. code-block:: python
 
                 import ee, geetools
 
                 ee.Initialize()
-                
+
                 sequence = ee.List([1, 2, 2, 3])
                 images = sequence.map(lambda i: ee.Image(ee.Number(i)).rename(ee.Number(i).int().format()))
                 image = ee.Image.geetools.fromList(images)
                 print(image.bandNames().getInfo())
             > ee.ee_exception.EEException: Image.rename: Can't add a band named '2' to image because a band with this name already exists. Existing bands: [1, 2].
         """
-        bandNames = images.map(lambda i: ee.Image(i).bandNames()).flatten()
+        bandNames = ee.List(images).map(lambda i: ee.Image(i).bandNames()).flatten()
         ic = ee.ImageCollection.fromImages(images)
         return ic.toBands().rename(bandNames)
 
