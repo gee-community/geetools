@@ -602,6 +602,11 @@ class TestMaskCover:
         # the last line should work, but it doesn't, I don't know why
         assert isclose(ratio, 0)
 
+    def test_deprecated_mask_cover(self):
+        with pytest.deprecated_call():
+            image = geetools.algorithms.maskCover(self.image)
+            assert isclose(image.get("mask_cover").getInfo(), 99.2)
+
     @property
     def image(self):
         image_id = "COPERNICUS/S2_SR_HARMONIZED/20180401T100019_20180401T100022_T32TQM"
