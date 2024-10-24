@@ -530,7 +530,7 @@ class ImageAccessor:
 
     def reduceBands(
         self,
-        reducer: str,
+        reducer: str | ee.Reducer,
         bands: list | ee.List = [],
         name: str | ee.String = "",
     ) -> ee.Image:
@@ -562,7 +562,8 @@ class ImageAccessor:
         bands, name = ee.List(bands), ee.String(name)
         bands = ee.Algorithms.If(bands.size().eq(0), self._obj.bandNames(), bands)
         name = ee.Algorithms.If(name.equals(ee.String("")), reducer, name)
-        reduceImage = self._obj.select(ee.List(bands)).reduce(reducer).rename([name])
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
+        reduceImage = self._obj.select(ee.List(bands)).reduce(red).rename([name])
         return self._obj.addBands(reduceImage)
 
     def negativeClip(self, geometry: ee.Geometry | ee.Feature | ee.FeatureCollection) -> ee.Image:
@@ -1422,7 +1423,7 @@ class ImageAccessor:
     def byBands(
         self,
         regions: ee.featurecollection,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
@@ -1442,7 +1443,7 @@ class ImageAccessor:
 
         Parameters:
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer to use, default to "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale to use for the computation. Default is 10000m.
             regionId: The property used to label region. Defaults to "system:index".
             labels: The labels to use for the output dictionary. Default to the band names.
@@ -1484,7 +1485,7 @@ class ImageAccessor:
         # This is currently hidden because of https://issuetracker.google.com/issues/374285504
         # It will have no impact on most of the cases as plt_hist should be used for single band images
         # reducer = reducer.setOutputs(labels)
-        red = getattr(ee.Reducer, reducer)()
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
 
         # retrieve the reduce bands for each feature
         image = self._obj.select(eeBands).rename(eeLabels)
@@ -1499,7 +1500,7 @@ class ImageAccessor:
     def byRegions(
         self,
         regions: ee.featurecollection,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
@@ -1519,7 +1520,7 @@ class ImageAccessor:
 
         Parameters:
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer to use, default to "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale to use for the computation. Default is 10000m.
             regionId: The property used to label region. Defaults to "system:index".
             labels: The labels to use for the output dictionary. Default to the band names.
@@ -1561,11 +1562,11 @@ class ImageAccessor:
         # This is currently hidden because of https://issuetracker.google.com/issues/374285504
         # It will have no impact on most of the cases as plt_hist should be used for single band images
         # reducer = reducer.setOutputs(labels)
-        red = getattr(ee.Reducer, reducer)()
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
 
         # retrieve the reduce bands for each feature
         image = self._obj.select(bands).rename(labels)
-        fc = image.reduceRegions(collection=regions, reducer=red, scale=scale)
+        fc = image.reduceRegions(regions, red, scale)
 
         # extract the data as a list of dictionaries (one for each label) aggregating
         # we are force to turn the fc into a list because GEE don't accept to map a featureCollection
@@ -1579,7 +1580,7 @@ class ImageAccessor:
         self,
         type: str,
         regions: ee.FeatureCollection,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
@@ -1599,7 +1600,7 @@ class ImageAccessor:
         Parameters:
             type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer to use, default to "mean".
+            rreducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale to use for the computation. Default is 10000m.
             bands: The bands to compute the reducer on. Default to all bands.
             regionId: The property used to label region. Defaults to "system:index".
@@ -1649,7 +1650,7 @@ class ImageAccessor:
         self,
         type: str,
         regions: ee.FeatureCollection,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
@@ -1670,7 +1671,7 @@ class ImageAccessor:
         Parameters:
             type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer to use, default to "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale to use for the computation. Default is 10000m.
             bands: The bands to compute the reducer on. Default to all bands.
             regionId: The property used to label region. Defaults to "system:index".
