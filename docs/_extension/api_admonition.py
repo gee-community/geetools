@@ -1,6 +1,5 @@
 """A directive to generate an API admonition."""
-
-from typing import Any, Dict
+from __future__ import annotations
 
 from docutils import nodes
 from docutils.parsers.rst import directives
@@ -56,7 +55,7 @@ class APIAdmonitionDirective(BaseAdmonition, SphinxDirective):
             raise RuntimeError  # never reached here
 
 
-def setup(app: Sphinx) -> Dict[str, Any]:
+def setup(app: Sphinx) -> dict[str, object]:
     """Add custom configuration to sphinx app.
 
     Args:

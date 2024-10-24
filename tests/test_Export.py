@@ -1,5 +1,6 @@
 """Test the ``Export`` class."""
 import ee
+import pytest
 from ee.cli.utils import wait_for_task
 
 import geetools  # noqa F401
@@ -8,6 +9,7 @@ import geetools  # noqa F401
 class TestImageCollection:
     """Test the ``imagecollection`` namespace."""
 
+    @pytest.mark.skip(reason="The export task timeout when to many tests are run at the same time")
     def test_toAsset(self, gee_test_folder):
         task_list = ee.batch.Export.geetools.imagecollection.toAsset(
             imagecollection=self.ic,

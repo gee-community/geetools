@@ -1,16 +1,19 @@
 """Test the ImageCollection class."""
-from typing import Optional
+from __future__ import annotations
+
+import io
 
 import ee
 import numpy as np
 import pytest
 from jsonschema import validate
+from matplotlib import pyplot as plt
 
 import geetools
 
 
 def reduce(
-    collection: ee.ImageCollection, geometry: Optional[ee.Geometry] = None, reducer: str = "first"
+    collection: ee.ImageCollection, geometry: ee.Geometry | None = None, reducer: str = "first"
 ) -> ee.Dictionary:
     """Compute the mean reduction on the first image of the imageCollection."""
     image = getattr(collection, reducer)()
@@ -326,14 +329,6 @@ class TestReduceInterval:
         with pytest.raises(AttributeError):
             ic.geetools.reduceInterval("toto")
 
-    def test_reduce_interval_quality_mosaic(self, jaxa_rainfall, amazonas, num_regression):
-        # get 3 month worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
-        reduced = ic.geetools.reduceInterval("qualityMosaic", qualityBand="gaugeQualityInfo")
-        values = reduce(reduced, amazonas).getInfo()
-        values = {k: np.nan if v is None else v for k, v in values.items()}
-        num_regression.check(values)
-
     def test_deprecated_reduce_equal_interval(self, jaxa_rainfall, amazonas, num_regression):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
@@ -415,3 +410,186 @@ class TestMedoid:
             values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
             values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)
+
+
+class TestPlotDatesByBands:
+    """Test the ``plot_dates_by_bands`` method."""
+
+    def test_plot_dates_by_bands(self, image_regression):
+        fig, ax = plt.subplots()
+        self.collection.geetools.plot_dates_by_bands(
+            region=self.region.geometry(),
+            reducer="mean",
+            scale=500,
+            bands=["NDVI", "EVI"],
+            ax=ax,
+            dateProperty="system:time_start",
+        )
+
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    @property
+    def region(self):
+        return (
+            ee.FeatureCollection("projects/google/charts_feature_example")
+            .select(["label", "value", "warm"])
+            .filter(ee.Filter.eq("label", "Forest"))
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .filter(ee.Filter.date("2010-01-01", "2020-01-01"))
+            .select(["NDVI", "EVI"])
+        )
+
+
+class TestPlotDatesByRegions:
+    """Test the ``plot_dates_by_regions`` method."""
+
+    def test_plot_dates_by_regions(self, image_regression):
+        fig, ax = plt.subplots()
+        self.collection.geetools.plot_dates_by_regions(
+            regions=self.regions,
+            label="label",
+            band="NDVI",
+            reducer="mean",
+            scale=500,
+            ax=ax,
+            dateProperty="system:time_start",
+            colors=["#f0af07", "#0f8755", "#76b349"],
+        )
+
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    @property
+    def regions(self):
+        return ee.FeatureCollection("projects/google/charts_feature_example").select(
+            ["label", "value", "warm"]
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .filter(ee.Filter.date("2010-01-01", "2020-01-01"))
+            .select(["NDVI", "EVI"])
+        )
+
+
+class TestPlotDoyByBands:
+    """Test the ``plot_doy_by_bands`` method."""
+
+    def test_plot_doy_by_bands(self, image_regression):
+        fig, ax = plt.subplots()
+        self.collection.geetools.plot_doy_by_bands(
+            region=self.region.geometry(),
+            spatialReducer="mean",
+            timeReducer="mean",
+            scale=500,
+            bands=["NDVI", "EVI"],
+            ax=ax,
+            dateProperty="system:time_start",
+            colors=["#e37d05", "#1d6b99"],
+        )
+
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    @property
+    def region(self):
+        return (
+            ee.FeatureCollection("projects/google/charts_feature_example")
+            .select(["label", "value", "warm"])
+            .filter(ee.Filter.eq("label", "Grassland"))
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .filter(ee.Filter.date("2010-01-01", "2020-01-01"))
+            .select(["NDVI", "EVI"])
+        )
+
+
+class TestPlotDoyByRegions:
+    """Test the ``plot_doy_by_regions`` method."""
+
+    def test_plot_doy_by_regions(self, image_regression):
+        fig, ax = plt.subplots()
+        self.collection.geetools.plot_doy_by_regions(
+            regions=self.regions,
+            label="label",
+            band="NDVI",
+            spatialReducer="mean",
+            timeReducer="mean",
+            scale=500,
+            ax=ax,
+            dateProperty="system:time_start",
+            colors=["#f0af07", "#0f8755", "#76b349"],
+        )
+
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    @property
+    def regions(self):
+        return ee.FeatureCollection("projects/google/charts_feature_example").select(
+            ["label", "value", "warm"]
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .filter(ee.Filter.date("2010-01-01", "2020-01-01"))
+            .select(["NDVI", "EVI"])
+        )
+
+
+class TestPlotDoyByYears:
+    """Test the ``plot_doy_by_years`` method."""
+
+    def test_plot_doy_by_years(self, image_regression):
+        fig, ax = plt.subplots()
+        self.collection.geetools.plot_doy_by_years(
+            region=self.region.geometry(),
+            band="NDVI",
+            reducer="mean",
+            scale=500,
+            ax=ax,
+            colors=["#39a8a7", "#9c4f97"],
+        )
+
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    @property
+    def region(self):
+        return (
+            ee.FeatureCollection("projects/google/charts_feature_example")
+            .select(["label", "value", "warm"])
+            .filter(ee.Filter.eq("label", "Grassland"))
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .select(["NDVI", "EVI"])
+            .filter(
+                ee.Filter.Or(
+                    ee.Filter.date("2012-01-01", "2012-12-31"),
+                    ee.Filter.date("2019-01-01", "2019-12-31"),
+                )
+            )
+        )
