@@ -593,3 +593,40 @@ class TestPlotDoyByYears:
                 )
             )
         )
+
+
+class TestReduceRegion:
+    """Test the reduceRegion method."""
+
+    def test_reduce_region_by_dates(self, num_regression):
+        values = self.collection.geetools.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idPropertyType=ee.Date,
+            geometry=self.region.geometry(),
+            scale=500,
+        ).getInfo()
+        # That will be easier after next pytest-gee update for now let's just test
+        # the index names
+        assert list(values.keys()) == [
+            "2010-01-01T00-00-00",
+            "2010-01-17T00-00-00",
+            "2010-02-02T00-00-00",
+            "2010-02-18T00-00-00",
+        ]
+
+    @property
+    def region(self):
+        return (
+            ee.FeatureCollection("projects/google/charts_feature_example")
+            .select(["label", "value", "warm"])
+            .filter(ee.Filter.eq("label", "Forest"))
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .filter(ee.Filter.date("2010-01-01", "2010-02-28"))
+            .select(["NDVI", "EVI"])
+        )

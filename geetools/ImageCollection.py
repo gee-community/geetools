@@ -1740,3 +1740,102 @@ class ImageCollectionAccessor:
         ax = plot_data("doy", data, "Day of Year", colors, ax)
 
         return ax
+
+    def reduceRegion(
+        self,
+        reducer: str,
+        idProperty: str = "system:index",
+        idPropertyType: type = ee.Number,
+        geometry: ee.Geometry | None = None,
+        scale: int | float | None = None,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int | None = None,
+        tileScale: int = 1,
+        **kwargs,
+    ) -> ee.Dictionary:
+        """Apply a reducer to all the pixels in a specific region on each image of the collection.
+
+        The result will be shaped as a dictionary with the idProperty as key and for each f them the reduced band values.
+
+        .. code-block:: json
+
+            {
+                "image1": {"band1": value1, "band2": value2, ...},
+                "image2": {"band1": value1, "band2": value2, ...},
+            }
+
+        Parameters:
+            idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection.
+            reducer: THe reducer to apply.
+            idPropertyType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
+            geometry: The region over which to reduce the data.
+            scale: A nominal scale in meters to work in.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crstransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
+        Returns:
+            A dictionary with the reduced values for each image.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+                data = collection.geetools.reduceRegion("mean", geometry=ee.Geometry.Point(-122.262, 37.8719), scale=30)
+                print(data.getInfo())
+        """
+        # The most critical part is parsing the idProperty to transform it into list of string compatible
+        # with band names and do it server-side. The 3 cases that we take into account are:
+        # String, Number, Date. The last two are transformed into string.
+        propertyList = self._obj.aggregate_array(idProperty)
+        if idPropertyType == ee.String:
+            propertyList = propertyList.map(lambda p: ee.String(p))
+        elif idPropertyType == ee.Number:
+            propertyList = propertyList.map(lambda p: ee.Number(p).format())
+        elif idPropertyType == ee.Date:
+            propertyList = propertyList.map(lambda p: ee.Date(p).format(EE_DATE_FORMAT))
+        else:
+            raise ValueError("idPropertyType format {idPropertyType} not supported (yet)!")
+
+        # The tobands method will produce an image with the following band names: <system:index>_<bandName>
+        # What we want is: <idProperty>_<bandName> so we can make more advance filtering downstream.
+        bands = self._obj.first().bandNames()
+        bandNames = propertyList.map(lambda p: bands.map(lambda b: ee.String(p).cat("_").cat(b)))
+        bandNames = bandNames.flatten()
+
+        # reduce the collection  to a single image and run the reducer on it
+        image = self._obj.toBands().rename(bandNames)
+        reduced = image.reduceRegion(
+            reducer=reducer,
+            geometry=geometry,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            bestEffort=bestEffort,
+            maxPixels=maxPixels,
+            tileScale=tileScale,
+        )
+
+        # reshape the result dictionary into the desired structure
+        def getProp(p: ee.String) -> ee.Dictionary:
+            p = ee.String(p)
+            keys = reduced.keys().filter(ee.Filter.stringStartsWith("item", p))
+            values = reduced.select(keys).values()
+            keys = keys.map(lambda k: ee.String(k).split("_").get(1))
+            return ee.Dictionary.fromLists(keys, values)
+
+        values = propertyList.map(lambda p: getProp(p))
+
+        return ee.Dictionary.fromLists(propertyList, values)
