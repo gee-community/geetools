@@ -1322,7 +1322,7 @@ class ImageAccessor:
         region: ee.Geometry,
         scale: Optional[int] = None,
         band: Optional[str] = None,
-        proxy_value: int = -999,
+        proxyValue: int = -999,
         **kwargs,
     ) -> ee.Number:
         """Compute the coverage of masked pixels inside a Geometry.
@@ -1331,7 +1331,7 @@ class ImageAccessor:
             region: The region to compute the mask coverage.
             scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
             band: The band to use. Defaults to the first band.
-            proxy_value: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
+            proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
 
         Kwargs:
             maxPixels: The maximum number of pixels to reduce.
@@ -1354,8 +1354,8 @@ class ImageAccessor:
         # compute the mask cover
         image = self._obj.select(band or 0)
         scale = scale or image.projection().nominalScale()
-        unmasked = image.unmask(proxy_value)
-        mask = unmasked.eq(proxy_value)
+        unmasked = image.unmask(proxyValue)
+        mask = unmasked.eq(proxyValue)
         cover = mask.reduceRegion(
             ee.Reducer.frequencyHistogram(), region, scale=scale, bestEffort=True, **kwargs
         )
@@ -1374,8 +1374,8 @@ class ImageAccessor:
         collection: ee.FeatureCollection,
         scale: Optional[int] = None,
         band: Optional[str] = None,
-        proxy_value: int = -999,
-        column_name: str = "mask_cover",
+        proxyValue: int = -999,
+        columnName: str = "mask_cover",
         **kwargs,
     ) -> ee.FeatureCollection:
         """Compute the coverage of masked pixels inside a Geometry.
@@ -1384,8 +1384,8 @@ class ImageAccessor:
             collection: The collection to compute the mask coverage (in each Feature).
             scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
             band: The band to use. Defaults to the first band.
-            proxy_value: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
-            column_name: name of the column that will hold the value.
+            proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
+            columnName: name of the column that will hold the value.
 
         Kwargs:
             tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
@@ -1409,8 +1409,8 @@ class ImageAccessor:
         properties = collection.propertyNames()  # original properties
         image = self._obj.select(band or 0)
         scale = scale or image.projection().nominalScale()
-        unmasked = image.unmask(proxy_value)
-        mask = unmasked.eq(proxy_value)
+        unmasked = image.unmask(proxyValue)
+        mask = unmasked.eq(proxyValue)
         column = "_geetools_histo_"
         cover = mask.reduceRegions(
             collection=collection,
@@ -1423,9 +1423,47 @@ class ImageAccessor:
             histo = ee.Dictionary(feat.get(column))
             zeros, ones = ee.Number(histo.get("0", 0)), ee.Number(histo.get("1", 0))
             ratio = ones.divide(zeros.add(ones)).multiply(100)
-            return feat.select(properties).set(column_name, ratio)
+            return feat.select(properties).set(columnName, ratio)
 
         return cover.map(compute_percentage)
+
+    def maskCover(
+        self,
+        scale: Optional[int] = None,
+        proxyValue: int = -999,
+        propertyName: str = "mask_cover",
+        **kwargs,
+    ) -> ee.Image:
+        """Compute the percentage of masked pixels inside the image.
+
+        It will use the geometry and the first band of the image.
+
+        Parameters:
+            scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
+            proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
+            propertyName: the name of the property where the value will be saved
+
+        Kwargs:
+            maxPixels: The maximum number of pixels to reduce.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
+        Returns:
+            The same image with the percentage of masked pixels as a property
+
+        Examples:
+            .. code-block:: python
+
+                    import ee, geetools
+
+                    ee.Initialize()
+
+                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                    aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                    image = image.maskCoverRegion(aoi)
+        """
+        region = self._obj.geometry()
+        value = self.maskCoverRegion(region, scale, None, proxyValue, **kwargs)
+        return self._obj.set(propertyName, value)
 
     def plot(
         self,
