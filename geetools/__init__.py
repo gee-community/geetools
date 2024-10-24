@@ -1,6 +1,9 @@
 """A package to use with Google Earth Engine Python API."""
 import ee
 
+# import the accessor namespace
+from .accessors import geetools
+
 # it needs to be imported first as it's the mother class
 from . import ComputedObject
 

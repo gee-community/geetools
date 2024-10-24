@@ -10,7 +10,7 @@ from anyascii import anyascii
 from .accessors import _register_extention
 
 
-@_register_extention(ee)
+@_register_extention(ee.geetools)
 class Profiler:
     """A profiler context manager for Earth Engine Python API.
 

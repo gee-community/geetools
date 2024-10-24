@@ -10,6 +10,6 @@ class TestProfiler:
     def test_profiler(self):
         """Test the Profiler class."""
 
-    with ee.Profiler() as p:
+    with ee.geetools.Profiler() as p:
         ee.Number(3.14).add(0.00159).getInfo()
     assert [k for k in p.profile] == ["EECU-s", "PeakMem", "Count", "Description"]
