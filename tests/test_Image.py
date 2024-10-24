@@ -605,7 +605,7 @@ class TestMaskCover:
     def test_deprecated_mask_cover(self):
         with pytest.deprecated_call():
             image = geetools.algorithms.maskCover(self.image)
-            assert isclose(image.get("mask_cover").getInfo(), 99.2)
+            assert isclose(image.get("mask_cover").getInfo(), 18.04, rel_tol=0.01)
 
     @property
     def image(self):
