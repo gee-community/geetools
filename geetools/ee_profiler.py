@@ -5,6 +5,7 @@ import io
 import re
 
 import ee
+from anyascii import anyascii
 
 from .accessors import _register_extention
 
@@ -76,7 +77,7 @@ class Profiler:
 
         # First line contains column headers
         # Initialize a dictionary to hold lists for each column
-        headers = [h.strip() for h in lines[0].split()]
+        headers = [anyascii(h.strip()) for h in lines[0].split()]
         result: dict = {header: [] for header in headers}
 
         # Process each line of data after the header

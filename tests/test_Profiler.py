@@ -12,4 +12,4 @@ class TestProfiler:
 
     with ee.Profiler() as p:
         ee.Number(3.14).add(0.00159).getInfo()
-    assert [k for k in p.profile] == ["EECU·s", "PeakMem", "Count", "Description"]
+    assert [k for k in p.profile] == ["EECU-s", "PeakMem", "Count", "Description"]
