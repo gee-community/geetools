@@ -1320,9 +1320,9 @@ class ImageAccessor:
     def maskCoverRegion(
         self,
         region: ee.Geometry,
-        scale: Optional[int] = None,
-        band: Optional[str] = None,
-        proxyValue: int = -999,
+        scale: Optional[int | ee.Number] = None,
+        band: Optional[str | ee.String] = None,
+        proxyValue: int | ee.Number = -999,
         **kwargs,
     ) -> ee.Number:
         """Compute the coverage of masked pixels inside a Geometry.
@@ -1331,7 +1331,7 @@ class ImageAccessor:
             region: The region to compute the mask coverage.
             scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
             band: The band to use. Defaults to the first band.
-            proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
+            proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. In most cases the user should not change this value, but in case of conflicts, choose a value that is out of the range of the image values.
 
         Kwargs:
             maxPixels: The maximum number of pixels to reduce.
@@ -1372,10 +1372,10 @@ class ImageAccessor:
     def maskCoverRegions(
         self,
         collection: ee.FeatureCollection,
-        scale: Optional[int] = None,
-        band: Optional[str] = None,
-        proxyValue: int = -999,
-        columnName: str = "mask_cover",
+        scale: Optional[int | ee.Number] = None,
+        band: Optional[str | ee.String] = None,
+        proxyValue: int | ee.Number = -999,
+        columnName: str | ee.String = "mask_cover",
         **kwargs,
     ) -> ee.FeatureCollection:
         """Compute the coverage of masked pixels inside a Geometry.
@@ -1384,7 +1384,7 @@ class ImageAccessor:
             collection: The collection to compute the mask coverage (in each Feature).
             scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
             band: The band to use. Defaults to the first band.
-            proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
+            proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. In most cases the user should not change this value, but in case of conflicts, choose a value that is out of the range of the image values.
             columnName: name of the column that will hold the value.
 
         Kwargs:
