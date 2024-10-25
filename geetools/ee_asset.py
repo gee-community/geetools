@@ -451,8 +451,8 @@ class Asset(os.PathLike):
             recursive: If True, get all the children recursively. Defaults to False.
 
         See Also:
-            - :py:meth:`glob <geetools.Asset.Asset.glob>`: :docstring:`geetools.Asset.glob`
-            - :py:meth:`rglob <geetools.Asset.Asset.rglob>`: :docstring:`geetools.Asset.rglob`
+            - :docstring:`ee.Asset.glob`
+            - :docstring:`ee.Asset.rglob`
 
         Examples:
             .. code-block:: python
@@ -698,8 +698,8 @@ class Asset(os.PathLike):
             pattern: The pattern to match with the asset name.
 
         See Also:
-            - :py:meth:`iterdir <geetools.Asset.Asset.iterdir>`: :docstring:`geetools.Asset.iterdir`
-            - :py:meth:`glob <geetools.Asset.Asset.rglob>`: :docstring:`geetools.Asset.rglob`
+            - :docstring:`ee.Asset.iterdir`
+            - :docstring:`ee.Asset.rglob`
 
         Examples:
             .. code-block:: python
@@ -716,8 +716,8 @@ class Asset(os.PathLike):
             pattern: The pattern to match with the asset name.
 
         See Also:
-            - :py:meth:`glob <geetools.Asset.Asset.glob>`: :docstring:`geetools.Asset.glob`
-            - :py:meth:`iterdir <geetools.Asset.Asset.iterdir>`: :docstring:`geetools.Asset.iterdir`
+            - :docstring:`ee.Asset.glob`
+            - :docstring:`ee.Asset.iterdir`
 
         Examples:
             .. code-block:: python

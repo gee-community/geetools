@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from typing import Callable
 
+import ee
+
 
 def register_class_accessor(klass: type, name: str) -> Callable:
     """Create an accessor through the provided namespace to a given class.
@@ -65,3 +67,15 @@ def register_function_accessor(func: type, name: str) -> Callable:
 def _register_extention(obj: object) -> Callable:
     """Add the function to any object."""
     return lambda f: (setattr(obj, f.__name__, f) or f)  # type: ignore
+
+
+# create a geetools namespace that can be use directly on the ee module
+
+
+@_register_extention(ee)
+class geetools:
+    """Namespace class for the geetools library."""
+
+    def __init__(self):
+        """The geetools namespace cannot be instantiated."""
+        raise AttributeError("Cannot instantiate geetools")
