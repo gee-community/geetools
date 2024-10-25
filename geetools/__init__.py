@@ -1,4 +1,7 @@
-"""A package to use with Google Earth Engine Python API."""
+"""A toolbox to use with Google Earth Engine Python API.
+
+The ``geetools`` package extends the Google Earth Engine Python API with pre-processing and processing tools for the most used satellite platforms by adding utility methods for different Earth Engine Objects that are friendly with the Python method chaining using the geetools namespace.
+"""
 import ee
 
 # import the accessor namespace

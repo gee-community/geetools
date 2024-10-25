@@ -9,7 +9,7 @@ geetools
 
    setup/index
    usage/index
-   autoapi/index
+   Reference <autoapi/geetools/index>
    Changelogs <https://github.com/gee-community/geetools/releases>
    earth-engine API <https://developers.google.com/earth-engine/apidocs>
 
