@@ -5,7 +5,7 @@ import ee
 from .accessors import geetools
 
 # it needs to be imported first as it's the mother class
-from . import ComputedObject
+from .ee_computed_object import *
 
 # reproduce older structure of the lib (deprecated)
 # will be removed along the deprecation cycle
@@ -14,24 +14,24 @@ from . import _deprecated_composite as composite
 from .tools import imagecollection
 
 # then we extend all the other classes
-from .Asset import Asset
-from .Date import DateAccessor
-from .Dictionary import DictionaryAccessor
-from .Feature import FeatureAccessor
-from .FeatureCollection import FeatureCollectionAccessor
-from .Filter import FilterAccessor
-from .Geometry import GeometryAccessor
-from .Image import ImageAccessor
-from .Join import JoinAccessor
-from .List import ListAccessor
-from .Number import NumberAccessor
-from .String import StringAccessor
-from .ImageCollection import ImageCollectionAccessor
-from .Initialize import InitializeAccessor
-from .Authenticate import AuthenticateAccessor
-from .Array import ArrayAccessor
-from .DateRange import DateRangeAccessor
-from .Export import ExportAccessor
+from .ee_asset import Asset
+from .ee_date import DateAccessor
+from .ee_dictionary import DictionaryAccessor
+from .ee_feature import FeatureAccessor
+from .ee_feature_collection import FeatureCollectionAccessor
+from .ee_filter import FilterAccessor
+from .ee_geometry import GeometryAccessor
+from .ee_image import ImageAccessor
+from .ee_join import JoinAccessor
+from .ee_list import ListAccessor
+from .ee_number import NumberAccessor
+from .ee_string import StringAccessor
+from .ee_image_collection import ImageCollectionAccessor
+from .ee_initialize import InitializeAccessor
+from .ee_authenticate import AuthenticateAccessor
+from .ee_array import ArrayAccessor
+from .ee_date_range import DateRangeAccessor
+from .ee_export import ExportAccessor
 from .ee_profiler import Profiler
 
 __title__ = "geetools"

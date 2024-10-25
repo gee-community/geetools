@@ -1611,8 +1611,8 @@ class ImageAccessor:
             A dictionary with all the bands as keys and their values in each region as a list.
 
         See Also:
-            - :py:meth:`byRegions <geetools.Image.ImageAccessor.byRegions>`: :docstring:`geetools.ImageAccessor.byRegions`
-            - :py:meth:`plot_by_bands <geetools.Image.ImageAccessor.plot_by_bands>`: :docstring:`geetools.ImageAccessor.plot_by_bands`
+            - :docstring:`ee.Image.geetools.byRegions`
+            - :docstring:`ee.Image.geetools.plot_by_bands`
 
         Examples:
             .. code-block:: python
@@ -1688,8 +1688,8 @@ class ImageAccessor:
             A dictionary with all the bands as keys and their values in each region as a list.
 
         See Also:
-            - :py:meth:`byBands <geetools.Image.ImageAccessor.byBands>`: :docstring:`geetools.ImageAccessor.byBands`
-            - :py:meth:`plot_by_bands <geetools.Image.ImageAccessor.plot_by_bands>`: :docstring:`geetools.ImageAccessor.plot_by_regions`
+            - :docstring:`ee.Image.geetools.byBands`
+            - :docstring:`ee.Image.geetools.plot_by_regions`
 
         Examples:
             .. code-block:: python
@@ -1767,10 +1767,10 @@ class ImageAccessor:
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
 
         See Also:
-            - :py:meth:`byRegions <geetools.Image.ImageAccessor.byRegions>`: :docstring:`geetools.ImageAccessor.byRegions`
-            - :py:meth:`byBands <geetools.Image.ImageAccessor.byBands>`: :docstring:`geetools.ImageAccessor.byBands`
-            - :py:meth:`plot_by_bands <geetools.Image.ImageAccessor.plot_by_bands>`: :docstring:`geetools.ImageAccessor.plot_by_bands`
-            - :py:meth:`plot_hist <geetools.Image.ImageAccessor.plot_hist>`: :docstring:`geetools.ImageAccessor.plot_hist
+            - :docstring:`ee.Image.geetools.byRegions`
+            - :docstring:`ee.Image.geetools.byBands`
+            - :docstring:`ee.Image.geetools.plot_by_bands`
+            - :docstring:`ee.Image.geetools.plot_hist
 
         Examples:
             .. code-block:: python
@@ -1838,10 +1838,10 @@ class ImageAccessor:
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
 
         See Also:
-            - :py:meth:`byRegions <geetools.Image.ImageAccessor.byRegions>`: :docstring:`geetools.ImageAccessor.byRegions`
-            - :py:meth:`byBands <geetools.Image.ImageAccessor.byBands>`: :docstring:`geetools.ImageAccessor.byBands`
-            - :py:meth:`plot_by_bands <geetools.Image.ImageAccessor.plot_by_bands>`: :docstring:`geetools.ImageAccessor.plot_by_regions`
-            - :py:meth:`plot_hist <geetools.Image.ImageAccessor.plot_hist>`: :docstring:`geetools.ImageAccessor.plot_hist
+            - :docstring:`ee.Image.geetools.byRegions`
+            - :docstring:`ee.Image.geetools.byBands`
+            - :docstring:`ee.Image.geetools.plot_by_regions`
+            - :docstring:`ee.Image.geetools.plot_hist
 
         Examples:
             .. code-block:: python
@@ -1901,10 +1901,10 @@ class ImageAccessor:
             region: The region to compute the histogram in. Default is the image geometry.
 
         See Also:
-            - :py:meth:`byRegions <geetools.Image.ImageAccessor.byRegions>`: :docstring:`geetools.ImageAccessor.byRegions`
-            - :py:meth:`byBands <geetools.Image.ImageAccessor.byBands>`: :docstring:`geetools.ImageAccessor.byBands`
-            - :py:meth:`plot_by_bands <geetools.Image.ImageAccessor.plot_by_bands>`: :docstring:`geetools.ImageAccessor.plot_by_bands`
-            - :py:meth:`plot_by_regions <geetools.Image.ImageAccessor.plot_by_regions>`: :docstring:`geetools.ImageAccessor.plot_by_regions
+            - :docstring:`ee.Image.geetools.byRegions`
+            - :docstring:`ee.Image.geetools.byBands`
+            - :docstring:`ee.Image.geetools.plot_by_bands`
+            - :docstring:`ee.Image.geetools.plot_by_regions
 
         Examples:
             .. code-block:: python
