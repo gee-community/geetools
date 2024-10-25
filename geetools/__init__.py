@@ -1,6 +1,9 @@
 """A package to use with Google Earth Engine Python API."""
 import ee
 
+# import the accessor namespace
+from .accessors import geetools
+
 # it needs to be imported first as it's the mother class
 from .ee_computed_object import *
 
@@ -29,7 +32,7 @@ from .ee_authenticate import AuthenticateAccessor
 from .ee_array import ArrayAccessor
 from .ee_date_range import DateRangeAccessor
 from .ee_export import ExportAccessor
-
+from .ee_profiler import Profiler
 
 __title__ = "geetools"
 __summary__ = "A set of useful tools to use with Google Earth Engine Python" "API"

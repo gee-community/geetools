@@ -1,6 +1,8 @@
 """Toolbox for the ``ee.Image`` class."""
 from __future__ import annotations
 
+from typing import Optional
+
 import ee
 import ee_extra
 import ee_extra.Algorithms.core
@@ -530,7 +532,7 @@ class ImageAccessor:
 
     def reduceBands(
         self,
-        reducer: str,
+        reducer: str | ee.Reducer,
         bands: list | ee.List = [],
         name: str | ee.String = "",
     ) -> ee.Image:
@@ -562,7 +564,8 @@ class ImageAccessor:
         bands, name = ee.List(bands), ee.String(name)
         bands = ee.Algorithms.If(bands.size().eq(0), self._obj.bandNames(), bands)
         name = ee.Algorithms.If(name.equals(ee.String("")), reducer, name)
-        reduceImage = self._obj.select(ee.List(bands)).reduce(reducer).rename([name])
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
+        reduceImage = self._obj.select(ee.List(bands)).reduce(red).rename([name])
         return self._obj.addBands(reduceImage)
 
     def negativeClip(self, geometry: ee.Geometry | ee.Feature | ee.FeatureCollection) -> ee.Image:
@@ -1315,11 +1318,28 @@ class ImageAccessor:
 
         return ee.Image(distance)
 
-    def maskCover(self) -> ee.Image:
-        """return an image with the mask cover ratio as an image property.
+    def maskCoverRegion(
+        self,
+        region: ee.Geometry,
+        scale: Optional[int | ee.Number] = None,
+        band: Optional[str | ee.String] = None,
+        proxyValue: int | ee.Number = -999,
+        **kwargs,
+    ) -> ee.Number:
+        """Compute the coverage of masked pixels inside a Geometry.
+
+        Parameters:
+            region: The region to compute the mask coverage.
+            scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
+            band: The band to use. Defaults to the first band.
+            proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. In most cases the user should not change this value, but in case of conflicts, choose a value that is out of the range of the image values.
+
+        Kwargs:
+            maxPixels: The maximum number of pixels to reduce.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
-            The image with the mask cover ratio as an image property.
+            The percentage of masked pixels within the region
 
         Examples:
             .. code-block:: python
@@ -1329,23 +1349,122 @@ class ImageAccessor:
                     ee.Initialize()
 
                     image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    image = image.maskCover()
+                    aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                    image = image.maskCoverRegion(aoi)
         """
         # compute the mask cover
-        mask, geometry = self._obj.select(0).mask(), self._obj.geometry()
-        cover = mask.reduceRegion(ee.Reducer.frequencyHistogram(), geometry, bestEffort=True)
-
+        image = self._obj.select(band or 0)
+        scale = scale or image.projection().nominalScale()
+        unmasked = image.unmask(proxyValue)
+        mask = unmasked.eq(proxyValue)
+        cover = mask.reduceRegion(
+            ee.Reducer.frequencyHistogram(), region, scale=scale, bestEffort=True, **kwargs
+        )
         # The cover result is a dictionary with each band as key (in our case the first one).
         # For each band key the number of 0 and 1 is stored in a dictionary.
         # We need to extract the number of 1 and 0 to compute the ratio which implys lots of casting.
-        values = ee.Dictionary(cover.values().get(0)).values()
-        zeros, ones = ee.Number(values.get(0)), ee.Number(values.get(1))
-        ratio = zeros.divide(zeros.add(ones))
+        values = ee.Dictionary(cover.values().get(0))
+        zeros, ones = ee.Number(values.get("0", 0)), ee.Number(values.get("1", 0))
+        ratio = ones.divide(zeros.add(ones)).multiply(100)
 
-        # we want to display this resutl as a 1 digit float
-        ratio = ratio.multiply(1000).toInt().divide(10)
+        # we want to display this result as a 1 digit float
+        return ratio
 
-        return ee.Image(self._obj.set("mask_cover", ratio))
+    def maskCoverRegions(
+        self,
+        collection: ee.FeatureCollection,
+        scale: Optional[int | ee.Number] = None,
+        band: Optional[str | ee.String] = None,
+        proxyValue: int | ee.Number = -999,
+        columnName: str | ee.String = "mask_cover",
+        **kwargs,
+    ) -> ee.FeatureCollection:
+        """Compute the coverage of masked pixels inside a Geometry.
+
+        Parameters:
+            collection: The collection to compute the mask coverage (in each Feature).
+            scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
+            band: The band to use. Defaults to the first band.
+            proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. In most cases the user should not change this value, but in case of conflicts, choose a value that is out of the range of the image values.
+            columnName: name of the column that will hold the value.
+
+        Kwargs:
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
+        Returns:
+            The passed table with the new column containing the percentage of masked pixels within the region
+
+        Examples:
+            .. code-block:: python
+
+                    import ee, geetools
+
+                    ee.Initialize()
+
+                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                    reg = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                    aoi = ee.FeatureCollection([ee.Feature(reg)])
+                    image = image.maskCoverRegions(aoi)
+        """
+        # compute the mask cover
+        properties = collection.propertyNames()  # original properties
+        image = self._obj.select(band or 0)
+        scale = scale or image.projection().nominalScale()
+        unmasked = image.unmask(proxyValue)
+        mask = unmasked.eq(proxyValue)
+        column = "_geetools_histo_"
+        cover = mask.reduceRegions(
+            collection=collection,
+            reducer=ee.Reducer.frequencyHistogram().setOutputs([column]),
+            scale=scale,
+            **kwargs,
+        )
+
+        def compute_percentage(feat: ee.Feature) -> ee.Feature:
+            histo = ee.Dictionary(feat.get(column))
+            zeros, ones = ee.Number(histo.get("0", 0)), ee.Number(histo.get("1", 0))
+            ratio = ones.divide(zeros.add(ones)).multiply(100)
+            return feat.select(properties).set(columnName, ratio)
+
+        return cover.map(compute_percentage)
+
+    def maskCover(
+        self,
+        scale: Optional[int] = None,
+        proxyValue: int = -999,
+        propertyName: str = "mask_cover",
+        **kwargs,
+    ) -> ee.Image:
+        """Compute the percentage of masked pixels inside the image.
+
+        It will use the geometry and the first band of the image.
+
+        Parameters:
+            scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
+            proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
+            propertyName: the name of the property where the value will be saved
+
+        Kwargs:
+            maxPixels: The maximum number of pixels to reduce.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
+        Returns:
+            The same image with the percentage of masked pixels as a property
+
+        Examples:
+            .. code-block:: python
+
+                    import ee, geetools
+
+                    ee.Initialize()
+
+                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                    aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                    image = image.maskCoverRegion(aoi)
+        """
+        region = self._obj.geometry()
+        value = self.maskCoverRegion(region, scale, None, proxyValue, **kwargs)
+        return self._obj.set(propertyName, value)
 
     def plot(
         self,
@@ -1419,10 +1538,50 @@ class ImageAccessor:
             gdf = gdf.set_crs("EPSG:4326").to_crs(crs)
             gdf.boundary.plot(ax=ax, color=color)
 
+    @classmethod
+    def fromList(cls, images: ee.List | list):
+        """Create a single image by passing a list of images.
+
+        Warning: The bands cannot have repeated names, if so, it will throw an error (see examples).
+
+        Parameters:
+            images: a list of ee.Image
+
+        Returns:
+            A single ee.Image with one band per image in the passed list
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                sequence = ee.List([1, 2, 3])
+                images = sequence.map(lambda i: ee.Image(ee.Number(i)).rename(ee.Number(i).int().format()))
+                image = ee.Image.geetools.fromList(images)
+                print(image.bandNames().getInfo())
+
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                sequence = ee.List([1, 2, 2, 3])
+                images = sequence.map(lambda i: ee.Image(ee.Number(i)).rename(ee.Number(i).int().format()))
+                image = ee.Image.geetools.fromList(images)
+                print(image.bandNames().getInfo())
+            > ee.ee_exception.EEException: Image.rename: Can't add a band named '2' to image because a band with this name already exists. Existing bands: [1, 2].
+        """
+        bandNames = ee.List(images).map(lambda i: ee.Image(i).bandNames()).flatten()
+        ic = ee.ImageCollection.fromImages(images)
+        return ic.toBands().rename(bandNames)
+
     def byBands(
         self,
         regions: ee.featurecollection,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
@@ -1442,7 +1601,7 @@ class ImageAccessor:
 
         Parameters:
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer to use, default to "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale to use for the computation. Default is 10000m.
             regionId: The property used to label region. Defaults to "system:index".
             labels: The labels to use for the output dictionary. Default to the band names.
@@ -1484,7 +1643,7 @@ class ImageAccessor:
         # This is currently hidden because of https://issuetracker.google.com/issues/374285504
         # It will have no impact on most of the cases as plt_hist should be used for single band images
         # reducer = reducer.setOutputs(labels)
-        red = getattr(ee.Reducer, reducer)()
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
 
         # retrieve the reduce bands for each feature
         image = self._obj.select(eeBands).rename(eeLabels)
@@ -1499,7 +1658,7 @@ class ImageAccessor:
     def byRegions(
         self,
         regions: ee.featurecollection,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
@@ -1519,7 +1678,7 @@ class ImageAccessor:
 
         Parameters:
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer to use, default to "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale to use for the computation. Default is 10000m.
             regionId: The property used to label region. Defaults to "system:index".
             labels: The labels to use for the output dictionary. Default to the band names.
@@ -1561,11 +1720,11 @@ class ImageAccessor:
         # This is currently hidden because of https://issuetracker.google.com/issues/374285504
         # It will have no impact on most of the cases as plt_hist should be used for single band images
         # reducer = reducer.setOutputs(labels)
-        red = getattr(ee.Reducer, reducer)()
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
 
         # retrieve the reduce bands for each feature
         image = self._obj.select(bands).rename(labels)
-        fc = image.reduceRegions(collection=regions, reducer=red, scale=scale)
+        fc = image.reduceRegions(regions, red, scale)
 
         # extract the data as a list of dictionaries (one for each label) aggregating
         # we are force to turn the fc into a list because GEE don't accept to map a featureCollection
@@ -1579,7 +1738,7 @@ class ImageAccessor:
         self,
         type: str,
         regions: ee.FeatureCollection,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
@@ -1599,7 +1758,7 @@ class ImageAccessor:
         Parameters:
             type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer to use, default to "mean".
+            rreducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale to use for the computation. Default is 10000m.
             bands: The bands to compute the reducer on. Default to all bands.
             regionId: The property used to label region. Defaults to "system:index".
@@ -1649,7 +1808,7 @@ class ImageAccessor:
         self,
         type: str,
         regions: ee.FeatureCollection,
-        reducer: str = "mean",
+        reducer: str | ee.Reducer = "mean",
         scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
@@ -1670,7 +1829,7 @@ class ImageAccessor:
         Parameters:
             type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer to use, default to "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
             scale: The scale to use for the computation. Default is 10000m.
             bands: The bands to compute the reducer on. Default to all bands.
             regionId: The property used to label region. Defaults to "system:index".
