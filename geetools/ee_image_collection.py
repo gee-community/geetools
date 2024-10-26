@@ -1744,9 +1744,11 @@ class ImageCollectionAccessor:
     def reduceRegion(
         self,
         reducer: str,
+        geometry: ee.Geometry,
         idProperty: str = "system:index",
         idPropertyType: type = ee.Number,
-        geometry: ee.Geometry | None = None,
+        dateFormat: str | ee.String = EE_DATE_FORMAT,
+        numberFormat: str | ee.String = "%s",
         scale: int | float | None = None,
         crs: str | None = None,
         crsTransform: list | None = None,
@@ -1770,6 +1772,8 @@ class ImageCollectionAccessor:
             idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection.
             reducer: THe reducer to apply.
             idPropertyType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
+            dateFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". You can specify any other format compatible with band names.
+            numberFormat: If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
             geometry: The region over which to reduce the data.
             scale: A nominal scale in meters to work in.
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
@@ -1803,9 +1807,9 @@ class ImageCollectionAccessor:
         if idPropertyType == ee.String:
             propertyList = propertyList.map(lambda p: ee.String(p))
         elif idPropertyType == ee.Number:
-            propertyList = propertyList.map(lambda p: ee.Number(p).format())
+            propertyList = propertyList.map(lambda p: ee.Number(p).format(numberFormat))
         elif idPropertyType == ee.Date:
-            propertyList = propertyList.map(lambda p: ee.Date(p).format(EE_DATE_FORMAT))
+            propertyList = propertyList.map(lambda p: ee.Date(p).format(dateFormat))
         else:
             raise ValueError("idPropertyType format {idPropertyType} not supported (yet)!")
 
