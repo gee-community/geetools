@@ -10,6 +10,7 @@ import geopandas as gpd
 import numpy as np
 import requests
 import xarray
+from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.colors import to_rgba
 from pyproj import CRS, Transformer
@@ -1470,7 +1471,7 @@ class ImageAccessor:
         self,
         bands: list,
         region: ee.Geometry,
-        ax: Axes,
+        ax: Axes | None = None,
         fc: ee.FeatureCollection = None,
         cmap: str = "viridis",
         crs: str = "EPSG:4326",
@@ -1745,7 +1746,7 @@ class ImageAccessor:
         labels: list = [],
         colors: list = [],
         ax: Axes | None = None,
-    ):
+    ) -> Axes:
         """Plot the reduced values for each region.
 
         Each region will be plotted using the ``regionId`` as x-axis label defauting to "system:index" if not provided.
@@ -1765,6 +1766,9 @@ class ImageAccessor:
             labels: The labels to use for the output dictionary. Default to the band names.
             colors: The colors to use for the plot. Default to the default matplotlib colors.
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
+
+        Returns:
+            The matplotlib axis with the plot.
 
         See Also:
             - :docstring:`ee.Image.geetools.byRegions`
@@ -1802,7 +1806,9 @@ class ImageAccessor:
         # reorder the data according to the labels id set by the user
         data = {b: {f: data[b][f] for f in features} for b in labels}
 
-        return plot_data(type=type, data=data, label_name=regionId, colors=colors, ax=ax)
+        ax = plot_data(type=type, data=data, label_name=regionId, colors=colors, ax=ax)
+
+        return ax
 
     def plot_by_bands(
         self,
@@ -1815,7 +1821,7 @@ class ImageAccessor:
         labels: list = [],
         colors: list = [],
         ax: Axes | None = None,
-    ):
+    ) -> Axes:
         """Plot the reduced values for each bands.
 
         Each band will be plotted using the ``labels`` as x-axis label defauting to band names if not provided.
@@ -1836,6 +1842,9 @@ class ImageAccessor:
             labels: The labels to use for the output dictionary. Default to the band names.
             colors: The colors to use for the plot. Default to the default matplotlib colors.
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
+
+        Returns:
+            The matplotlib axis with the plot.
 
         See Also:
             - :docstring:`ee.Image.geetools.byRegions`
@@ -1873,11 +1882,12 @@ class ImageAccessor:
         # reorder the data according to the labels id set by the user
         data = {f: {b: data[f][b] for b in labels} for f in features}
 
-        return plot_data(type=type, data=data, label_name=regionId, colors=colors, ax=ax)
+        ax = plot_data(type=type, data=data, label_name=regionId, colors=colors, ax=ax)
+
+        return ax
 
     def plot_hist(
         self,
-        ax: Axes,
         bins: int = 30,
         region: ee.Geometry | None = None,
         bands: list = [],
@@ -1885,8 +1895,9 @@ class ImageAccessor:
         colors: list = [],
         scale: int = 10000,
         precision: int = 2,
+        ax: Axes | None = None,
         **kwargs,
-    ):
+    ) -> Axes:
         """Plot the histogram of the image bands.
 
         Parameters:
@@ -1900,11 +1911,15 @@ class ImageAccessor:
             kwargs: Keyword arguments passed to the matplotlib fill_between() function.
             region: The region to compute the histogram in. Default is the image geometry.
 
+        Returns:
+            The matplotlib axis with the plot.
+
         See Also:
             - :docstring:`ee.Image.geetools.byRegions`
             - :docstring:`ee.Image.geetools.byBands`
             - :docstring:`ee.Image.geetools.plot_by_bands`
             - :docstring:`ee.Image.geetools.plot_by_regions
+
 
         Examples:
             .. code-block:: python
@@ -1944,6 +1959,10 @@ class ImageAccessor:
         x = [int(d[0] * p) / p for d in raw_data[labels[0]] for _ in range(2)][1:]
         data = {l: [int(d[1]) for d in raw_data[l] for _ in range(2)][:-1] for l in labels}
 
+        # create the graph objcet if not provided
+        if ax is None:
+            fig, ax = plt.subplots()
+
         # display the histogram as a fill_between plot to respect GEE lib design
         for i, label in enumerate(labels):
             kwargs["facecolor"] = to_rgba(colors[i], 0.2)
@@ -1957,3 +1976,5 @@ class ImageAccessor:
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
+
+        return ax

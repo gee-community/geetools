@@ -1448,7 +1448,7 @@ class ImageCollectionAccessor:
         labels: list = [],
         colors: list = [],
         ax: Axes | None = None,
-    ):
+    ) -> Axes:
         """Plot the reduced data for each image in the collection by bands on a specific region.
 
         This method is plotting the reduced data for each image in the collection by bands on a specific region.
@@ -1506,7 +1506,7 @@ class ImageCollectionAccessor:
         dateProperty: str = "system:time_start",
         colors: list = [],
         ax: Axes | None = None,
-    ):
+    ) -> Axes:
         """Plot the reduced data for each image in the collection by regions for a single band.
 
         This method is plotting the reduced data for each image in the collection by regions for a single band.
@@ -1569,7 +1569,7 @@ class ImageCollectionAccessor:
         labels: list = [],
         colors: list = [],
         ax: Axes | None = None,
-    ):
+    ) -> Axes:
         """Plot the reduced data for each image in the collection by bands on a specific region.
 
         This method is plotting the reduced data for each image in the collection by bands on a specific region.
@@ -1631,7 +1631,7 @@ class ImageCollectionAccessor:
         dateProperty: str = "system:time_start",
         colors: list = [],
         ax: Axes | None = None,
-    ):
+    ) -> Axes:
         """Plot the reduced data for each image in the collection by regions for a single band.
 
         This method is plotting the reduced data for each image in the collection by regions for a single band.
@@ -1695,7 +1695,7 @@ class ImageCollectionAccessor:
         dateProperty: str = "system:time_start",
         colors: list = [],
         ax: Axes | None = None,
-    ):
+    ) -> Axes:
         """Plot the reduced data for each image in the collection by years for a single band.
 
         This method is plotting the reduced data for each image in the collection by years for a single band.
