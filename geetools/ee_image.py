@@ -1477,7 +1477,7 @@ class ImageAccessor:
         crs: str = "EPSG:4326",
         scale: float = 0.0001,  # 0.0001 is the default scale for Sentinel-2
         color="k",
-    ):
+    ) -> Axes:
         """Plot the image on a matplotlib axis.
 
         Parameters:
@@ -1502,6 +1502,9 @@ class ImageAccessor:
                     fig, ax = plt.subplots()
                     image.plot(["B2", "B3", "B4"], image.geometry(), ax)
         """
+        if ax is None:
+            fig, ax = plt.subplots()
+
         # extract the image as a xarray dataset
         ds = xarray.open_dataset(
             ee.ImageCollection([self._obj]),
@@ -1538,6 +1541,11 @@ class ImageAccessor:
             gdf = gpd.GeoDataFrame.from_features(fc.getInfo()["features"])
             gdf = gdf.set_crs("EPSG:4326").to_crs(crs)
             gdf.boundary.plot(ax=ax, color=color)
+
+        # make sure the canvas is only rendered once.
+        ax.figure.canvas.draw_idle()
+
+        return ax
 
     @classmethod
     def fromList(cls, images: ee.List | list):
