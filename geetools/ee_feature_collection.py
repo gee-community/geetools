@@ -423,7 +423,7 @@ class FeatureCollectionAccessor:
 
     def plot(
         self,
-        ax: Axes,
+        ax: Axes | None = None,
         property: str = "",
         crs: str = "EPSG:4326",
         cmap: str = "viridis",
@@ -460,6 +460,9 @@ class FeatureCollectionAccessor:
                 fig, ax = plt.subplots()
                 fc.geetools.plot("ADM2_CODE", ax)
         """
+        if ax is None:
+            fig, ax = plt.subplots()
+
         # get the data from the server
         names = self._obj.first().propertyNames()
         names = names.filter(ee.Filter.stringStartsWith("item", "system:").Not())
