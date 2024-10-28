@@ -98,7 +98,7 @@ def plot_data(
     """
     # define the ax if not provided by the user
     if ax is None:
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
 
     # gather the data from parameters
     labels = list(data.keys())

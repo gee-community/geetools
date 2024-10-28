@@ -119,7 +119,9 @@ autoapi_own_page_level = "method"
 autoapi_keep_files = False
 
 # -- Options for intersphinx output --------------------------------------------
-intersphinx_mapping = {}
+intersphinx_mapping = {
+    "matplotlib": ("https://matplotlib.org/stable/", None),
+}
 
 # -- options for the autolabel extension ---------------------------------------
 autosectionlabel_prefix_document = True
