@@ -1837,7 +1837,7 @@ class ImageCollectionAccessor:
             p = ee.String(p)
             keys = reduced.keys().filter(ee.Filter.stringStartsWith("item", p))
             values = reduced.select(keys).values()
-            keys = keys.map(lambda k: ee.String(k).split("_").get(1))
+            keys = keys.map(lambda k: ee.String(k).replace(p, "").slice(1))
             return ee.Dictionary.fromLists(keys, values)
 
         values = propertyList.map(lambda p: getProp(p))
