@@ -1769,7 +1769,7 @@ class ImageCollectionAccessor:
             }
 
         Parameters:
-            idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection.
+            idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection. One should use a meaningful property to avoid conflicts. in case of conflicts, the images with the same property will be mosaicked together (e.g. all raw satellite imagery with the same date) to make sure the final reducer have 1 single entry per idProperty.
             reducer: THe reducer to apply.
             idPropertyType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
             dateFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". You can specify any other format compatible with band names.
@@ -1800,10 +1800,17 @@ class ImageCollectionAccessor:
                 data = collection.geetools.reduceRegion("mean", geometry=ee.Geometry.Point(-122.262, 37.8719), scale=30)
                 print(data.getInfo())
         """
+        # filter the data to the bounds of the region of interest. This will reduce the amount of
+        # data to process and speed up the computation. We also need to mosaic together images that
+        # have the same idProperty to avoid conflicts.
+        ic = self._obj.filterBounds(geometry)
+        propertyList = ic.aggregate_array(idProperty).distinct()
+        imageList = propertyList.map(lambda p: ic.filter(ee.Filter.eq(idProperty, p)).mosaic())
+        ic = ee.ImageCollection(imageList)
+
         # The most critical part is parsing the idProperty to transform it into list of string compatible
         # with band names and do it server-side. The 3 cases that we take into account are:
         # String, Number, Date. The last two are transformed into string.
-        propertyList = self._obj.aggregate_array(idProperty)
         if idPropertyType == ee.String:
             propertyList = propertyList.map(lambda p: ee.String(p))
         elif idPropertyType == ee.Number:
@@ -1815,12 +1822,12 @@ class ImageCollectionAccessor:
 
         # The tobands method will produce an image with the following band names: <system:index>_<bandName>
         # What we want is: <idProperty>_<bandName> so we can make more advance filtering downstream.
-        bands = self._obj.first().bandNames()
+        bands = ic.first().bandNames()
         bandNames = propertyList.map(lambda p: bands.map(lambda b: ee.String(p).cat("_").cat(b)))
         bandNames = bandNames.flatten()
 
         # reduce the collection  to a single image and run the reducer on it
-        image = self._obj.toBands().rename(bandNames)
+        image = ic.toBands().rename(bandNames)
         reduced = image.reduceRegion(
             reducer=reducer,
             geometry=geometry,
