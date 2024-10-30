@@ -33,6 +33,20 @@ class TestToImage:
         return ee.Geometry.Point([12.453386, 41.903282]).buffer(1)
 
 
+class TestToDictionary:
+    """Test the ``toDictionary`` method."""
+
+    def test_to_dictionary(self, data_regression):
+        output = self.table.geetools.toDictionary("ADM0_NAME", ["ADM0_CODE", "Shape_Area"])
+        data_regression.check(output.getInfo())
+
+    @property
+    def table(self):
+        return ee.FeatureCollection("FAO/GAUL/2015/level0").filter(
+            ee.Filter.stringStartsWith(leftField="ADM0_NAME", rightValue="Ar")
+        )
+
+
 class TestAddId:
     """Test the ``addId`` method."""
 

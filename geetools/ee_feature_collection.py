@@ -35,6 +35,46 @@ class FeatureCollectionAccessor:
         width == "" or params.update(width=width)
         return ee.Image().paint(self._obj, **params)
 
+    def toDictionary(
+        self, keyColumn: str | ee.String = "system:index", selectors: list | ee.List = []
+    ):
+        """Convert to Dictionary.
+
+        Parameters:
+            keyColumn: the column to use as keys. Must contain unique values, if not it will fail.
+            selectors: a list of properties to add in the output. If the list is empty all properties will be added.
+
+        Returns:
+            a ee.Dictionary with values of keyColumn as keys and ee.Dictionary as
+            values. The output will look like:
+
+            {
+             '00000000000000000010': {'ADM0_CODE': 74578, 'ADM0_NAME': 'Azores Islands'},
+             '00000000000000000011': {'ADM0_CODE': 7, 'ADM0_NAME': 'Andorra'}
+            }
+        """
+        uniqueIds = self._obj.aggregate_array(keyColumn)
+        selectors = ee.List(selectors)
+        keyColumn = ee.String(keyColumn)
+        finalSelectors = ee.List(
+            ee.Algorithms.If(
+                selectors.size().eq(0), self._obj.first().propertyNames(), selectors  # all columns
+            )
+        )
+
+        def get_values(uid):
+            feat = ee.Feature(self._obj.filter(ee.Filter.eq(keyColumn, uid)).first())
+            values = feat.toDictionary(finalSelectors)
+            return values
+
+        values = uniqueIds.map(get_values)
+        return ee.Dictionary.fromLists(
+            uniqueIds.map(
+                lambda uid: ee.String(ee.Algorithms.String(uid))
+            ),  # in case it's a Number
+            values,
+        )
+
     def addId(
         self, name: str | ee.String = "id", start: int | ee.Number = 1
     ) -> ee.FeatureCollection:
