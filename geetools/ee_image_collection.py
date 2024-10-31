@@ -1747,6 +1747,7 @@ class ImageCollectionAccessor:
         geometry: ee.Geometry,
         idProperty: str = "system:index",
         idPropertyType: type = ee.Number,
+        propertyReducer: str | ee.Reducer = "first",
         dateFormat: str | ee.String = EE_DATE_FORMAT,
         numberFormat: str | ee.String = "%s",
         scale: int | float | None = None,
@@ -1772,6 +1773,7 @@ class ImageCollectionAccessor:
             idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection. One should use a meaningful property to avoid conflicts. in case of conflicts, the images with the same property will be mosaicked together (e.g. all raw satellite imagery with the same date) to make sure the final reducer have 1 single entry per idProperty.
             reducer: THe reducer to apply.
             idPropertyType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
+            propertyReducer: If the multiple images have the same property, they will be aggregated beforehand using the provided reducer. default to a mosaic behaviour to match most of the satellite imagery collection where the world is split for each date between multiple images.
             dateFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". You can specify any other format compatible with band names.
             numberFormat: If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
             geometry: The region over which to reduce the data.
@@ -1804,8 +1806,10 @@ class ImageCollectionAccessor:
         # data to process and speed up the computation. We also need to mosaic together images that
         # have the same idProperty to avoid conflicts.
         ic = self._obj.filterBounds(geometry)
+        pred = propertyReducer  # renaming of the variable to save space
+        red = getattr(ee.Reducer, pred)() if isinstance(pred, str) else pred
         propertyList = ic.aggregate_array(idProperty).distinct()
-        imageList = propertyList.map(lambda p: ic.filter(ee.Filter.eq(idProperty, p)).mosaic())
+        imageList = propertyList.map(lambda p: ic.filter(ee.Filter.eq(idProperty, p)).reduce(red))
         ic = ee.ImageCollection(imageList)
 
         # The most critical part is parsing the idProperty to transform it into list of string compatible
