@@ -37,7 +37,7 @@ class FeatureCollectionAccessor:
 
     def toDictionary(
         self, keyColumn: str | ee.String = "system:index", selectors: list | ee.List = []
-    ):
+    ) -> ee.Dictionary:
         """Convert to Dictionary.
 
         Parameters:
