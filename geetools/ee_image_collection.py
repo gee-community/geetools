@@ -1808,25 +1808,34 @@ class ImageCollectionAccessor:
         ic = self._obj.filterBounds(geometry)
         pred = propertyReducer  # renaming of the variable to save space
         red = getattr(ee.Reducer, pred)() if isinstance(pred, str) else pred
-        propertyList = ic.aggregate_array(idProperty).distinct()
-        imageList = propertyList.map(lambda p: ic.filter(ee.Filter.eq(idProperty, p)).reduce(red))
-        ic = ee.ImageCollection(imageList)
+        bands = ic.first().bandNames()
+
+        # to be able to filter the collection the property must be stored in a new column
+        # use a string as new property instead of uuid4.hex to keep this method usable on the server-side
+        newProperty = ee.String("_geetools_ic_reduce_region_")
 
         # The most critical part is parsing the idProperty to transform it into list of string compatible
         # with band names and do it server-side. The 3 cases that we take into account are:
         # String, Number, Date. The last two are transformed into string.
         if idPropertyType == ee.String:
-            propertyList = propertyList.map(lambda p: ee.String(p))
+            ic = ic.map(lambda i: i.set(newProperty, ee.String(i.get(idProperty))))
         elif idPropertyType == ee.Number:
-            propertyList = propertyList.map(lambda p: ee.Number(p).format(numberFormat))
+            ic = ic.map(
+                lambda i: i.set(newProperty, ee.Number(i.get(idProperty)).format(numberFormat))
+            )
         elif idPropertyType == ee.Date:
-            propertyList = propertyList.map(lambda p: ee.Date(p).format(dateFormat))
+            ic = ic.map(lambda i: i.set(newProperty, ee.Date(i.get(idProperty)).format(dateFormat)))
         else:
             raise ValueError("idPropertyType format {idPropertyType} not supported (yet)!")
 
+        propertyList = ic.aggregate_array(newProperty).distinct()
+        imageList = propertyList.map(
+            lambda p: ic.filter(ee.Filter.eq(newProperty, p)).reduce(red).rename(bands)
+        )
+        ic = ee.ImageCollection(imageList)
+
         # The tobands method will produce an image with the following band names: <system:index>_<bandName>
         # What we want is: <idProperty>_<bandName> so we can make more advance filtering downstream.
-        bands = ic.first().bandNames()
         bandNames = propertyList.map(lambda p: bands.map(lambda b: ee.String(p).cat("_").cat(b)))
         bandNames = bandNames.flatten()
 
