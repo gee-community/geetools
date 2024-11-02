@@ -615,6 +615,25 @@ class TestReduceRegion:
             "2010-02-18T00-00-00",
         ]
 
+    def test_reduce_region_by_date_property(self, data_regression):
+        values = self.collection.geetools.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idPropertyType=ee.Date,
+            propertyReducer="mean",
+            geometry=self.region.geometry(),
+            scale=500,
+        ).getInfo()
+
+        # That will be easier after next pytest-gee update for now let's just test
+        # the index names
+        assert list(values.keys()) == [
+            "2010-01-01T00-00-00",
+            "2010-01-17T00-00-00",
+            "2010-02-02T00-00-00",
+            "2010-02-18T00-00-00",
+        ]
+
     @property
     def region(self):
         return (

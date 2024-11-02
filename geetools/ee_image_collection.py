@@ -1809,8 +1809,12 @@ class ImageCollectionAccessor:
         pred = propertyReducer  # renaming of the variable to save space
         red = getattr(ee.Reducer, pred)() if isinstance(pred, str) else pred
         propertyList = ic.aggregate_array(idProperty).distinct()
-        imageList = propertyList.map(lambda p: ic.filter(ee.Filter.eq(idProperty, p)).reduce(red))
-        ic = ee.ImageCollection(imageList)
+        bandName = ic.first().bandNames()
+
+        def reduce(p):
+            return ic.filter(ee.Filter.eq(idProperty, p)).reduce(red).rename(bandName)
+
+        ic = ee.ImageCollection(propertyList.map(reduce))
 
         # The most critical part is parsing the idProperty to transform it into list of string compatible
         # with band names and do it server-side. The 3 cases that we take into account are:
