@@ -1802,36 +1802,44 @@ class ImageCollectionAccessor:
                 data = collection.geetools.reduceRegion("mean", geometry=ee.Geometry.Point(-122.262, 37.8719), scale=30)
                 print(data.getInfo())
         """
-        # filter the data to the bounds of the region of interest. This will reduce the amount of
-        # data to process and speed up the computation. We also need to mosaic together images that
-        # have the same idProperty to avoid conflicts.
+        # filter the imageCollection with the region parameter to reduce the number of manipulated images and speed up the computation
         ic = self._obj.filterBounds(geometry)
+
+        # raise an error if the idPropertyType is not supported
+        if idPropertyType not in [ee.String, ee.Number, ee.Date]:
+            msg = f"idPropertyType format {idPropertyType} not supported (yet)!"
+            raise ValueError(msg)
+
+        # create a unique property name to avoid conflict with any
+        # existing property in the image collection
+        pname = uuid.uuid4().hex
+
+        # add to each image the idProperty as metadata converted to string according
+        # to the idPropertyType parameter
+        def addIdProperty(i: ee.Image) -> ee.Image:
+            p = i.get(idProperty)
+            if idPropertyType == ee.String:
+                p = ee.String(p)
+            elif idPropertyType == ee.Number:
+                p = ee.Number(p).format(numberFormat)
+            elif idPropertyType == ee.Date:
+                p = ee.Date(p).format(dateFormat)
+            return i.set(pname, p)
+
+        ic = ic.map(addIdProperty)
+
+        # reduce the images collection to an collection of image with unique idproperty
+        # in case of duplication the images arereduced together using the propertyReducer
         pred = propertyReducer  # renaming of the variable to save space
         red = getattr(ee.Reducer, pred)() if isinstance(pred, str) else pred
-        propertyList = ic.aggregate_array(idProperty).distinct()
-        bandName = ic.first().bandNames()
-
-        def reduce(p):
-            return ic.filter(ee.Filter.eq(idProperty, p)).reduce(red).rename(bandName)
-
-        ic = ee.ImageCollection(propertyList.map(reduce))
-
-        # The most critical part is parsing the idProperty to transform it into list of string compatible
-        # with band names and do it server-side. The 3 cases that we take into account are:
-        # String, Number, Date. The last two are transformed into string.
-        if idPropertyType == ee.String:
-            propertyList = propertyList.map(lambda p: ee.String(p))
-        elif idPropertyType == ee.Number:
-            propertyList = propertyList.map(lambda p: ee.Number(p).format(numberFormat))
-        elif idPropertyType == ee.Date:
-            propertyList = propertyList.map(lambda p: ee.Date(p).format(dateFormat))
-        else:
-            raise ValueError("idPropertyType format {idPropertyType} not supported (yet)!")
+        pList = ic.aggregate_array(pname).distinct()
+        bands = ic.first().bandNames()
+        iList = pList.map(lambda p: ic.filter(ee.Filter.eq(pname, p)).reduce(red).rename(bands))
+        ic = ee.ImageCollection(iList)
 
         # The tobands method will produce an image with the following band names: <system:index>_<bandName>
         # What we want is: <idProperty>_<bandName> so we can make more advance filtering downstream.
-        bands = ic.first().bandNames()
-        bandNames = propertyList.map(lambda p: bands.map(lambda b: ee.String(p).cat("_").cat(b)))
+        bandNames = pList.map(lambda p: bands.map(lambda b: ee.String(p).cat("_").cat(b)))
         bandNames = bandNames.flatten()
 
         # reduce the collection  to a single image and run the reducer on it
@@ -1855,6 +1863,6 @@ class ImageCollectionAccessor:
             keys = keys.map(lambda k: ee.String(k).replace(p, "").slice(1))
             return ee.Dictionary.fromLists(keys, values)
 
-        values = propertyList.map(lambda p: getProp(p))
+        values = pList.map(lambda p: getProp(p))
 
-        return ee.Dictionary.fromLists(propertyList, values)
+        return ee.Dictionary.fromLists(pList, values)

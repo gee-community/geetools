@@ -22,6 +22,17 @@ def reduce(
     return image.reduceRegion(ee.Reducer.mean(), geometry, 1)
 
 
+def round_dict(d: dict = None, decimals: int = 2) -> dict:
+    """Round all the values of a dictionary."""
+    d = d or {}
+    for k, v in d.items():
+        if isinstance(v, dict):
+            round_dict(v, decimals)
+        else:
+            d[k] = round(v, decimals)
+    return d
+
+
 class TestMaskClouds:
     """Test the ``maskClouds`` method."""
 
@@ -598,7 +609,7 @@ class TestPlotDoyByYears:
 class TestReduceRegion:
     """Test the reduceRegion method."""
 
-    def test_reduce_region_by_dates(self, num_regression):
+    def test_reduce_region_by_dates(self, data_regression):
         values = self.collection.geetools.reduceRegion(
             reducer=ee.Reducer.mean(),
             idProperty="system:time_start",
@@ -606,14 +617,7 @@ class TestReduceRegion:
             geometry=self.region.geometry(),
             scale=500,
         ).getInfo()
-        # That will be easier after next pytest-gee update for now let's just test
-        # the index names
-        assert list(values.keys()) == [
-            "2010-01-01T00-00-00",
-            "2010-01-17T00-00-00",
-            "2010-02-02T00-00-00",
-            "2010-02-18T00-00-00",
-        ]
+        data_regression.check(round_dict(values, 4))
 
     def test_reduce_region_by_date_property(self, data_regression):
         values = self.collection.geetools.reduceRegion(
@@ -624,15 +628,18 @@ class TestReduceRegion:
             geometry=self.region.geometry(),
             scale=500,
         ).getInfo()
+        data_regression.check(round_dict(values, 4))
 
-        # That will be easier after next pytest-gee update for now let's just test
-        # the index names
-        assert list(values.keys()) == [
-            "2010-01-01T00-00-00",
-            "2010-01-17T00-00-00",
-            "2010-02-02T00-00-00",
-            "2010-02-18T00-00-00",
-        ]
+    def test_reduce_region_by_doy(self, data_regression):
+        values = self.year_collection.geetools.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idPropertyType=ee.Date,
+            dateFormat="DDD",
+            geometry=self.region.geometry(),
+            scale=500,
+        ).getInfo()
+        data_regression.check(round_dict(values, 4))
 
     @property
     def region(self):
@@ -647,5 +654,18 @@ class TestReduceRegion:
         return (
             ee.ImageCollection("MODIS/061/MOD13A1")
             .filter(ee.Filter.date("2010-01-01", "2010-02-28"))
+            .select(["NDVI", "EVI"])
+        )
+
+    @property
+    def year_collection(self):
+        return (
+            ee.ImageCollection("MODIS/006/MOD13Q1")
+            .filter(
+                ee.Filter.Or(
+                    ee.Filter.date("2010-01-01", "2010-02-28"),
+                    ee.Filter.date("2011-01-01", "2011-02-28"),
+                )
+            )
             .select(["NDVI", "EVI"])
         )
