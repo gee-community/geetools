@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime as dt
 
 import numpy as np
 from anyascii import anyascii
@@ -214,6 +215,10 @@ def plot_data(
             ax.plot(x, y, label=label, **kwargs)
             ax.set_xlabel("Day of year")
             grid_axis = "both"
+            dates = [dt(2023, i + 1, 1) for i in range(12)]
+            idates = [int(d.strftime("%j")) - 1 for d in dates]
+            ndates = [d.strftime("%B")[:3] for d in dates]
+            ax.set_xticks(idates, ndates)
 
     else:
         raise ValueError(f"Type {type} is not (yet?) supported")
