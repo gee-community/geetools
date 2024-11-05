@@ -1746,8 +1746,8 @@ class ImageCollectionAccessor:
         reducer: str,
         geometry: ee.Geometry,
         idProperty: str = "system:index",
-        idPropertyType: type = ee.Number,
-        propertyReducer: str | ee.Reducer = "first",
+        idType: type = ee.Number,
+        idReducer: str | ee.Reducer = "first",
         idFormat: str | ee.String | None = None,
         scale: int | float | None = None,
         crs: str | None = None,
@@ -1771,8 +1771,8 @@ class ImageCollectionAccessor:
         Parameters:
             idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection. One should use a meaningful property to avoid conflicts. in case of conflicts, the images with the same property will be mosaicked together (e.g. all raw satellite imagery with the same date) to make sure the final reducer have 1 single entry per idProperty.
             reducer: THe reducer to apply.
-            idPropertyType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
-            propertyReducer: If the multiple images have the same property, they will be aggregated beforehand using the provided reducer. default to a mosaic behaviour to match most of the satellite imagery collection where the world is split for each date between multiple images.
+            idType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
+            idReducer: If the multiple images have the same idProperty, they will be aggregated beforehand using the provided reducer. default to a mosaic behaviour to match most of the satellite imagery collection where the world is split for each date between multiple images.
             idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
             geometry: The region over which to reduce the data.
             scale: A nominal scale in meters to work in.
@@ -1803,9 +1803,9 @@ class ImageCollectionAccessor:
         # filter the imageCollection with the region parameter to reduce the number of manipulated images and speed up the computation
         ic = self._obj.filterBounds(geometry)
 
-        # raise an error if the idPropertyType is not supported
-        if idPropertyType not in [ee.String, ee.Number, ee.Date]:
-            msg = f"idPropertyType format {idPropertyType} not supported (yet)!"
+        # raise an error if the idType is not supported
+        if idType not in [ee.String, ee.Number, ee.Date]:
+            msg = f"idPropertyType format {idType} not supported (yet)!"
             raise ValueError(msg)
 
         # create a unique property name to avoid conflict with any
@@ -1816,20 +1816,20 @@ class ImageCollectionAccessor:
         # to the idPropertyType parameter
         def addIdProperty(i: ee.Image) -> ee.Image:
             p = i.get(idProperty)
-            if idPropertyType == ee.String:
+            if idType == ee.String:
                 p = ee.String(p)
-            elif idPropertyType == ee.Number:
+            elif idType == ee.Number:
                 p = ee.Number(p).format(idFormat or "%s")
-            elif idPropertyType == ee.Date:
+            elif idType == ee.Date:
                 p = ee.Date(p).format(idFormat or EE_DATE_FORMAT)
             return i.set(pname, p)
 
         ic = ic.map(addIdProperty)
 
         # reduce the images collection to an collection of image with unique idproperty
-        # in case of duplication the images arereduced together using the propertyReducer
-        pred = propertyReducer  # renaming of the variable to save space
-        red = getattr(ee.Reducer, pred)() if isinstance(pred, str) else pred
+        # in case of duplication the images arereduced together using the idReducer
+        idRed = idReducer  # renaming of the variable to save space
+        red = getattr(ee.Reducer, idRed)() if isinstance(idRed, str) else idRed
         pList = ic.aggregate_array(pname).distinct()
         bands = ic.first().bandNames()
         iList = pList.map(lambda p: ic.filter(ee.Filter.eq(pname, p)).reduce(red).rename(bands))

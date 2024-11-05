@@ -613,7 +613,7 @@ class TestReduceRegion:
         values = self.collection.geetools.reduceRegion(
             reducer=ee.Reducer.mean(),
             idProperty="system:time_start",
-            idPropertyType=ee.Date,
+            idType=ee.Date,
             geometry=self.region.geometry(),
             scale=500,
         ).getInfo()
@@ -623,8 +623,8 @@ class TestReduceRegion:
         values = self.collection.geetools.reduceRegion(
             reducer=ee.Reducer.mean(),
             idProperty="system:time_start",
-            idPropertyType=ee.Date,
-            propertyReducer="mean",
+            idType=ee.Date,
+            idReducer="mean",
             geometry=self.region.geometry(),
             scale=500,
         ).getInfo()
@@ -634,7 +634,7 @@ class TestReduceRegion:
         values = self.year_collection.geetools.reduceRegion(
             reducer=ee.Reducer.mean(),
             idProperty="system:time_start",
-            idPropertyType=ee.Date,
+            idType=ee.Date,
             idFormat="DDD",
             geometry=self.region.geometry(),
             scale=500,
