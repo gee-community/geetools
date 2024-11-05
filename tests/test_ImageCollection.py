@@ -635,7 +635,7 @@ class TestReduceRegion:
             reducer=ee.Reducer.mean(),
             idProperty="system:time_start",
             idPropertyType=ee.Date,
-            dateFormat="DDD",
+            idFormat="DDD",
             geometry=self.region.geometry(),
             scale=500,
         ).getInfo()

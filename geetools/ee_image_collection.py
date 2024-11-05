@@ -1748,8 +1748,7 @@ class ImageCollectionAccessor:
         idProperty: str = "system:index",
         idPropertyType: type = ee.Number,
         propertyReducer: str | ee.Reducer = "first",
-        dateFormat: str | ee.String = EE_DATE_FORMAT,
-        numberFormat: str | ee.String = "%s",
+        idFormat: str | ee.String | None = None,
         scale: int | float | None = None,
         crs: str | None = None,
         crsTransform: list | None = None,
@@ -1774,8 +1773,7 @@ class ImageCollectionAccessor:
             reducer: THe reducer to apply.
             idPropertyType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
             propertyReducer: If the multiple images have the same property, they will be aggregated beforehand using the provided reducer. default to a mosaic behaviour to match most of the satellite imagery collection where the world is split for each date between multiple images.
-            dateFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". You can specify any other format compatible with band names.
-            numberFormat: If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
+            idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
             geometry: The region over which to reduce the data.
             scale: A nominal scale in meters to work in.
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
@@ -1821,9 +1819,9 @@ class ImageCollectionAccessor:
             if idPropertyType == ee.String:
                 p = ee.String(p)
             elif idPropertyType == ee.Number:
-                p = ee.Number(p).format(numberFormat)
+                p = ee.Number(p).format(idFormat or "%s")
             elif idPropertyType == ee.Date:
-                p = ee.Date(p).format(dateFormat)
+                p = ee.Date(p).format(idFormat or EE_DATE_FORMAT)
             return i.set(pname, p)
 
         ic = ic.map(addIdProperty)
