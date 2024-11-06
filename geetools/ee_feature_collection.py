@@ -1,6 +1,8 @@
 """Toolbox for the `ee.FeatureCollection` class."""
 from __future__ import annotations
 
+from typing import Optional
+
 import ee
 import geopandas as gpd
 from matplotlib import pyplot as plt
@@ -244,6 +246,59 @@ class FeatureCollectionAccessor:
         features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         return ee.Dictionary.fromLists(features, values)
+
+    def reduceColumnsGroup(
+        self, reducer: ee.Reducer, groupBy: str = "system:index", selectors: Optional[list] = None
+    ) -> ee.Dictionary:
+        """Reduce a FeatureColletion column/s grouped by a key column.
+
+        Parameters:
+            reducer: The reducer.
+            groupBy: The column that will be used to group the output.
+            selectors: An optional list of columns to reduce. If None it will use all columns.
+
+        Returns:
+            a ee.Dictionary with the following structure:
+
+            {
+              'group1': {
+                'selector1': {
+                  'reducer1_output': value1,
+                  'reducer2_output': value2,
+                },
+                'selector2': {
+                  'reducer1_output': value1,
+                  'reducer2_output': value2,
+                },
+              },
+              'group2': {
+                'selector1': {
+                  'reducer1_output': value1,
+                  'reducer2_output': value2,
+                },
+                'selector2': {
+                  'reducer1_output': value1,
+                  'reducer2_output': value2,
+                },
+              },
+            }
+        """
+        if selectors is None:
+            selectors = self._obj.first().propertyNames()
+        selectors = ee.List(selectors)
+        keys = self._obj.aggregate_array(groupBy).distinct()
+
+        def reduce_key(key):
+            filtered = self._obj.filter(ee.Filter.eq(groupBy, key))
+
+            def reduce_selector(sel):
+                return filtered.reduceColumns(reducer, [sel])
+
+            outputs = selectors.map(reduce_selector)
+            return ee.Dictionary.fromLists(selectors, outputs)
+
+        values = keys.map(reduce_key)
+        return ee.Dictionary.fromLists(keys, values)
 
     def plot_by_features(
         self,
