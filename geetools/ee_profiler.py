@@ -79,17 +79,24 @@ class Profiler:
         # Initialize a dictionary to hold lists for each column
         headers = [anyascii(h.strip()) for h in lines[0].split()]
         result: dict = {header: [] for header in headers}
+        # functions to process/format each header
+        process = {
+            "EECU-s": lambda eecus: float(eecus) if eecus != "-" else None,
+            "CurrMem": lambda mem: self._memory(mem),  # Mem is a string to convert
+            "PeakMem": lambda mem: self._memory(mem),  # Mem is a string to convert
+            "Count": lambda count: int(count),  # Count is an integer
+            "Description": lambda desc: " ".join(desc)
+            if isinstance(desc, list)
+            else desc,  # Description can have multiple words
+        }
 
         # Process each line of data after the header
         for line in lines[1:]:
             # Split the line by spaces, considering multiple spaces as a separator
             # Handle missing values denoted by "-"
             parts = line.split()
-
+            part_result = dict(zip(headers, parts))
             # Populate the dictionary with values for each column
-            result[headers[0]].append(float(parts[0]) if parts[0] != "-" else None)  # EECU
-            result[headers[1]].append(self._memory(parts[1]))  # Mem is a string to convert
-            result[headers[2]].append(int(parts[2]))  # Count is an integer
-            result[headers[3]].append(" ".join(parts[3:]))  # Description can have multiple words
-
+            for head in headers:
+                result[head].append(process[head](part_result[head]))
         return result
