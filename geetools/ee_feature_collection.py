@@ -54,26 +54,13 @@ class FeatureCollectionAccessor:
             }
         """
         uniqueIds = self._obj.aggregate_array(keyColumn)
-        selectors = ee.List(selectors)
+        selectors = ee.List(selectors) if selectors else self._obj.first().propertyNames()
         keyColumn = ee.String(keyColumn)
-        finalSelectors = ee.List(
-            ee.Algorithms.If(
-                selectors.size().eq(0), self._obj.first().propertyNames(), selectors  # all columns
-            )
-        )
 
-        def get_values(uid):
-            feat = ee.Feature(self._obj.filter(ee.Filter.eq(keyColumn, uid)).first())
-            values = feat.toDictionary(finalSelectors)
-            return values
-
-        values = uniqueIds.map(get_values)
-        return ee.Dictionary.fromLists(
-            uniqueIds.map(
-                lambda uid: ee.String(ee.Algorithms.String(uid))
-            ),  # in case it's a Number
-            values,
-        )
+        features = self._obj.toList(self._obj.size())
+        values = features.map(lambda feat: ee.Feature(feat).toDictionary(selectors))
+        keys = uniqueIds.map(lambda uid: ee.String(ee.Algorithms.String(uid)))
+        return ee.Dictionary.fromLists(keys, values)
 
     def addId(
         self, name: str | ee.String = "id", start: int | ee.Number = 1
