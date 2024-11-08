@@ -1768,6 +1768,9 @@ class ImageCollectionAccessor:
                 "image2": {"band1": value1, "band2": value2, ...},
             }
 
+        Warning:
+            The method makes a call to the pure Python ``uuid`` package so it cannot be used in a server-side ``map`` function.
+
         Parameters:
             idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection. One should use a meaningful property to avoid conflicts. in case of conflicts, the images with the same property will be mosaicked together (e.g. all raw satellite imagery with the same date) to make sure the final reducer have 1 single entry per idProperty.
             reducer: THe reducer to apply.
