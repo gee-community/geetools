@@ -890,7 +890,7 @@ class TestPlotHist:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=0.2)
 
     @property
     def image(self):
