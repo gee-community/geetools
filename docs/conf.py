@@ -127,4 +127,4 @@ intersphinx_mapping = {
 autosectionlabel_prefix_document = True
 
 # -- options for myst-nb ------------------------------------------------------
-nb_execution_mode = "auto"
+nb_execution_mode = "always"
