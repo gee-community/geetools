@@ -22,6 +22,17 @@ def reduce(
     return image.reduceRegion(ee.Reducer.mean(), geometry, 1)
 
 
+def round_dict(d: dict = None, decimals: int = 2) -> dict:
+    """Round all the values of a dictionary."""
+    d = d or {}
+    for k, v in d.items():
+        if isinstance(v, dict):
+            round_dict(v, decimals)
+        else:
+            d[k] = round(v, decimals)
+    return d
+
+
 class TestMaskClouds:
     """Test the ``maskClouds`` method."""
 
@@ -592,4 +603,69 @@ class TestPlotDoyByYears:
                     ee.Filter.date("2019-01-01", "2019-12-31"),
                 )
             )
+        )
+
+
+class TestReduceRegion:
+    """Test the reduceRegion method."""
+
+    def test_reduce_region_by_dates(self, data_regression):
+        values = self.collection.geetools.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            geometry=self.region.geometry(),
+            scale=500,
+        ).getInfo()
+        data_regression.check(round_dict(values, 4))
+
+    def test_reduce_region_by_date_property(self, data_regression):
+        values = self.collection.geetools.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            idReducer="mean",
+            geometry=self.region.geometry(),
+            scale=500,
+        ).getInfo()
+        data_regression.check(round_dict(values, 4))
+
+    def test_reduce_region_by_doy(self, data_regression):
+        values = self.year_collection.geetools.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            idFormat="DDD",
+            geometry=self.region.geometry(),
+            scale=500,
+        ).getInfo()
+        data_regression.check(round_dict(values, 4))
+
+    @property
+    def region(self):
+        return (
+            ee.FeatureCollection("projects/google/charts_feature_example")
+            .select(["label", "value", "warm"])
+            .filter(ee.Filter.eq("label", "Forest"))
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .filter(ee.Filter.date("2010-01-01", "2010-02-28"))
+            .select(["NDVI", "EVI"])
+        )
+
+    @property
+    def year_collection(self):
+        return (
+            ee.ImageCollection("MODIS/006/MOD13Q1")
+            .filter(
+                ee.Filter.Or(
+                    ee.Filter.date("2010-01-01", "2010-02-28"),
+                    ee.Filter.date("2011-01-01", "2011-02-28"),
+                )
+            )
+            .select(["NDVI", "EVI"])
         )

@@ -1740,3 +1740,130 @@ class ImageCollectionAccessor:
         ax = plot_data("doy", data, "Day of Year", colors, ax)
 
         return ax
+
+    def reduceRegion(
+        self,
+        reducer: str,
+        geometry: ee.Geometry,
+        idProperty: str = "system:index",
+        idType: type = ee.Number,
+        idReducer: str | ee.Reducer = "first",
+        idFormat: str | ee.String | None = None,
+        scale: int | float | None = None,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int | None = None,
+        tileScale: int = 1,
+        **kwargs,
+    ) -> ee.Dictionary:
+        """Apply a reducer to all the pixels in a specific region on each image of the collection.
+
+        The result will be shaped as a dictionary with the idProperty as key and for each f them the reduced band values.
+
+        .. code-block:: json
+
+            {
+                "image1": {"band1": value1, "band2": value2, ...},
+                "image2": {"band1": value1, "band2": value2, ...},
+            }
+
+        Warning:
+            The method makes a call to the pure Python ``uuid`` package so it cannot be used in a server-side ``map`` function.
+
+        Parameters:
+            idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection. One should use a meaningful property to avoid conflicts. in case of conflicts, the images with the same property will be mosaicked together (e.g. all raw satellite imagery with the same date) to make sure the final reducer have 1 single entry per idProperty.
+            reducer: THe reducer to apply.
+            idType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
+            idReducer: If the multiple images have the same idProperty, they will be aggregated beforehand using the provided reducer. default to a mosaic behaviour to match most of the satellite imagery collection where the world is split for each date between multiple images.
+            idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
+            geometry: The region over which to reduce the data.
+            scale: A nominal scale in meters to work in.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crstransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
+        Returns:
+            A dictionary with the reduced values for each image.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
+                data = collection.geetools.reduceRegion("mean", geometry=ee.Geometry.Point(-122.262, 37.8719), scale=30)
+                print(data.getInfo())
+        """
+        # filter the imageCollection with the region parameter to reduce the number of manipulated images and speed up the computation
+        ic = self._obj.filterBounds(geometry)
+
+        # raise an error if the idType is not supported
+        if idType not in [ee.String, ee.Number, ee.Date]:
+            msg = f"idPropertyType format {idType} not supported (yet)!"
+            raise ValueError(msg)
+
+        # create a unique property name to avoid conflict with any
+        # existing property in the image collection
+        pname = uuid.uuid4().hex
+
+        # add to each image the idProperty as metadata converted to string according
+        # to the idPropertyType parameter
+        def addIdProperty(i: ee.Image) -> ee.Image:
+            p = i.get(idProperty)
+            if idType == ee.String:
+                p = ee.String(p)
+            elif idType == ee.Number:
+                p = ee.Number(p).format(idFormat or "%s")
+            elif idType == ee.Date:
+                p = ee.Date(p).format(idFormat or EE_DATE_FORMAT)
+            return i.set(pname, p)
+
+        ic = ic.map(addIdProperty)
+
+        # reduce the images collection to an collection of image with unique idproperty
+        # in case of duplication the images arereduced together using the idReducer
+        idRed = idReducer  # renaming of the variable to save space
+        red = getattr(ee.Reducer, idRed)() if isinstance(idRed, str) else idRed
+        pList = ic.aggregate_array(pname).distinct()
+        bands = ic.first().bandNames()
+        iList = pList.map(lambda p: ic.filter(ee.Filter.eq(pname, p)).reduce(red).rename(bands))
+        ic = ee.ImageCollection(iList)
+
+        # The tobands method will produce an image with the following band names: <system:index>_<bandName>
+        # What we want is: <idProperty>_<bandName> so we can make more advance filtering downstream.
+        bandNames = pList.map(lambda p: bands.map(lambda b: ee.String(p).cat("_").cat(b)))
+        bandNames = bandNames.flatten()
+
+        # reduce the collection  to a single image and run the reducer on it
+        image = ic.toBands().rename(bandNames)
+        reduced = image.reduceRegion(
+            reducer=reducer,
+            geometry=geometry,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            bestEffort=bestEffort,
+            maxPixels=maxPixels,
+            tileScale=tileScale,
+        )
+
+        # reshape the result dictionary into the desired structure
+        def getProp(p: ee.String) -> ee.Dictionary:
+            p = ee.String(p)
+            keys = reduced.keys().filter(ee.Filter.stringStartsWith("item", p))
+            values = reduced.select(keys).values()
+            keys = keys.map(lambda k: ee.String(k).replace(p, "").slice(1))
+            return ee.Dictionary.fromLists(keys, values)
+
+        values = pList.map(lambda p: getProp(p))
+
+        return ee.Dictionary.fromLists(pList, values)
