@@ -128,3 +128,13 @@ autosectionlabel_prefix_document = True
 
 # -- options for myst-nb ------------------------------------------------------
 nb_execution_mode = "force"
+
+
+import pytest_gee  # noqa: E402
+
+if "EARTHENGINE_SERVICE_ACCOUNT" in os.environ:
+    pytest_gee.init_ee_from_service_account()
+elif "EARTHENGINE_PROJECT" in os.environ:
+    pytest_gee.init_ee_from_token()
+else:
+    raise ValueError("Cannot authenticate with Earth Engine.")

@@ -78,6 +78,7 @@ doc = [
   "myst-nb",
   "pytest-gee",
   "sphinx-icon",
+  "pytest_gee",
 ]
 
 [tool.hatch.build.targets.wheel]
