@@ -67,7 +67,7 @@ Homepage = "https://github.com/gee-community/geetools"
     "jsonschema",
 ]
 doc = [
-  "sphinx>=6.2.1",
+  "sphinx>=6.2.1,<8",
   "pydata-sphinx-theme",
   "sphinx-copybutton",
   "sphinx-design",
