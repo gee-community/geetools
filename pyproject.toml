@@ -78,7 +78,6 @@ doc = [
   "myst-nb",
   "pytest-gee>=0.3.6", # avoid issue with rdt env variables
   "sphinx-icon",
-  "pytest_gee",
 ]
 
 [tool.hatch.build.targets.wheel]
