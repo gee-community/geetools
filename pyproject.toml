@@ -67,7 +67,7 @@ Homepage = "https://github.com/gee-community/geetools"
     "jsonschema",
 ]
 doc = [
-  "sphinx>=6.2.1,<8",
+  "sphinx>=6.2.1",
   "pydata-sphinx-theme",
   "sphinx-copybutton",
   "sphinx-design",
@@ -76,7 +76,7 @@ doc = [
   "httplib2",
   "jupyter-sphinx",
   "myst-nb",
-  "pytest-gee",
+  "pytest-gee>=0.3.6", # avoid issue with rdt env variables
   "sphinx-icon",
   "pytest_gee",
 ]
