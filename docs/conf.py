@@ -146,6 +146,8 @@ if "EARTHENGINE_SERVICE_ACCOUNT" in os.environ:
     pattern = re.compile(r"^'[^']*'$")
     private_key = private_key[1:-1] if pattern.match(private_key) else private_key
 
+    print(private_key)
+
     # connect to GEE using a temp file to avoid writing the key to disk
     with tempfile.TemporaryDirectory() as temp_dir:
         file = Path(temp_dir) / "private_key.json"
