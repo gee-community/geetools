@@ -145,7 +145,7 @@ if "EARTHENGINE_SERVICE_ACCOUNT" in os.environ:
     # https://github.com/readthedocs/readthedocs.org/issues/10553
     pattern = re.compile(r"^'[^']*'$")
     private_key = private_key[1:-1] if pattern.match(private_key) else private_key
-    ee.initialize.geetools.from_service_account(private_key)
+    ee.Initialize.geetools.from_service_account(private_key)
 
 elif "EARTHENGINE_PROJECT" in os.environ:
     # if the user is in local development the authentication should already be available
