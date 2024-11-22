@@ -11,6 +11,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+import geetools as geetools
+
 # add . to sys to import local extensions
 sys.path.append(str(Path(".").resolve()))
 
@@ -127,4 +129,5 @@ intersphinx_mapping = {
 autosectionlabel_prefix_document = True
 
 # -- options for myst-nb ------------------------------------------------------
-nb_execution_mode = "auto"
+nb_execution_mode = "force"
+nb_execution_timeout = 120

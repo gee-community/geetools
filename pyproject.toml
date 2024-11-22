@@ -76,7 +76,7 @@ doc = [
   "httplib2",
   "jupyter-sphinx",
   "myst-nb",
-  "pytest-gee",
+  "pytest-gee>=0.3.7", # avoid issue with rdt env variables
   "sphinx-icon",
 ]
 
