@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import json
+import tempfile
 from pathlib import Path
 
 import ee
+import httplib2
 from google.oauth2.credentials import Credentials
 
 from .accessors import register_function_accessor
@@ -68,6 +70,37 @@ class InitializeAccessor:
         # save the project_id in a dedicated global variable as it's not saved
         # from GEE side
         _project_id = project or tokens["project_id"]
+
+    @staticmethod
+    def from_service_account(private_key: str) -> None:
+        """Initialize Earthengine API using a service account.
+
+        Equivalent to the ``ee.initialize`` function but with a specific service account json key.
+
+        Args:
+            private_key: The private key of the service account in json format.
+
+        Example:
+            .. code-block:: python
+
+                import ee
+                import geetools
+
+                private_key = "your_private_key"
+                project = "your_project_id"
+
+                ee.Initialize.from_service_account(private_key)
+
+                # check that GEE is connected
+                ee.Number(1).getInfo()
+        """
+        # connect to GEE using a temp file to avoid writing the key to disk
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file = Path(temp_dir) / "private_key.json"
+            file.write_text(private_key)
+            ee_user = json.loads(private_key)["client_email"]
+            credentials = ee.ServiceAccountCredentials(ee_user, str(file))
+            ee.Initialize(credentials=credentials, http_transport=httplib2.Http())
 
     @staticmethod
     def project_id() -> str:
