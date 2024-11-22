@@ -87,18 +87,21 @@ class InitializeAccessor:
                 import geetools
 
                 private_key = "your_private_key"
-                project = "your_project_id"
 
                 ee.Initialize.from_service_account(private_key)
 
                 # check that GEE is connected
                 ee.Number(1).getInfo()
         """
+        # gather global variable to be modified
+        global _project_id
+
         # connect to GEE using a temp file to avoid writing the key to disk
         with tempfile.TemporaryDirectory() as temp_dir:
             file = Path(temp_dir) / "private_key.json"
             file.write_text(private_key)
             ee_user = json.loads(private_key)["client_email"]
+            _project_id = json.loads(private_key)["project_id"]
             credentials = ee.ServiceAccountCredentials(ee_user, str(file))
             ee.Initialize(credentials=credentials, http_transport=httplib2.Http())
 
