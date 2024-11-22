@@ -130,3 +130,4 @@ autosectionlabel_prefix_document = True
 
 # -- options for myst-nb ------------------------------------------------------
 nb_execution_mode = "force"
+nb_execution_timeout = 120
