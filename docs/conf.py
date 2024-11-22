@@ -7,13 +7,9 @@ https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # -- Path setup ----------------------------------------------------------------
 import os
-import re
 import sys
 from datetime import datetime
 from pathlib import Path
-
-import ee
-import httplib2
 
 import geetools as geetools
 
@@ -134,24 +130,3 @@ autosectionlabel_prefix_document = True
 
 # -- options for myst-nb ------------------------------------------------------
 nb_execution_mode = "force"
-
-if "EARTHENGINE_SERVICE_ACCOUNT" in os.environ:
-
-    # extract the environment variables data
-    private_key = os.environ["EARTHENGINE_SERVICE_ACCOUNT"]
-
-    # small workaround to remove the quotes around the token
-    # related to a very specific issue with readthedocs interface
-    # https://github.com/readthedocs/readthedocs.org/issues/10553
-    pattern = re.compile(r"^'[^']*'$")
-    private_key = private_key[1:-1] if pattern.match(private_key) else private_key
-    ee.Initialize.geetools.from_service_account(private_key)
-
-elif "EARTHENGINE_PROJECT" in os.environ:
-    # if the user is in local development the authentication should already be available
-    # we simply need to use the provided project name
-    ee.Initialize(project=os.environ["EARTHENGINE_PROJECT"], http_transport=httplib2.Http())
-
-else:
-    msg = "EARTHENGINE_SERVICE_ACCOUNT or EARTHENGINE_PROJECT environment variable is missing"
-    raise ValueError(msg)
