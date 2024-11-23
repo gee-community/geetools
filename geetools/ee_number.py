@@ -24,11 +24,12 @@ class NumberAccessor:
             The truncated number.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 n = ee.Number(1.23456).geetools.truncate(3)
                 n.getInfo()
