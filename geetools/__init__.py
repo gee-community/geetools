@@ -1,6 +1,24 @@
 """A toolbox to use with Google Earth Engine Python API.
 
 The ``geetools`` package extends the Google Earth Engine Python API with pre-processing and processing tools for the most used satellite platforms by adding utility methods for different Earth Engine Objects that are friendly with the Python method chaining using the geetools namespace.
+
+.. jupyter-kernel:: python3
+    :id: reference_kernel
+
+.. jupyter-execute::
+
+    import ee, geetools, os, re, httplib2
+
+    if "EARTHENGINE_SERVICE_ACCOUNT" in os.environ:
+        private_key = os.environ["EARTHENGINE_SERVICE_ACCOUNT"]
+        private_key = private_key[1:-1] if re.compile(r"^'[^']*'$").match(private_key) else private_key
+        ee.Initialize.geetools.from_service_account(private_key)
+
+    elif "EARTHENGINE_PROJECT" in os.environ:
+        ee.Initialize(project=os.environ["EARTHENGINE_PROJECT"], http_transport=httplib2.Http())
+
+    else:
+        raise ValueError("EARTHENGINE_SERVICE_ACCOUNT or EARTHENGINE_PROJECT environment variable is missing")
 """
 import ee
 
