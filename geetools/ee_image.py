@@ -2032,23 +2032,16 @@ class ImageAccessor:
         }
 
         # compute the min and max values of the bands so w can scale the bins of the histogram
-        min = (
-            image.reduceRegion(**{"reducer": ee.Reducer.min(), **params})
-            .values()
-            .reduce(ee.Reducer.min())
-        )
-        max = (
-            image.reduceRegion(**{"reducer": ee.Reducer.max(), **params})
-            .values()
-            .reduce(ee.Reducer.max())
-        )
+        min = image.reduceRegion(**{"reducer": ee.Reducer.min(), **params})
+        min = min.values().reduce(ee.Reducer.min())
+
+        max = image.reduceRegion(**{"reducer": ee.Reducer.max(), **params})
+        max = max.values().reduce(ee.Reducer.max())
 
         # compute the histogram. The result is a dictionary with each band as key and the histogram
         # as values. The histograp is a list of [start of bin, value] pairs
-        reduce = image.reduceRegion(
-            **{"reducer": ee.Reducer.fixedHistogram(min, max, bins), **params}
-        )
-        raw_data = reduce.getInfo()
+        reducer = ee.Reducer.fixedHistogram(min, max, bins)
+        raw_data = image.reduceRegion(**{"reducer": reducer, **params}).getInfo()
 
         # massage raw data to reshape them as usable source for an Axes plot
         # first extract the x coordinates of the plot as a list of bins borders
