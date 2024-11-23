@@ -1591,10 +1591,13 @@ class ImageAccessor:
         self,
         regions: ee.featurecollection,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
         labels: list = [],
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> ee.Dictionary:
         """Compute a reducer for each band of the image in each region.
 
@@ -1611,10 +1614,13 @@ class ImageAccessor:
         Parameters:
             regions: The regions to compute the reducer in.
             reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale to use for the computation. Default is 10000m.
             regionId: The property used to label region. Defaults to "system:index".
             labels: The labels to use for the output dictionary. Default to the band names.
             bands: The bands to compute the reducer on. Default to all bands.
+            scale: The scale to use for the computation. Default is 10000m.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A dictionary with all the bands as keys and their values in each region as a list.
@@ -1656,7 +1662,14 @@ class ImageAccessor:
 
         # retrieve the reduce bands for each feature
         image = self._obj.select(eeBands).rename(eeLabels)
-        fc = image.reduceRegions(collection=regions, reducer=red, scale=scale)
+        fc = image.reduceRegions(
+            collection=regions,
+            reducer=red,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        )
 
         # extract the data as a list of dictionaries (one for each label) aggregating
         # the values for each feature
@@ -1668,10 +1681,13 @@ class ImageAccessor:
         self,
         regions: ee.featurecollection,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
         labels: list = [],
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> ee.Dictionary:
         """Compute a reducer in each region of the image for eah band.
 
@@ -1688,10 +1704,14 @@ class ImageAccessor:
         Parameters:
             regions: The regions to compute the reducer in.
             reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale to use for the computation. Default is 10000m.
             regionId: The property used to label region. Defaults to "system:index".
             labels: The labels to use for the output dictionary. Default to the band names.
             bands: The bands to compute the reducer on. Default to all bands.
+            scale: The scale to use for the computation. Default is 10000m.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
 
         Returns:
             A dictionary with all the bands as keys and their values in each region as a list.
@@ -1733,7 +1753,14 @@ class ImageAccessor:
 
         # retrieve the reduce bands for each feature
         image = self._obj.select(bands).rename(labels)
-        fc = image.reduceRegions(regions, red, scale)
+        fc = image.reduceRegions(
+            collection=regions,
+            reducer=red,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        )
 
         # extract the data as a list of dictionaries (one for each label) aggregating
         # we are force to turn the fc into a list because GEE don't accept to map a featureCollection
@@ -1748,12 +1775,15 @@ class ImageAccessor:
         type: str,
         regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
         labels: list = [],
         colors: list = [],
         ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> Axes:
         """Plot the reduced values for each region.
 
@@ -1768,12 +1798,16 @@ class ImageAccessor:
             type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
             rreducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale to use for the computation. Default is 10000m.
             bands: The bands to compute the reducer on. Default to all bands.
             regionId: The property used to label region. Defaults to "system:index".
             labels: The labels to use for the output dictionary. Default to the band names.
             colors: The colors to use for the plot. Default to the default matplotlib colors.
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
+            scale: The scale to use for the computation. Default is 10000m.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
 
         Returns:
             The matplotlib axis with the plot.
@@ -1798,7 +1832,17 @@ class ImageAccessor:
                 normClim.plot_by_regions(ecoregions, ee.Reducer.mean(), scale=10000)
         """
         # get the data from the server
-        data = self.byBands(regions, reducer, scale, bands, regionId, labels).getInfo()
+        data = self.byBands(
+            regions=regions,
+            reducer=reducer,
+            bands=bands,
+            regionId=regionId,
+            labels=labels,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        ).getInfo()
 
         # get all the id values, they must be string so we are forced to cast them manually
         # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
@@ -1823,12 +1867,15 @@ class ImageAccessor:
         type: str,
         regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         bands: list = [],
         regionId: str = "system:index",
         labels: list = [],
         colors: list = [],
         ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> Axes:
         """Plot the reduced values for each bands.
 
@@ -1844,12 +1891,15 @@ class ImageAccessor:
             type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
             reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale to use for the computation. Default is 10000m.
             bands: The bands to compute the reducer on. Default to all bands.
             regionId: The property used to label region. Defaults to "system:index".
             labels: The labels to use for the output dictionary. Default to the band names.
             colors: The colors to use for the plot. Default to the default matplotlib colors.
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
+            scale: The scale to use for the computation. Default is 10000m.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             The matplotlib axis with the plot.
@@ -1874,7 +1924,17 @@ class ImageAccessor:
                 normClim.plot_by_bands(ecoregions, ee.Reducer.mean(), scale=10000)
         """
         # get the data from the server
-        data = self.byRegions(regions, reducer, scale, bands, regionId, labels).getInfo()
+        data = self.byRegions(
+            regions=regions,
+            reducer=reducer,
+            bands=bands,
+            regionId=regionId,
+            labels=labels,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        ).getInfo()
 
         # get all the id values, they must be string so we are forced to cast them manually
         # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
@@ -1901,23 +1961,33 @@ class ImageAccessor:
         bands: list = [],
         labels: list = [],
         colors: list = [],
-        scale: int = 10000,
         precision: int = 2,
         ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int = 10**7,
+        tileScale: float = 1,
         **kwargs,
     ) -> Axes:
         """Plot the histogram of the image bands.
 
         Parameters:
             bins: The number of bins to use for the histogram. Default is 30.
+            region: The region to compute the histogram in. Default is the image geometry.
             bands: The bands to plot the histogram for. Default to all bands.
             labels: The labels to use for the output dictionary. Default to the band names.
             colors: The colors to use for the plot. Default to the default matplotlib colors.
+            prescision: The number of decimal to keep for the histogram bins values. Default is 2.
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
             scale: The scale to use for the computation. Default is 10,000m.
-            prescision: The number of decimal to keep for the histogram bins values. Default is 2.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce. default to 10**7.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
             kwargs: Keyword arguments passed to the matplotlib fill_between() function.
-            region: The region to compute the histogram in. Default is the image geometry.
 
         Returns:
             The matplotlib axis with the plot.
@@ -1950,16 +2020,37 @@ class ImageAccessor:
         # extract the data from the server
         image = self._obj.select(eeBands).rename(eeLabels).clip(region)
 
-        # compute the min and ma values of the bands so w can scale the bins of the histogram
-        min = image.reduceRegion(ee.Reducer.min(), region, scale).values().reduce(ee.Reducer.min())
-        max = image.reduceRegion(ee.Reducer.max(), region, scale).values().reduce(ee.Reducer.max())
+        # set the common parameters of the 3 reducers
+        params = {
+            "geometry": region,
+            "scale": scale,
+            "crs": crs,
+            "crsTransform": crsTransform,
+            "bestEffort": bestEffort,
+            "maxPixels": maxPixels,
+            "tileScale": tileScale,
+        }
+
+        # compute the min and max values of the bands so w can scale the bins of the histogram
+        min = (
+            image.reduceRegion(**{"reducer": ee.Reducer.min(), **params})
+            .values()
+            .reduce(ee.Reducer.min())
+        )
+        max = (
+            image.reduceRegion(**{"reducer": ee.Reducer.max(), **params})
+            .values()
+            .reduce(ee.Reducer.max())
+        )
 
         # compute the histogram. The result is a dictionary with each band as key and the histogram
         # as values. The histograp is a list of [start of bin, value] pairs
-        reduce = image.reduceRegion(ee.Reducer.fixedHistogram(min, max, bins), region, scale)
+        reduce = image.reduceRegion(
+            **{"reducer": ee.Reducer.fixedHistogram(min, max, bins), **params}
+        )
         raw_data = reduce.getInfo()
 
-        # massage raw data to reqhape them as usable source for a Axes plot
+        # massage raw data to reshape them as usable source for an Axes plot
         # first extract the x coordinates of the plot as a list of bins borders
         # every value is duplicated but the first one to create a scale like display.
         # the values are treated the same way we simply drop the last duplication to get the same size.
