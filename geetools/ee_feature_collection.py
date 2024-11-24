@@ -90,7 +90,7 @@ class FeatureCollectionAccessor:
         return self._obj.map(lambda f: f.set(name, idByIndex.get(f.get("system:index"))))
 
     def mergeGeometries(self) -> ee.Geometry:
-        """Merge the geometries the included features.
+        """Merge the geometries included in the features.
 
         Returns:
             the dissolved geometry

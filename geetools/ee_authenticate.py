@@ -19,7 +19,7 @@ class AuthenticateAccessor:
     def new_user(name: str = "", credential_pathname: str = "") -> None:
         """Authenticate the user and save the credentials in a specific folder.
 
-        Equivalent to ee.Authenticate but where the registered user will not be the default one (the one you get when running ee.initialize())
+        Equivalent to ee.Authenticate but where the registered user will not be the default one (the one you get when running :py:meth:`ee.Initialize`)
 
         Args:
             name: The name of the user. If not set, it will reauthenticate default.
@@ -33,10 +33,9 @@ class AuthenticateAccessor:
 
                 # cannot be displayed in the documentation as the creation
                 # of a new user requires user interaction
-
-                # geetools.User.create("secondary")
-                # geetools.User.set("secondary")
-                # ee.Number(1).getInfo()
+                ee.Authenticate.geetools.new_user("secondary")
+                ee.Initialize.geetools.from_user("secondary")
+                ee.Number(1).getInfo()
         """
         name = f"credentials{name}"
         credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
@@ -71,11 +70,8 @@ class AuthenticateAccessor:
 
                 # cannot be displayed in the documentation as the creation
                 # of a new user requires user interaction
-
-                # geetools.User.create("secondary")
-                # geetools.User.delete("secondary")
-                # geetools.User.set("secondary")
-                # will raise an error as the user does not exist anymore
+                ee.Authenticate.geetools.new_user("secondary")
+                ee.Authenticate.geetools.delete_user("secondary")
         """
         name = f"credentials{name}"
         credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
@@ -101,7 +97,7 @@ class AuthenticateAccessor:
                 import ee
                 import geetools
 
-                geetools.User.list(
+                ee.Authenticate.geetools.list_user()
         """
         credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
         credential_path = Path(credential_pathname).parent
@@ -123,9 +119,10 @@ class AuthenticateAccessor:
                 import ee
                 import geetools
 
-                geetools.user.create("secondary")
-                geetools.User.rename("secondary", "new_default")
-                geetools.User.list()
+                ee.Authenticate.geetools.new_user("old")
+                ee.Authenticate.geetools.rename_user("new", "old")
+                ee.Initialize.geetools.from_user("new")
+                ee.Number(1).getInfo()
         """
         old = f"credentials{old}"
         new = f"credentials{new}"

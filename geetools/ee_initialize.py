@@ -23,7 +23,9 @@ class InitializeAccessor:
     def from_user(name: str = "", credential_pathname: str = "", project: str = "") -> None:
         """Initialize Earthengine API using a specific user.
 
-        Equivalent to the ``ee.initialize`` function but with a specific credential file stored in the machine by the ``ee.Authenticate.to_user`` function.
+        Equivalent to the ``ee.initialize`` function but with a specific credential file stored in
+        the machine by the :py:meth:`ee.Authenticate.geetools.new_user <geetools.ee_autheticate.AuthenticateAccessor.new_user>`
+        function.
 
         Args:
             name: The name of the user as saved when created. use default if not set
@@ -36,10 +38,7 @@ class InitializeAccessor:
                 import ee
                 import geetools
 
-                ee.Initialize.from_user("test")
-
-                # check that GEE is connected
-                ee.Number(1).getInfo()
+                ee.Initialize.from_user("<name of the saved user>")
         """
         # gather global variable to be modified
         global _project_id
@@ -89,9 +88,6 @@ class InitializeAccessor:
                 private_key = "your_private_key"
 
                 ee.Initialize.from_service_account(private_key)
-
-                # check that GEE is connected
-                ee.Number(1).getInfo()
         """
         # gather global variable to be modified
         global _project_id

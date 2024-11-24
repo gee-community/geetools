@@ -15,15 +15,17 @@ class Profiler:
     """A profiler context manager for Earth Engine Python API.
 
     Examples:
-        .. code-block:: python
+        .. jupyter-execute::
 
             import ee, geetools
+            from geetools.utils import initialize_documentation
 
-            ee.Initialize()
+            initialize_documentation()
 
-            with ee.Profiler() as p:
+            with ee.geetools.Profiler() as p:
                 ee.Number(3.14).add(0.00159).getInfo()
                 res = p.profile
+            res
     """
 
     _output_capture: io.StringIO | None = None

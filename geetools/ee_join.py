@@ -36,21 +36,23 @@ class JoinAccessor:
 
 
         Example:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
+                # build fake featureCollections on the same point
                 point = ee.Geometry.Point([0,0])
                 prop1 = {'id': 1, 'prop_from_fc1': 'I am from fc1'}
                 prop2 = {'id': 1, 'prop_from_fc2': 'I am from fc2'}
                 fc1 = ee.FeatureCollection([ee.Feature(point, prop1)])
                 fc2 = ee.FeatureCollection([ee.Feature(point, prop2)])
+
+                # join them together in the same featureCollection
                 joined = ee.Join.geetools.byProperty(fc1, fc2, 'id')
                 joined.getInfo()
-
         """
         field = ee.String(field)
         primary, secondary = ee.FeatureCollection(primary), ee.FeatureCollection(secondary)

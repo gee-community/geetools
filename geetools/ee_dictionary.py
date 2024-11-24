@@ -25,11 +25,12 @@ class DictionaryAccessor:
             A dictionary using the pairs.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 d = ee.Dictionary.geetools.fromPairs([["foo", 1], ["bar", 2]])
                 d.getInfo()
@@ -47,11 +48,12 @@ class DictionaryAccessor:
             The sorted dictionary.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 d = ee.Dictionary({"foo": 1, "bar": 2}).geetools.sort()
                 d.getInfo()
@@ -70,13 +72,15 @@ class DictionaryAccessor:
             A list of values.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 d = ee.Dictionary({"foo": 1, "bar": 2, "baz": 3})
-                d.geetools.getMany(["foo", "bar"]).getInfo()
+                d = d.geetools.getMany(["foo", "bar"])
+                d.getInfo()
         """
         return ee.List(list).map(lambda key: self._obj.get(key))
