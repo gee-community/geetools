@@ -25,11 +25,32 @@ class FeatureCollectionAccessor:
     ) -> ee.Image:
         """Paint the current FeatureCollection to an Image.
 
-        It's simply a wrapper on Image.paint() method
+        It's a simple wrapper on Image.paint() method
 
         Args:
             color: The pixel value to paint into every band of the input image, either as a number which will be used for all features, or the name of a numeric property to take from each feature in the collection.
             width: Line width, either as a number which will be the line width for all geometries, or the name of a numeric property to take from each feature in the collection. If unspecified, the geometries will be filled instead of outlined.
+
+        Returns:
+            The painted image
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                vatican = (
+                    ee.FeatureCollection("FAO/GAUL/2015/level0")
+                    .filter(ee.Filter.eq("ADM0_NAME", "Holy See"))
+                )
+
+                # transform the featureCollection into an image
+                img = fc.geetools.toImage(color=1)
+
+                print(img.getInfo())
         """
         params = {"color": color}
         width == "" or params.update(width=width)
