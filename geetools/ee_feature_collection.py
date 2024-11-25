@@ -39,18 +39,43 @@ class FeatureCollectionAccessor:
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
+                from matplotlib.colors import ListedColormap
 
                 initialize_documentation()
 
+                # extract the featureCollection of the Vatican from the FAO gaul dataset
                 vatican = (
                     ee.FeatureCollection("FAO/GAUL/2015/level0")
                     .filter(ee.Filter.eq("ADM0_NAME", "Holy See"))
                 )
 
                 # transform the featureCollection into an image
-                img = fc.geetools.toImage(color=1)
+                img = vatican.geetools.toImage(color=1).rename("gaul")
 
-                print(img.getInfo())
+                # Define a custom colormap ffor the raster representation
+                # it will only have 1 color: teal for the first value and white for everything else
+                cmap = ListedColormap(['teal', 'white'])
+
+                # create the axes for the plots
+                fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+
+                # customize the layout of the 2 plots
+                for ax in axes:
+                    ax.set_xlabel("Longitude (°)")
+                    ax.set_ylabel("Latitude (°)")
+                    ax.set_xticks([])
+                    ax.set_yticks([])
+
+                # add the vector on the first plot
+                axes[0].set_title("Vector")
+                vatican.geetools.plot(ax=axes[0], color="teal", boundaries=True)
+
+                # add the raster on the second plot
+                axes[1].set_title("Raster")
+                img.geetools.plot(region=vatican.bounds(), bands=["gaul"], ax=axes[1], cmap=cmap)
+
+                fig.show()
         """
         params = {"color": color}
         width == "" or params.update(width=width)
