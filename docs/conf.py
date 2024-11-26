@@ -123,7 +123,7 @@ autoapi_keep_files = False
 # -- Options for intersphinx output --------------------------------------------
 # fmt: off
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", None)
+    "python": ("https://docs.python.org/3", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "ee": ("https://developers.google.com/earth-engine/apidocs", "https://raw.githubusercontent.com/gee-community/sphinx-inventory/refs/heads/main/inventory/earthengine-api.inv"),
 }
