@@ -121,9 +121,13 @@ autoapi_own_page_level = "method"
 autoapi_keep_files = False
 
 # -- Options for intersphinx output --------------------------------------------
+# fmt: off
 intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
+    "ee": ("https://developers.google.com/earth-engine/apidocs", "https://raw.githubusercontent.com/gee-community/sphinx-inventory/refs/heads/main/inventory/earthengine-api.inv"),
 }
+# fmt: on
 
 # -- options for the autolabel extension ---------------------------------------
 autosectionlabel_prefix_document = True
