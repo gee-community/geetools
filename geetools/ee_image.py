@@ -1549,7 +1549,7 @@ class ImageAccessor:
             gdf = gdf.set_crs("EPSG:4326").to_crs(crs)
             gdf.boundary.plot(ax=ax, color=color)
 
-        # The default aspect for map plots is 'equal'; if however data are not projected (coordinates are long/lat),
+        # The default aspect for map plots is 'auto'; if however data are not projected (coordinates are long/lat),
         #  the aspect is by default set to 1/cos(s_y * pi/180) with s_y the y coordinate of the middle of the
         # region (the mean of the y range of bounding box) so that a long/lat square appears square in the
         # middle of the plot. This implies an Equirectangular projection.
@@ -1557,7 +1557,7 @@ class ImageAccessor:
             y_coord = np.mean([min_y, max_y])
             ax.set_aspect(1 / np.cos(y_coord * np.pi / 180))
         else:
-            ax.set_aspect("equal")
+            ax.set_aspect("auto")
 
         # make sure the canvas is only rendered once.
         ax.figure.canvas.draw_idle()
