@@ -1061,10 +1061,15 @@ class ImageCollectionAccessor:
         self,
         region: ee.Geometry,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         dateProperty: str = "system:time_start",
         bands: list = [],
         labels: list = [],
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int | None = 10**7,
+        tileScale: float = 1,
     ) -> ee.Dictionary:
         """Reduce the data for each image in the collection by bands on a specific region.
 
@@ -1081,10 +1086,15 @@ class ImageCollectionAccessor:
         Parameters:
             region: The region to reduce the data on.
             reducer: The name of the reducer or a reducer object use. Default is "mean".
-            scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce. Defaults to 1e7.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A dictionary with the reduced values for each band and each date.
@@ -1122,7 +1132,16 @@ class ImageCollectionAccessor:
         # create a list of dictionaries with the reduced values for each band
         def reduce(lbl: ee.String) -> ee.Dictionary:
             image = ic.select([lbl]).toBands().rename(dateList)
-            return image.reduceRegion(red, region, scale)
+            return image.reduceRegion(
+                reducer=red,
+                geometry=region,
+                scale=scale,
+                crs=crs,
+                crsTransform=crsTransform,
+                bestEffort=bestEffort,
+                maxPixels=maxPixels,
+                tileScale=tileScale,
+            )
 
         return ee.Dictionary.fromLists(eeLabels, eeLabels.map(reduce))
 
@@ -1132,8 +1151,11 @@ class ImageCollectionAccessor:
         regions: ee.FeatureCollection,
         label: str = "system:index",
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         dateProperty: str = "system:time_start",
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> ee.Dictionary:
         """Reduce the data for each image in the collection by regions for a single band.
 
@@ -1152,8 +1174,11 @@ class ImageCollectionAccessor:
             regions: The regions to reduce the data on.
             label: The property to use as label for each region. Default is "system:index".
             reducer: The name of the reducer or a reducer object use. Default is "mean".
-            scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A dictionary with the reduced values for each region and each date.
@@ -1188,7 +1213,14 @@ class ImageCollectionAccessor:
         # reduce the data for each region
         image = self._obj.select([band]).toBands().rename(dateList)
         red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
-        reduced = image.reduceRegions(regions, red, scale)
+        reduced = image.reduceRegions(
+            collection=regions,
+            reducer=red,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        )
 
         # create a list of dictionaries for each region and aggregate them into a dictionary
         values = reduced.toList(regions.size()).map(lambda f: ee.Feature(f).toDictionary(dateList))
@@ -1201,10 +1233,15 @@ class ImageCollectionAccessor:
         region: ee.Geometry,
         spatialReducer: str | ee.Reducer = "mean",
         timeReducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         dateProperty: str = "system:time_start",
         bands: list = [],
         labels: list = [],
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int | None = 10**7,
+        tileScale: float = 1,
     ) -> ee.Dictionary:
         """Aggregate the images that occurs on the same day and then reduce each band on a single region.
 
@@ -1222,10 +1259,15 @@ class ImageCollectionAccessor:
             region: The region to reduce the data on.
             spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is "mean".
             timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is "mean".
-            scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce. Defaults to 1e7.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A dictionary with the reduced values for each band and each day.
@@ -1281,7 +1323,16 @@ class ImageCollectionAccessor:
 
         def spatialReduce(label: ee.String) -> ee.Dictionary:
             image = ic.select([label]).toBands().rename(doyList)
-            return image.reduceRegion(spatialRed, region, scale)
+            return image.reduceRegion(
+                reducer=spatialRed,
+                geometry=region,
+                scale=scale,
+                crs=crs,
+                crsTransform=crsTransform,
+                bestEffort=bestEffort,
+                maxPixels=maxPixels,
+                tileScale=tileScale,
+            )
 
         return ee.Dictionary.fromLists(labels, ee.List(labels).map(spatialReduce))
 
@@ -1292,8 +1343,11 @@ class ImageCollectionAccessor:
         label: str = "system:index",
         spatialReducer: str | ee.Reducer = "mean",
         timeReducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         dateProperty: str = "system:time_start",
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> ee.Dictionary:
         """Aggregate the images that occurs on the same day and then reduce a single band on multiple regions.
 
@@ -1313,8 +1367,11 @@ class ImageCollectionAccessor:
             label: The property to use as label for each region. Default is "system:index".
             spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is "mean".
             timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is "mean".
-            scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A dictionary with the reduced values for each region and each day.
@@ -1361,7 +1418,14 @@ class ImageCollectionAccessor:
             else spatialReducer
         )
         image = ic.toBands().rename(doyList)
-        reduced = image.reduceRegions(regions, spatialRed, scale)
+        reduced = image.reduceRegions(
+            collection=regions,
+            reducer=spatialRed,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        )
 
         # create a list of dictionaries for each region and aggregate them into a dictionary
         values = reduced.toList(regions.size()).map(lambda f: ee.Feature(f).toDictionary(doyList))
@@ -1374,8 +1438,13 @@ class ImageCollectionAccessor:
         band: str,
         region: ee.Geometry,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         dateProperty: str = "system:time_start",
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int | None = 10**7,
+        tileScale: float = 1,
     ) -> ee.Dictionary:
         """Aggregate for each year on a single region a single band.
 
@@ -1393,8 +1462,13 @@ class ImageCollectionAccessor:
             band: The band to reduce.
             region: The region to reduce the data on.
             reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce. Defaults to 1e7.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A dictionary with the reduced values for each year and each day.
@@ -1434,7 +1508,20 @@ class ImageCollectionAccessor:
         def reduce(year: ee.Number) -> ee.Dictionary:
             c = ic.filter(ee.Filter.eq(year_metadata, year))
             doyList = c.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
-            return c.toBands().rename(doyList).reduceRegion(red, region, scale)
+            return (
+                c.toBands()
+                .rename(doyList)
+                .reduceRegion(
+                    reducer=red,
+                    geometry=region,
+                    scale=scale,
+                    crs=crs,
+                    crsTransform=crsTransform,
+                    bestEffort=bestEffort,
+                    maxPixels=maxPixels,
+                    tileScale=tileScale,
+                )
+            )
 
         return ee.Dictionary.fromLists(yearKeys, yearList.map(reduce))
 
@@ -1442,12 +1529,17 @@ class ImageCollectionAccessor:
         self,
         region: ee.Geometry,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         dateProperty: str = "system:time_start",
         bands: list = [],
         labels: list = [],
         colors: list = [],
         ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int | None = 10**7,
+        tileScale: float = 1,
     ) -> Axes:
         """Plot the reduced data for each image in the collection by bands on a specific region.
 
@@ -1456,12 +1548,17 @@ class ImageCollectionAccessor:
         Parameters:
             region: The region to reduce the data on.
             reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
             colors: The colors to use for the bands. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce. Defaults to 1e7.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A matplotlib axes with the reduced values for each band and each date.
@@ -1483,7 +1580,18 @@ class ImageCollectionAccessor:
                 collection.geetools.plot_dates_by_bands(region, "mean", 10000, "system:time_start")
         """
         # get the reduced data
-        raw_data = self.datesByBands(region, reducer, scale, dateProperty, bands, labels).getInfo()
+        raw_data = self.datesByBands(
+            region=region,
+            reducer=reducer,
+            dateProperty=dateProperty,
+            bands=bands,
+            labels=labels,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            bestEffort=bestEffort,
+            maxPixels=maxPixels,
+        ).getInfo()
 
         # transform all the dates int datetime objects
         def to_date(dict):
@@ -1502,10 +1610,13 @@ class ImageCollectionAccessor:
         regions: ee.FeatureCollection,
         label: str = "system:index",
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         dateProperty: str = "system:time_start",
         colors: list = [],
         ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> Axes:
         """Plot the reduced data for each image in the collection by regions for a single band.
 
@@ -1516,10 +1627,13 @@ class ImageCollectionAccessor:
             regions: The regions to reduce the data on.
             label: The property to use as label for each region. Default is "system:index".
             reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             colors: The colors to use for the regions. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A matplotlib axes with the reduced values for each region and each date.
@@ -1545,7 +1659,17 @@ class ImageCollectionAccessor:
             collection.geetools.plot_dates_by_regions("B1", regions, "name", "mean", 10000, "system:time_start")
         """
         # get the reduced data
-        raw_data = self.datesByRegions(band, regions, label, reducer, scale, dateProperty).getInfo()
+        raw_data = self.datesByRegions(
+            band=band,
+            regions=regions,
+            label=label,
+            reducer=reducer,
+            dateProperty=dateProperty,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        ).getInfo()
 
         # transform all the dates int datetime objects
         def to_date(dict):
@@ -1563,12 +1687,17 @@ class ImageCollectionAccessor:
         region: ee.Geometry,
         spatialReducer: str | ee.Reducer = "mean",
         timeReducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         dateProperty: str = "system:time_start",
         bands: list = [],
         labels: list = [],
         colors: list = [],
         ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int | None = 10**7,
+        tileScale: float = 1,
     ) -> Axes:
         """Plot the reduced data for each image in the collection by bands on a specific region.
 
@@ -1578,12 +1707,17 @@ class ImageCollectionAccessor:
             region: The region to reduce the data on.
             spatialReducer: The name of the reducer or a reducer object to use. Default is "mean".
             timeReducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
             colors: The colors to use for the bands. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce. Defaults to 1e7.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A matplotlib axes with the reduced values for each band and each day.
@@ -1606,7 +1740,18 @@ class ImageCollectionAccessor:
         """
         # get the reduced data
         raw_data = self.doyByBands(
-            region, spatialReducer, timeReducer, scale, dateProperty, bands, labels
+            region=region,
+            spatialReducer=spatialReducer,
+            timeReducer=timeReducer,
+            dateProperty=dateProperty,
+            bands=bands,
+            labels=labels,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            bestEffort=bestEffort,
+            maxPixels=maxPixels,
+            tileScale=tileScale,
         ).getInfo()
 
         # transform all the dates strings into int object and reorder the dictionary
@@ -1627,10 +1772,13 @@ class ImageCollectionAccessor:
         label: str = "system:index",
         spatialReducer: str | ee.Reducer = "mean",
         timeReducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         dateProperty: str = "system:time_start",
         colors: list = [],
         ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> Axes:
         """Plot the reduced data for each image in the collection by regions for a single band.
 
@@ -1642,10 +1790,13 @@ class ImageCollectionAccessor:
             label: The property to use as label for each region. Default is "system:index".
             spatialReducer: The name of the reducer or a reducer object to use. Default is "mean".
             timeReducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             colors: The colors to use for the regions. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A matplotlib axes with the reduced values for each region and each day.
@@ -1672,7 +1823,16 @@ class ImageCollectionAccessor:
         """
         # get the reduced data
         raw_data = self.doyByRegions(
-            band, regions, label, spatialReducer, timeReducer, scale, dateProperty
+            band=band,
+            regions=regions,
+            label=label,
+            spatialReducer=spatialReducer,
+            timeReducer=timeReducer,
+            dateProperty=dateProperty,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
         ).getInfo()
 
         # transform all the dates strings into int object and reorder the dictionary
@@ -1691,10 +1851,15 @@ class ImageCollectionAccessor:
         band: str,
         region: ee.Geometry,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
         dateProperty: str = "system:time_start",
         colors: list = [],
         ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int | None = 10**7,
+        tileScale: float = 1,
     ) -> Axes:
         """Plot the reduced data for each image in the collection by years for a single band.
 
@@ -1704,10 +1869,15 @@ class ImageCollectionAccessor:
             band: The band to reduce.
             region: The region to reduce the data on.
             reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale in meters to use for the reduction. default is 10000m
             dateProperty: The property to use as date for each image. Default is "system:time_start".
             colors: The colors to use for the regions. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce. Defaults to 1e7.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A matplotlib axes with the reduced values for each year and each day.
@@ -1728,7 +1898,18 @@ class ImageCollectionAccessor:
                 collection.geetools.plot_doy_by_years("B1", ee.Geometry.Point(-122.262, 37.8719).buffer(10000), "mean", 10000, "system:time_start")
         """
         # get the reduced data
-        raw_data = self.doyByYears(band, region, reducer, scale, dateProperty).getInfo()
+        raw_data = self.doyByYears(
+            band=band,
+            region=region,
+            reducer=reducer,
+            dateProperty=dateProperty,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            bestEffort=bestEffort,
+            maxPixels=maxPixels,
+            tileScale=tileScale,
+        ).getInfo()
 
         # transform all the dates strings into int object and reorder the dictionary
         def to_int(d):
@@ -1754,8 +1935,7 @@ class ImageCollectionAccessor:
         crsTransform: list | None = None,
         bestEffort: bool = False,
         maxPixels: int | None = None,
-        tileScale: int = 1,
-        **kwargs,
+        tileScale: float = 1,
     ) -> ee.Dictionary:
         """Apply a reducer to all the pixels in a specific region on each image of the collection.
 
