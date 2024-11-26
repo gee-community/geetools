@@ -21,6 +21,9 @@ class GeometryAccessor:
             type: The type of geometries to keep. Can be one of: Point, LineString, LineRing Polygon.
 
         Returns:
+            The geometries of the given type.
+
+        Examples:
             .. jupyter-execute::
 
                 import ee, geetools

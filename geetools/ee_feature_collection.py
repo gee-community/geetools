@@ -91,13 +91,27 @@ class FeatureCollectionAccessor:
             selectors: a list of properties to add in the output. If the list is empty all properties will be added.
 
         Returns:
-            a ee.Dictionary with values of keyColumn as keys and ee.Dictionary as
-            values. The output will look like:
+            a ee.Dictionary with values of keyColumn as keys and ee.Dictionary as values. The output will look like:
 
-            {
-             '00000000000000000010': {'ADM0_CODE': 74578, 'ADM0_NAME': 'Azores Islands'},
-             '00000000000000000011': {'ADM0_CODE': 7, 'ADM0_NAME': 'Andorra'}
-            }
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+                import json
+
+                initialize_documentation()
+
+                # Extracting the first 3 countries from the FAO GAUL dataset.
+                # and transform them into dictionary
+                countries = (
+                    ee.FeatureCollection("FAO/GAUL/2015/level0")
+                    .select(["ADM0_NAME", "ADM0_CODE"])
+                    .limit(3)
+                    .geetools.toDictionary()
+                )
+
+                print(json.dumps(countries.getInfo(), indent=2))
         """
         uniqueIds = self._obj.aggregate_array(keyColumn)
         selectors = ee.List(selectors) if selectors else self._obj.first().propertyNames()
@@ -113,20 +127,45 @@ class FeatureCollectionAccessor:
     ) -> ee.FeatureCollection:
         """Add a unique numeric identifier, starting from parameter ``start``.
 
+        Args:
+            name: The name of the property to add. Defaults to "id".
+            start: The starting value of the id. Defaults to 1.
+
         Returns:
             The parsed collection with a new id property
 
         Example:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
+                from matplotlib.colors import ListedColormap
 
-                ee.Initialize()
+                initialize_documentation()
 
-                fc = ee.FeatureCollection('FAO/GAUL/2015/level0')
-                fc = fc.geetools.addId()
-                print(fc.first().get('id').getInfo())
+                # create a featureCollection from the 3 first countries of the FAO GAUL dataset
+                # then add an id property to each feature and show them in the console
+                fc = (
+                    ee.FeatureCollection("FAO/GAUL/2015/level0")
+                    .filter(ee.Filter.inList("ADM0_NAME", ["France", "Germany", "Italy"]))
+                    .select(["ADM0_NAME", "ADM0_CODE"])
+                    .geetools.addId()
+                )
+
+                # create a figure to show the created featureCollection generated "id" property
+                fig, ax = plt.subplots(figsize=(10, 5))
+                cmap = ListedColormap(["#3AA3FF", "#F3FF3B", "#FF433B"])
+                fc.geetools.plot(ax=ax, property="id", cmap=cmap)
+
+                fig.colorbar(ax.collections[0], label="id value", ticks=[1, 2, 3])
+                ax.set_title("generated id of FAO countries")
+                ax.set_xlabel("Longitude (°)")
+                ax.set_ylabel("Latitude (°)")
+                ax.set_xticks([])
+                ax.set_yticks([])
+
+                fig.show()
         """
         start, name = ee.Number(start).toInt(), ee.String(name)
 
@@ -135,8 +174,11 @@ class FeatureCollectionAccessor:
         idByIndex = ee.Dictionary.fromLists(indexes, ids)
         return self._obj.map(lambda f: f.set(name, idByIndex.get(f.get("system:index"))))
 
-    def mergeGeometries(self) -> ee.Geometry:
+    def mergeGeometries(self, maxError: float | int | ee.number | None = None) -> ee.Geometry:
         """Merge the geometries included in the features.
+
+        Args:
+            maxError: The maximum amount of error tolerated when performing any necessary reprojection.
 
         Returns:
             the dissolved geometry
@@ -144,24 +186,37 @@ class FeatureCollectionAccessor:
         Example:
             .. code-block:: python
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
-                ee.Initialize()
+                initialize_documentation()
 
-                fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
-                fc =fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))
-                geom = fc.geetools.mergeGeometries()
-                print(geom.getInfo())
+                # create a featurecollection containing 2 bounding boxes
+                fc = ee.FeatureCollection([
+                    ee.Geometry.BBox(-1, -1, 1, 1),
+                    ee.Geometry.BBox(0, 0, 2, 2)
+                ])
+
+                # merge them into a single geometry
+                geometry = fc.geetools.mergeGeometries(maxError=.1)
+
+                # print the geometry on a matplotlib graph
+                fig, ax = plt.subplots(figsize=(10, 5))
+                c = ee.FeatureCollection(geometry).geetools.plot(boundaries=True, color="teal", ax=ax)
+
+                fig.show()
         """
         first = self._obj.first().geometry()
-        union = self._obj.iterate(lambda f, g: f.geometry().union(g), first)
-        return ee.Geometry(union).dissolve()
+        union = self._obj.iterate(lambda f, g: f.geometry().union(g, maxError=maxError), first)
+        return ee.Geometry(union).dissolve(maxError=maxError)
 
     def toPolygons(self) -> ee.FeatureCollection:
         """Drop any geometry that is not a Polygon or a multipolygon.
 
-        This method is made to avoid errors when performing zonal statistics and/or other surfaces operations. These operations won't work on geometries that are Lines or points. The methods remove these geometry types from GEometryCollections and rremove features that don't have any polygon geometry
+        This method is made to avoid errors when performing zonal statistics and/or other surfaces operations.
+        These operations won't work on geometries that are Lines or points. The methods remove these geometry
+        types from GEometryCollections and rremove features that don't have any polygon geometry.
 
         Returns:
             The parsed collection with only polygon/MultiPolygon geometries
@@ -169,10 +224,11 @@ class FeatureCollectionAccessor:
         Example:
             .. code-block:: python
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
-                ee.Initialize()
+                initialize_documentation()
 
                 point0 = ee.Geometry.Point([0,0], proj="EPSG:4326")
                 point1 = ee.Geometry.Point([0,1], proj="EPSG:4326")
@@ -184,7 +240,9 @@ class FeatureCollectionAccessor:
 
                 fc = ee.FeatureCollection([geometryCol])
                 fc = fc.geetools.toPolygons()
-                print(fc.getInfo())
+
+                fig, ax = plt.subplots(figsize=(5, 10))
+                fc.geetools.plot(boundaries=True, ax=ax)
         """
 
         def filterGeom(geom):
@@ -231,12 +289,16 @@ class FeatureCollectionAccessor:
             - :docstring:`ee.FeatureCollection.geetools.plot_by_properties`
 
         Example:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
-                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
-                d = fc.geetools.byProperties(["ADM1_CODE", "ADM2_CODE"])
+                initialize_documentation()
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(3)
+                d = fc.geetools.byProperties(properties=["ADM1_CODE", "ADM2_CODE"])
                 d.getInfo()
         """
         # get all the id values, they must be string so we are forced to cast them manually
@@ -290,13 +352,19 @@ class FeatureCollectionAccessor:
             - :docstring:`ee.FeatureCollection.geetools.plot_by_features`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
-                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
-                d = fc.geetools.byFeature(featureId="ADM2_CODE", properties=["ADM0_CODE"])
+                initialize_documentation()
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(3)
+                d = fc.geetools.byFeatures(properties=["ADM0_CODE", "ADM1_CODE", "ADM2_CODE"])
                 d.getInfo()
+
+
         """
         # compute the properties and their labels
         props = ee.List(properties) if properties else self._obj.first().propertyNames()
@@ -353,12 +421,25 @@ class FeatureCollectionAccessor:
             - :docstring:`ee.FeatureCollection.geetools.plot`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
+                initialize_documentation()
+
+                # start a plot object from matplotlib library
+                fig, ax = plt.subplots(figsize=(10, 5))
+
+                # plot on this object the 10 first items of the FAO GAUL level 2 feature collection
+                # for each one of them (marked with it's "ADM0_NAME" property) we plot the value of the "ADM1_CODE" and "ADM2_CODE" properties
                 fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
-                fc.geetools.plot_by_features(properties=["ADM1_CODE", "ADM2_CODE"])
+                fc.geetools.plot_by_features(featureId="ADM2_NAME", properties=["ADM1_CODE", "ADM2_CODE"], colors=["#61A0D4", "#D49461"], ax=ax)
+
+                # Modify the rotation of existing x-axis tick labels
+                for label in ax.get_xticklabels():
+                    label.set_rotation(45)
         """
         # Get the features and properties
         props = ee.List(properties) if properties else self._obj.first().propertyNames().getInfo()
@@ -406,12 +487,21 @@ class FeatureCollectionAccessor:
             - :docstring:`ee.FeatureCollection.geetools.plot`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
+                initialize_documentation()
+
+                # start a plot object from matplotlib library
+                fig, ax = plt.subplots(figsize=(10, 5))
+
+                # plot on this object the 10 first items of the FAO GAUL level 2 feature collection
+                # for each one of them (marked with it's "ADM2_NAME" property) we plot the value of the "ADM1_CODE" property
                 fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
-                fc.geetools.plot_by_properties(xProperties=["ADM1_CODE", "ADM2_CODE"])
+                fc.geetools.plot_by_properties(featureId="ADM2_NAME", properties=["ADM1_CODE"], ax=ax)
         """
         # Get the features and properties
         fc = self._obj
@@ -453,14 +543,27 @@ class FeatureCollectionAccessor:
             - :docstring:`ee.FeatureCollection.geetools.plot`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
+                initialize_documentation()
+
+                # start a plot object from matplotlib library
+                fig, ax = plt.subplots(figsize=(10, 5))
+                ax.set_title('Histogram of Precipitation in July')
+                ax.set_xlabel('Precipitation (mm)')
+
+
+                # build the histogram of the precipitation band for the month of july in the PRISM dataset
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm81m').toBands()
                 region = ee.Geometry.Rectangle(-123.41, 40.43, -116.38, 45.14)
                 climSamp = normClim.sample(region, 5000)
-                climSamp.geetools.plot_hist("07_ppt")
+                climSamp.geetools.plot_hist("07_ppt", ax=ax, bins=20)
+
+                fig.show()
         """
         # gather the data from parameters
         properties, labels = ee.List([property]), ee.List([label])
@@ -522,16 +625,32 @@ class FeatureCollectionAccessor:
             - :docstring:`ee.FeatureCollection.geetools.plot_hist`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
-                ee.Initialize()
+                initialize_documentation()
 
-                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
-                fig, ax = plt.subplots()
-                fc.geetools.plot("ADM2_CODE", ax)
+                # start a plot object from matplotlib library
+                fig, ax = plt.subplots(figsize=(10, 5))
+
+                # plot france geometry on the map
+                france = (
+                    ee.FeatureCollection("FAO/GAUL/2015/level2")
+                    .filter(ee.Filter.eq("ADM0_NAME", "France"))
+                    .geetools.plot(boundaries=True, color="teal", ax=ax)
+                )
+
+                # style the figure
+                ax.set_title("France departements")
+                ax.set_xlabel("Longitude (°)")
+                ax.set_ylabel("Latitude (°)")
+                ax.set_xticks([])
+                ax.set_yticks([])
+
+                fig.show()
         """
         if ax is None:
             fig, ax = plt.subplots()
