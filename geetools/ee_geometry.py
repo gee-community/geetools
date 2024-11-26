@@ -21,22 +21,35 @@ class GeometryAccessor:
             type: The type of geometries to keep. Can be one of: Point, LineString, LineRing Polygon.
 
         Returns:
-            .. code-block:: python
+            The geometries of the given type.
 
-                import ee
-                import geetools
+        Examples:
+            .. jupyter-execute::
 
-                ee.Initialize()
+                import ee, geetools
+                from geetools.utils import initialize_documentation
 
+                initialize_documentation()
+
+                # generate multiple geometries of different types
                 point0 = ee.Geometry.Point([0,0], proj="EPSG:4326")
                 point1 = ee.Geometry.Point([0,1], proj="EPSG:4326")
                 poly0 = point0.buffer(1, proj="EPSG:4326")
                 poly1 = point1.buffer(1, proj="EPSG:4326").bounds(proj="EPSG:4326")
                 line = ee.Geometry.LineString([point1, point0], proj="EPSG:4326")
                 multiPoly = ee.Geometry.MultiPolygon([poly0, poly1], proj="EPSG:4326")
-                geometryCol = ee.Algorithms.GeometryConstructors.MultiGeometry([multiPoly, poly0, poly1, point0, line], crs="EPSG:4326", geodesic=True, maxError=1)
-                geom = geometryCol.geetools.keepType('LineString')
-                print(geom.getInfo())
+
+                # create a geometry collection from them
+                geometryColllection = ee.Algorithms.GeometryConstructors.MultiGeometry(
+                    [multiPoly, poly0, poly1, point0, line],
+                    crs="EPSG:4326",
+                    geodesic=True,
+                    maxError=1
+                )
+
+                # extract only the LineString geometries from the collection
+                geom = geometryColllection.geetools.keepType('LineString')
+                geom.getInfo()
         """
         # will raise an error if self is not a GeometryCollection
         error_msg = "This method can only be used with GeometryCollections"
@@ -46,6 +59,5 @@ class GeometryAccessor:
             geom = ee.Geometry(geom)
             return ee.Algorithms.If(geom.type().compareTo(type), None, geom)
 
-        self._obj
         geometries = self._obj.geometries().map(filterType, True)
         return getattr(ee.Geometry, "Multi" + type)(geometries, self._obj.projection())

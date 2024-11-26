@@ -26,11 +26,12 @@ class ListAccessor:
             A list of strings corresponding to the cartesian product.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 l1 = ee.List(["1", "2", "3"])
                 l2 = ee.List(["a", "b", "c"])
@@ -47,7 +48,7 @@ class ListAccessor:
     def complement(self, other: list | ee.List) -> ee.List:
         """Compute the complement of the current list and the ``other`` list.
 
-        The mthematical complement is the list of elements that are in the current list but not in the ``other`` list and vice-versa.
+        The mathematical complement is the list of elements that are in the current list but not in the ``other`` list and vice-versa.
 
         Parameters:
             other: The list to compute the complement with.
@@ -56,11 +57,12 @@ class ListAccessor:
             A list of strings corresponding to the complement of the current list and the ``other`` list.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 l1 = ee.List(["1", "2", "3"])
                 l2 = ee.List(["2", "3", "4"])
@@ -82,11 +84,12 @@ class ListAccessor:
             A list of strings corresponding to the intersection of the current list and the ``other`` list.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 l1 = ee.List(["1", "2", "3"])
                 l2 = ee.List(["2", "3", "4"])
@@ -108,11 +111,12 @@ class ListAccessor:
             A list of strings corresponding to the union of the current list and the ``other`` list.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 l1 = ee.List(["1", "2", "3"])
                 l2 = ee.List(["2", "3", "4"])
@@ -133,11 +137,12 @@ class ListAccessor:
             The list without the element at the given index.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 l = ee.List(["a", "b", "c"])
                 l.geetools.delete(1).getInfo()
@@ -165,13 +170,14 @@ class ListAccessor:
             A list of numbers corresponding to the sequence.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
-                l = ee.List.geetools.sequence(0, 10, 2)
+                l = ee.List.geetools.sequence(0, 11, 2)
                 l.getInfo()
         """
         ini, end = ee.Number(ini), ee.Number(end)
@@ -188,11 +194,12 @@ class ListAccessor:
             A list with the values replaced
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 l = ee.List(["a", "b", "c"])
                 replace = ee.Dictionary({"a": "foo", "c": "bar"})
@@ -202,7 +209,7 @@ class ListAccessor:
         replace = ee.Dictionary(replace)
         keys = replace.keys()
         list = keys.iterate(lambda k, p: ee.List(p).replace(k, replace.get(k)), self._obj)
-        return ee.List(list)  # to avoid returning a COmputedObject
+        return ee.List(list)  # to avoid returning a ComputedObject
 
     def join(self, separator: str | ee.String = ", ") -> ee.string:
         """Format a list to a string.
@@ -216,14 +223,16 @@ class ListAccessor:
             A string with the list elements separated by commas.
 
         Examples:
-            .. code-block:: python
+            .. juptyer-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 l = ee.List(['a', 1, ee.Image(0)])
-                l.geetools.join().getInfo()
+                l = l.geetools.join()
+                l.getInfo()
         """
         return self.toStrings().join(separator)
 
@@ -236,14 +245,16 @@ class ListAccessor:
             A list of strings corresponding to the elements of the list.
 
         Examples:
-            .. code-block:: python
+            .. juptyer-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 l = ee.List(["a", 1, ee.Image(0)])
-                l.geetools.toStrings().getInfo()
+                l = l.geetools.toStrings()
+                l.getInfo()
         """
         klasses = ee.List(["Float", "Integer", "String"])
 
@@ -263,14 +274,16 @@ class ListAccessor:
             A list of lists with the zipped elements
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 l = ee.List([[1,2,3], [4,5,6], [7,8,9]])
-                l.geetools.zip().getInfo()
+                l = l.geetools.zip()
+                l.getInfo()
         """
         indices = ee.List.sequence(0, ee.List(self._obj.get(0)).size().subtract(1))
         return indices.map(lambda i: self._obj.map(lambda j: ee.List(j).get(i)))

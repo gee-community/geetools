@@ -18,7 +18,6 @@ class DateAccessor:
         """Initialize the Date class."""
         self._obj = obj
 
-    # -- alternative constructor -----------------------------------------------
     @classmethod
     def fromEpoch(cls, number: int, unit: str = "day") -> ee.Date:
         """Set an the number of units since epoch (1970-01-01).
@@ -31,14 +30,15 @@ class DateAccessor:
             The date as a ``ee.Date`` object.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 d = ee.Date.geetools.fromEpoch(49, 'year')
-                d.getInfo()
+                d.format("YYYY-MM-DD").getInfo()
         """
         cls.check_unit(unit)
         return ee.Date(EE_EPOCH.isoformat()).advance(number, unit)
@@ -55,14 +55,15 @@ class DateAccessor:
             The date as a ``ee.Date`` object.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 d = ee.Date.geetools.fromDOY(1, 2020)
-                d.getInfo()
+                d.format("YYYY-MM-DD").getInfo()
         """
         d, y = ee.Number(doy).toInt(), ee.Number(year).toInt()
         return ee.Date.fromYMD(y, 1, 1).advance(d.subtract(1), "day")
@@ -72,21 +73,21 @@ class DateAccessor:
         """Create a date on current date.
 
         Returns:
-            The date as a ``ee.Date`` object.
+            The current date.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 d = ee.Date.geetools.now()
-                d.getInfo()
+                d.format("YYYY-MM-DD").getInfo()
         """
         return ee.Date(datetime.now().isoformat())
 
-    # -- export date -----------------------------------------------------------
     def to_datetime(self) -> datetime:
         """Convert a ``ee.Date`` to a ``datetime.datetime``.
 
@@ -94,19 +95,19 @@ class DateAccessor:
             The ``datetime.datetime`` representation of the ``ee.Date``.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
-                d = ee.Date('2020-01-01').geetools.toDatetime()
+                d = ee.Date('2020-01-01').geetools.to_datetime()
                 d.strftime('%Y-%m-%d')
 
         """
         return datetime.fromtimestamp(self._obj.millis().getInfo() / 1000.0)
 
-    # -- date operations -------------------------------------------------------
     def getUnitSinceEpoch(self, unit: str = "day") -> ee.Number:
         """Get the number of units since epoch (1970-01-01).
 
@@ -117,11 +118,12 @@ class DateAccessor:
             The number of units since the epoch.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 d = ee.Date('2020-01-01').geetools.getUnitSinceEpoch('year')
                 d.getInfo()
@@ -136,14 +138,15 @@ class DateAccessor:
             ``1`` if the year is a leap year, ``0`` otherwise.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
-                d = ee.Date('2020-01-01').geetools.isLeap()
-                d.getInfo()
+                isLeap = ee.Date('2020-01-01').geetools.isLeap()
+                isLeap.getInfo()
         """
         year = self._obj.get("year")
         divisibleBy4 = year.mod(4).eq(0)
@@ -155,9 +158,15 @@ class DateAccessor:
 
         return isLeap.toInt()
 
-    # -- helper methods --------------------------------------------------------
     @staticmethod
     def check_unit(unit: str) -> None:
-        """Check if the provided value is a valid time unit."""
+        """Check if the provided value is a valid time unit.
+
+        Parameters:
+            unit: The unit to check.
+
+        Raises:
+            ValueError: If the unit is not valid.
+        """
         if unit not in (units := ["second", "minute", "hour", "day", "month", "year"]):
             raise ValueError(f"unit must be one of: {','.join(units)}")

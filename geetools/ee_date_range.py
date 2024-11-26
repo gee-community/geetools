@@ -29,14 +29,15 @@ class DateRangeAccessor:
             The list of DateRanges
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
-                d = ee.DateRange('2020-01-01', '2020-01-31').geetools.split(1, 'day')
-                d.getInfo()
+                dateList = ee.DateRange('2020-01-01', '2020-01-31').geetools.split(1, 'day')
+                dateList.getInfo()
         """
         self.check_unit(unit)
         interval = ee.Number(interval).toInt().multiply(self.unitMillis(unit))
@@ -59,7 +60,14 @@ class DateRangeAccessor:
 
     @staticmethod
     def unitMillis(unit: str) -> ee.Number:
-        """Get the milliseconds of a unit."""
+        """Get the milliseconds of a unit.
+
+        Parameters:
+            unit: The unit to get the milliseconds. One of: ``second``, ``minute``, ``hour``, ``day``, ``month``, ``year``.
+
+        Returns:
+            The number of milliseconds in the unit
+        """
         millis = {
             "second": 1000,
             "minute": 1000 * 60,

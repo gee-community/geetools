@@ -24,14 +24,15 @@ class StringAccessor:
             ``1`` if the strings are equal, ``0`` otherwise.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
-                s = ee.String("foo").geetools.eq("foo")
-                s.getInfo()
+                isEqual = ee.String("foo").geetools.eq("foo")
+                isEqual.getInfo()
         """
         return self._obj.compareTo(ee.String(other)).Not()
 
@@ -47,13 +48,15 @@ class StringAccessor:
             The formatted string.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
-                s = ee.String("{greeting} {name} !").geetools.format({"greeting": "Hello", "name": "bob"})
+                s = ee.String("{greeting} {name} !")
+                s = s.geetools.format({"greeting": "Hello", "name": "bob"})
                 s.getInfo()
         """
         template = ee.Dictionary(template)

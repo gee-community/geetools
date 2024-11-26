@@ -15,23 +15,23 @@ class FeatureAccessor:
         self._obj = obj
 
     def toFeatureCollection(self) -> ee.FeatureCollection:
-        """Convert a feature composed of a multiGeometry geometry into a FEatureCollection.
+        """Convert a :py:class:`ee.Feature` composed of a multiGeometry geometry into a :py:class:`ee.FeatureCollection`.
 
         Returns:
             The FeatureCollection
 
         Example:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                    import ee
-                    import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                    ee.Initialize()
+                initialize_documentation()
 
-                    geoms = ee.Geometry.MultiPoint([[0,0], [0,1]])
-                    feature = ee.Feature(geoms).set("foo", "bar")
-                    fc = feature.geetools.toFeatureCollection()
-                    print(fc.size().getInfo())
+                geoms = ee.Geometry.MultiPoint([[0,0], [0,1]])
+                feature = ee.Feature(geoms).set("foo", "bar")
+                fc = feature.geetools.toFeatureCollection()
+                fc.getInfo()
         """
         geoms = self._obj.geometry().geometries()
         fc = geoms.map(lambda g: self._obj.setGeometry(g))
@@ -47,16 +47,16 @@ class FeatureAccessor:
             The feature without the properties
 
         Example:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                    import ee
-                    import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                    ee.Initialize()
+                initialize_documentation()
 
-                    feature = ee.Feature(None).set("foo", "bar", "baz", "foo")
-                    feature = feature.geetools.removeProperties(["foo"])
-                    print(feature.getInfo())
+                feature = ee.Feature(None).set("foo", "bar", "baz", "foo")
+                feature = feature.geetools.removeProperties(["foo"])
+                feature.getInfo()
         """
         properties = ee.List(properties)
         proxy = ee.Feature(self._obj.geometry())  # drop properties

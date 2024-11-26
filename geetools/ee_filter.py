@@ -14,7 +14,6 @@ class FilterAccessor:
         """Initialize the Filter class."""
         self._obj = obj
 
-    # -- date filters ----------------------------------------------------------
     def dateRange(self, range: ee.DateRange) -> ee.Filter:
         """Filter by daterange.
 
@@ -25,16 +24,22 @@ class FilterAccessor:
             The filter to apply to a collection.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
-                col = ee.ImageCollection("LANDSAT/LC08/C01/T1_SR")
+                # Create a collection and filter it by a date range
+                collection = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
+
+                # filter by date range
                 range = ee.DateRange("2018-01-01", "2019-01-01")
-                filteredCol = col.filter(ee.Filter.geetools.dateRange(range))
+                filteredCollection = collection.filter(ee.Filter.geetools.dateRange(range))
 
-                filteredCol.size().getInfo()
+                # print the total size of the collections
+                print(f"landsat full collection: {collection.size().getInfo()}")
+                print(f"landsat filtered collection: {filteredCollection.size().getInfo()}")
         """
         return ee.Filter.date(range.start(), range.end())

@@ -1486,7 +1486,7 @@ class ImageAccessor:
             ax: The matplotlib axis to plot the image on.
             fc: a FeatureCollection object to overlay on top of the image. Default is None, it can be a different object from the region.
             cmap: The colormap to use for the image. Default is 'viridis'. can only ber used for single band images.
-            crs: The coordinate reference system of the image.
+            crs: The coordinate reference system of the image. if not set we use the projection of the first band.
             scale: The scale of the image.
             color: The color of the overlaid feature collection. Default is "k" (black).
 
@@ -1505,6 +1505,10 @@ class ImageAccessor:
         if ax is None:
             fig, ax = plt.subplots()
 
+        # compute the crs from the image if necessary
+        if crs == "":
+            crs = self._obj.projection().crs().getInfo()
+
         # extract the image as a xarray dataset
         ds = xarray.open_dataset(
             ee.ImageCollection([self._obj]),
@@ -1520,20 +1524,23 @@ class ImageAccessor:
         bands_da = [ds[b][0, :, :].transpose() for b in bands]
 
         # compute the extend of the image so the unit displayed for x and y are matching the required crs
-        proj = Transformer.from_crs(CRS("EPSG:4326"), CRS(crs), always_xy=True)
+        proj = Transformer.from_crs(CRS("EPSG:4326"), CRS(crs), always_xy=False)
         region_bounds = region.bounds().coordinates().get(0).getInfo()
         min_x, min_y = proj.transform(*region_bounds[0])
         max_x, max_y = proj.transform(*region_bounds[2])
 
-        # For single band image, we use the dataarray directly as source image
+        # set the parameters that will be use for single and multi-band display
+        params = dict(extent=[min_x, max_x, min_y, max_y], origin="lower")
+
+        # For single band image, we use the data array directly as source image
         # for multi band image, we need to stack the dataarrays to create a RGB image
         # and normalized them
         if len(bands) == 1:
-            ax.imshow(bands_da[0], extent=[min_x, max_x, min_y, max_y], cmap=cmap)
+            ax.imshow(bands_da[0], cmap=cmap, **params)
         else:
             da = np.dstack(bands_da)
             rgb_image = (da - np.min(da)) / (np.max(da) - np.min(da))
-            ax.imshow(rgb_image, extent=[min_x, max_x, min_y, max_y])
+            ax.imshow(rgb_image, **params)
 
         # add the feature collection if provided
         # we need to extract the geometries and plot them
@@ -1541,6 +1548,16 @@ class ImageAccessor:
             gdf = gpd.GeoDataFrame.from_features(fc.getInfo()["features"])
             gdf = gdf.set_crs("EPSG:4326").to_crs(crs)
             gdf.boundary.plot(ax=ax, color=color)
+
+        # The default aspect for map plots is 'auto'; if however data are not projected (coordinates are long/lat),
+        #  the aspect is by default set to 1/cos(s_y * pi/180) with s_y the y coordinate of the middle of the
+        # region (the mean of the y range of bounding box) so that a long/lat square appears square in the
+        # middle of the plot. This implies an Equirectangular projection.
+        if CRS(crs).is_geographic:
+            y_coord = np.mean([min_y, max_y])
+            ax.set_aspect(1 / np.cos(y_coord * np.pi / 180))
+        else:
+            ax.set_aspect("auto")
 
         # make sure the canvas is only rendered once.
         ax.figure.canvas.draw_idle()

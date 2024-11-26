@@ -22,14 +22,22 @@ def isInstance(self, klass: type) -> ee.Number:
         ``1`` if the element is the passed type or ``0`` if not.
 
     Examples:
-        .. code-block:: python
+        .. jupyter-execute::
 
             import ee, geetools
+            from geetools.utils import initialize_documentation
 
-            ee.Initialize()
+            initialize_documentation()
 
-            s = ee.String("foo").isInstance(ee.String)
-            s.getInfo()
+            # test if a String is a ee.String
+            s = ee.String("foo")
+            isString = ee.String("foo").isInstance(ee.String)
+            print(f"{s.getInfo()} is a earthengine string: {isString.getInfo()}")
+
+            # test if a Number is a ee.String
+            n = ee.Number(1)
+            isString = ee.Number(1).isInstance(ee.String)
+            print(f"{n.getInfo()} is a earthengine string: {isString.getInfo()}")
     """
     return ee.Algorithms.ObjectType(self).compareTo(klass.__name__).eq(0)
 
@@ -48,19 +56,21 @@ def save(self, path: os.PathLike) -> Path:
         The path to the saved file.
 
     Examples:
-        .. code-block:: python
+        .. jupyter-execute::
 
-            import ee, geetools
             from tempfile import TemporaryDirectory
             from pathlib import Path
+            import ee, geetools
+            from geetools.utils import initialize_documentation
 
-            ee.Initialize()
+            initialize_documentation()
 
-            img = ee.Image("COPERNICUS/S2/20151128T112653_20151128T135750_T29SND")
+            img = ee.Image("COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM")
+
             with TemporaryDirectory() as tmp:
                 file = Path(tmp) / "test.gee"
-                img.geetools.save(file)
-                print(file.readText())
+                img.save(file)
+                print(file.read_text())
     """
     path = Path(path).with_suffix(".gee")
     path.write_text(json.dumps(ee.serializer.encode(self)))
@@ -79,20 +89,22 @@ def open(path: os.PathLike) -> ee.ComputedObject:
         The ComputedObject instance.
 
     Examples:
-        .. code-block:: python
+        .. jupyter-execute::
 
-            import ee, geetools
             from tempfile import TemporaryDirectory
             from pathlib import Path
+            import ee, geetools
+            from geetools.utils import initialize_documentation
 
-            ee.Initialize()
+            initialize_documentation()
 
-            img = ee.Image("COPERNICUS/S2/20151128T112653_20151128T135750_T29SND")
+            img = ee.Image("COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM")
+
             with TemporaryDirectory() as tmp:
                 file = Path(tmp) / "test.gee"
-                img.geetools.save(file)
+                img.save(file)
                 obj = ee.Image.open(file)
-                print(obj)
+                print(obj.getInfo())
     """
     if (path := Path(path)).suffix != ".gee":
         raise ValueError("File must be a .gee file")
