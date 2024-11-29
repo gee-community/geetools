@@ -1,7 +1,7 @@
 {% if obj.display %}
    {% if is_own_page %}
-{{ obj.id }}
-{{ "=" * obj.id | length }}
+{{ obj.id.split(".")[-1] }}
+{{ "=" * obj.id.split(".")[-1] | length }}
 
    {% endif %}
    {% set visible_children = obj.children|selectattr("display")|list %}

@@ -1941,7 +1941,7 @@ class ImageCollectionAccessor:
 
         The result will be shaped as a dictionary with the idProperty as key and for each f them the reduced band values.
 
-        .. code-block:: json
+        .. code-block::
 
             {
                 "image1": {"band1": value1, "band2": value2, ...},

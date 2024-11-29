@@ -1,7 +1,7 @@
 {% if obj.display %}
    {% if is_own_page %}
-{{ obj.id }}
-{{ "=" * obj.id | length }}
+{{ obj.id.split(".")[-1] }}
+{{ "=" * obj.id.split(".")[-1] | length }}
 
    {% endif %}
 .. py:method:: {% if is_own_page %}{{ obj.id }}{% else %}{{ obj.short_name }}{% endif %}({{ obj.args }}){% if obj.return_annotation is not none %} -> {{ obj.return_annotation }}{% endif %}
