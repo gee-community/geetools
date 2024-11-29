@@ -6,6 +6,7 @@ import re
 from pathlib import PurePosixPath
 
 import ee
+import ee.data
 
 from .accessors import _register_extention
 from .utils import format_description
@@ -687,6 +688,18 @@ class Asset(os.PathLike):
         # children of the asset if it's a folder it will loop again.
         if self.is_folder() or self.is_image_collection():
             new_asset.mkdir(True, True, self.is_image_collection())
+
+            # if the asset is an image collection we need to copy the properties of the collection
+            if self.is_image_collection():
+                original_dict = ee.data.getAsset(self.as_posix())
+                props = original_dict["properties"]
+                if "startTime" in original_dict:
+                    props["system:time_start"] = original_dict["startTime"]
+                if "endTime" in original_dict:
+                    props["system:time_end"] = original_dict["endTime"]
+                new_asset.setProperties(**props)
+
+            # copy the children objects
             for asset in self.iterdir():
                 loc_asset = new_asset / asset._path.relative_to(self._path)
                 asset.copy(loc_asset, overwrite=overwrite)
@@ -743,22 +756,35 @@ class Asset(os.PathLike):
         """Set properties of the asset.
 
         Args:
-            **kwargs: The properties to set key, value pairs
+            **kwargs: The properties to set key, value pairs. To name normal properties simply use the name as key. For system properties, prefix it with "system:". Note that only the "time_start" and "time_end" are editable.
 
         Examples:
             .. code-block:: python
 
                 asset = ee.Asset("projects/ee-geetools/assets/folder/image")
-                asset.setProperties(description="new_description")
+                asset.setProperties(**{description: "new_description", "system:time_start": 1234567890})
         """
-
-        def FieldMaskPathForKey(key):
-            return 'properties."%s"' % key
+        # We need to retrieve the system properties.
+        # They are named as in the server API and renamed inside this function.
+        # The method raise error when we try to set something else that the authorized one.
+        legit_keys = {"system:time_start": "start_time", "system:time_end": "end_time"}
+        system = {k: v for k, v in kwargs.items() if k.startswith("system:")}
+        for key in system.keys():
+            if key not in legit_keys:
+                raise ValueError(f"Property {key} is not a valid system property.")
+        system = {legit_keys[k]: v for k, v in system.items()}
 
         # Specifying an update mask of 'properties' results in full replacement,
         # which isn't what we want. Instead, we name each property that we'll be
         # updating.
-        update_mask = [FieldMaskPathForKey(key) for key in kwargs.keys()]
-        ee.data.updateAsset(self.as_posix(), {"properties": kwargs}, update_mask)
+        props = {k: v for k, v in kwargs.items() if not k.startswith("system:")}
+        update_mask = [f"properties.{k}" for k in props]
+
+        # we can now update the asset by setting both system and asset properties
+        ee.data.updateAsset(
+            asset_id=self.as_posix(),
+            asset={**system, "properties": props},
+            update_mask=list(system.keys()) + update_mask,
+        )
 
         return self
