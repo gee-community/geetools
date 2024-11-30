@@ -43,6 +43,14 @@ Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/d
                <sub><b>lumbric</b></sub>
             </a>
          </td>
+      </tr>
+      <tr>
+         <td align="center">
+            <a href="https://github.com/emmanuel-ferdman">
+               <img src="https://github.com/emmanuel-ferdman.png" width="70px;" alt="12rambau"/><br />
+               <sub><b>emmanuel-ferdman</b></sub>
+            </a>
+         </td>
         <!-- ALL-CONTRIBUTORS-LIST:END -->
       </tr>
     </table>
