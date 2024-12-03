@@ -1,7 +1,7 @@
 """Toolbox for the `ee.FeatureCollection` class."""
 from __future__ import annotations
 
-from typing import Any
+from typing import Protocol
 
 import ee
 import geopandas as gpd
@@ -10,6 +10,14 @@ from matplotlib.axes import Axes
 
 from .accessors import register_class_accessor
 from .utils import plot_data
+
+
+class _GeoInterface(Protocol):
+    """Protocol that implement at least a ``__geo_interface__`` property."""
+
+    @property
+    def __geo_interface__(self) -> dict:
+        ...
 
 
 @register_class_accessor(ee.FeatureCollection, "geetools")
@@ -508,7 +516,7 @@ class FeatureCollectionAccessor:
             gdf.plot(column=property, ax=ax, cmap=cmap)
 
     @classmethod
-    def fromGeoInterface(cls, data: Any) -> ee.FeatureCollection:
+    def fromGeoInterface(cls, data: dict | _GeoInterface) -> ee.FeatureCollection:
         """Create a FeatureCollection from a geo interface.
 
         The ``geo_interface`` is a protocol representing a vector collection as a python GeoJSON-like dictionary structure.
