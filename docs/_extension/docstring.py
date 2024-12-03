@@ -43,7 +43,7 @@ class DocstringRole(SphinxRole):
         # create a complete link to the object using the url and the name of the object
         target_doc = f"autoapi/{'/'.join(modules)}/{o.__qualname__}"
         refuri = builder.get_relative_uri(current_doc, target_doc)
-        inline_node = nodes.literal(self.text, self.text, classes=["py", "py-meth"])
+        inline_node = nodes.literal(members[-1], members[-1], classes=["py", "py-meth"])
         link = nodes.reference("", "", inline_node, internal=True, refuri=refuri)
 
         return [link, docstring], []
