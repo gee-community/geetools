@@ -1099,6 +1099,11 @@ class ImageCollectionAccessor:
         Returns:
             A dictionary with the reduced values for each band and each date.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.datesByRegions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+
         Examples:
             .. code-block:: python
 
@@ -1182,6 +1187,11 @@ class ImageCollectionAccessor:
 
         Returns:
             A dictionary with the reduced values for each region and each date.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.datesByBands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
 
         Examples:
             .. code-block:: python
@@ -1271,6 +1281,15 @@ class ImageCollectionAccessor:
 
         Returns:
             A dictionary with the reduced values for each band and each day.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
         """
         # cast parameters
         bands = ee.List(bands) if len(bands) else self._obj.first().bandNames()
@@ -1375,6 +1394,15 @@ class ImageCollectionAccessor:
 
         Returns:
             A dictionary with the reduced values for each region and each day.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
         """
         # create 2 metadata name as random string to avoid any risk of conflicts
         doy_metadata, size_metadata = uuid.uuid4().hex, uuid.uuid4().hex
@@ -1478,8 +1506,17 @@ class ImageCollectionAccessor:
         Returns:
             A dictionary with the reduced values for each year and each day.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
@@ -1591,8 +1628,17 @@ class ImageCollectionAccessor:
         Returns:
             A dictionary with the reduced values for each year and each day.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
@@ -1675,6 +1721,16 @@ class ImageCollectionAccessor:
         Returns:
             A matplotlib axes with the reduced values for each band and each date.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
         Examples:
             .. code-block:: python
 
@@ -1750,6 +1806,15 @@ class ImageCollectionAccessor:
 
         Returns:
             A matplotlib axes with the reduced values for each region and each date.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
 
         Examples:
             .. code-block:: python
@@ -1835,6 +1900,15 @@ class ImageCollectionAccessor:
         Returns:
             A matplotlib axes with the reduced values for each band and each day.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
         Examples:
             .. code-block:: python
 
@@ -1914,25 +1988,34 @@ class ImageCollectionAccessor:
         Returns:
             A matplotlib axes with the reduced values for each region and each day.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
         Examples:
             .. code-block:: python
 
-            import ee, geetools
+                import ee, geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            collection = (
-                ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
-                .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
-                .filterDate("2014-01-01", "2014-12-31")
-            )
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
 
-            regions = ee.FeatureCollection([
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
-            ])
+                regions = ee.FeatureCollection([
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
+                ])
 
-            collection.geetools.plot_doy_by_regions("B1", regions, "name", "mean", "mean", 10000, "system:time_start")
+                collection.geetools.plot_doy_by_regions("B1", regions, "name", "mean", "mean", 10000, "system:time_start")
         """
         # get the reduced data
         raw_data = self.doyByRegions(
@@ -2000,8 +2083,17 @@ class ImageCollectionAccessor:
         Returns:
             A matplotlib axes with the reduced values for each year and each day.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
@@ -2022,7 +2114,7 @@ class ImageCollectionAccessor:
                     ))
                 )
 
-                reduced = collection.geetools.plot_doy_by_seasons(
+                collection.geetools.plot_doy_by_seasons(
                     band = "NDVI",
                     region = ee.Geometry.Point(-122.262, 37.8719).buffer(1000),
                     seasonStart = ee.Date("2016-05-01").getRelative("day", "year"),
@@ -2095,8 +2187,17 @@ class ImageCollectionAccessor:
         Returns:
             A matplotlib axes with the reduced values for each year and each day.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
@@ -2117,7 +2218,7 @@ class ImageCollectionAccessor:
                     ))
                 )
 
-                reduced = collection.geetools.plot_doy_by_years(
+                collection.geetools.plot_doy_by_years(
                     band = "NDVI",
                     region = ee.Geometry.Point(-122.262, 37.8719).buffer(1000),
                     reducer = "mean",
