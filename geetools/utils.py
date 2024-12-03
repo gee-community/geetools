@@ -212,6 +212,7 @@ def plot_data(
         grid_axis = "both"
 
     elif type == "doy":
+        xmin, xmax = 366, 0  # inverted initialization to get the first iteration values
         for i, label in enumerate(labels):
             kwargs["color"] = colors[i]
             x, y = list(data[label].keys()), list(data[label].values())
@@ -222,7 +223,8 @@ def plot_data(
             idates = [int(d.strftime("%j")) - 1 for d in dates]
             ndates = [d.strftime("%B")[:3] for d in dates]
             ax.set_xticks(idates, ndates)
-            ax.set_xlim(min(x) - 5, max(x) + 5)
+            xmin, xmax = min(xmin, min(x)), max(xmax, max(x))
+        ax.set_xlim(xmin - 5, xmax + 5)
 
     else:
         raise ValueError(f"Type {type} is not (yet?) supported")
