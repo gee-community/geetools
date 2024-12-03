@@ -222,6 +222,7 @@ def plot_data(
             idates = [int(d.strftime("%j")) - 1 for d in dates]
             ndates = [d.strftime("%B")[:3] for d in dates]
             ax.set_xticks(idates, ndates)
+            ax.set_xlim(min(x) - 5, max(x) + 5)
 
     else:
         raise ValueError(f"Type {type} is not (yet?) supported")
