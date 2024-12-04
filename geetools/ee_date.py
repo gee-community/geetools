@@ -84,7 +84,7 @@ class DateAccessor:
                 initialize_documentation()
 
                 d = ee.Date.geetools.now()
-                d.format("YYYY-MM-DD").getInfo()
+                d.format("YYYY-MM-dd").getInfo()
         """
         return ee.Date(datetime.now().isoformat())
 
