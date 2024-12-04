@@ -1099,6 +1099,11 @@ class ImageCollectionAccessor:
         Returns:
             A dictionary with the reduced values for each band and each date.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.datesByRegions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+
         Examples:
             .. code-block:: python
 
@@ -1182,6 +1187,11 @@ class ImageCollectionAccessor:
 
         Returns:
             A dictionary with the reduced values for each region and each date.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.datesByBands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
 
         Examples:
             .. code-block:: python
@@ -1271,6 +1281,15 @@ class ImageCollectionAccessor:
 
         Returns:
             A dictionary with the reduced values for each band and each day.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
         """
         # cast parameters
         bands = ee.List(bands) if len(bands) else self._obj.first().bandNames()
@@ -1375,6 +1394,15 @@ class ImageCollectionAccessor:
 
         Returns:
             A dictionary with the reduced values for each region and each day.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
         """
         # create 2 metadata name as random string to avoid any risk of conflicts
         doy_metadata, size_metadata = uuid.uuid4().hex, uuid.uuid4().hex
@@ -1433,6 +1461,133 @@ class ImageCollectionAccessor:
 
         return ee.Dictionary.fromLists(keys, values)
 
+    def doyBySeasons(
+        self,
+        band: str,
+        region: ee.Geometry,
+        seasonStart: int | ee.Number,
+        seasonEnd: int | ee.Number,
+        reducer: str | ee.Reducer = "mean",
+        dateProperty: str = "system:time_start",
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int | None = 10**7,
+        tileScale: float = 1,
+    ) -> ee.Dictionary:
+        """Aggregate for each year on a single region a single band.
+
+        This method is returning a dictionary with all the years as keys and their reduced value for each day of the season over the specified region for a specific band as value.
+        To set the start and end of the season, use the :py:method:`ee.Date.getRelative` or :py:class:`time.struct_time` method to get the day of the year.
+
+        .. code-block::
+
+            {
+                "year1": {"doy1": value1, "doy2": value2, ...},
+                "year2": {"doy1": value1, "doy2": value2, ...},
+                ...
+            }
+
+        Parameters:
+            band: The band to reduce.
+            region: The region to reduce the data on.
+            seasonStart: The day of the year that marks the start of the season.
+            seasonEnd: The day of the year that marks the end of the season.
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce. Defaults to 1e7.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
+        Returns:
+            A dictionary with the reduced values for each year and each day.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C02/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filter(ee.Filter.Or(
+                        ee.Filter.date("2022-01-01", "2022-12-31"),
+                        ee.Filter.date("2016-01-01", "2016-12-31"),
+                    ))
+                    .map(lambda i: ee.Image(i).addBands(
+                        ee.Image(i)
+                        .normalizedDifference(["B5", "B4"])
+                        .rename("NDVI")
+                    ))
+                )
+
+                reduced = collection.geetools.doyBySeasons(
+                    band = "NDVI",
+                    region = ee.Geometry.Point(-122.262, 37.8719).buffer(1000),
+                    seasonStart = ee.Date("2016-05-01").getRelative("day", "year"),
+                    seasonEnd = ee.Date("2016-10-31").getRelative("day", "year"),
+                    reducer = "mean",
+                    dateProperty = "system:time_start",
+                    scale = 10000
+                )
+                reduced.getInfo()
+        """
+        # force cast the start and end of season as ee.Number
+        seasonStart, seasonEnd = ee.Number(seasonStart), ee.Number(seasonEnd)
+
+        # add a doy metadata to the images
+        doy_metadata, year_metadata = uuid.uuid4().hex, uuid.uuid4().hex
+
+        def date_tag(i: ee.Image) -> ee.Image:
+            date = ee.Date(i.get(dateProperty))
+            doy = date.getRelative("day", "year")
+            year = date.get("year")
+            return i.set(doy_metadata, doy).set(year_metadata, year)
+
+        ic = self._obj.select([band]).map(date_tag)
+
+        # create a List of image collection where every images from the same year are grouped together
+        yearList = ic.aggregate_array(year_metadata).distinct().sort()
+        yearKeys = yearList.map(lambda y: ee.Number(y).int().format())
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
+
+        def reduce(year: ee.Number) -> ee.Dictionary:
+            c = ic.filter(ee.Filter.eq(year_metadata, year))
+            c = c.filter(ee.Filter.rangeContains(doy_metadata, seasonStart, seasonEnd))
+            doyList = c.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
+            return (
+                c.toBands()
+                .rename(doyList)
+                .reduceRegion(
+                    reducer=red,
+                    geometry=region,
+                    scale=scale,
+                    crs=crs,
+                    crsTransform=crsTransform,
+                    bestEffort=bestEffort,
+                    maxPixels=maxPixels,
+                    tileScale=tileScale,
+                )
+            )
+
+        return ee.Dictionary.fromLists(yearKeys, yearList.map(reduce))
+
     def doyByYears(
         self,
         band: str,
@@ -1473,57 +1628,60 @@ class ImageCollectionAccessor:
         Returns:
             A dictionary with the reduced values for each year and each day.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 collection = (
-                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    ee.ImageCollection("LANDSAT/LC08/C02/T1_TOA")
                     .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
-                    .filterDate("2014-01-01", "2014-12-31")
+                    .filter(ee.Filter.Or(
+                        ee.Filter.date("2022-01-01", "2022-12-31"),
+                        ee.Filter.date("2016-01-01", "2016-12-31"),
+                    ))
+                    .map(lambda i: ee.Image(i).addBands(
+                        ee.Image(i)
+                        .normalizedDifference(["B5", "B4"])
+                        .rename("NDVI")
+                    ))
                 )
 
-                reduced = collection.geetools.doyByYears("B1", ee.Geometry.Point(-122.262, 37.8719).buffer(10000), "mean", "mean", 10000, "system:time_start")
-                print(reduced.getInfo())
+                reduced = collection.geetools.doyByYears(
+                    band = "NDVI",
+                    region = ee.Geometry.Point(-122.262, 37.8719).buffer(1000),
+                    reducer = "mean",
+                    dateProperty = "system:time_start",
+                    scale = 10000
+                )
+                reduced.getInfo()
         """
-        # add a doy metadata to the images
-        doy_metadata, year_metadata = uuid.uuid4().hex, uuid.uuid4().hex
-
-        def date_tag(i: ee.Image) -> ee.Image:
-            date = ee.Date(i.get(dateProperty))
-            doy = date.getRelative("day", "year")
-            year = date.get("year")
-            return i.set(doy_metadata, doy).set(year_metadata, year)
-
-        ic = self._obj.select([band]).map(date_tag)
-
-        # create a List of image collection where every images from the same year are grouped together
-        yearList = ic.aggregate_array(year_metadata).distinct().sort()
-        yearKeys = yearList.map(lambda y: ee.Number(y).int().format())
-        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
-
-        def reduce(year: ee.Number) -> ee.Dictionary:
-            c = ic.filter(ee.Filter.eq(year_metadata, year))
-            doyList = c.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
-            return (
-                c.toBands()
-                .rename(doyList)
-                .reduceRegion(
-                    reducer=red,
-                    geometry=region,
-                    scale=scale,
-                    crs=crs,
-                    crsTransform=crsTransform,
-                    bestEffort=bestEffort,
-                    maxPixels=maxPixels,
-                    tileScale=tileScale,
-                )
-            )
-
-        return ee.Dictionary.fromLists(yearKeys, yearList.map(reduce))
+        return self.doyBySeasons(
+            band=band,
+            region=region,
+            seasonStart=ee.Number(0),
+            seasonEnd=ee.Number(366),
+            reducer=reducer,
+            dateProperty=dateProperty,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            bestEffort=bestEffort,
+            maxPixels=maxPixels,
+            tileScale=tileScale,
+        )
 
     def plot_dates_by_bands(
         self,
@@ -1563,6 +1721,16 @@ class ImageCollectionAccessor:
         Returns:
             A matplotlib axes with the reduced values for each band and each date.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
         Examples:
             .. code-block:: python
 
@@ -1591,6 +1759,7 @@ class ImageCollectionAccessor:
             crsTransform=crsTransform,
             bestEffort=bestEffort,
             maxPixels=maxPixels,
+            tileScale=tileScale,
         ).getInfo()
 
         # transform all the dates int datetime objects
@@ -1637,6 +1806,15 @@ class ImageCollectionAccessor:
 
         Returns:
             A matplotlib axes with the reduced values for each region and each date.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
 
         Examples:
             .. code-block:: python
@@ -1722,6 +1900,15 @@ class ImageCollectionAccessor:
         Returns:
             A matplotlib axes with the reduced values for each band and each day.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
         Examples:
             .. code-block:: python
 
@@ -1801,25 +1988,34 @@ class ImageCollectionAccessor:
         Returns:
             A matplotlib axes with the reduced values for each region and each day.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
         Examples:
             .. code-block:: python
 
-            import ee, geetools
+                import ee, geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            collection = (
-                ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
-                .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
-                .filterDate("2014-01-01", "2014-12-31")
-            )
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
 
-            regions = ee.FeatureCollection([
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
-            ])
+                regions = ee.FeatureCollection([
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
+                ])
 
-            collection.geetools.plot_doy_by_regions("B1", regions, "name", "mean", "mean", 10000, "system:time_start")
+                collection.geetools.plot_doy_by_regions("B1", regions, "name", "mean", "mean", 10000, "system:time_start")
         """
         # get the reduced data
         raw_data = self.doyByRegions(
@@ -1832,6 +2028,115 @@ class ImageCollectionAccessor:
             scale=scale,
             crs=crs,
             crsTransform=crsTransform,
+            tileScale=tileScale,
+        ).getInfo()
+
+        # transform all the dates strings into int object and reorder the dictionary
+        def to_int(d):
+            return {int(k): v for k, v in d.items()}
+
+        data = {l: dict(sorted(to_int(raw_data[l]).items())) for l in raw_data}
+
+        # create the plot
+        ax = plot_data("doy", data, "Day of Year", colors, ax)
+
+        return ax
+
+    def plot_doy_by_seasons(
+        self,
+        band: str,
+        region: ee.Geometry,
+        seasonStart: int | ee.Number,
+        seasonEnd: int | ee.Number,
+        reducer: str | ee.Reducer = "mean",
+        dateProperty: str = "system:time_start",
+        colors: list = [],
+        ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int | None = 10**7,
+        tileScale: float = 1,
+    ) -> Axes:
+        """Plot the reduced data for each image in the collection by years for a single band.
+
+        This method is plotting the reduced data for each image in the collection by years for a single band.
+        To set the start and end of the season, use the :py:method:`ee.Date.getRelative` or :py:class:`time.struct_time` method to get the day of the year.
+
+        Parameters:
+            band: The band to reduce.
+            region: The region to reduce the data on.
+            seasonStart: The day of the year that marks the start of the season.
+            seasonEnd: The day of the year that marks the end of the season.
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
+            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            colors: The colors to use for the regions. If empty, the default colors are used.
+            ax: The matplotlib axes to plot the data on. If None, a new figure is created.
+            scale: The scale in meters to use for the reduction. default is 10000m
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce. Defaults to 1e7.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
+        Returns:
+            A matplotlib axes with the reduced values for each year and each day.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C02/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filter(ee.Filter.Or(
+                        ee.Filter.date("2022-01-01", "2022-12-31"),
+                        ee.Filter.date("2016-01-01", "2016-12-31"),
+                    ))
+                    .map(lambda i: ee.Image(i).addBands(
+                        ee.Image(i)
+                        .normalizedDifference(["B5", "B4"])
+                        .rename("NDVI")
+                    ))
+                )
+
+                collection.geetools.plot_doy_by_seasons(
+                    band = "NDVI",
+                    region = ee.Geometry.Point(-122.262, 37.8719).buffer(1000),
+                    seasonStart = ee.Date("2016-05-01").getRelative("day", "year"),
+                    seasonEnd = ee.Date("2016-10-31").getRelative("day", "year"),
+                    reducer = "mean",
+                    dateProperty = "system:time_start",
+                    scale = 10000
+                )
+        """
+        # get the reduced data
+        raw_data = self.doyBySeasons(
+            band=band,
+            region=region,
+            seasonStart=seasonStart,
+            seasonEnd=seasonEnd,
+            reducer=reducer,
+            dateProperty=dateProperty,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            bestEffort=bestEffort,
+            maxPixels=maxPixels,
             tileScale=tileScale,
         ).getInfo()
 
@@ -1882,45 +2187,61 @@ class ImageCollectionAccessor:
         Returns:
             A matplotlib axes with the reduced values for each year and each day.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.doyByBands`
+            - :docstring:`ee.ImageCollection.geetools.doyByRegions`
+            - :docstring:`ee.ImageCollection.geetools.doyBySeasons`
+            - :docstring:`ee.ImageCollection.geetools.doyByYears`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_bands`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
+            - :docstring:`ee.ImageCollection.geetools.plot_doy_by_seasons`
+
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 collection = (
-                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    ee.ImageCollection("LANDSAT/LC08/C02/T1_TOA")
                     .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
-                    .filterDate("2014-01-01", "2014-12-31")
+                    .filter(ee.Filter.Or(
+                        ee.Filter.date("2022-01-01", "2022-12-31"),
+                        ee.Filter.date("2016-01-01", "2016-12-31"),
+                    ))
+                    .map(lambda i: ee.Image(i).addBands(
+                        ee.Image(i)
+                        .normalizedDifference(["B5", "B4"])
+                        .rename("NDVI")
+                    ))
                 )
 
-                collection.geetools.plot_doy_by_years("B1", ee.Geometry.Point(-122.262, 37.8719).buffer(10000), "mean", 10000, "system:time_start")
+                collection.geetools.plot_doy_by_years(
+                    band = "NDVI",
+                    region = ee.Geometry.Point(-122.262, 37.8719).buffer(1000),
+                    reducer = "mean",
+                    dateProperty = "system:time_start",
+                    scale = 10000
+                )
         """
-        # get the reduced data
-        raw_data = self.doyByYears(
+        return self.plot_doy_by_seasons(
             band=band,
             region=region,
+            seasonStart=ee.Number(0),
+            seasonEnd=ee.Number(366),
             reducer=reducer,
             dateProperty=dateProperty,
+            colors=colors,
+            ax=ax,
             scale=scale,
             crs=crs,
             crsTransform=crsTransform,
             bestEffort=bestEffort,
             maxPixels=maxPixels,
             tileScale=tileScale,
-        ).getInfo()
-
-        # transform all the dates strings into int object and reorder the dictionary
-        def to_int(d):
-            return {int(k): v for k, v in d.items()}
-
-        data = {l: dict(sorted(to_int(raw_data[l]).items())) for l in raw_data}
-
-        # create the plot
-        ax = plot_data("doy", data, "Day of Year", colors, ax)
-
-        return ax
+        )
 
     def reduceRegion(
         self,
