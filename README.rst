@@ -35,7 +35,7 @@
     :alt: Test Coverage
 
 .. |docs| image:: https://img.shields.io/readthedocs/geetools?logo=readthedocs&logoColor=white
-    :target: https://geetools.readthedocs.io/en/stable/
+    :target: https://app.readthedocs.org/projects/geetools/
     :alt: Documentation Status
 
 
