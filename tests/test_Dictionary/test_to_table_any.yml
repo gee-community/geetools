@@ -1,0 +1,12 @@
+columns:
+  ADM0_CODE: String
+  ADM0_NAME: String
+  system:index: String
+features:
+- geometry: null
+  id: '0'
+  properties:
+    ADM0_CODE: '12'
+    ADM0_NAME: Argentina
+  type: Feature
+type: FeatureCollection
