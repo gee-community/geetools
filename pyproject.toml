@@ -78,6 +78,7 @@ doc = [
   "myst-nb",
   "pytest-gee>=0.3.7", # avoid issue with rdt env variables
   "sphinx-icon",
+  "sphinx-last-updated-by-git",
 ]
 
 [tool.hatch.build.targets.wheel]

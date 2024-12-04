@@ -30,6 +30,7 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinxcontrib.icon",
     "sphinx_design",
+    "sphinx_last_updated_by_git",
     "sphinx_copybutton",
     "autoapi.extension",
     "jupyter_sphinx",
@@ -88,6 +89,7 @@ html_theme_options = {
         "page-toc.html",
         "edit-this-page.html",
     ],
+    "article_footer_items": ["last-updated"],
     # remove the switcher for now as the version management is not satisfying
     # "switcher": {
     #    "json_url": json_url,
