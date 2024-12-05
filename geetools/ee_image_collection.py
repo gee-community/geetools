@@ -1939,7 +1939,7 @@ class ImageCollectionAccessor:
     ) -> ee.Dictionary:
         """Apply a reducer to all the pixels in a specific region on each image of the collection.
 
-        The result will be shaped as a dictionary with the idProperty as key and for each f them the reduced band values.
+        The result will be shaped as a dictionary with the idProperty as key and for each of them the reduced band values.
 
         .. code-block::
 
@@ -2047,3 +2047,123 @@ class ImageCollectionAccessor:
         values = pList.map(lambda p: getProp(p))
 
         return ee.Dictionary.fromLists(pList, values)
+
+    def reduceRegions(
+            self,
+            reducer: str | ee.Reducer,
+            collection: ee.FeatureCollection,
+            idProperty: str | ee.String = "system:index",
+            idType: type = ee.Number,
+            idReducer: str | ee.Reducer = "first",
+            idFormat: str | ee.String | None = None,
+            scale: int | float | None = None,
+            crs: str | None = None,
+            crsTransform: list | None = None,
+            tileScale: float | ee.Number = 1,
+    ) -> ee.FeatureCollection:
+        """Apply a reducer to all the pixels in specific regions on each images of a collection.
+
+        The result will be shaped as a FeatureCollection with the idProperty as key and for each of them the reduced band values over one regions.
+        Each feature will have the same properties as the original feature collection and thus be identified by a key pair:
+        "system:id" + "system:image_property"
+
+        TODO a better static representation of the result
+
+        Parameters:
+            reducer: The reducer to apply.
+            collection: The regions to reduce the data on.
+            idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection. One should use a meaningful property to avoid conflicts. in case of conflicts, the images with the same property will be mosaicked together (e.g. all raw satellite imagery with the same date) to make sure the final reducer have 1 single entry per idProperty.
+            idType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
+            idReducer: If the multiple images have the same idProperty, they will be aggregated beforehand using the provided reducer. default to a mosaic behaviour to match most of the satellite imagery collection where the world is split for each date between multiple images.
+            idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
+            scale: A nominal scale in meters to work in.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crstransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
+        Returns:
+            A FeatureCollection with the reduced values for each image.
+
+        Examples:
+            TODO createa meaningfull example with graphs
+        """
+        # raise an error if the idType is not supported
+        if idType not in [ee.String, ee.Number, ee.Date]:
+            msg = f"idPropertyType format {idType} not supported (yet)!"
+            raise ValueError(msg)
+
+        # filter the imageCollection with the region parameter to reduce the number of manipulated
+        # images and speed up the computation
+        ic = self._obj.filterBounds(collection)
+
+        # create a unique property name to avoid conflict with any
+        # existing property in the image collection
+        pname = uuid.uuid4().hex
+
+        # add to each image the idProperty as metadata converted to string according
+        # to the idPropertyType parameter
+        def addIdProperty(i: ee.Image) -> ee.Image:
+            p = i.get(idProperty)
+            if idType == ee.String:
+                p = ee.String(p)
+            elif idType == ee.Number:
+                p = ee.Number(p).format(idFormat or "%s")
+            elif idType == ee.Date:
+                p = ee.Date(p).format(idFormat or EE_DATE_FORMAT)
+            return i.set(pname, p)
+        ic = ic.map(addIdProperty)
+
+        # reduce the images collection to a collection of image with unique idproperty
+        # in case of duplication the images are reduced together using the idReducer
+        idRed = idReducer  # renaming of the variable to save space
+        red = getattr(ee.Reducer, idRed)() if isinstance(idRed, str) else idRed
+        pList = ic.aggregate_array(pname).distinct()
+        bands = ic.first().bandNames()
+        iList = pList.map(lambda p: ic.filter(ee.Filter.eq(pname, p)).reduce(red).rename(bands))
+        ic = ee.ImageCollection(iList)
+
+        # The tobands method will produce an image with the following band names: <system:index>_<bandName>
+        # What we want is: <idProperty>_<bandName> so we can make more advance filtering downstream.
+        bandNames = pList.map(lambda p: bands.map(lambda b: ee.String(p).cat("_").cat(b)))
+        bandNames = bandNames.flatten()
+
+        # reduce the collection  to a single image and run the reducer on it
+        image = ic.toBands().rename(bandNames)
+        red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
+        reduced = image.reduceRegions(
+            collection=collection,
+            reducer=red,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        )
+
+        # reshape the result featurecollection to match the requirements
+        # at this stage each feature contains all the reduced values for each band and each image
+        # store in props like <image_id>_<band_name> for all regions. We want to duplicate each feature
+        # into single elements that store only the result of the reducer i.e. <band_name> and add an extra id
+        # property to identify the image/region combination: system:image_id/system:id
+
+        # get the list of original property names, they will be transported to each duplicated instances
+        originalProps = collection.first().propertyNames()
+
+        def splitFeatures(f: ee.Feature) -> ee.List:
+            f = ee.Feature(f)
+
+            def splitId(loc_id: ee.String) -> ee.Feature:
+                loc_id = ee.String(loc_id)
+                loc_f = ee.Feature(f).select([loc_id.cat("_.*")])
+                oldNames = loc_f.propertyNames()
+                newNames = oldNames.map(lambda n: ee.String(n).replace(loc_id.cat("_"), ""))
+                loc_f = ee.Feature(ee.Feature(loc_f).select(oldNames, newNames))
+                loc_f = ee.Feature(loc_f.copyProperties(f, properties=originalProps))
+                loc_f = ee.Feature(loc_f.set("system:image_id", loc_id))
+                return loc_f
+
+            return ee.List(pList.map(splitId))
+        fclist = reduced.toList(reduced.size()).map(splitFeatures).flatten()
+
+        return ee.FeatureCollection(fclist)
+
+
