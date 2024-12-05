@@ -2049,17 +2049,17 @@ class ImageCollectionAccessor:
         return ee.Dictionary.fromLists(pList, values)
 
     def reduceRegions(
-            self,
-            reducer: str | ee.Reducer,
-            collection: ee.FeatureCollection,
-            idProperty: str | ee.String = "system:index",
-            idType: type = ee.Number,
-            idReducer: str | ee.Reducer = "first",
-            idFormat: str | ee.String | None = None,
-            scale: int | float | None = None,
-            crs: str | None = None,
-            crsTransform: list | None = None,
-            tileScale: float | ee.Number = 1,
+        self,
+        reducer: str | ee.Reducer,
+        collection: ee.FeatureCollection,
+        idProperty: str | ee.String = "system:index",
+        idType: type = ee.Number,
+        idReducer: str | ee.Reducer = "first",
+        idFormat: str | ee.String | None = None,
+        scale: int | float | None = None,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float | ee.Number = 1,
     ) -> ee.FeatureCollection:
         """Apply a reducer to all the pixels in specific regions on each images of a collection.
 
@@ -2085,7 +2085,7 @@ class ImageCollectionAccessor:
             A FeatureCollection with the reduced values for each image.
 
         Examples:
-            TODO createa meaningfull example with graphs
+            TODO create a meaningful example with graphs
         """
         # raise an error if the idType is not supported
         if idType not in [ee.String, ee.Number, ee.Date]:
@@ -2111,6 +2111,7 @@ class ImageCollectionAccessor:
             elif idType == ee.Date:
                 p = ee.Date(p).format(idFormat or EE_DATE_FORMAT)
             return i.set(pname, p)
+
         ic = ic.map(addIdProperty)
 
         # reduce the images collection to a collection of image with unique idproperty
@@ -2162,8 +2163,7 @@ class ImageCollectionAccessor:
                 return loc_f
 
             return ee.List(pList.map(splitId))
+
         fclist = reduced.toList(reduced.size()).map(splitFeatures).flatten()
 
         return ee.FeatureCollection(fclist)
-
-
