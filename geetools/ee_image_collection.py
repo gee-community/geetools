@@ -2067,7 +2067,18 @@ class ImageCollectionAccessor:
         Each feature will have the same properties as the original feature collection and thus be identified by a key pair:
         "system:id" + "system:image_property"
 
-        TODO a better static representation of the result
+        Here is a simple table representation of the result striped from the geometry:
+
+        .. csv-table:: Example Table
+            :header: "system:image_id", "system:feature_id", "property1", "property2", "...", "reduced_band1", "reduced_band2", "..."
+            :widths: auto
+
+            "sentinel2_id_1", "feature_1", feature1_prop1, feature1_prop2, "...", "reduced_image1_band1_feature1", "reduced_image1_band2_feature1"
+            "sentinel2_id_2", "feature_1", feature1_prop1, feature1_prop2, "...", "reduced_image2_band1_feature1", "reduced_image2_band2_feature1"
+            "sentinel2_id_3", "feature_1", feature1_prop1, feature1_prop2, "...", "reduced_image3_band1_feature1", "reduced_image3_band2_feature1"
+            "sentinel2_id_1", "feature_2", feature2_prop1, feature2_prop2, "...", "reduced_image1_band1_feature2", "reduced_image1_band2_feature2"
+            "sentinel2_id_2", "feature_2", feature2_prop1, feature2_prop2, "...", "reduced_image2_band1_feature2", "reduced_image2_band2_feature2"
+            "sentinel2_id_3", "feature_2", feature2_prop1, feature2_prop2, "...", "reduced_image3_band1_feature2", "reduced_image3_band2_feature2"
 
         Parameters:
             reducer: The reducer to apply.
