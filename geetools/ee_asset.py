@@ -761,8 +761,10 @@ class Asset(os.PathLike):
         Examples:
             .. code-block:: python
 
+                # dates need to be set in milliseconds
+                start = dt.datetime(2021, 1, 1).timestamp() * 1000
                 asset = ee.Asset("projects/ee-geetools/assets/folder/image")
-                asset.setProperties(**{description: "new_description", "system:time_start": 1234567890})
+                asset.setProperties(**{"description": "new_description", "system:time_start": start})
         """
         # We need to retrieve the system properties.
         # They are named as in the server API and renamed inside this function.
