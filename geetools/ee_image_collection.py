@@ -1969,19 +1969,40 @@ class ImageCollectionAccessor:
             A dictionary with the reduced values for each image.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee, geetools
+                import ee
+                import geetools
+                from geetools.utils import initialize_documentation
+                import pandas as pd
 
-                ee.Initialize()
+                initialize_documentation()
 
-                collection = (
-                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
-                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
-                    .filterDate("2014-01-01", "2014-12-31")
+                ## Import the example feature collection and drop the data property.
+                ecoregion = (
+                    ee.FeatureCollection("projects/google/charts_feature_example")
+                    .select(["label", "value", "warm"])
+                    .first()
                 )
-                data = collection.geetools.reduceRegion("mean", geometry=ee.Geometry.Point(-122.262, 37.8719), scale=30)
-                print(data.getInfo())
+
+                ## Load MODIS vegetation indices data and subset a decade of images.
+                vegIndices = (
+                    ee.ImageCollection("MODIS/061/MOD13A1")
+                    .filter(ee.Filter.date("2010-01-01", "2010-05-30"))
+                    .select(["NDVI", "EVI"])
+                )
+
+                data = vegIndices.geetools.reduceRegion(
+                    geometry=ecoregion.geometry(),
+                    reducer="mean",
+                    idProperty="system:time_start",
+                    idType=ee.Date,
+                    scale=10000,
+                )
+
+                # display them as a dataframe
+                df = pd.DataFrame(data.getInfo()).transpose()
+                df.head(15)
         """
         # filter the imageCollection with the region parameter to reduce the number of manipulated images and speed up the computation
         ic = self._obj.filterBounds(geometry)
@@ -2069,8 +2090,8 @@ class ImageCollectionAccessor:
 
         Here is a simple table representation of the result striped from the geometry:
 
-        .. csv-table:: Example Table
-            :header: system:image_id,system:feature_id,property1,property2,...,reduced_band1,reduced_band2,...
+        .. csv-table::
+            :header: image_id,feature_id,property1,property2,...,reduced_band1,reduced_band2,...
             :widths: auto
 
             sentinel2_id_1,feature_1,feature1_prop1,feature1_prop2,...,reduced_image1_band1_feature1,reduced_image1_band2_feature1,...
@@ -2079,6 +2100,9 @@ class ImageCollectionAccessor:
             sentinel2_id_1,feature_2,feature2_prop1,feature2_prop2,...,reduced_image1_band1_feature2,reduced_image1_band2_feature2,...
             sentinel2_id_2,feature_2,feature2_prop1,feature2_prop2,...,reduced_image2_band1_feature2,reduced_image2_band2_feature2,...
             sentinel2_id_3,feature_2,feature2_prop1,feature2_prop2,...,reduced_image3_band1_feature2,reduced_image3_band2_feature2,...
+
+        Warning:
+            The method makes a call to the pure Python uuid package so it cannot be used in a server-side map function.
 
         Parameters:
             reducer: The reducer to apply.
@@ -2096,7 +2120,39 @@ class ImageCollectionAccessor:
             A FeatureCollection with the reduced values for each image.
 
         Examples:
-            TODO create a meaningful example with graphs
+            .. jupyter-execute::
+
+                import ee
+                import geetools
+                from geetools.utils import initialize_documentation
+                import geopandas as gpd
+
+                initialize_documentation()
+
+                ## Import the example feature collection and drop the data property.
+                ecoregions = (
+                    ee.FeatureCollection("projects/google/charts_feature_example")
+                    .select(["label", "value", "warm"])
+                )
+
+                ## Load MODIS vegetation indices data and subset a decade of images.
+                vegIndices = (
+                    ee.ImageCollection("MODIS/061/MOD13A1")
+                    .filter(ee.Filter.date("2010-01-01", "2010-05-30"))
+                    .select(["NDVI", "EVI"])
+                )
+
+                data = vegIndices.geetools.reduceRegions(
+                    collection=ecoregions,
+                    reducer="mean",
+                    idProperty="system:time_start",
+                    idType=ee.Date,
+                    scale=10000,
+                )
+
+                # display them as a dataframe
+                gdf = gpd.GeoDataFrame.from_features(data.getInfo()["features"])
+                gdf.head(15)
         """
         # raise an error if the idType is not supported
         if idType not in [ee.String, ee.Number, ee.Date]:
@@ -2166,11 +2222,14 @@ class ImageCollectionAccessor:
             def splitId(loc_id: ee.String) -> ee.Feature:
                 loc_id = ee.String(loc_id)
                 loc_f = ee.Feature(f).select([loc_id.cat("_.*")])
-                oldNames = loc_f.propertyNames()
+                oldNames = loc_f.propertyNames().filter(
+                    ee.Filter.stringStartsWith("item", "system:").Not()
+                )
                 newNames = oldNames.map(lambda n: ee.String(n).replace(loc_id.cat("_"), ""))
                 loc_f = ee.Feature(ee.Feature(loc_f).select(oldNames, newNames))
                 loc_f = ee.Feature(loc_f.copyProperties(f, properties=originalProps))
-                loc_f = ee.Feature(loc_f.set("system:image_id", loc_id))
+                loc_f = ee.Feature(loc_f.set("image_id", loc_id))
+                loc_f = ee.Feature(loc_f.set("feature_id", f.get("system:index")))
                 return loc_f
 
             return ee.List(pList.map(splitId))
