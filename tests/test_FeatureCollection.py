@@ -292,3 +292,33 @@ class TestPlot:
         dataset = "WWF/HydroATLAS/v1/Basins/level04"
         region = ee.Geometry.BBox(-80, -60, -20, 20)
         return ee.FeatureCollection(dataset).filterBounds(region)
+
+
+class TestFromGeoInterface:
+    """Test the ``fromGeoInterface`` method."""
+
+    def test_from_geo_interface(self, gdf, data_regression):
+        fc = ee.FeatureCollection.geetools.fromGeoInterface(gdf)
+        data_regression.check(fc.getInfo())
+
+    def test_from_geo_interface_from_dict(self, gdf, data_regression):
+        fc = ee.FeatureCollection.geetools.fromGeoInterface(gdf.__geo_interface__)
+        data_regression.check(fc.getInfo())
+
+    def test_error_from_geo_interface_(self):
+        with pytest.raises(ValueError):
+            ee.FeatureCollection.geetools.fromGeoInterface("toto")
+
+    @pytest.fixture
+    def gdf(self):
+        data = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Coors Field"},
+                    "geometry": {"type": "Point", "coordinates": [-104.99404, 39.75621]},
+                }
+            ],
+        }
+        return gpd.GeoDataFrame.from_features(data["features"])
