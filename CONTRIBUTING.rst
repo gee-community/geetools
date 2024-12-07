@@ -73,15 +73,15 @@ All the ``geetools`` package is build around the Google Earth Engine API. It is 
 
 Once you get access to GEE, you have 2 authentication options to work within `geetools`:
 
-#.  Specify your project  
-#.  use a service acount   
+#.  Specify your project
+#.  use a service account
 
 Specify your project
 ####################
 
 Here we assume your machine is already authenticated to GEE and some credentials are saved in your computer in the confi folder: ``~/.config/earthengine/credentials``.
 
-In this case ``geetools`` ``docs`` and ``test`` session will only need to get the name of the projet to use. Specify it in a environment variable:
+In this case ``geetools`` ``docs`` and ``test`` session will only need to get the name of the project to use. Specify it in a environment variable:
 
 .. code-block:: console
 
@@ -91,17 +91,17 @@ In this case ``geetools`` ``docs`` and ``test`` session will only need to get th
 Service account
 ###############
 
-.. note:: 
+.. note::
 
-   This is the method used by all the CI/CD project pipeline from documentation to deployment. 
+   This is the method used by all the CI/CD project pipeline from documentation to deployment.
 
-If your machine is not authenticated you can use a service account from the GCP console and save its json API key in an environment variable: 
+If your machine is not authenticated you can use a service account from the GCP console and save its json API key in an environment variable:
 
 .. code-block:: console
 
     export EARTHENGINE_SERVICE_ACCOUNT=<your key>
 
-The key should have the following format and is genreated from the `GCP console <https://cloud.google.com/iam/docs/keys-create-delete>`__: 
+The key should have the following format and is generated from the `GCP console <https://cloud.google.com/iam/docs/keys-create-delete>`__:
 
 .. code-block:: json
 
