@@ -669,3 +669,69 @@ class TestReduceRegion:
             )
             .select(["NDVI", "EVI"])
         )
+
+
+class TestReduceRegions:
+    """Test the ``reduceRegion`` method."""
+
+    def test_reduce_regions_by_dates(self, dictionary_regression):
+        values = self.collection.geetools.reduceRegions(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            collection=self.region,
+            scale=500,
+        )
+        values = values.geetools.toDictionary()
+        dictionary_regression.check(values)
+
+    def test_reduce_regions_by_date_property(self, dictionary_regression):
+        values = self.collection.geetools.reduceRegions(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            idReducer="mean",
+            collection=self.region,
+            scale=500,
+        )
+        values = values.geetools.toDictionary()
+        dictionary_regression.check(values)
+
+    def test_reduce_regions_by_doy(self, dictionary_regression):
+        values = self.year_collection.geetools.reduceRegions(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            idFormat="DDD",
+            collection=self.region,
+            scale=500,
+        )
+        values = values.geetools.toDictionary()
+        dictionary_regression.check(values)
+
+    @property
+    def region(self):
+        return ee.FeatureCollection("projects/google/charts_feature_example").select(
+            ["label", "value", "warm"]
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .filter(ee.Filter.date("2010-01-01", "2010-02-28"))
+            .select(["NDVI", "EVI"])
+        )
+
+    @property
+    def year_collection(self):
+        return (
+            ee.ImageCollection("MODIS/006/MOD13Q1")
+            .filter(
+                ee.Filter.Or(
+                    ee.Filter.date("2010-01-01", "2010-02-28"),
+                    ee.Filter.date("2011-01-01", "2011-02-28"),
+                )
+            )
+            .select(["NDVI", "EVI"])
+        )

@@ -63,7 +63,7 @@ Homepage = "https://github.com/gee-community/geetools"
     "httplib2",
     "pytest-regressions",
     "Pillow",
-    "pytest-gee>=0.3.5", # to make IC creation possible in the test suit
+    "pytest-gee>=0.4.0", # get the special regressions
     "jsonschema",
 ]
 doc = [
