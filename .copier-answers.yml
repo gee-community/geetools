@@ -1,0 +1,13 @@
+# Changes here will be overwritten by Copier
+_commit: 0.1.16
+_src_path: gh:12rambau/pypackage
+author_email: pierrick.rambaud49@gmail.com
+author_first_name: Pierrick
+author_last_name: Rambaud
+author_orcid: 0000-0001-8764-5749
+creation_year: "2017"
+github_repo_name: geetools
+github_user: gee-community
+project_name: geetools
+project_slug: geetools
+short_description: A collection of tools to work with Google Earth Engine Python API

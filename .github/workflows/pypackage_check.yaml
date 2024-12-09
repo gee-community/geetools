@@ -1,0 +1,53 @@
+name: template update check
+
+on:
+  workflow_dispatch:
+
+env:
+  PIP_ROOT_USER_ACTION: ignore
+
+jobs:
+  check_version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: install dependencies
+        run: pip install requests
+      - name: get latest pypackage release
+        id: get_latest_release
+        run: |
+          RELEASE=$(curl -s https://api.github.com/repos/12rambau/pypackage/releases | jq -r '.[0].tag_name')
+          echo "latest=$RELEASE" >> $GITHUB_OUTPUT
+          echo "latest release: $RELEASE"
+      - name: get current pypackage version
+        id: get_current_version
+        run: |
+          RELEASE=$(yq -r "._commit" .copier-answers.yml)
+          echo "current=$RELEASE" >> $GITHUB_OUTPUT
+          echo "current release: $RELEASE"
+      - name: open issue
+        if: steps.get_current_version.outputs.current != steps.get_latest_release.outputs.latest
+        uses: rishabhgupta/git-action-issue@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "Update template to ${{ steps.get_latest_release.outputs.latest }}"
+          body: |
+            The package is based on the ${{ steps.get_current_version.outputs.current }} version of [@12rambau/pypackage](https://github.com/12rambau/pypackage).
+
+            The latest version of the template is ${{ steps.get_latest_release.outputs.latest }}.
+
+            Please consider updating the template to the latest version to include all the latest developments.
+
+            Run the following code in your project directory to update the template:
+
+            ```
+            copier update --trust --defaults --vcs-ref ${{ steps.get_latest_release.outputs.latest }}
+            ```
+
+            > **Note**
+            > You may need to reinstall ``copier`` and ``jinja2-time`` if they are not available in your environment.
+
+            After solving the merging issues you can push back the changes to your main branch.

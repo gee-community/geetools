@@ -6,50 +6,11 @@ Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/d
       <tr>
         <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
         <td align="center">
-            <a href="https://github.com/fitoprincipe">
-               <img src="https://github.com/fitoprincipe.png" width="70px;" alt="12rambau"/><br />
-               <sub><b>Rodrigo E. Principe </b></sub>
-            </a>
-         </td>
-        <td align="center">
-            <a href="https://github.com/12rambau">
-               <img src="https://github.com/12rambau.png" width="70px;" alt="12rambau"/><br />
+            <a href="#">
+               <img src="https://github.com/gee-community.png" width="70px;" alt="gee-community"/><br />
                <sub><b>Pierrick Rambaud</b></sub>
             </a>
-         </td>
-         <td align="center">
-            <a href="https://github.com/MarcCoru">
-               <img src="https://github.com/MarcCoru.png" width="70px;" alt="12rambau"/><br />
-               <sub><b>Marc Rußwurm</b></sub>
-            </a>
-         </td>
-        </tr>
-        <tr>
-         <td align="center">
-            <a href="https://github.com/hubert-crea">
-               <img src="https://github.com/hubert-crea.png" width="70px;" alt="12rambau"/><br />
-               <sub><b>hubert-crea</b></sub>
-            </a>
-         </td>
-         <td align="center">
-            <a href="https://github.com/samsammurphy">
-               <img src="https://github.com/samsammurphy.png" width="70px;" alt="12rambau"/><br />
-               <sub><b>Sam Murphy</b></sub>
-            </a>
-         </td>
-         <td align="center">
-            <a href="https://github.com/lumbric">
-               <img src="https://github.com/lumbric.png" width="70px;" alt="12rambau"/><br />
-               <sub><b>lumbric</b></sub>
-            </a>
-         </td>
-      </tr>
-      <tr>
-         <td align="center">
-            <a href="https://github.com/emmanuel-ferdman">
-               <img src="https://github.com/emmanuel-ferdman.png" width="70px;" alt="12rambau"/><br />
-               <sub><b>emmanuel-ferdman</b></sub>
-            </a>
+            <a href="#code" title="Code">💻</a>
          </td>
         <!-- ALL-CONTRIBUTORS-LIST:END -->
       </tr>
