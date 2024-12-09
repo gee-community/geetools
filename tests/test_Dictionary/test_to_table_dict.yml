@@ -1,0 +1,18 @@
+columns:
+  ADM0_CODE: Integer
+  Shape_Area: Float
+  system:index: String
+features:
+- geometry: null
+  id: Argentina
+  properties:
+    ADM0_CODE: 12
+    Shape_Area: 278.289196625
+  type: Feature
+- geometry: null
+  id: Armenia
+  properties:
+    ADM0_CODE: 13
+    Shape_Area: 3.13783139285
+  type: Feature
+type: FeatureCollection
