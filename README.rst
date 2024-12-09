@@ -42,7 +42,7 @@ geetools
     :target: https://app.readthedocs.org/projects/geetools/
     :alt: Documentation Status
 
-|license| |commit| |ruff| |prettier| |pre-commmit| |pypi| |conda| |build| |coverage| |docs|
+|license| |commit| |ruff| |prettier| |pre-commit| |pypi| |conda| |build| |coverage| |docs|
 
 Google Earth Engine tools
 -------------------------
