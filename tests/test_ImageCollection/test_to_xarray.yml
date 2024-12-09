@@ -1,0 +1,552 @@
+attrs:
+  crs: EPSG:4326
+  date_range:
+  - 1490659200000
+  - 1647907200000
+  description: "<p>Sentinel-2 is a wide-swath, high-resolution, multi-spectral\nimaging\
+    \ mission supporting Copernicus Land Monitoring studies,\nincluding the monitoring\
+    \ of vegetation, soil and water cover,\nas well as observation of inland waterways\
+    \ and coastal areas.</p><p>The Sentinel-2 L2 data are downloaded from scihub.\
+    \ They were\ncomputed by running sen2cor. WARNING: ESA did not produce L2 data\n\
+    for all L1 assets, and earlier L2 coverage is not global.</p><p>The assets contain\n\
+    12 UINT16 spectral bands representing SR scaled by 10000 (unlike in L1 data,\n\
+    there is no B10). There are also several more L2-specific bands (see band\nlist\
+    \ for details). See the\n<a href=\"https://sentinel.esa.int/documents/247904/685211/Sentinel-2_User_Handbook\"\
+    >Sentinel-2 User Handbook</a>\nfor details. In addition, three QA bands are present\
+    \ where one\n(QA60) is a bitmask band with cloud mask information. For more\n\
+    details, <a href=\"https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks\"\
+    >see the full explanation of how cloud masks are computed.</a></p><p>EE asset\
+    \ ids for Sentinel-2 L2 assets have the following format:\nCOPERNICUS/S2_SR/20151128T002653_20151128T102149_T56MNN.\
+    \ Here the\nfirst numeric part represents the sensing date and time, the\nsecond\
+    \ numeric part represents the product generation date and\ntime, and the final\
+    \ 6-character string is a unique granule identifier\nindicating its UTM grid reference\
+    \ (see <a href=\"https://en.wikipedia.org/wiki/Military_Grid_Reference_System\"\
+    >MGRS</a>).</p><p>Clouds can be removed by using\n<a href=\"COPERNICUS_S2_CLOUD_PROBABILITY\"\
+    >COPERNICUS/S2_CLOUD_PROBABILITY</a>.\nSee\n<a href=\"https://developers.google.com/earth-engine/tutorials/community/sentinel-2-s2cloudless\"\
+    >this tutorial</a>\nexplaining how to apply the cloud mask.</p><p>For more details\
+    \ on Sentinel-2 radiometric resolution, <a href=\"https://earth.esa.int/web/sentinel/user-guides/sentinel-2-msi/resolutions/radiometric\"\
+    >see this page</a>.</p><p><b>Provider: <a href=\"https://earth.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-2a\"\
+    >European Union/ESA/Copernicus</a></b><br><p><b>Revisit Interval</b><br>\n  5\
+    \ days\n</p><p><b>Bands</b><table class=\"eecat\"><tr><th scope=\"col\">Name</th><th\
+    \ scope=\"col\">Description</th></tr><tr><td>B1</td><td><p>Aerosols</p></td></tr><tr><td>B2</td><td><p>Blue</p></td></tr><tr><td>B3</td><td><p>Green</p></td></tr><tr><td>B4</td><td><p>Red</p></td></tr><tr><td>B5</td><td><p>Red\
+    \ Edge 1</p></td></tr><tr><td>B6</td><td><p>Red Edge 2</p></td></tr><tr><td>B7</td><td><p>Red\
+    \ Edge 3</p></td></tr><tr><td>B8</td><td><p>NIR</p></td></tr><tr><td>B8A</td><td><p>Red\
+    \ Edge 4</p></td></tr><tr><td>B9</td><td><p>Water vapor</p></td></tr><tr><td>B11</td><td><p>SWIR\
+    \ 1</p></td></tr><tr><td>B12</td><td><p>SWIR 2</p></td></tr><tr><td>AOT</td><td><p>Aerosol\
+    \ Optical Thickness</p></td></tr><tr><td>WVP</td><td><p>Water Vapor Pressure.\
+    \ The height the water would occupy if the vapor were condensed into\nliquid and\
+    \ spread evenly across the column.</p></td></tr><tr><td>SCL</td><td><p>Scene Classification\
+    \ Map (The &quot;No Data&quot; value of 0 is masked out)</p></td></tr><tr><td>TCI_R</td><td><p>True\
+    \ Color Image, Red channel</p></td></tr><tr><td>TCI_G</td><td><p>True Color Image,\
+    \ Green channel</p></td></tr><tr><td>TCI_B</td><td><p>True Color Image, Blue channel</p></td></tr><tr><td>MSK_CLDPRB</td><td><p>Cloud\
+    \ Probability Map (missing in some products)</p></td></tr><tr><td>MSK_SNWPRB</td><td><p>Snow\
+    \ Probability Map (missing in some products)</p></td></tr><tr><td>QA10</td><td><p>Always\
+    \ empty</p></td></tr><tr><td>QA20</td><td><p>Always empty</p></td></tr><tr><td>QA60</td><td><p>Cloud\
+    \ mask</p></td></tr><tr><td colspan=100>\n      Bitmask for QA60\n<ul><li>\n \
+    \         Bit 10: Opaque clouds\n<ul><li>0: No opaque clouds</li><li>1: Opaque\
+    \ clouds present</li></ul></li><li>\n          Bit 11: Cirrus clouds\n<ul><li>0:\
+    \ No cirrus clouds</li><li>1: Cirrus clouds present</li></ul></li></ul></td></tr></table><p><b>Image\
+    \ Properties</b><table class=\"eecat\"><tr><th scope=\"col\">Name</th><th scope=\"\
+    col\">Type</th><th scope=\"col\">Description</th></tr><tr><td>AOT_RETRIEVAL_ACCURACY</td><td>DOUBLE</td><td><p>Accuracy\
+    \ of Aerosol Optical thickness model</p></td></tr><tr><td>CLOUDY_PIXEL_PERCENTAGE</td><td>DOUBLE</td><td><p>Granule-specific\
+    \ cloudy pixel percentage taken from the original metadata</p></td></tr><tr><td>CLOUD_COVERAGE_ASSESSMENT</td><td>DOUBLE</td><td><p>Cloudy\
+    \ pixel percentage for the whole archive that\ncontains this granule. Taken from\
+    \ the original metadata</p></td></tr><tr><td>CLOUDY_SHADOW_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of pixels classified as cloud shadow</p></td></tr><tr><td>DARK_FEATURES_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of pixels classified as dark features or shadows</p></td></tr><tr><td>DATASTRIP_ID</td><td>STRING</td><td><p>Unique\
+    \ identifier of the datastrip Product Data Item (PDI)</p></td></tr><tr><td>DATATAKE_IDENTIFIER</td><td>STRING</td><td><p>Uniquely\
+    \ identifies a given Datatake. The ID contains\nthe Sentinel-2 satellite, start\
+    \ date and time, absolute orbit\nnumber, and processing baseline.</p></td></tr><tr><td>DATATAKE_TYPE</td><td>STRING</td><td><p>MSI\
+    \ operation mode</p></td></tr><tr><td>DEGRADED_MSI_DATA_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of degraded MSI and ancillary data</p></td></tr><tr><td>FORMAT_CORRECTNESS</td><td>STRING</td><td><p>Synthesis\
+    \ of the On-Line Quality Control (OLQC) checks\nperformed at granule (Product_Syntax)\
+    \ and datastrip (Product\nSyntax and DS_Consistency) levels</p></td></tr><tr><td>GENERAL_QUALITY</td><td>STRING</td><td><p>Synthesis\
+    \ of the OLQC checks performed at the datastrip level (Relative_Orbit_Number)</p></td></tr><tr><td>GENERATION_TIME</td><td>DOUBLE</td><td><p>Product\
+    \ generation time</p></td></tr><tr><td>GEOMETRIC_QUALITY</td><td>STRING</td><td><p>Synthesis\
+    \ of the OLQC checks performed at the datastrip level (Attitude_Quality_Indicator)</p></td></tr><tr><td>GRANULE_ID</td><td>STRING</td><td><p>Unique\
+    \ identifier of the granule PDI (PDI_ID)</p></td></tr><tr><td>HIGH_PROBA_CLOUDS_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of pixels classified as high probability clouds</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B1</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B1 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B2</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B2 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B3</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B3 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B4</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B4 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B5</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B5 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B6</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B6 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B7</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B7 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B8</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B8 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B8A</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B8a and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B9</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B9 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B10</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B10 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B11</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B11 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_AZIMUTH_ANGLE_B12</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence azimuth angle average for band B12 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B1</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B1 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B2</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B2 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B3</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B3 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B4</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B4 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B5</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B5 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B6</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B6 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B7</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B7 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B8</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B8 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B8A</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B8a and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B9</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B9 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B10</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B10 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B11</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B11 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_INCIDENCE_ZENITH_ANGLE_B12</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing viewing incidence zenith angle average for band B12 and for\
+    \ all detectors</p></td></tr><tr><td>MEAN_SOLAR_AZIMUTH_ANGLE</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing sun azimuth angle average for all bands and detectors</p></td></tr><tr><td>MEAN_SOLAR_ZENITH_ANGLE</td><td>DOUBLE</td><td><p>Mean\
+    \ value containing sun zenith angle average for all bands and detectors</p></td></tr><tr><td>MEDIUM_PROBA_CLOUDS_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of pixels classified as medium probability clouds</p></td></tr><tr><td>MGRS_TILE</td><td>STRING</td><td><p>US-Military\
+    \ Grid Reference System (MGRS) tile</p></td></tr><tr><td>NODATA_PIXEL_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of No Data pixels</p></td></tr><tr><td>NOT_VEGETATED_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of pixels classified as non-vegetated</p></td></tr><tr><td>PROCESSING_BASELINE</td><td>STRING</td><td><p>Configuration\
+    \ baseline used at the time of the product\ngeneration in terms of processor software\
+    \ version and major Ground\nImage Processing Parameters (GIPP) version</p></td></tr><tr><td>PRODUCT_ID</td><td>STRING</td><td><p>The\
+    \ full id of the original Sentinel-2 product</p></td></tr><tr><td>RADIATIVE_TRANSFER_ACCURACY</td><td>DOUBLE</td><td><p>Accuracy\
+    \ of radiative transfer model</p></td></tr><tr><td>RADIOMETRIC_QUALITY</td><td>STRING</td><td><p>Based\
+    \ on the OLQC reports contained in the Datastrips/QI_DATA with RADIOMETRIC_QUALITY\
+    \ checklist name</p></td></tr><tr><td>REFLECTANCE_CONVERSION_CORRECTION</td><td>DOUBLE</td><td><p>Earth-Sun\
+    \ distance correction factor</p></td></tr><tr><td>SATURATED_DEFECTIVE_PIXEL_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of saturated or defective pixels</p></td></tr><tr><td>SENSING_ORBIT_DIRECTION</td><td>STRING</td><td><p>Imaging\
+    \ orbit direction</p></td></tr><tr><td>SENSING_ORBIT_NUMBER</td><td>DOUBLE</td><td><p>Imaging\
+    \ orbit number</p></td></tr><tr><td>SENSOR_QUALITY</td><td>STRING</td><td><p>Synthesis\
+    \ of the OLQC checks performed at granule\n(Missing_Lines, Corrupted_ISP, and\
+    \ Sensing_Time) and datastrip\n(Degraded_SAD and Datation_Model) levels</p></td></tr><tr><td>SOLAR_IRRADIANCE_B1</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B1</p></td></tr><tr><td>SOLAR_IRRADIANCE_B2</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B2</p></td></tr><tr><td>SOLAR_IRRADIANCE_B3</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B3</p></td></tr><tr><td>SOLAR_IRRADIANCE_B4</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B4</p></td></tr><tr><td>SOLAR_IRRADIANCE_B5</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B5</p></td></tr><tr><td>SOLAR_IRRADIANCE_B6</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B6</p></td></tr><tr><td>SOLAR_IRRADIANCE_B7</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B7</p></td></tr><tr><td>SOLAR_IRRADIANCE_B8</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B8</p></td></tr><tr><td>SOLAR_IRRADIANCE_B8A</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B8a</p></td></tr><tr><td>SOLAR_IRRADIANCE_B9</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B9</p></td></tr><tr><td>SOLAR_IRRADIANCE_B10</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B10</p></td></tr><tr><td>SOLAR_IRRADIANCE_B11</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B11</p></td></tr><tr><td>SOLAR_IRRADIANCE_B12</td><td>DOUBLE</td><td><p>Mean\
+    \ solar exoatmospheric irradiance for band B12</p></td></tr><tr><td>SNOW_ICE_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of pixels classified as snow or ice</p></td></tr><tr><td>SPACECRAFT_NAME</td><td>STRING</td><td><p>Sentinel-2\
+    \ spacecraft name: Sentinel-2A, Sentinel-2B</p></td></tr><tr><td>THIN_CIRRUS_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of pixels classified as thin cirrus clouds</p></td></tr><tr><td>UNCLASSIFIED_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of unclassified pixels</p></td></tr><tr><td>VEGETATION_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of pixels classified as vegetation</p></td></tr><tr><td>WATER_PERCENTAGE</td><td>DOUBLE</td><td><p>Percentage\
+    \ of pixels classified as water</p></td></tr><tr><td>WATER_VAPOUR_RETRIEVAL_ACCURACY</td><td>DOUBLE</td><td><p>Declared\
+    \ accuracy of the Water Vapor model</p></td></tr></table><p><b>Terms of Use</b><br><p>The\
+    \ use of Sentinel data is governed by the <a href=\"https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf\"\
+    >Copernicus\nSentinel Data Terms and Conditions.</a></p><style>\n  table.eecat\
+    \ {\n  border: 1px solid black;\n  border-collapse: collapse;\n  font-size: 13px;\n\
+    \  }\n  table.eecat td, tr, th {\n  text-align: left; vertical-align: top;\n \
+    \ border: 1px solid gray; padding: 3px;\n  }\n  td.nobreak { white-space: nowrap;\
+    \ }\n</style>"
+  keywords:
+  - copernicus
+  - esa
+  - eu
+  - msi
+  - reflectance
+  - sentinel
+  - sr
+  period: 0
+  product_tags:
+  - msi
+  - sr
+  - reflectance
+  provider: European Union/ESA/Copernicus
+  provider_url: https://earth.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-2a
+  sample: https://mw1.google.com/ges/dd/images/COPERNICUS_S2_SR_sample.png
+  source_tags:
+  - eu
+  - esa
+  - copernicus
+  - sentinel
+  tags:
+  - copernicus
+  - esa
+  - eu
+  - msi
+  - reflectance
+  - sentinel
+  - sr
+  thumb: https://mw1.google.com/ges/dd/images/COPERNICUS_S2_SR_thumb.png
+  title: 'Sentinel-2 MSI: MultiSpectral Instrument, Level-2A'
+  type_name: ImageCollection
+  visualization_0_bands: B4,B3,B2
+  visualization_0_max: '3000.0'
+  visualization_0_min: '0.0'
+  visualization_0_name: RGB
+coords:
+  lat:
+    attrs: {}
+    dims:
+    - lat
+    dtype: float64
+    shape:
+    - 180
+  lon:
+    attrs: {}
+    dims:
+    - lon
+    dtype: float64
+    shape:
+    - 360
+  time:
+    attrs: {}
+    dims:
+    - time
+    dtype: datetime64[ns]
+    shape:
+    - 2449
+data_vars:
+  B1:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 60
+      - 0
+      - 699960
+      - 0
+      - -60
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 1830
+      - 1830
+      id: B1
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  B11:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 20
+      - 0
+      - 699960
+      - 0
+      - -20
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 5490
+      - 5490
+      id: B11
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  B12:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 20
+      - 0
+      - 699960
+      - 0
+      - -20
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 5490
+      - 5490
+      id: B12
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  B2:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 10
+      - 0
+      - 699960
+      - 0
+      - -10
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 10980
+      - 10980
+      id: B2
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  B3:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 10
+      - 0
+      - 699960
+      - 0
+      - -10
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 10980
+      - 10980
+      id: B3
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  B4:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 10
+      - 0
+      - 699960
+      - 0
+      - -10
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 10980
+      - 10980
+      id: B4
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  B5:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 20
+      - 0
+      - 699960
+      - 0
+      - -20
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 5490
+      - 5490
+      id: B5
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  B6:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 20
+      - 0
+      - 699960
+      - 0
+      - -20
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 5490
+      - 5490
+      id: B6
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  B7:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 20
+      - 0
+      - 699960
+      - 0
+      - -20
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 5490
+      - 5490
+      id: B7
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  B8:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 10
+      - 0
+      - 699960
+      - 0
+      - -10
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 10980
+      - 10980
+      id: B8
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  B8A:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 20
+      - 0
+      - 699960
+      - 0
+      - -20
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 5490
+      - 5490
+      id: B8A
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  B9:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 60
+      - 0
+      - 699960
+      - 0
+      - -60
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        65535}'
+      dimensions:
+      - 1830
+      - 1830
+      id: B9
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+  SCL:
+    attrs:
+      crs: EPSG:4326
+      crs_transform:
+      - 20
+      - 0
+      - 699960
+      - 0
+      - -20
+      - 9800020
+      data_type: '{''type'': ''PixelType'', ''precision'': ''int'', ''min'': 0, ''max'':
+        255}'
+      dimensions:
+      - 5490
+      - 5490
+      id: SCL
+    dims:
+    - time
+    - lon
+    - lat
+    dtype: float32
+    shape:
+    - 2449
+    - 360
+    - 180
+dims:
+  lat: 180
+  lon: 360
+  time: 2449

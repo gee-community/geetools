@@ -1,0 +1,14 @@
+columns: {}
+features:
+- geometry:
+    coordinates:
+    - 0
+    - 0
+    type: Point
+  id: '0'
+  properties:
+    id: 1
+    prop_from_fc1: I am from fc1
+    prop_from_fc2: I am from fc2
+  type: Feature
+type: FeatureCollection

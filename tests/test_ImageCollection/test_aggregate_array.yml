@@ -1,0 +1,845 @@
+system:asset_size:
+- 361149596
+- 207607455
+- 1145104866
+system:band_names:
+- - B1
+  - B2
+  - B3
+  - B4
+  - B5
+  - B6
+  - B7
+  - B8
+  - B8A
+  - B9
+  - B11
+  - B12
+  - SCL
+- - B1
+  - B2
+  - B3
+  - B4
+  - B5
+  - B6
+  - B7
+  - B8
+  - B8A
+  - B9
+  - B11
+  - B12
+  - SCL
+- - B1
+  - B2
+  - B3
+  - B4
+  - B5
+  - B6
+  - B7
+  - B8
+  - B8A
+  - B9
+  - B11
+  - B12
+  - SCL
+system:bands:
+- B1:
+    crs: EPSG:32718
+    crs_transform:
+    - 60
+    - 0
+    - 699960
+    - 0
+    - -60
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 1830
+    - 1830
+  B11:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B12:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B2:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 699960
+    - 0
+    - -10
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B3:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 699960
+    - 0
+    - -10
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B4:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 699960
+    - 0
+    - -10
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B5:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B6:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B7:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B8:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 699960
+    - 0
+    - -10
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B8A:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B9:
+    crs: EPSG:32718
+    crs_transform:
+    - 60
+    - 0
+    - 699960
+    - 0
+    - -60
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 1830
+    - 1830
+  SCL:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 255
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+- B1:
+    crs: EPSG:32718
+    crs_transform:
+    - 60
+    - 0
+    - 699960
+    - 0
+    - -60
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 1830
+    - 1830
+  B11:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B12:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B2:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 699960
+    - 0
+    - -10
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B3:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 699960
+    - 0
+    - -10
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B4:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 699960
+    - 0
+    - -10
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B5:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B6:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B7:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B8:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 699960
+    - 0
+    - -10
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B8A:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B9:
+    crs: EPSG:32718
+    crs_transform:
+    - 60
+    - 0
+    - 699960
+    - 0
+    - -60
+    - 9900040
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 1830
+    - 1830
+  SCL:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 699960
+    - 0
+    - -20
+    - 9900040
+    data_type:
+      max: 255
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+- B1:
+    crs: EPSG:32718
+    crs_transform:
+    - 60
+    - 0
+    - 799980
+    - 0
+    - -60
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 1830
+    - 1830
+  B11:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 799980
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B12:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 799980
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B2:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 799980
+    - 0
+    - -10
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B3:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 799980
+    - 0
+    - -10
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B4:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 799980
+    - 0
+    - -10
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B5:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 799980
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B6:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 799980
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B7:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 799980
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B8:
+    crs: EPSG:32718
+    crs_transform:
+    - 10
+    - 0
+    - 799980
+    - 0
+    - -10
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 10980
+    - 10980
+  B8A:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 799980
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+  B9:
+    crs: EPSG:32718
+    crs_transform:
+    - 60
+    - 0
+    - 799980
+    - 0
+    - -60
+    - 9800020
+    data_type:
+      max: 65535
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 1830
+    - 1830
+  SCL:
+    crs: EPSG:32718
+    crs_transform:
+    - 20
+    - 0
+    - 799980
+    - 0
+    - -20
+    - 9800020
+    data_type:
+      max: 255
+      min: 0
+      precision: int
+      type: PixelType
+    dimensions:
+    - 5490
+    - 5490
+system:footprint:
+- coordinates:
+  - - -72.69953001836296
+    - -2.800112889120924
+  - - -72.6994985372839
+    - -2.8001840342435314
+  - - -72.69928114634378
+    - -2.800292751353626
+  - - -72.21424207369468
+    - -2.7992346529284333
+  - - -72.2141521577804
+    - -2.799164852088566
+  - - -72.21471225665077
+    - -2.551141717471079
+  - - -72.21522021241681
+    - -2.303137900628266
+  - - -72.21567611572515
+    - -2.055133144983616
+  - - -72.21608005719322
+    - -1.8071275066150427
+  - - -72.21614982062802
+    - -1.807037589975115
+  - - -72.47954492958128
+    - -1.8074248514856186
+  - - -72.48012759921139
+    - -1.8080127453353296
+  - - -72.48174045168996
+    - -1.8150903345726945
+  - - -72.53609057747941
+    - -2.0602984454809206
+  - - -72.5904146232608
+    - -2.30552386379524
+  - - -72.69899664356002
+    - -2.7960253492828526
+  - - -72.69953263426908
+    - -2.7987480263575213
+  - - -72.69953001836296
+    - -2.800112889120924
+  type: LinearRing
+- coordinates:
+  - - -72.21603225296442
+    - -1.895413588087546
+  - - -72.21594233761624
+    - -1.8953438672149243
+  - - -72.21631284288817
+    - -1.6473173179884537
+  - - -72.2166313866688
+    - -1.3993104920247705
+  - - -72.21689796913279
+    - -1.1513030697901596
+  - - -72.21711277115999
+    - -0.9032951575621732
+  - - -72.2171823536077
+    - -0.903205228576297
+  - - -72.2795619088788
+    - -0.9032528465149119
+  - - -72.28012919589061
+    - -0.9043970087040368
+  - - -72.28227943720782
+    - -0.913627093244717
+  - - -72.38206795387933
+    - -1.3643258168798011
+  - - -72.4817405419697
+    - -1.8150906908665059
+  - - -72.49727127193101
+    - -1.8856131046786648
+  - - -72.4983424663574
+    - -1.890496489984774
+  - - -72.49887941605095
+    - -1.8932184184266012
+  - - -72.49887580509498
+    - -1.8957580587891967
+  - - -72.49880602336133
+    - -1.8958479249424607
+  - - -72.21603225296442
+    - -1.895413588087546
+  type: LinearRing
+- coordinates:
+  - - -71.31829960450023
+    - -1.8054319095191682
+  - - -71.31831437536883
+    - -1.8054291010444758
+  - - -72.30382321710303
+    - -1.8071707829082224
+  - - -72.30386468267264
+    - -1.8072074089568024
+  - - -72.30391319467104
+    - -1.8072404850129864
+  - - -72.30352193658028
+    - -2.0552848435279563
+  - - -72.30308035901972
+    - -2.3033079262075744
+  - - -72.30258837141015
+    - -2.551330093190694
+  - - -72.30204588314436
+    - -2.7993511655477747
+  - - -72.30200920529832
+    - -2.799392507033067
+  - - -72.30197605068949
+    - -2.799440949325302
+  - - -71.31577486480576
+    - -2.7967420308524575
+  - - -71.3157334517192
+    - -2.796705294672795
+  - - -71.31568777951335
+    - -2.796674051727352
+  - - -71.31568506092951
+    - -2.7966592675762816
+  - - -71.31642487748634
+    - -2.5488701639973517
+  - - -71.31709582205275
+    - -2.3010873797096596
+  - - -71.31769807623765
+    - -2.0533036560948097
+  - - -71.31823173099215
+    - -1.8055188882866027
+  - - -71.31826834100337
+    - -1.8054775457462677
+  - - -71.31829960450023
+    - -1.8054319095191682
+  type: LinearRing
+system:id:
+- COPERNICUS/S2_SR_HARMONIZED/20210102T150719_20210102T150942_T18MYC
+- COPERNICUS/S2_SR_HARMONIZED/20210102T150719_20210102T150942_T18MYD
+- COPERNICUS/S2_SR_HARMONIZED/20210102T150719_20210102T150942_T18MZC
+system:index:
+- 20210102T150719_20210102T150942_T18MYC
+- 20210102T150719_20210102T150942_T18MYD
+- 20210102T150719_20210102T150942_T18MZC
+system:time_end:
+- 1609600422628
+- 1609600409366
+- 1609600419630
+system:time_start:
+- 1609600422628
+- 1609600409366
+- 1609600419630

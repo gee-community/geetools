@@ -96,7 +96,8 @@ docstring-quotes = "double"
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"geetools/__init__.py" = ["F401"]
+"geetools/__init__.py" = ["F401"] # import but unused | that used to work with ignore_init_import
+"tests/*" = ["D102"] # Missing docstring in public method | this is test who cares
 
 [tool.coverage.run]
 source = ["geetools"]
@@ -107,3 +108,6 @@ ignore_missing_imports = true
 install_types = true
 non_interactive = true
 warn_redundant_casts = true
+
+[tool.codespell]
+skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb,**/*.yml"
