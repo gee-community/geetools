@@ -8,6 +8,8 @@ on:
   pull_request:
 
 env:
+  EARTHENGINE_SERVICE_ACCOUNT: ${{ secrets.EARTHENGINE_SERVICE_ACCOUNT }}
+  EARTHENGINE_PROJECT: ${{ secrets.EARTHENGINE_PROJECT }}
   FORCE_COLOR: 1
   PIP_ROOT_USER_ACTION: ignore
 
@@ -49,10 +51,10 @@ jobs:
   build:
     needs: [lint, mypy]
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11"]
         include:
           - os: macos-latest # macos test
             python-version: "3.11"
@@ -93,3 +95,4 @@ jobs:
           file: ./coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
+          fail_ci_if_error: true

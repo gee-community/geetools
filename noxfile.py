@@ -45,9 +45,8 @@ def docs(session):
     """Build the documentation."""
     build = session.posargs.pop() if session.posargs else "html"
     session.install(".[doc]")
-    dst, warn = f"docs/_build/{build}", "warnings.txt"
-    session.run("sphinx-build", "-v", "-b", build, "docs", dst, "-w", warn)
-    session.run("python", "tests/check_warnings.py")
+    dst = f"docs/_build/{build}"
+    session.run("sphinx-build", "-v", "-b", build, "docs", dst)
 
 
 @nox.session(name="mypy", reuse_venv=True, venv_backend="uv")

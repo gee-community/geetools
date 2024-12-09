@@ -4,29 +4,41 @@ build-backend = "hatchling.build"
 
 [project]
 name = "geetools"
-version = "0.0.0"
+version = "1.9.1"
 description = "A collection of tools to work with Google Earth Engine Python API"
 keywords = [
-  "skeleton",
-  "Python"
+  "python",
+  "geospatial",
+  "remote-sensing",
+  "google-earth-engine",
+  "earthengine",
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
-  "deprecated>=1.2.14"
+    "earthengine-api>=1", # fully static implementation
+    "requests",
+    "pandas",
+    "geopandas",
+    "deprecated",
+    "ee-extra",
+    "xee>=0.0.11", # xee change dtype management
+    "yamlable",
+    "matplotlib",
+    "anyascii",
 ]
 
 [[project.authors]]
-name = "Pierrick Rambaud"
-email = "pierrick.rambaud49@gmail.com"
+name = "Rodrigo E. Principe"
+email = "fitoprincipe82@gmail.com"
 
 [project.license]
 text = "MIT"
@@ -40,16 +52,28 @@ Homepage = "https://github.com/gee-community/geetools"
 
 [project.optional-dependencies]
 test = [
-  "pytest",
-  "pytest-cov",
-  "pytest-deadfixtures"
+    "pytest",
+    "pytest-cov",
+    "pytest-deadfixtures",
+    "httplib2",
+    "pytest-regressions",
+    "Pillow",
+    "pytest-gee>=0.3.5", # to make IC creation possible in the test suit
+    "jsonschema",
 ]
 doc = [
   "sphinx>=6.2.1",
   "pydata-sphinx-theme",
   "sphinx-copybutton",
   "sphinx-design",
-  "sphinx-autoapi"
+  "sphinx-autoapi>=3.1",  # single page implementation
+  "ipykernel",
+  "httplib2",
+  "jupyter-sphinx",
+  "myst-nb",
+  "pytest-gee>=0.3.7", # avoid issue with rdt env variables
+  "sphinx-icon",
+  "sphinx-last-updated-by-git",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -66,7 +90,7 @@ post-install-commands = ["pre-commit install"]
 [tool.commitizen]
 tag_format = "v$major.$minor.$patch$prerelease"
 update_changelog_on_bump = false
-version = "0.0.0"
+version = "1.9.1"
 version_files = [
     "pyproject.toml:version",
     "geetools/__init__.py:__version__",
@@ -101,6 +125,7 @@ convention = "google"
 
 [tool.coverage.run]
 source = ["geetools"]
+branch = true
 
 [tool.mypy]
 scripts_are_modules = true

@@ -66,6 +66,47 @@ Lastly, activate the pre-commit hooks by running:
 
 This will install the necessary dependencies to run pre-commit every time you make a commit with Git.
 
+Initialize GEE available
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+All the ``geetools`` package is build around the Google Earth Engine API. It is thus impossible to work wihin it if you are not registered. Please follow `Google instructions <https://developers.google.com/earth-engine/guides/access>`__ to use the tool.
+
+Once you get access to GEE, you have 2 authentication options to work within `geetools`:
+
+#.  Specify your project
+#.  use a service account
+
+Specify your project
+####################
+
+Here we assume your machine is already authenticated to GEE and some credentials are saved in your computer in the confi folder: ``~/.config/earthengine/credentials``.
+
+In this case ``geetools`` ``docs`` and ``test`` session will only need to get the name of the project to use. Specify it in a environment variable:
+
+.. code-block:: console
+
+    export EARTHENGINE_PROJECT=<name of your project>
+
+
+Service account
+###############
+
+.. note::
+
+   This is the method used by all the CI/CD project pipeline from documentation to deployment.
+
+If your machine is not authenticated you can use a service account from the GCP console and save its json API key in an environment variable:
+
+.. code-block:: console
+
+    export EARTHENGINE_SERVICE_ACCOUNT=<your key>
+
+The key should have the following format and is generated from the `GCP console <https://cloud.google.com/iam/docs/keys-create-delete>`__:
+
+.. code-block:: json
+
+    {"client_id": "value", "client_secret": "value", "refresh_token": "value", "project": "value"}
+
 Contribute to the codebase
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -97,12 +138,10 @@ For each pull request, the documentation is built and deployed to make it easier
 Release new version
 ^^^^^^^^^^^^^^^^^^^
 
-To release a new version, start by pushing a new bump from the local directory:
+.. danger::
 
-.. code-block::
+    Only maintainers can release new versions of **geetools**.
 
-    cz bump
+To release a new version, open an issue with the new version number e.g. ``RLS: 1.0.0``. copy/paste the instructions from the `release instructions <https://github.com/gee-community/geetools/blob/main/RELEASE.rst>`__ and follow the presented workflow.
 
-The commitizen-tool will detect the semantic version name based on the existing commits messages.
-
-Then push to Github. In Github design a new release using the same tag name nad the ``release.yaml`` job will send it to pipy.
+Once you are done you can close the issue and celebrate!
