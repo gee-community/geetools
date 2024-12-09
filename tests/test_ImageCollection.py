@@ -606,6 +606,48 @@ class TestPlotDoyByYears:
         )
 
 
+class TestPlotDoyBySeasons:
+    """Test the ``plot_doy_by_seasons`` method."""
+
+    def test_plot_doy_by_seasons(self, image_regression):
+        fig, ax = plt.subplots()
+        self.collection.geetools.plot_doy_by_seasons(
+            region=self.region.geometry(),
+            seasonStart=ee.Date("2019-04-15").getRelative("day", "year"),
+            seasonEnd=ee.Date("2019-09-15").getRelative("day", "year"),
+            band="NDVI",
+            reducer="mean",
+            scale=500,
+            ax=ax,
+            colors=["#39a8a7", "#9c4f97"],
+        )
+
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue())
+
+    @property
+    def region(self):
+        return (
+            ee.FeatureCollection("projects/google/charts_feature_example")
+            .select(["label", "value", "warm"])
+            .filter(ee.Filter.eq("label", "Grassland"))
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .select(["NDVI", "EVI"])
+            .filter(
+                ee.Filter.Or(
+                    ee.Filter.date("2012-01-01", "2012-12-31"),
+                    ee.Filter.date("2019-01-01", "2019-12-31"),
+                )
+            )
+        )
+
+
 class TestReduceRegion:
     """Test the reduceRegion method."""
 
