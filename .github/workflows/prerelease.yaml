@@ -1,0 +1,27 @@
+name: Schedule
+
+on:
+  schedule:
+    # Runs every Sunday at 18:00 (UTC time)
+    - cron: "0 18 * * 0"
+  workflow_dispatch:
+
+env:
+  EARTHENGINE_SERVICE_ACCOUNT: ${{ secrets.EARTHENGINE_SERVICE_ACCOUNT }}
+  EARTHENGINE_PROJECT: ${{ secrets.EARTHENGINE_PROJECT }}
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install .[test]
+      - name: Install EE pre-release
+        run: pip install --pre --upgrade --force-reinstall earthengine-api
+      - name: test with pytest
+        run: pytest --color=yes tests
