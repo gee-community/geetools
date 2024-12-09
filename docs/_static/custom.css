@@ -1,6 +1,48 @@
-/* add dollar sign in console code-block */
+/*******************************************************************************
+* add dollar sign in console code-block
+*/
 div.highlight-console pre span.go::before {
   content: "$";
   margin-right: 10px;
   margin-left: 5px;
+}
+
+/*******************************************************************************
+* Create a custom api admonition
+*/
+div.admonition.admonition-api > .admonition-title::after {
+  content: "\f121"; /* the fa-code icon */
+}
+
+/*******************************************************************************
+* custom sizing
+*/
+.bd-main .bd-content .bd-article-container {
+  max-width: 100%; /* default is 60em */
+}
+
+.bd-page-width {
+  max-width: 110rem; /* default is 88rem */
+}
+
+/*******************************************************************************
+* custom article footer rendering
+*/
+footer.bd-footer-article {
+  background-color: transparent;
+  border-top: 1px solid var(--pst-color-border);
+  margin-top: 2em;
+}
+
+.bd-footer-article .footer-article-items {
+  flex-direction: row;
+}
+
+.bd-footer-article .footer-article-items .footer-article-item {
+  flex-grow: 1;
+}
+
+.bd-footer-article .last-updated {
+  color: var(--pst-color-text-muted);
+  text-align: right;
 }

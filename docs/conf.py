@@ -6,45 +6,77 @@ https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
 
 # -- Path setup ----------------------------------------------------------------
+import os
+import sys
 from datetime import datetime
+from pathlib import Path
+
+import geetools as geetools
+
+# add . to sys to import local extensions
+sys.path.append(str(Path(".").resolve()))
 
 # -- Project information -------------------------------------------------------
 project = "geetools"
-author = "Pierrick Rambaud"
+author = "Rodrigo E. Principe"
 copyright = f"2017-{datetime.now().year}, {author}"
-release = "0.0.0"
+release = "1.9.1"
 
 # -- General configuration -----------------------------------------------------
 extensions = [
-    "sphinx_copybutton",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.autosectionlabel",
+    "sphinxcontrib.icon",
     "sphinx_design",
+    "sphinx_last_updated_by_git",
+    "sphinx_copybutton",
     "autoapi.extension",
+    "jupyter_sphinx",
+    "myst_nb",
+    "_extension.docstring",
+    "_extension.api_admonition",
 ]
 exclude_patterns = ["**.ipynb_checkpoints"]
-templates_path = ["_template"]
 
 # -- Options for HTML output ---------------------------------------------------
+# Define the json_url for our version switcher.
+json_url = "https://geetools.readthedocs.io/en/latest/_static/switcher.json"
+
+# Define the version we use for matching in the version switcher.
+version_match = os.environ.get("READTHEDOCS_VERSION")
+
+# If READTHEDOCS_VERSION doesn't exist, we're not on RTD
+# for local development and the latest dev build use the local file instead of the distant one.
+if not version_match or version_match.isdigit() or version_match == "latest":
+    version_match = "dev"
+    json_url = "_static/switcher.json"
+elif version_match == "stable":
+    version_match = f"v{release}"
+
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
+templates_path = ["_template"]
+html_logo = "_static/logo.png"
+html_favicon = "_static/logo.png"
 html_theme_options = {
     "logo": {
         "text": project,
     },
     "use_edit_page_button": True,
-    "footer_end": ["theme-version", "pypackage-credit"],
     "icon_links": [
         {
             "name": "GitHub",
             "url": "https://github.com/gee-community/geetools",
             "icon": "fa-brands fa-github",
+            "type": "fontawesome",
         },
         {
             "name": "Pypi",
             "url": "https://pypi.org/project/geetools/",
             "icon": "fa-brands fa-python",
+            "type": "fontawesome",
         },
         {
             "name": "Conda",
@@ -53,20 +85,52 @@ html_theme_options = {
             "type": "fontawesome",
         },
     ],
+    "announcement": "https://raw.githubusercontent.com/gee-community/geetools/main/docs/_static/banner.html",
+    "secondary_sidebar_items": [
+        "page-toc.html",
+        "edit-this-page.html",
+    ],
+    "article_footer_items": ["last-updated"],
+    "footer_end": ["theme-version", "pypackage-credit"],
+    "show_toc_level": 2,
 }
 html_context = {
     "github_user": "gee-community",
     "github_repo": "geetools",
-    "github_version": "",
+    "github_version": "main",
     "doc_path": "docs",
 }
 html_css_files = ["custom.css"]
+html_js_files = ["custom-icon.js"]
 
 # -- Options for autosummary/autodoc output ------------------------------------
 autodoc_typehints = "description"
 autoapi_dirs = ["../geetools"]
-autoapi_python_class_content = "init"
+autoapi_python_class_content = "both"
 autoapi_member_order = "groupwise"
+autoapi_template_dir = "_template"
+autoapi_options = [
+    "members",
+    "undoc-members",
+    "show-inheritance",
+    "show-module-summary",
+    "special-members",
+]
+autoapi_own_page_level = "method"
+autoapi_keep_files = False
 
 # -- Options for intersphinx output --------------------------------------------
-intersphinx_mapping = {}
+# fmt: off
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
+    "ee": ("https://developers.google.com/earth-engine/apidocs", "https://raw.githubusercontent.com/gee-community/sphinx-inventory/refs/heads/main/inventory/earthengine-api.inv"),
+}
+# fmt: on
+
+# -- options for the autolabel extension ---------------------------------------
+autosectionlabel_prefix_document = True
+
+# -- options for myst-nb ------------------------------------------------------
+nb_execution_mode = "force"
+nb_execution_timeout = 120

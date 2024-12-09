@@ -80,6 +80,7 @@ testpaths = "tests"
 [tool.ruff]
 line-length = 100
 fix = true
+extend-exclude = ["geetools/__init__.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "D", "RUF"]
@@ -96,7 +97,6 @@ docstring-quotes = "double"
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"geetools/__init__.py" = ["F401"] # import but unused | that used to work with ignore_init_import
 "tests/*" = ["D102"] # Missing docstring in public method | this is test who cares
 
 [tool.coverage.run]
