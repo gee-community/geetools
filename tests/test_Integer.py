@@ -1,4 +1,5 @@
 """Test the Integer placeholder object."""
+
 import ee
 import pytest
 

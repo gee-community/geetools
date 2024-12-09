@@ -1,4 +1,5 @@
 """Extra tools for the ``ee.DateRange`` class."""
+
 from __future__ import annotations
 
 import ee

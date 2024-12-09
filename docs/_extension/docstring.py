@@ -1,4 +1,5 @@
 """A docstring role to read the docstring from a Python method."""
+
 from __future__ import annotations
 
 import inspect

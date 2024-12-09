@@ -1,4 +1,5 @@
 """An Asset management class mimicking the ``pathlib.Path`` class behaviour."""
+
 from __future__ import annotations
 
 import os
@@ -74,7 +75,7 @@ class Asset(os.PathLike):
         return self.as_posix()
 
     def __hash__(self):
-        """make the Asset object hashable."""
+        """Make the Asset object hashable."""
         return hash(self.as_posix())
 
     def __getattr__(self, name):
@@ -615,7 +616,6 @@ class Asset(os.PathLike):
 
         is_container = self.is_folder() or self.is_image_collection()
         if recursive is True and is_container:
-
             # get all the assets
             asset_list = self.iterdir(recursive=True)
 

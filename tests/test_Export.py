@@ -1,4 +1,5 @@
 """Test the ``Export`` class."""
+
 import ee
 import pytest
 from ee.cli.utils import wait_for_task

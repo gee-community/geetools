@@ -57,6 +57,7 @@ elif version_match == "stable":
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
+templates_path = ["_template"]
 html_logo = "_static/logo.png"
 html_favicon = "_static/logo.png"
 html_theme_options = {
@@ -90,11 +91,7 @@ html_theme_options = {
         "edit-this-page.html",
     ],
     "article_footer_items": ["last-updated"],
-    # remove the switcher for now as the version management is not satisfying
-    # "switcher": {
-    #    "json_url": json_url,
-    #    "version_match": version_match,
-    # },
+    "footer_end": ["theme-version", "pypackage-credit"],
     "show_toc_level": 2,
 }
 html_context = {
@@ -111,7 +108,7 @@ autodoc_typehints = "description"
 autoapi_dirs = ["../geetools"]
 autoapi_python_class_content = "both"
 autoapi_member_order = "groupwise"
-autoapi_template_dir = "_templates"
+autoapi_template_dir = "_template"
 autoapi_options = [
     "members",
     "undoc-members",

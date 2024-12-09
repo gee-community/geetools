@@ -1,5 +1,6 @@
 # coding=utf-8
 """legacy Module holding tools for ee.ImageCollections."""
+
 import ee
 from deprecated.sphinx import deprecated
 
@@ -47,7 +48,7 @@ def reduceDayIntervals(collection, reducer, interval=30, reverse=False, buffer="
 
 @deprecated(version="1.4.0", reason="Removed from the lib as untested")
 def linearFunctionBand(*args, **kwargs):
-    """Apply a linear function over the bands across every image of the ImageCollection"""
+    """Apply a linear function over the bands across every image of the ImageCollection."""
     raise NotImplementedError(
         "As it was vastly untested this method has been removed from the lib."
         "If a real use case for this method can be provided, please open an issue and we'll reimplement it."
@@ -56,7 +57,7 @@ def linearFunctionBand(*args, **kwargs):
 
 @deprecated(version="1.4.0", reason="Removed from the lib as untested")
 def linearFunctionProperty(*args, **kwargs):
-    """Apply a linear function over the properties across every image of the ImageCollection"""
+    """Apply a linear function over the properties across every image of the ImageCollection."""
     raise NotImplementedError(
         "As it was vastly untested this method has been removed from the lib."
         "If a real use case for this method can be provided, please open an issue and we'll reimplement it."
@@ -92,7 +93,7 @@ def gaussFunctionProperty(*args, **kwargs):
 
 @deprecated(version="1.4.0", reason="Removed from the lib as untested.")
 def normalDistributionProperty(*args, **kwargs):
-    """Compute a normal distribution using a specified property, over an ImageCollection"""
+    """Compute a normal distribution using a specified property, over an ImageCollection."""
     raise NotImplementedError(
         "As it was vastly untested this method has been removed from the lib."
         "If a real use case for this method can be provided, please open an issue and we'll reimplement it."

@@ -1,4 +1,5 @@
 """Test the Array class methods."""
+
 import ee
 
 

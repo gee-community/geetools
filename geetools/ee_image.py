@@ -1,4 +1,5 @@
 """Toolbox for the ``ee.Image`` class."""
+
 from __future__ import annotations
 
 from typing import Optional
@@ -2066,7 +2067,7 @@ class ImageAccessor:
         # the values are treated the same way we simply drop the last duplication to get the same size.
         p = 10**precision  # multiplier use to truncate the float values
         x = [int(d[0] * p) / p for d in raw_data[labels[0]] for _ in range(2)][1:]
-        data = {l: [int(d[1]) for d in raw_data[l] for _ in range(2)][:-1] for l in labels}
+        data = {e: [int(d[1]) for d in raw_data[e] for _ in range(2)][:-1] for e in labels}
 
         # create the graph objcet if not provided
         if ax is None:

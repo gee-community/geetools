@@ -1,4 +1,5 @@
 """Test cases for the Asset class."""
+
 import os
 from unittest.mock import patch
 

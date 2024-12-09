@@ -1,5 +1,8 @@
 """A directive to generate an API admonition."""
+
 from __future__ import annotations
+
+from typing import ClassVar
 
 from docutils import nodes
 from docutils.parsers.rst import directives
@@ -17,10 +20,12 @@ class api_node(nodes.Admonition, nodes.Element):
 
 
 def visit_api_node(self: HTML5Translator, node: api_node) -> None:
+    """Visit the api node."""
     self.visit_admonition(node)
 
 
 def depart_api_node(self: HTML5Translator, node: api_node) -> None:
+    """Depart from the api node."""
     self.depart_admonition(node)
 
 
@@ -32,12 +37,13 @@ class APIAdmonitionDirective(BaseAdmonition, SphinxDirective):
     required_arguments = 0
     optional_arguments = 0
     final_argument_whitespace = False
-    option_spec = {
+    option_spec: ClassVar = {
         "class": directives.class_option,
         "name": directives.unchanged,
     }
 
     def run(self) -> list[nodes.Node]:
+        """Run the directive."""
         if not self.options.get("class"):
             self.options["class"] = ["admonition-api"]
 

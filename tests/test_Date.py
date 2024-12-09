@@ -1,4 +1,5 @@
 """Test the Date class methods."""
+
 import ee
 import pytest
 

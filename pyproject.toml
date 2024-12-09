@@ -51,12 +51,7 @@ content-type = "text/x-rst"
 Homepage = "https://github.com/gee-community/geetools"
 
 [project.optional-dependencies]
-"dev" = [
-    "pre-commit",
-    "nox",
-    "commitizen"
-]
-"test" = [
+test = [
     "pytest",
     "pytest-cov",
     "pytest-deadfixtures",
@@ -71,7 +66,7 @@ doc = [
   "pydata-sphinx-theme",
   "sphinx-copybutton",
   "sphinx-design",
-  "sphinx-autoapi==3.1.0a3",  # until v3.1 is released with the single page fix
+  "sphinx-autoapi>=3.1",  # single page implementation
   "ipykernel",
   "httplib2",
   "jupyter-sphinx",
@@ -88,40 +83,9 @@ only-include = ["geetools"]
 dependencies = [
   "pre-commit",
   "commitizen",
-  "nox"
+  "nox[uv]"
 ]
 post-install-commands = ["pre-commit install"]
-
-[tool.licensecheck]
-using = "PEP631:test;dev;doc"
-
-[tool.ruff]
-ignore-init-module-imports = true
-fix = true
-select = ["E", "F", "W", "I", "D", "RUF"]
-extend-exclude = ["geetools/__init__.py", "geetools/tools/_deprecated_imagecollection.py"]
-force-exclude = true # to make sure exclude is respected when used via pre-commit
-ignore = [
-  "E501",  # line too long | Black take care of it
-  "D213",  # Multi-line docstring | We use D212
-  "E741",  # Ambiguous variable name: `l` | TODO
-]
-
-[tool.ruff.flake8-quotes]
-docstring-quotes = "double"
-
-[tool.ruff.pydocstyle]
-convention = "google"
-
-[tool.ruff.per-file-ignores]
-"tests/*" = ["D102"] # Missing docstring in public method | this is test who cares
-
-[tool.pytest.ini_options]
-testpaths = "tests"
-
-[tool.coverage.run]
-source = ["geetools"]
-branch = true
 
 [tool.commitizen]
 tag_format = "v$major.$minor.$patch$prerelease"
@@ -131,13 +95,37 @@ version_files = [
     "pyproject.toml:version",
     "geetools/__init__.py:__version__",
     "docs/conf.py:release",
+    "CITATION.cff:version"
 ]
 
-[tool.codespell]
-skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb,**/*.yml"
+[tool.pytest.ini_options]
+testpaths = "tests"
 
-[tool.black]
+[tool.ruff]
 line-length = 100
+fix = true
+extend-exclude = ["geetools/__init__.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "D", "RUF"]
+ignore = [
+  "E501",  # line too long | Black take care of it
+  "D212",  # Multi-line docstring | We use D213
+  "D101",  # Missing docstring in public class | We use D106
+]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D102"] # Missing docstring in public method | this is test who cares
+
+[tool.coverage.run]
+source = ["geetools"]
+branch = true
 
 [tool.mypy]
 scripts_are_modules = true
@@ -145,3 +133,6 @@ ignore_missing_imports = true
 install_types = true
 non_interactive = true
 warn_redundant_casts = true
+
+[tool.codespell]
+skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb,**/*.yml"

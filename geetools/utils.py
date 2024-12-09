@@ -1,4 +1,5 @@
 """Utils methods for file and asset manipulation in the context of batch processing."""
+
 from __future__ import annotations
 
 import os

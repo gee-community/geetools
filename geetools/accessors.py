@@ -1,4 +1,5 @@
 """Generic accessor to add extra function to the base GEE API classes."""
+
 from __future__ import annotations
 
 from typing import Callable
@@ -49,7 +50,6 @@ def register_function_accessor(func: type, name: str) -> Callable:
     """
 
     def decorator(accessor: Callable) -> object:
-
         # check if the accessor already exists for this class
         if hasattr(func, name):
             raise AttributeError(f"Member {name} already exists for {func}")

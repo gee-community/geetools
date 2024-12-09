@@ -1,4 +1,5 @@
 """Tools for the ``ee.Initialize`` function."""
+
 from __future__ import annotations
 
 import json

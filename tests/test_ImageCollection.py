@@ -1,4 +1,5 @@
 """Test the ImageCollection class."""
+
 from __future__ import annotations
 
 import io
@@ -22,7 +23,7 @@ def reduce(
     return image.reduceRegion(ee.Reducer.mean(), geometry, 1)
 
 
-def round_dict(d: dict = None, decimals: int = 2) -> dict:
+def round_dict(d: dict | None = None, decimals: int = 2) -> dict:
     """Round all the values of a dictionary."""
     d = d or {}
     for k, v in d.items():

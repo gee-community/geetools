@@ -1,4 +1,5 @@
 """Test the List class methods."""
+
 import ee
 
 
@@ -67,11 +68,11 @@ class TestSequence:
 
     def test_sequence_with_step(self):
         seq = ee.List.geetools.sequence(1, 10, 2)
-        assert seq.getInfo() == list(range(1, 11, 2)) + [10]
+        assert seq.getInfo() == [*list(range(1, 11, 2)), 10]
 
     def test_sequence_with_uneven_step(self):
         seq = ee.List.geetools.sequence(1, 10, 3)
-        assert seq.getInfo() == list(range(1, 10, 3)) + [10]
+        assert seq.getInfo() == [*list(range(1, 10, 3)), 10]
 
     def test_sequence_with_0_step(self):
         seq = ee.List.geetools.sequence(1, 10, 0)

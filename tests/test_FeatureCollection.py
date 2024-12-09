@@ -1,4 +1,5 @@
 """Test the ``FeatureCollection`` class."""
+
 import io
 
 import ee

@@ -1,6 +1,5 @@
 """Test all the deprecated methods that have not been kept in the new implementation."""
 
-
 import pytest
 
 import geetools

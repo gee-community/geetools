@@ -1,4 +1,5 @@
 """A profiler context manager for Earth Engine Python API."""
+
 from __future__ import annotations
 
 import io

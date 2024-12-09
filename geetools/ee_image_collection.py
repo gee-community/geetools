@@ -1,4 +1,5 @@
 """Toolbox for the ``ee.ImageCollection`` class."""
+
 from __future__ import annotations
 
 import uuid
@@ -1214,6 +1215,7 @@ class ImageCollectionAccessor:
             reduced = collection.geetools.datesByRegions("B1", regions, "name", "mean", 10000, "system:time_start")
             print(reduced.getInfo())
         """
+
         # aggregate all the dates of the image collection into bands of a single image
         def to_string(date: ee.Date) -> ee.String:
             return ee.Date(date).format(EE_DATE_FORMAT)
@@ -1766,7 +1768,7 @@ class ImageCollectionAccessor:
         def to_date(dict):
             return {dt.strptime(d, PY_DATE_FORMAT): v for d, v in dict.items()}
 
-        data = {l: to_date(dict) for l, dict in raw_data.items()}
+        data = {e: to_date(dict) for e, dict in raw_data.items()}
 
         # create the plot
         ax = plot_data("date", data, "Date", colors, ax)
@@ -1853,7 +1855,7 @@ class ImageCollectionAccessor:
         def to_date(dict):
             return {dt.strptime(d, PY_DATE_FORMAT): v for d, v in dict.items()}
 
-        data = {l: to_date(dict) for l, dict in raw_data.items()}
+        data = {e: to_date(dict) for e, dict in raw_data.items()}
 
         # create the plot
         ax = plot_data("date", data, "Date", colors, ax)
@@ -1945,7 +1947,7 @@ class ImageCollectionAccessor:
         def to_int(d):
             return {int(k): v for k, v in d.items()}
 
-        data = {l: dict(sorted(to_int(raw_data[l]).items())) for l in raw_data}
+        data = {e: dict(sorted(to_int(raw_data[e]).items())) for e in raw_data}
 
         # create the plot
         ax = plot_data("doy", data, "Day of Year", colors, ax)
@@ -2035,7 +2037,7 @@ class ImageCollectionAccessor:
         def to_int(d):
             return {int(k): v for k, v in d.items()}
 
-        data = {l: dict(sorted(to_int(raw_data[l]).items())) for l in raw_data}
+        data = {e: dict(sorted(to_int(raw_data[e]).items())) for e in raw_data}
 
         # create the plot
         ax = plot_data("doy", data, "Day of Year", colors, ax)
@@ -2144,7 +2146,7 @@ class ImageCollectionAccessor:
         def to_int(d):
             return {int(k): v for k, v in d.items()}
 
-        data = {l: dict(sorted(to_int(raw_data[l]).items())) for l in raw_data}
+        data = {i: dict(sorted(to_int(raw_data[i]).items())) for i in raw_data}
 
         # create the plot
         ax = plot_data("doy", data, "Day of Year", colors, ax)

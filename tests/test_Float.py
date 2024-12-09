@@ -1,4 +1,5 @@
 """Test the Float placeholder object."""
+
 import ee
 import pytest
 

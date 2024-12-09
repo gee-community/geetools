@@ -1,4 +1,5 @@
 """Test the ee_profiler module."""
+
 import ee
 
 import geetools  # noqa: F401

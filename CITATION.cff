@@ -1,0 +1,13 @@
+cff-version: "1.2.0"
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Esteban Principe"
+    given-names: "Rodrigo"
+  - family-names: "Rambaud"
+    given-names: "Pierrick"
+    orcid: "https://orcid.org/0000-0001-8764-5749"
+title: "geetools"
+version: "1.9.1"
+doi: ""
+date-released: "2017-11-15"
+url: "https://github.com/gee-community/geetools"
