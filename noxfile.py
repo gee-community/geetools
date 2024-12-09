@@ -49,7 +49,7 @@ def docs(session):
     session.run("sphinx-build", "-v", "-b", build, "docs", dst)
 
 
-@nox.session(name="mypy", reuse_venv=True, venv_backend="uv")
+@nox.session(name="mypy", reuse_venv=True)
 def mypy(session):
     """Run a mypy check of the lib."""
     session.install("mypy")
