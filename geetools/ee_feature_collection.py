@@ -17,6 +17,7 @@ class GeoInterface(Protocol):
 
     @property
     def __geo_interface__(self) -> dict:
+        """The protocol must implement a ``__geo_interface__`` property."""
         ...
 
 
