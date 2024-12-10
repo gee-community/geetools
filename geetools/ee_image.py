@@ -1506,7 +1506,6 @@ class ImageAccessor:
             fig, ax = plt.subplots()
 
         # extract the image as a xarray dataset
-        # image = self._obj.reproject(crs=crs, scale=scale)
         ds = xarray.open_dataset(
             ee.ImageCollection([self._obj]),
             engine="ee",
