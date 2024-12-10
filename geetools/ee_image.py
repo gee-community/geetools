@@ -1486,7 +1486,7 @@ class ImageAccessor:
             ax: The matplotlib axis to plot the image on.
             fc: a FeatureCollection object to overlay on top of the image. Default is None, it can be a different object from the region.
             cmap: The colormap to use for the image. Default is 'viridis'. can only ber used for single band images.
-            crs: The coordinate reference system of the image. if not set we use the projection of the first band.
+            crs: The coordinate reference system of the image. by default we will use EPSG:4326
             scale: The scale of the image.
             color: The color of the overlaid feature collection. Default is "k" (black).
 
@@ -1505,10 +1505,6 @@ class ImageAccessor:
         if ax is None:
             fig, ax = plt.subplots()
 
-        # compute the crs from the image if necessary
-        if crs == "":
-            crs = self._obj.projection().crs().getInfo()
-
         # extract the image as a xarray dataset
         ds = xarray.open_dataset(
             ee.ImageCollection([self._obj]),
@@ -1524,7 +1520,7 @@ class ImageAccessor:
         bands_da = [ds[b][0, :, :].transpose() for b in bands]
 
         # compute the extend of the image so the unit displayed for x and y are matching the required crs
-        proj = Transformer.from_crs(CRS("EPSG:4326"), CRS(crs), always_xy=False)
+        proj = Transformer.from_crs(CRS("EPSG:4326"), CRS(crs), always_xy=True)
         region_bounds = region.bounds().coordinates().get(0).getInfo()
         min_x, min_y = proj.transform(*region_bounds[0])
         max_x, max_y = proj.transform(*region_bounds[2])
