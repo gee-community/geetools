@@ -516,7 +516,7 @@ class FeatureCollectionAccessor:
             gdf.plot(column=property, ax=ax, cmap=cmap)
 
     @classmethod
-    def fromGeoInterface(cls, data: dict | _GeoInterface) -> ee.FeatureCollection:
+    def fromGeoInterface(cls, data: dict | GeoInterface) -> ee.FeatureCollection:
         """Create a FeatureCollection from a geo interface.
 
         The ``geo_interface`` is a protocol representing a vector collection as a python GeoJSON-like dictionary structure.
