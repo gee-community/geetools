@@ -12,7 +12,7 @@ from .accessors import register_class_accessor
 from .utils import plot_data
 
 
-class _GeoInterface(Protocol):
+class GeoInterface(Protocol):
     """Protocol that implement at least a ``__geo_interface__`` property."""
 
     @property
