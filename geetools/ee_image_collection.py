@@ -881,6 +881,8 @@ class ImageCollectionAccessor:
                 split = collection.geetools.groupInterval("month", 1)
                 print(split.getInfo())
         """
+        sizeName = "__geetools_generated_size__"  # set generated properties name
+
         # as everything is relyin on the "system:time_start" property
         # we sort the image collection in the first place. In most collection it will change nothing
         # so free of charge unless for plumbing
@@ -895,8 +897,6 @@ class ImageCollectionAccessor:
         imageCollectionList = DateRangeList.map(
             lambda dr: ic.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
         )
-
-        sizeName = "__geetools_generated_size__"
 
         def add_size(ic):
             ic = ee.ImageCollection(ic)
