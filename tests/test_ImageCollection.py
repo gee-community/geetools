@@ -299,7 +299,7 @@ class TestGroupInterval:
 
     def test_group_interval_drop_empty_collections(self, s2_sr):
         ic = s2_sr.filterDate("2021-01-01", "2021-01-07")
-        grouped: ee.List = ic.geetools.groupInterval(duration=1, unit="day")
+        grouped = ic.geetools.groupInterval(duration=1, unit="day")
         # Each collection must not be empty
         for i in range(grouped.size().getInfo()):
             imgCollection = ee.ImageCollection(grouped.get(i))
