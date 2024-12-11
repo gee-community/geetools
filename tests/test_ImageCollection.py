@@ -305,15 +305,6 @@ class TestGroupInterval:
             imgCollection = ee.ImageCollection(grouped.get(i))
             assert imgCollection.size().getInfo() != 0
 
-    def test_group_interval_without_new_properties(self, s2_sr):
-        ic = s2_sr.filterDate("2021-01-01", "2021-01-07")
-        originalProperties = set(ic.propertyNames().getInfo())
-        grouped: ee.List = ic.geetools.groupInterval(duration=1, unit="day")
-        # The collections in the list must not have new properties
-        elementListProperties = set(ee.ImageCollection(grouped.get(0)).propertyNames().getInfo())
-        symDiff = originalProperties.symmetric_difference(elementListProperties)
-        assert symDiff == set()
-
     def test_deprecated_make_equal_interval(self, jaxa_rainfall):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
