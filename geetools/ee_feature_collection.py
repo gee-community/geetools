@@ -1,6 +1,8 @@
 """Toolbox for the `ee.FeatureCollection` class."""
 from __future__ import annotations
 
+from typing import Protocol
+
 import ee
 import geopandas as gpd
 from matplotlib import pyplot as plt
@@ -8,6 +10,15 @@ from matplotlib.axes import Axes
 
 from .accessors import register_class_accessor
 from .utils import plot_data
+
+
+class GeoInterface(Protocol):
+    """Protocol that implement at least a ``__geo_interface__`` property."""
+
+    @property
+    def __geo_interface__(self) -> dict:
+        """The protocol must implement a ``__geo_interface__`` property."""
+        ...
 
 
 @register_class_accessor(ee.FeatureCollection, "geetools")
@@ -669,3 +680,51 @@ class FeatureCollectionAccessor:
             gdf.boundary.plot(ax=ax, color=color)
         else:
             gdf.plot(column=property, ax=ax, cmap=cmap)
+
+    @classmethod
+    def fromGeoInterface(cls, data: dict | GeoInterface) -> ee.FeatureCollection:
+        """Create a FeatureCollection from a geo interface.
+
+        The ``geo_interface`` is a protocol representing a vector collection as a python GeoJSON-like dictionary structure.
+        More information is available at https://gist.github.com/sgillies/2217756. Note that the :py:class:`ee.FeatureCollection`
+        constructor is only supporting data represented in EPSG:4326.
+
+        The user can either provide an object that implements the ``__geo_interface__`` method or a dictionary
+        that respects the protocol described in the link above.
+
+        Parameters:
+            data: The geo_interface to create the FeatureCollection from.
+            crs: The CRS to use for the FeatureCollection. Default to "EPSG:4326".
+
+        Returns:
+            The created FeatureCollection.
+
+        Examples:
+            code-block:: python
+
+                import geetools
+
+                data = {
+                    "type": "FeatureCollection",
+                    "features": [
+                        {
+                            "type": "Feature",
+                            "properties": {"name": "Coors Field"},
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [-104.99404, 39.75621]
+                            }
+                        }
+                    ]
+                }
+
+                fc = ee.FeatureCollection.geetools.fromGeoInterface(data, crs="EPSG:4326")
+        """
+        # clean the data
+        if hasattr(data, "__geo_interface__"):
+            data = data.__geo_interface__
+        elif not isinstance(data, dict):
+            raise ValueError("The data must be a geo_interface or a dictionary")
+
+        # create the feature collection
+        return ee.FeatureCollection(data)

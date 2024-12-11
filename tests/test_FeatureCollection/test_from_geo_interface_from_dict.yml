@@ -1,0 +1,14 @@
+columns:
+  name: String
+  system:index: String
+features:
+- geometry:
+    coordinates:
+    - -104.99404
+    - 39.75621
+    type: Point
+  id: '0'
+  properties:
+    name: Coors Field
+  type: Feature
+type: FeatureCollection
