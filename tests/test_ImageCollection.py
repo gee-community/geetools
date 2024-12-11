@@ -297,6 +297,23 @@ class TestGroupInterval:
         assert grouped.size().getInfo() == 3
         assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 24
 
+    def test_group_interval_drop_empty_collections(self, s2_sr):
+        ic = s2_sr.filterDate("2021-01-01", "2021-01-07")
+        grouped: ee.List = ic.geetools.groupInterval(duration=1, unit="day")
+        # Each collection must not be empty
+        for i in range(grouped.size().getInfo()):
+            imgCollection = ee.ImageCollection(grouped.get(i))
+            assert imgCollection.size().getInfo() != 0
+
+    def test_group_interval_without_new_properties(self, s2_sr):
+        ic = s2_sr.filterDate("2021-01-01", "2021-01-07")
+        originalProperties = set(ic.propertyNames().getInfo())
+        grouped: ee.List = ic.geetools.groupInterval(duration=1, unit="day")
+        # The collections in the list must not have new properties
+        elementListProperties = set(ee.ImageCollection(grouped.get(0)).propertyNames().getInfo())
+        symDiff = originalProperties.symmetric_difference(elementListProperties)
+        assert symDiff == set()
+
     def test_deprecated_make_equal_interval(self, jaxa_rainfall):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
@@ -339,6 +356,16 @@ class TestReduceInterval:
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         with pytest.raises(AttributeError):
             ic.geetools.reduceInterval("toto")
+
+    def test_reduce_interval_with_empty_days(self, s2_sr):
+        ic = s2_sr.filterDate("2021-01-01", "2021-01-07")
+        # Assert that this
+        try:
+            reduced: ee.ImageCollection = ic.geetools.reduceInterval("mean", duration=1, unit="day")
+            # Call the server
+            reduced.getInfo()
+        except ee.EEException:
+            pytest.fail("An error occurs on the server, due to empty collections.")
 
     def test_deprecated_reduce_equal_interval(self, jaxa_rainfall, amazonas, num_regression):
         # get 3 month worth of data and group it with default parameters
