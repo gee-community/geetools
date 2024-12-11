@@ -887,6 +887,7 @@ class ImageCollectionAccessor:
         # we sort the image collection in the first place. In most collection it will change nothing
         # so free of charge unless for plumbing
         ic = self._obj.sort("system:time_start")
+        toCopy = ic.first().propertyNames()
 
         # transform the interval into a duration in milliseconds
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
@@ -897,8 +898,6 @@ class ImageCollectionAccessor:
         imageCollectionList = DateRangeList.map(
             lambda dr: ic.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
         )
-
-        toCopy = imageCollectionList.first().propertyNames()
 
         def add_size(ic):
             ic = ee.ImageCollection(ic)
