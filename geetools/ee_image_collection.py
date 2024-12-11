@@ -898,16 +898,15 @@ class ImageCollectionAccessor:
             lambda dr: ic.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
         )
 
+        toCopy = imageCollectionList.first().propertyNames()
+
         def add_size(ic):
             ic = ee.ImageCollection(ic)
             return ic.set({sizeName: ic.size()})
 
         def delete_size_property(ic):
             ic = ee.ImageCollection(ic)
-            propertiesToCopy = ic.propertyNames().remove(sizeName)
-            return ee.ImageCollection(ic.toList(ic.size())).copyProperties(
-                ic, properties=propertiesToCopy
-            )
+            return ee.ImageCollection(ic.copyProperties(ic, properties=toCopy))
 
         imageCollectionList = (
             imageCollectionList.map(add_size)
