@@ -896,6 +896,25 @@ class ImageCollectionAccessor:
             lambda dr: ic.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
         )
 
+        sizeName = "__geetools_generated_size__"
+
+        def add_size(ic):
+            ic = ee.ImageCollection(ic)
+            return ic.set({sizeName: ic.size()})
+
+        def delete_size_property(ic):
+            ic = ee.ImageCollection(ic)
+            propertiesToCopy = ic.propertyNames().remove(sizeName)
+            return ee.ImageCollection(ic.toList(ic.size())).copyProperties(
+                ic, properties=propertiesToCopy
+            )
+
+        imageCollectionList = (
+            imageCollectionList.map(add_size)
+            .filter(ee.Filter.gt(sizeName, 0))
+            .map(delete_size_property)
+        )
+
         return ee.List(imageCollectionList)
 
     def reduceInterval(
