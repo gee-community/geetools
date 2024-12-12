@@ -350,13 +350,8 @@ class TestReduceInterval:
 
     def test_reduce_interval_with_empty_days(self, s2_sr):
         ic = s2_sr.filterDate("2021-01-01", "2021-01-07")
-        # Assert that this
-        try:
-            reduced: ee.ImageCollection = ic.geetools.reduceInterval("mean", duration=1, unit="day")
-            # Call the server
-            reduced.getInfo()
-        except ee.EEException:
-            pytest.fail("An error occurs on the server, due to empty collections.")
+        resultSize = ic.geetools.reduceInterval("mean", duration=1, unit="day").size().getInfo()
+        assert resultSize == 3
 
     def test_deprecated_reduce_equal_interval(self, jaxa_rainfall, amazonas, num_regression):
         # get 3 month worth of data and group it with default parameters
