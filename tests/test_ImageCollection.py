@@ -716,7 +716,7 @@ class TestReduceRegion:
 class TestReduceRegions:
     """Test the ``reduceRegion`` method."""
 
-    def test_reduce_regions_by_dates(self, dictionary_regression):
+    def test_reduce_regions_by_dates(self, ee_dictionary_regression):
         values = self.collection.geetools.reduceRegions(
             reducer=ee.Reducer.mean(),
             idProperty="system:time_start",
@@ -725,9 +725,9 @@ class TestReduceRegions:
             scale=500,
         )
         values = values.geetools.toDictionary()
-        dictionary_regression.check(values)
+        ee_dictionary_regression.check(values)
 
-    def test_reduce_regions_by_date_property(self, dictionary_regression):
+    def test_reduce_regions_by_date_property(self, ee_dictionary_regression):
         values = self.collection.geetools.reduceRegions(
             reducer=ee.Reducer.mean(),
             idProperty="system:time_start",
@@ -737,9 +737,9 @@ class TestReduceRegions:
             scale=500,
         )
         values = values.geetools.toDictionary()
-        dictionary_regression.check(values)
+        ee_dictionary_regression.check(values)
 
-    def test_reduce_regions_by_doy(self, dictionary_regression):
+    def test_reduce_regions_by_doy(self, ee_dictionary_regression):
         values = self.year_collection.geetools.reduceRegions(
             reducer=ee.Reducer.mean(),
             idProperty="system:time_start",
@@ -749,7 +749,7 @@ class TestReduceRegions:
             scale=500,
         )
         values = values.geetools.toDictionary()
-        dictionary_regression.check(values)
+        ee_dictionary_regression.check(values)
 
     @property
     def region(self):
