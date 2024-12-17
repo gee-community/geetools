@@ -1,6 +1,7 @@
 """Toolbox for the ``ee.ImageCollection`` class."""
 from __future__ import annotations
 
+import functools
 import uuid
 from datetime import datetime as dt
 
@@ -850,6 +851,11 @@ class ImageCollectionAccessor:
         values = keys.map(lambda p: self._obj.aggregate_array(p))
         return ee.Dictionary.fromLists(keys, values)
 
+    @functools.cached_property
+    def __geetools_generated_size__(self) -> str:
+        """Returns the generated name for the size."""
+        return uuid.uuid4().hex
+
     def groupInterval(self, unit: str = "month", duration: int = 1) -> ee.List:
         """Transform the ImageCollection into a list of smaller collection of the specified duration.
 
@@ -881,7 +887,7 @@ class ImageCollectionAccessor:
                 split = collection.geetools.groupInterval("month", 1)
                 print(split.getInfo())
         """
-        sizeName = "__geetools_generated_size__"  # set generated properties name
+        sizeName = self.__geetools_generated_size__  # set generated properties name
 
         # as everything is relyin on the "system:time_start" property
         # we sort the image collection in the first place. In most collection it will change nothing
