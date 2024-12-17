@@ -893,7 +893,7 @@ class ImageCollectionAccessor:
         # we sort the image collection in the first place. In most collection it will change nothing
         # so free of charge unless for plumbing
         ic = self._obj.sort("system:time_start")
-        toCopy = ic.first().propertyNames()
+        ic.first().propertyNames()
 
         # transform the interval into a duration in milliseconds
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
@@ -909,15 +909,7 @@ class ImageCollectionAccessor:
             ic = ee.ImageCollection(ic)
             return ic.set({sizeName: ic.size()})
 
-        def delete_size_property(ic):
-            ic = ee.ImageCollection(ic)
-            return ee.ImageCollection(ic.copyProperties(ic, properties=toCopy))
-
-        imageCollectionList = (
-            imageCollectionList.map(add_size)
-            .filter(ee.Filter.gt(sizeName, 0))
-            .map(delete_size_property)
-        )
+        imageCollectionList = imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0))
 
         return ee.List(imageCollectionList)
 
