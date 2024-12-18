@@ -84,7 +84,7 @@ class DictionaryAccessor:
         return ee.List(list).map(lambda key: self._obj.get(key))
 
     def toTable(self, valueType: ee.List | ee.Dictionary | Any = Any) -> ee.FeatureCollection:
-        """Convert a ee.Dictionary to a ee.FeatureCollection with no geometries (table).
+        """Convert a :py:class:`ee.Dictionary` to a :py:class:`ee.FeatureCollection` with no geometries (table).
 
         The keys will always be stored in `system:index` column.
 
