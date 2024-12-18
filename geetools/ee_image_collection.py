@@ -1,7 +1,6 @@
 """Toolbox for the ``ee.ImageCollection`` class."""
 from __future__ import annotations
 
-import functools
 import uuid
 from datetime import datetime as dt
 
@@ -851,11 +850,6 @@ class ImageCollectionAccessor:
         values = keys.map(lambda p: self._obj.aggregate_array(p))
         return ee.Dictionary.fromLists(keys, values)
 
-    @functools.cached_property
-    def __geetools_generated_size__(self) -> str:
-        """Returns the generated name for the size."""
-        return uuid.uuid4().hex
-
     def groupInterval(self, unit: str = "month", duration: int = 1) -> ee.List:
         """Transform the ImageCollection into a list of smaller collection of the specified duration.
 
@@ -887,13 +881,13 @@ class ImageCollectionAccessor:
                 split = collection.geetools.groupInterval("month", 1)
                 print(split.getInfo())
         """
-        sizeName = self.__geetools_generated_size__  # set generated properties name
+        sizeName = "__geetools_generated_size__"  # set generated properties name
 
         # as everything is relyin on the "system:time_start" property
         # we sort the image collection in the first place. In most collection it will change nothing
         # so free of charge unless for plumbing
         ic = self._obj.sort("system:time_start")
-        ic.first().propertyNames()
+        toCopy = ic.first().propertyNames()
 
         # transform the interval into a duration in milliseconds
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
@@ -909,7 +903,15 @@ class ImageCollectionAccessor:
             ic = ee.ImageCollection(ic)
             return ic.set({sizeName: ic.size()})
 
-        imageCollectionList = imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0))
+        def delete_size_property(ic):
+            ic = ee.ImageCollection(ic)
+            return ee.ImageCollection(ic.copyProperties(ic, properties=toCopy))
+
+        imageCollectionList = (
+            imageCollectionList.map(add_size)
+            .filter(ee.Filter.gt(sizeName, 0))
+            .map(delete_size_property)
+        )
 
         return ee.List(imageCollectionList)
 
