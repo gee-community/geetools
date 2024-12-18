@@ -232,12 +232,12 @@ class ImageCollectionAccessor:
         Examples:
             .. jupyter-execute::
 
-            import ee
-            import geetools
+                import ee
+                import geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            ee.ImageCollection('MODIS/006/MOD11A2').getOffsetParams()
+                ee.ImageCollection('MODIS/006/MOD11A2').getOffsetParams()
         """
         return ee_extra.STAC.core.getOffsetParams(self._obj)
 
@@ -270,11 +270,11 @@ class ImageCollectionAccessor:
         Examples:
             .. jupyter-execute::
 
-            import ee
-            import geetools
+                import ee
+                import geetools
 
-            ee.Initialize()
-            S2 = ee.ImageCollection('COPERNICUS/S2_SR').preprocess()
+                ee.Initialize()
+                S2 = ee.ImageCollection('COPERNICUS/S2_SR').preprocess()
         """
         return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
@@ -287,12 +287,12 @@ class ImageCollectionAccessor:
         Examples:
             .. jupyter-execute::
 
-            import ee
-            import geetools
+                import ee
+                import geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            ee.ImageCollection('COPERNICUS/S2_SR').getSTAC()
+                ee.ImageCollection('COPERNICUS/S2_SR').getSTAC()
         """
         # extract the Asset id from the imagecollection
         assetId = self._obj.get("system:id").getInfo()
@@ -706,6 +706,7 @@ class ImageCollectionAccessor:
 
         Examples:
             .. jupyter-execute::
+
                 import ee, LDCGEETools
                 collection = (
                     ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
@@ -1196,23 +1197,23 @@ class ImageCollectionAccessor:
         Examples:
             .. jupyter-execute::
 
-            import ee, geetools
+                import ee, geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            collection = (
-                ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
-                .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
-                .filterDate("2014-01-01", "2014-12-31")
-            )
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
 
-            regions = ee.FeatureCollection([
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
-            ])
+                regions = ee.FeatureCollection([
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
+                ])
 
-            reduced = collection.geetools.datesByRegions("B1", regions, "name", "mean", 10000, "system:time_start")
-            print(reduced.getInfo())
+                reduced = collection.geetools.datesByRegions("B1", regions, "name", "mean", 10000, "system:time_start")
+                print(reduced.getInfo())
         """
         # aggregate all the dates of the image collection into bands of a single image
         def to_string(date: ee.Date) -> ee.String:
@@ -1819,22 +1820,22 @@ class ImageCollectionAccessor:
         Examples:
             .. jupyter-execute::
 
-            import ee, geetools
+                import ee, geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            collection = (
-                ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
-                .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
-                .filterDate("2014-01-01", "2014-12-31")
-            )
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
 
-            regions = ee.FeatureCollection([
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
-            ])
+                regions = ee.FeatureCollection([
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
+                ])
 
-            collection.geetools.plot_dates_by_regions("B1", regions, "name", "mean", 10000, "system:time_start")
+                collection.geetools.plot_dates_by_regions("B1", regions, "name", "mean", 10000, "system:time_start")
         """
         # get the reduced data
         raw_data = self.datesByRegions(
