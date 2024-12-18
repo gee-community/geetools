@@ -1594,7 +1594,6 @@ class ImageAccessor:
                 images = sequence.map(lambda i: ee.Image(ee.Number(i)).rename(ee.Number(i).int().format()))
                 image = ee.Image.geetools.fromList(images)
                 print(image.bandNames().getInfo())
-            > ee.ee_exception.EEException: Image.rename: Can't add a band named '2' to image because a band with this name already exists. Existing bands: [1, 2].
         """
         bandNames = ee.List(images).map(lambda i: ee.Image(i).bandNames()).flatten()
         ic = ee.ImageCollection.fromImages(images)
