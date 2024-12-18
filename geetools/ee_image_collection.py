@@ -972,9 +972,8 @@ class ImageCollectionAccessor:
         reducedImagesList = imageCollectionList.map(reduce)
 
         # set back the original properties
-        ic = ee.ImageCollection(reducedImagesList).copyProperties(
-            self._obj, self._obj.propertyNames()
-        )
+        propertyNames = self._obj.propertyNames()
+        ic = ee.ImageCollection(reducedImagesList).copyProperties(self._obj, propertyNames)
 
         return ee.ImageCollection(ic)
 
