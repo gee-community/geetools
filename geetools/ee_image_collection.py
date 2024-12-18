@@ -965,9 +965,8 @@ class ImageCollectionAccessor:
             start, end = timeList.get(0), timeList.get(-1)
             firstImg = ic.first()
             bandNames = firstImg.bandNames()
-            image = (
-                ic.reduce(red).rename(bandNames).copyProperties(firstImg, firstImg.propertyNames())
-            )
+            propertyNames = firstImg.propertyNames()
+            image = ic.reduce(red).rename(bandNames).copyProperties(firstImg, propertyNames)
             return image.set("system:time_start", start, "system:time_end", end)
 
         reducedImagesList = imageCollectionList.map(reduce)
