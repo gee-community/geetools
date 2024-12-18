@@ -700,7 +700,7 @@ class FeatureCollectionAccessor:
             The created FeatureCollection.
 
         Examples:
-            code-block:: python
+            .. code-block:: python
 
                 import geetools
 
