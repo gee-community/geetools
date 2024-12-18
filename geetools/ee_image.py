@@ -1919,7 +1919,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.byRegions`
             - :docstring:`ee.Image.geetools.byBands`
             - :docstring:`ee.Image.geetools.plot_by_regions`
-            - :docstring:`ee.Image.geetools.plot_hist
+            - :docstring:`ee.Image.geetools.plot_hist`
 
         Examples:
             .. jupyter-execute::
@@ -2006,7 +2006,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.byRegions`
             - :docstring:`ee.Image.geetools.byBands`
             - :docstring:`ee.Image.geetools.plot_by_bands`
-            - :docstring:`ee.Image.geetools.plot_by_regions
+            - :docstring:`ee.Image.geetools.plot_by_regions`
 
 
         Examples:
