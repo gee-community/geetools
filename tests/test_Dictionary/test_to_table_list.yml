@@ -1,0 +1,18 @@
+columns:
+  system:index: String
+  value_1: Integer
+  value_2: Float
+features:
+- geometry: null
+  id: Argentina
+  properties:
+    value_1: 12
+    value_2: 278.289196625
+  type: Feature
+- geometry: null
+  id: Armenia
+  properties:
+    value_1: 13
+    value_2: 3.13783139285
+  type: Feature
+type: FeatureCollection
