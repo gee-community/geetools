@@ -68,7 +68,7 @@ class ImageCollectionAccessor:
             This method may mask water as well as clouds for the Sentinel-3 Radiance product.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -107,7 +107,7 @@ class ImageCollectionAccessor:
             Closest images to the specified date.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee
                 import geetools
@@ -188,7 +188,7 @@ class ImageCollectionAccessor:
             Image with the computed spectral index, or indices, as new bands.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -212,7 +212,7 @@ class ImageCollectionAccessor:
 
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee
                 import geetools
@@ -230,7 +230,7 @@ class ImageCollectionAccessor:
             Dictionary with the offset parameters for each band.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
             import ee
             import geetools
@@ -248,7 +248,7 @@ class ImageCollectionAccessor:
             Scaled image.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -268,7 +268,7 @@ class ImageCollectionAccessor:
             Pre-processed image.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
             import ee
             import geetools
@@ -285,7 +285,7 @@ class ImageCollectionAccessor:
             STAC of the image.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
             import ee
             import geetools
@@ -321,7 +321,7 @@ class ImageCollectionAccessor:
             DOI of the ee.Image dataset.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee
                 import geetools
@@ -339,7 +339,7 @@ class ImageCollectionAccessor:
             Citation of the ee.Image dataset.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee
                 import geetools
@@ -365,7 +365,7 @@ class ImageCollectionAccessor:
             The ImageCollections with all sharpenable bands sharpened to the panchromatic resolution and quality assessments run and set as properties.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee
                 import geetools
@@ -403,7 +403,7 @@ class ImageCollectionAccessor:
             ImageCollections with the tasseled cap components as new bands.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -424,7 +424,7 @@ class ImageCollectionAccessor:
             ImageCollection with the new image appended.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -474,7 +474,7 @@ class ImageCollectionAccessor:
             ee.Image at the specified index.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -500,7 +500,7 @@ class ImageCollectionAccessor:
             An Image object with the integrated band for each pixel
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, LDCGEETools
 
@@ -585,7 +585,7 @@ class ImageCollectionAccessor:
             an ImageCollection with the outlier band added to each image or masked if ``drop`` is ``True``
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, LDCGEETools
 
@@ -705,7 +705,7 @@ class ImageCollectionAccessor:
             an Image with the number of valid pixels or the percentage of valid pixels.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
                 import ee, LDCGEETools
                 collection = (
                     ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
@@ -733,7 +733,7 @@ class ImageCollectionAccessor:
             A filtered ImageCollection
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, LDCGEETools
 
@@ -777,7 +777,7 @@ class ImageCollectionAccessor:
             A filtered ImageCollection
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -804,7 +804,7 @@ class ImageCollectionAccessor:
             A filtered ImageCollection
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -831,7 +831,7 @@ class ImageCollectionAccessor:
             A dictionary with the properties as keys and the aggregated values as values.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -866,7 +866,7 @@ class ImageCollectionAccessor:
             A list of imagecollection grouped by interval
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -920,7 +920,7 @@ class ImageCollectionAccessor:
             A new ImageCollection with the reduced images.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -1105,7 +1105,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -1194,7 +1194,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
             import ee, geetools
 
@@ -1732,7 +1732,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -1817,7 +1817,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
             import ee, geetools
 
@@ -1910,7 +1910,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
@@ -1998,7 +1998,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
 
