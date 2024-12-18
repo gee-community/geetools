@@ -68,7 +68,7 @@ class ImageCollectionAccessor:
             This method may mask water as well as clouds for the Sentinel-3 Radiance product.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -188,13 +188,13 @@ class ImageCollectionAccessor:
             Image with the computed spectral index, or indices, as new bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
                 ee.Initialize()
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                image = image.geetools.specralIndices(["NDVI", "NDFI"])
+                image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
         # fmt: off
         return ee_extra.Spectral.core.spectralIndices(
@@ -248,7 +248,7 @@ class ImageCollectionAccessor:
             Scaled image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -268,7 +268,7 @@ class ImageCollectionAccessor:
             Pre-processed image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -365,7 +365,7 @@ class ImageCollectionAccessor:
             The ImageCollections with all sharpenable bands sharpened to the panchromatic resolution and quality assessments run and set as properties.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -403,7 +403,7 @@ class ImageCollectionAccessor:
             ImageCollections with the tasseled cap components as new bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

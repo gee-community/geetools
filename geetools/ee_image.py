@@ -901,7 +901,7 @@ class ImageAccessor:
             Image with the computed spectral index, or indices, as new bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -961,7 +961,7 @@ class ImageAccessor:
             Scaled image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -981,7 +981,7 @@ class ImageAccessor:
             Pre-processed image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -1078,7 +1078,7 @@ class ImageAccessor:
             The Image with all sharpenable bands sharpened to the panchromatic resolution and quality assessments run and set as properties.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -1116,7 +1116,7 @@ class ImageAccessor:
             Image with the tasseled cap components as new bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1146,7 +1146,7 @@ class ImageAccessor:
             The adjusted image containing the matched source bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -1206,7 +1206,7 @@ class ImageAccessor:
             This method may mask water as well as clouds for the Sentinel-3 Radiance product.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1239,7 +1239,7 @@ class ImageAccessor:
             Image with the specified properties removed.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1271,7 +1271,7 @@ class ImageAccessor:
             The original images with the distance band added.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1304,7 +1304,7 @@ class ImageAccessor:
             and Image with the euclidean distance between the two images for each band.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1343,7 +1343,7 @@ class ImageAccessor:
             The percentage of masked pixels within the region
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1396,7 +1396,7 @@ class ImageAccessor:
             The passed table with the new column containing the percentage of masked pixels within the region
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1453,7 +1453,7 @@ class ImageAccessor:
             The same image with the percentage of masked pixels as a property
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

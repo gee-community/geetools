@@ -195,7 +195,7 @@ class FeatureCollectionAccessor:
             the dissolved geometry
 
         Example:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
@@ -233,7 +233,7 @@ class FeatureCollectionAccessor:
             The parsed collection with only polygon/MultiPolygon geometries
 
         Example:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
