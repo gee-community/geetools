@@ -945,12 +945,12 @@ class ImageAccessor:
         Examples:
             .. jupyter-execute::
 
-            import ee
-            import geetools
+                import ee
+                import geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            ee.ImageCollection('MODIS/006/MOD11A2').first().getOffsetParams()
+                ee.ImageCollection('MODIS/006/MOD11A2').first().getOffsetParams()
         """
         return ee_extra.STAC.core.getOffsetParams(self._obj)
 
@@ -983,11 +983,11 @@ class ImageAccessor:
         Examples:
             .. jupyter-execute::
 
-            import ee
-            import geetools
+                import ee
+                import geetools
 
-            ee.Initialize()
-            S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().preprocess()
+                ee.Initialize()
+                S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().preprocess()
         """
         return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
@@ -1000,12 +1000,12 @@ class ImageAccessor:
         Examples:
             .. jupyter-execute::
 
-            import ee
-            import geetools
+                import ee
+                import geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            ee.ImageCollection('COPERNICUS/S2_SR').first().getSTAC()
+                ee.ImageCollection('COPERNICUS/S2_SR').first().getSTAC()
         """
         # extract the Asset id from the imagecollection
         assetId = self._obj.get("system:id").getInfo()
@@ -1273,15 +1273,15 @@ class ImageAccessor:
         Examples:
             .. jupyter-execute::
 
-                    import ee, geetools
+                import ee, geetools
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    centerBuffer = image.geometry().centroid().buffer(100)
-                    BufferMask = ee.Image.constant(1).clip(centerBuffer)
-                    mask = ee.Image.constant(0).where(BufferMask, 1).clip(image.geometry())
-                    image = image.distanceToMask(mask)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                centerBuffer = image.geometry().centroid().buffer(100)
+                BufferMask = ee.Image.constant(1).clip(centerBuffer)
+                mask = ee.Image.constant(0).where(BufferMask, 1).clip(image.geometry())
+                image = image.distanceToMask(mask)
         """
         # gather the parameters
         kernel = getattr(ee.Kernel, kernel)(radius, "meters")
@@ -1306,13 +1306,13 @@ class ImageAccessor:
         Examples:
             .. jupyter-execute::
 
-                    import ee, geetools
+                import ee, geetools
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    other = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    image = image.distance(other)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                other = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                image = image.distance(other)
         """
         # compute the distance
         distance = self._obj.subtract(other).pow(2).reduce("sum").sqrt().rename("sum_distance")
@@ -1345,13 +1345,13 @@ class ImageAccessor:
         Examples:
             .. jupyter-execute::
 
-                    import ee, geetools
+                import ee, geetools
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
-                    image = image.maskCoverRegion(aoi)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                image = image.maskCoverRegion(aoi)
         """
         # compute the mask cover
         image = self._obj.select(band or 0)
@@ -1398,14 +1398,14 @@ class ImageAccessor:
         Examples:
             .. jupyter-execute::
 
-                    import ee, geetools
+                import ee, geetools
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    reg = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
-                    aoi = ee.FeatureCollection([ee.Feature(reg)])
-                    image = image.maskCoverRegions(aoi)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                reg = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                aoi = ee.FeatureCollection([ee.Feature(reg)])
+                image = image.maskCoverRegions(aoi)
         """
         # compute the mask cover
         properties = collection.propertyNames()  # original properties
@@ -1455,13 +1455,13 @@ class ImageAccessor:
         Examples:
             .. jupyter-execute::
 
-                    import ee, geetools
+                import ee, geetools
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
-                    image = image.maskCoverRegion(aoi)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                image = image.maskCoverRegion(aoi)
         """
         region = self._obj.geometry()
         value = self.maskCoverRegion(region, scale, None, proxyValue, **kwargs)
@@ -1493,14 +1493,14 @@ class ImageAccessor:
         Examples:
             .. jupyter-execute::
 
-                    import ee, geetools
-                    import matplotlib.pyplot as plt
+                import ee, geetools
+                import matplotlib.pyplot as plt
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    fig, ax = plt.subplots()
-                    image.plot(["B2", "B3", "B4"], image.geometry(), ax)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                fig, ax = plt.subplots()
+                image.plot(["B2", "B3", "B4"], image.geometry(), ax)
         """
         if ax is None:
             fig, ax = plt.subplots()
