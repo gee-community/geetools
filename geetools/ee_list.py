@@ -223,7 +223,7 @@ class ListAccessor:
             A string with the list elements separated by commas.
 
         Examples:
-            .. juptyer-execute::
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
@@ -245,7 +245,7 @@ class ListAccessor:
             A list of strings corresponding to the elements of the list.
 
         Examples:
-            .. juptyer-execute::
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
