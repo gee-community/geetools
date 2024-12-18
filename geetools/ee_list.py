@@ -211,7 +211,7 @@ class ListAccessor:
         list = keys.iterate(lambda k, p: ee.List(p).replace(k, replace.get(k)), self._obj)
         return ee.List(list)  # to avoid returning a ComputedObject
 
-    def join(self, separator: str | ee.String = ", ") -> ee.string:
+    def join(self, separator: str | ee.String = ", ") -> ee.String:
         """Format a list to a string.
 
         Same as the join method but elements that cannot be stringified will be returned as the object type.
