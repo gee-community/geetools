@@ -1840,7 +1840,6 @@ class ImageAccessor:
                 ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
 
-
                 normClim.plot_by_regions(ecoregions, ee.Reducer.mean(), scale=10000)
         """
         # get the data from the server
@@ -1931,7 +1930,6 @@ class ImageAccessor:
 
                 ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
-
 
                 normClim.plot_by_bands(ecoregions, ee.Reducer.mean(), scale=10000)
         """
