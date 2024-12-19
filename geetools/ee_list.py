@@ -211,7 +211,7 @@ class ListAccessor:
         list = keys.iterate(lambda k, p: ee.List(p).replace(k, replace.get(k)), self._obj)
         return ee.List(list)  # to avoid returning a ComputedObject
 
-    def join(self, separator: str | ee.String = ", ") -> ee.string:
+    def join(self, separator: str | ee.String = ", ") -> ee.String:
         """Format a list to a string.
 
         Same as the join method but elements that cannot be stringified will be returned as the object type.
@@ -223,7 +223,7 @@ class ListAccessor:
             A string with the list elements separated by commas.
 
         Examples:
-            .. juptyer-execute::
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
@@ -245,7 +245,7 @@ class ListAccessor:
             A list of strings corresponding to the elements of the list.
 
         Examples:
-            .. juptyer-execute::
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
