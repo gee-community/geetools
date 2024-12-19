@@ -23,6 +23,9 @@ EE_DATE_FORMAT = "YYYY-MM-dd'T'HH-mm-ss"
 "The javascript format to use to burn date object in GEE."
 
 
+# TODO: Usually the image collection "LANDSAT/LC08/C01/T1_TOA" brings
+#  an error when trying to be imported. It is a future work to fix this
+#  issue.
 @register_class_accessor(ee.ImageCollection, "geetools")
 class ImageCollectionAccessor:
     """Toolbox for the ``ee.ImageCollection`` class."""
@@ -554,7 +557,7 @@ class ImageCollectionAccessor:
             An Image object with the integrated band for each pixel
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -639,7 +642,7 @@ class ImageCollectionAccessor:
             an ImageCollection with the outlier band added to each image or masked if ``drop`` is ``True``
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -759,7 +762,7 @@ class ImageCollectionAccessor:
             an Image with the number of valid pixels or the percentage of valid pixels.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
                 collection = (
@@ -788,7 +791,7 @@ class ImageCollectionAccessor:
             A filtered ImageCollection
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -822,7 +825,6 @@ class ImageCollectionAccessor:
 
         return ee.ImageCollection(ic)
 
-    # TODO: Fix the example
     def containsAllBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
         """Filter the ImageCollection keeping only the images with all the provided bands.
 
@@ -860,7 +862,7 @@ class ImageCollectionAccessor:
             A filtered ImageCollection
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -887,7 +889,7 @@ class ImageCollectionAccessor:
             A dictionary with the properties as keys and the aggregated values as values.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -906,13 +908,12 @@ class ImageCollectionAccessor:
         values = keys.map(lambda p: self._obj.aggregate_array(p))
         return ee.Dictionary.fromLists(keys, values)
 
-    # TODO: Fix the example
     def groupInterval(self, unit: str = "month", duration: int = 1) -> ee.List:
         """Transform the ImageCollection into a list of smaller collection of the specified duration.
 
         For example using unit as "month" and duration as 1, the ImageCollection will be transformed
         into a list of ImageCollection with each ImageCollection containing images for each month.
-        Make sure the collection is filtered beforeend to reduce the number of images that needs to be
+        Make sure the collection is filtered beforehand to reduce the number of images that needs to be
         processed.
 
         Args:
@@ -920,7 +921,7 @@ class ImageCollectionAccessor:
             duration: The duration of each split.
 
         Returns:
-            A list of imagecollection grouped by interval
+            A list of ``ee.ImageCollection`` grouped by interval
 
         Examples:
             .. code-block:: python
@@ -974,10 +975,10 @@ class ImageCollectionAccessor:
             duration: The duration of each split.
 
         Returns:
-            A new ImageCollection with the reduced images.
+            A new ``ee.ImageCollection`` with the reduced images.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1024,7 +1025,7 @@ class ImageCollectionAccessor:
             An ImageCollection with all pixels unmasked in every image.
 
         Examples:
-            .. code:: python
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1061,7 +1062,7 @@ class ImageCollectionAccessor:
             An Image that is the medoid of the ImageCollection.
 
         Examples:
-            .. code:: python
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1251,7 +1252,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1789,7 +1790,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1874,7 +1875,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1967,7 +1968,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -2055,7 +2056,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
