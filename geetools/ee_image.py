@@ -900,6 +900,9 @@ class ImageAccessor:
         Returns:
             Image with the computed spectral index, or indices, as new bands.
 
+        See Also:
+            - :docstring:`ee.Image.geetools.scaleAndOffset`
+
         Examples:
             .. code-block:: python
 
@@ -923,6 +926,9 @@ class ImageAccessor:
         Returns:
             Dictionary with the scale parameters for each band.
 
+        See Also:
+            - :docstring:`ee.Image.geetools.getOffsetParams`
+            - :docstring:`ee.Image.geetools.scaleAndOffset`
 
         Examples:
             .. jupyter-execute::
@@ -942,6 +948,10 @@ class ImageAccessor:
         Returns:
             Dictionary with the offset parameters for each band.
 
+        See Also:
+            - :docstring:`ee.Image.geetools.getScaleParams`
+            - :docstring:`ee.Image.geetools.scaleAndOffset`
+
         Examples:
             .. jupyter-execute::
 
@@ -959,6 +969,10 @@ class ImageAccessor:
 
         Returns:
             Scaled image.
+
+        See Also:
+            - :docstring:`ee.Image.geetools.getScaleParams`
+            - :docstring:`ee.Image.geetools.getOffsetParams`
 
         Examples:
             .. code-block:: python
@@ -979,6 +993,12 @@ class ImageAccessor:
 
         Returns:
             Pre-processed image.
+
+        See Also:
+            - :docstring:`ee.Image.geetools.getScaleParams`
+            - :docstring:`ee.Image.geetools.getOffsetParams`
+            - :docstring:`ee.Image.geetools.scaleAndOffset`
+            - :docstring:`ee.Image.geetools.maskClouds`
 
         Examples:
             .. code-block:: python
@@ -1036,6 +1056,9 @@ class ImageAccessor:
         Returns:
             DOI of the ee.Image dataset.
 
+        See Also:
+            - :docstring:`ee.Image.geetools.getCitation`
+
         Examples:
             .. jupyter-execute::
 
@@ -1053,6 +1076,9 @@ class ImageAccessor:
 
         Returns:
             Citation of the ee.Image dataset.
+
+        See Also:
+            - :docstring:`ee.Image.geetools.getDOI`
 
         Examples:
             .. jupyter-execute::
@@ -1073,9 +1099,9 @@ class ImageAccessor:
         measure spectral distortion and set results as properties of the sharpened Image.
 
         Parameters:
-        method: The sharpening algorithm to apply. Current options are "SFIM" (Smoothing Filter-based Intensity Modulation), "HPFA" (High Pass Filter Addition), "PCS" (Principal Component Substitution), and "SM" (simple mean). Different sharpening methods will produce different quality sharpening results in different scenarios.
-        qa: One or more optional quality assessment names to apply after sharpening. Results will be stored as image properties with the pattern `geetools:metric`, e.g. `geetools:RMSE`.
-        **kwargs: Keyword arguments passed to ee.Image.reduceRegion() such as "geometry", "maxPixels", "bestEffort", etc. These arguments are only used for PCS sharpening and quality assessments.
+            method: The sharpening algorithm to apply. Current options are "SFIM" (Smoothing Filter-based Intensity Modulation), "HPFA" (High Pass Filter Addition), "PCS" (Principal Component Substitution), and "SM" (simple mean). Different sharpening methods will produce different quality sharpening results in different scenarios.
+            qa: One or more optional quality assessment names to apply after sharpening. Results will be stored as image properties with the pattern `geetools:metric`, e.g. `geetools:RMSE`.
+            **kwargs: Keyword arguments passed to ee.Image.reduceRegion() such as "geometry", "maxPixels", "bestEffort", etc. These arguments are only used for PCS sharpening and quality assessments.
 
         Returns:
             The Image with all sharpenable bands sharpened to the panchromatic resolution and quality assessments run and set as properties.
@@ -1101,22 +1127,47 @@ class ImageAccessor:
         Tasseled cap transformations are applied using coefficients published for these
         supported platforms:
 
-        * Sentinel-2 MSI Level 1C
-        * Landsat 9 OLI-2 SR
-        * Landsat 9 OLI-2 TOA
-        * Landsat 8 OLI SR
-        * Landsat 8 OLI TOA
-        * Landsat 7 ETM+ TOA
-        * Landsat 5 TM Raw DN
-        * Landsat 4 TM Raw DN
-        * Landsat 4 TM Surface Reflectance
-        * MODIS NBAR
+        * Sentinel-2 MSI Level 1C [1]_
+        * Landsat 9 OLI-2 SR [2]_
+        * Landsat 9 OLI-2 TOA [2]_
+        * Landsat 8 OLI SR [2]_
+        * Landsat 8 OLI TOA [2]_
+        * Landsat 7 ETM+ TOA [3]_
+        * Landsat 5 TM Raw DN [4]_
+        * Landsat 4 TM Raw DN [5]_
+        * Landsat 4 TM Surface Reflectance [6]_
+        * MODIS NBAR [7]_
 
         Parameters:
             self: ee.Image to calculate tasseled cap components for. Must belong to a supported platform.
 
         Returns:
             Image with the tasseled cap components as new bands.
+
+        References:
+            .. [1] Shi, T., & Xu, H. (2019). Derivation of Tasseled Cap Transformation
+                Coefficients for Sentinel-2 MSI At-Sensor Reflectance Data. IEEE Journal
+                of Selected Topics in Applied Earth Observations and Remote Sensing, 1-11.
+                doi:10.1109/jstars.2019.2938388
+            .. [2] Zhai, Y., Roy, D.P., Martins, V.S., Zhang, H.K., Yan, L., Li, Z. 2022.
+                Conterminous United States Landsat-8 top of atmosphere and surface reflectance
+                tasseled cap transformation coefficients. Remote Sensing of Environment,
+                274(2022). doi:10.1016/j.rse.2022.112992
+            .. [3] Huang, C., Wylie, B., Yang, L., Homer, C. and Zylstra, G., 2002.
+                Derivation of a tasselled cap transformation based on Landsat 7 at-satellite
+                reflectance. International journal of remote sensing, 23(8), pp.1741-1748.
+            .. [4] Crist, E.P., Laurin, R. and Cicone, R.C., 1986, September. Vegetation and
+                soils information contained in transformed Thematic Mapper data. In
+                Proceedings of IGARSS`86 symposium (pp. 1465-1470). Paris: European Space
+                Agency Publications Division.
+            .. [5] Crist, E.P. and Cicone, R.C., 1984. A physically-based transformation of
+                Thematic Mapper data---The TM Tasseled Cap. IEEE Transactions on Geoscience
+                and Remote sensing, (3), pp.256-263.
+            .. [6] Crist, E.P., 1985. A TM tasseled cap equivalent transformation for
+                reflectance factor data. Remote sensing of Environment, 17(3), pp.301-306.
+            .. [7] Lobser, S.E. and Cohen, W.B., 2007. MODIS tasselled cap: land cover
+                characteristics expressed through transformed MODIS data. International
+                Journal of Remote Sensing, 28(22), pp.5079-5101.
 
         Examples:
             .. code-block:: python
@@ -1140,10 +1191,10 @@ class ImageAccessor:
         """Adjust the image's histogram to match a target image.
 
         Parameters:
-        target: Image to match.
-        bands: A dictionary of band names to match, with source bands as keys and target bands as values.
-        geometry: The region to match histograms in that overlaps both images. If none is provided, the geometry of the source image will be used.
-        maxBuckets: The maximum number of buckets to use when building histograms. Will be rounded to the nearest power of 2.
+            target: Image to match.
+            bands: A dictionary of band names to match, with source bands as keys and target bands as values.
+            geometry: The region to match histograms in that overlaps both images. If none is provided, the geometry of the source image will be used.
+            maxBuckets: The maximum number of buckets to use when building histograms. Will be rounded to the nearest power of 2.
 
         Returns:
             The adjusted image containing the matched source bands.
@@ -1184,11 +1235,10 @@ class ImageAccessor:
         cloudDist: int = 1000,
         buffer: int = 250,
         cdi: int | None = None,
-    ):
+    ) -> ee.Image:
         """Masks clouds and shadows in an image (valid just for Surface Reflectance products).
 
         Parameters:
-            self: Image to mask.
             method: Method used to mask clouds. This parameter is ignored for Landsat products.
                 Available options:
                     - 'cloud_prob' : Use cloud probability.
