@@ -906,6 +906,7 @@ class ImageCollectionAccessor:
         values = keys.map(lambda p: self._obj.aggregate_array(p))
         return ee.Dictionary.fromLists(keys, values)
 
+    # TODO: Fix the example
     def groupInterval(self, unit: str = "month", duration: int = 1) -> ee.List:
         """Transform the ImageCollection into a list of smaller collection of the specified duration.
 
@@ -922,7 +923,7 @@ class ImageCollectionAccessor:
             A list of imagecollection grouped by interval
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
