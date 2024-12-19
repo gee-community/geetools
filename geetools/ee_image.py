@@ -1614,6 +1614,9 @@ class ImageAccessor:
 
         return ax
 
+    # TODO: Fix the example
+    #  Note: the second example is even correct? It seems to fail always, the error was:
+    #  EEException: Image.rename: Can't add a band named '2' to image because a band with this name already exists. Existing bands: [1, 2].
     @classmethod
     def fromList(cls, images: ee.List | list):
         """Create a single image by passing a list of images.
@@ -1638,7 +1641,7 @@ class ImageAccessor:
                 image = ee.Image.geetools.fromList(images)
                 print(image.bandNames().getInfo())
 
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
