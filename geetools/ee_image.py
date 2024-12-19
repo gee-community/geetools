@@ -907,7 +907,7 @@ class ImageAccessor:
 
                 ee.Initialize()
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                image = image.specralIndices(["NDVI", "NDFI"])
+                image = image.geetools.specralIndices(["NDVI", "NDFI"])
         """
         # fmt: off
         return ee_extra.Spectral.core.spectralIndices(
@@ -950,7 +950,7 @@ class ImageAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('MODIS/006/MOD11A2').first().getOffsetParams()
+                ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getOffsetParams()
         """
         return ee_extra.STAC.core.getOffsetParams(self._obj)
 
@@ -967,7 +967,7 @@ class ImageAccessor:
 
                 ee.Initialize()
 
-                S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().scaleAndOffset()
+                S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().geetools.scaleAndOffset()
         """
         return ee_extra.STAC.core.scaleAndOffset(self._obj)
 
@@ -987,7 +987,10 @@ class ImageAccessor:
                 import geetools
 
                 ee.Initialize()
-                S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().preprocess()
+                S2 = (
+                    ee.ImageCollection('COPERNICUS/S2_SR').first()
+                    .geetools.preprocess()
+                )
         """
         return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
@@ -1005,7 +1008,7 @@ class ImageAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('COPERNICUS/S2_SR').first().getSTAC()
+                ee.ImageCollection('COPERNICUS/S2_SR').first().geetools.getSTAC()
         """
         # extract the Asset id from the imagecollection
         assetId = self._obj.get("system:id").getInfo()
@@ -1041,7 +1044,7 @@ class ImageAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().getDOI()
+                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().geetools.getDOI()
         """
         return ee_extra.STAC.core.getDOI(self._obj)
 
@@ -1059,7 +1062,7 @@ class ImageAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().getCitation()
+                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().geetools.getCitation()
         """
         return ee_extra.STAC.core.getCitation(self._obj)
 
@@ -1086,7 +1089,7 @@ class ImageAccessor:
                 ee.Initialize()
 
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
-                sharp = source.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
+                sharp = source.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
         return ee_extra.Algorithms.core.panSharpen(
             img=self._obj, method=method, qa=qa, prefix="geetools", **kwargs
@@ -1123,7 +1126,7 @@ class ImageAccessor:
                 ee.Initialize()
 
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                img = img.tasseledCap()
+                img = img.geetools.tasseledCap()
         """
         return ee_extra.Spectral.core.tasseledCap(self._obj)
 
@@ -1160,7 +1163,7 @@ class ImageAccessor:
                     "B3": "B2",
                     "B2": "B1"
                 }
-                matched = source.matchHistogram(target, bands)
+                matched = source.geetools.matchHistogram(target, bands)
         """
         return ee_extra.Spectral.core.matchHistogram(
             source=self._obj,
@@ -1214,7 +1217,8 @@ class ImageAccessor:
                 S2 = (
                     ee.ImageCollection('COPERNICUS/S2_SR')
                     .first()
-                    .maskClouds(prob = 75,buffer = 300,cdi = -0.5))
+                    .geetools.maskClouds(prob = 75,buffer = 300,cdi = -0.5)
+                )
         """
         return ee_extra.QA.clouds.maskClouds(
             self._obj,
@@ -1246,7 +1250,7 @@ class ImageAccessor:
                 ee.Initialize()
 
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                image = image.removeProperties(["system:time_start"])
+                image = image.geetools.removeProperties(["system:time_start"])
         """
         properties = ee.List(properties)
         proxy = self._obj.multiply(1)  # drop properties
@@ -1281,7 +1285,7 @@ class ImageAccessor:
                 centerBuffer = image.geometry().centroid().buffer(100)
                 BufferMask = ee.Image.constant(1).clip(centerBuffer)
                 mask = ee.Image.constant(0).where(BufferMask, 1).clip(image.geometry())
-                image = image.distanceToMask(mask)
+                image = image.geetools.distanceToMask(mask)
         """
         # gather the parameters
         kernel = getattr(ee.Kernel, kernel)(radius, "meters")
@@ -1312,7 +1316,7 @@ class ImageAccessor:
 
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 other = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                image = image.distance(other)
+                image = image.geetools.distance(other)
         """
         # compute the distance
         distance = self._obj.subtract(other).pow(2).reduce("sum").sqrt().rename("sum_distance")
@@ -1351,7 +1355,7 @@ class ImageAccessor:
 
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
-                image = image.maskCoverRegion(aoi)
+                image = image.geetools.maskCoverRegion(aoi)
         """
         # compute the mask cover
         image = self._obj.select(band or 0)
@@ -1405,7 +1409,7 @@ class ImageAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 reg = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
                 aoi = ee.FeatureCollection([ee.Feature(reg)])
-                image = image.maskCoverRegions(aoi)
+                image = image.geetools.maskCoverRegions(aoi)
         """
         # compute the mask cover
         properties = collection.propertyNames()  # original properties
@@ -1461,7 +1465,7 @@ class ImageAccessor:
 
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
-                image = image.maskCoverRegion(aoi)
+                image = image.geetools.maskCoverRegion(aoi)
         """
         region = self._obj.geometry()
         value = self.maskCoverRegion(region, scale, None, proxyValue, **kwargs)
@@ -1500,7 +1504,7 @@ class ImageAccessor:
 
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 fig, ax = plt.subplots()
-                image.plot(["B2", "B3", "B4"], image.geometry(), ax)
+                image.geetools.plot(["B2", "B3", "B4"], image.geometry(), ax)
         """
         if ax is None:
             fig, ax = plt.subplots()
@@ -1650,7 +1654,7 @@ class ImageAccessor:
 
                 ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
-                d = normClim.byBands(ecoregions, ee.Reducer.mean(), scale=10000)
+                d = normClim.geetools.byBands(ecoregions, ee.Reducer.mean(), scale=10000)
                 print(d.getInfo())
         """
         # get all the id values, they must be string so we are forced to cast them manually
@@ -1741,7 +1745,7 @@ class ImageAccessor:
 
                 ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
-                d = normClim.byregions(ecoregions, ee.Reducer.mean(), scale=10000)
+                d = normClim.geetools.byRegions(ecoregions, ee.Reducer.mean(), scale=10000)
                 print(d.getInfo())
         """
         # get all the id values, they must be string so we are forced to cast them manually
@@ -1840,7 +1844,7 @@ class ImageAccessor:
                 ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
 
-                normClim.plot_by_regions(ecoregions, ee.Reducer.mean(), scale=10000)
+                normClim.geetools.plot_by_regions(ecoregions, ee.Reducer.mean(), scale=10000)
         """
         # get the data from the server
         data = self.byBands(
@@ -1931,7 +1935,7 @@ class ImageAccessor:
                 ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
 
-                normClim.plot_by_bands(ecoregions, ee.Reducer.mean(), scale=10000)
+                normClim.geetools.plot_by_bands(ecoregions, ee.Reducer.mean(), scale=10000)
         """
         # get the data from the server
         data = self.byRegions(
@@ -2017,7 +2021,7 @@ class ImageAccessor:
                 ee.Initialize()
 
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
-                normClim.plot_hist()
+                normClim.geetools.plot_hist()
         """
         # extract the bands from the image
         eeBands = ee.List(bands) if len(bands) == 0 else self._obj.bandNames()
