@@ -788,7 +788,7 @@ class ImageAccessor:
             offset: The limit of the islet size in square metters
 
         Returns:
-            The island mask
+            The islet mask
 
         Examples:
             .. jupyter-execute::
@@ -799,7 +799,7 @@ class ImageAccessor:
 
                 image = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED").first()
                 mask = image.select('SCL').eq(4)
-                mask = mask.geetools.islandMask(100)
+                mask = mask.geetools.isletMask(100)
                 print(mask.bandNames().getInfo())
         """
         offset = ee.Number(offset)
