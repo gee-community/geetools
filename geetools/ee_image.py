@@ -1521,6 +1521,8 @@ class ImageAccessor:
         value = self.maskCoverRegion(region, scale, None, proxyValue, **kwargs)
         return self._obj.set(propertyName, value)
 
+    # TODO: Update this method. It throws the following error:
+    #  EEException: Image.load: Image asset 'COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT' not found (does not exist or caller does not have access).
     def plot(
         self,
         bands: list,
@@ -1545,7 +1547,7 @@ class ImageAccessor:
             color: The color of the overlaid feature collection. Default is "k" (black).
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
                 import matplotlib.pyplot as plt
