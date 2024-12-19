@@ -185,6 +185,7 @@ class FeatureCollectionAccessor:
         idByIndex = ee.Dictionary.fromLists(indexes, ids)
         return self._obj.map(lambda f: f.set(name, idByIndex.get(f.get("system:index"))))
 
+    # TODO: Fix the example
     def mergeGeometries(self, maxError: float | int | ee.number | None = None) -> ee.Geometry:
         """Merge the geometries included in the features.
 
@@ -222,6 +223,7 @@ class FeatureCollectionAccessor:
         union = self._obj.iterate(lambda f, g: f.geometry().union(g, maxError=maxError), first)
         return ee.Geometry(union).dissolve(maxError=maxError)
 
+    # TODO: Fix the example
     def toPolygons(self) -> ee.FeatureCollection:
         """Drop any geometry that is not a Polygon or a multipolygon.
 
@@ -700,7 +702,7 @@ class FeatureCollectionAccessor:
             The created FeatureCollection.
 
         Examples:
-            code-block:: python
+            .. code-block:: python
 
                 import geetools
 

@@ -62,7 +62,6 @@ class ExportAccessor:
 
                     # export the collection
                     tasks = geetools.batch.Export.imagecollection.toAsset(collection, "system:index", "test export")
-                ```
             """
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
