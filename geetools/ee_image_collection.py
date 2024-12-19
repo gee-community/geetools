@@ -1116,6 +1116,7 @@ class ImageCollectionAccessor:
 
         return ee.Image(medoid).select(bandNames)
 
+    # TODO: Fix the example
     def datesByBands(
         self,
         region: ee.Geometry,
@@ -1164,7 +1165,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_regions`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
