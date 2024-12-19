@@ -1932,6 +1932,11 @@ class ImageAccessor:
 
         return ax
 
+    # TODO: This example throws the following error:
+    #  AttributeError: 'Reducer' object has no attribute 'aggregate_array'
+    #  That was throwned by the method byRegions, in the line:
+    #  features = regions.aggregate_array(regionId)
+    #  I think that is produced due before the method doesn't have the "type" argument
     def plot_by_bands(
         self,
         type: str,
