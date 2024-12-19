@@ -223,6 +223,7 @@ class FeatureCollectionAccessor:
         union = self._obj.iterate(lambda f, g: f.geometry().union(g, maxError=maxError), first)
         return ee.Geometry(union).dissolve(maxError=maxError)
 
+    # TODO: Fix the example
     def toPolygons(self) -> ee.FeatureCollection:
         """Drop any geometry that is not a Polygon or a multipolygon.
 
@@ -234,7 +235,7 @@ class FeatureCollectionAccessor:
             The parsed collection with only polygon/MultiPolygon geometries
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
