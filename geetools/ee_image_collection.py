@@ -99,6 +99,7 @@ class ImageCollectionAccessor:
         """Gets the closest image (or set of images if the collection intersects a region that requires multiple scenes) to the specified date.
 
         Parameters:
+            self: Image Collection from which to get the closest image to the specified date.
             date: Date of interest. The method will look for images closest to this date.
             tolerance: Filter the collection to [date - tolerance, date + tolerance) before searching the closest image. This speeds up the searching process for collections with a high temporal resolution.
             unit: Units for tolerance. Available units: 'year', 'month', 'week', 'day', 'hour', 'minute' or 'second'.
@@ -112,11 +113,12 @@ class ImageCollectionAccessor:
                 import ee
                 import geetools
 
-                s2 = ee.ImageCollection('COPERNICUS/S2_SR').closest('2020-10-15')
+                s2 = ee.ImageCollection('COPERNICUS/S2_SR').geetools.closest('2020-10-15')
                 s2.size().getInfo()
         """
         return ee_extra.ImageCollection.core.closest(self._obj, date, tolerance, unit)
 
+    # TODO: We can add the additional examples in https://eemont.readthedocs.io/en/latest/classes/stubs/eemont.imagecollection.spectralIndices.html
     def spectralIndices(
         self,
         index: str = "NDVI",
@@ -143,7 +145,7 @@ class ImageCollectionAccessor:
         lambdaG: float | int = 555.0,
         online: bool = False,
     ) -> ee.ImageCollection:
-        """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
+        """Computes one or more spectral indices (indices are added as bands) for an image collection from the Awesome List of Spectral Indices.
 
         Parameters:
             self: Image to compute indices on. Must be scaled to [0,1].
@@ -185,7 +187,10 @@ class ImageCollectionAccessor:
             drop: Whether to drop all bands except the new spectral indices, default = False
 
         Returns:
-            Image with the computed spectral index, or indices, as new bands.
+            Image collection with the computed spectral index, or indices, as new bands.
+
+        See Also:
+            - :docstring:`ee.Image.geetools.scaleAndOffset`
 
         Examples:
             .. code-block:: python
@@ -210,6 +215,9 @@ class ImageCollectionAccessor:
         Returns:
             Dictionary with the scale parameters for each band.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getOffsetParams`
+            - :docstring:`ee.ImageCollection.geetools.scaleAndOffset`
 
         Examples:
             .. jupyter-execute::
@@ -229,6 +237,10 @@ class ImageCollectionAccessor:
         Returns:
             Dictionary with the offset parameters for each band.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getScaleParams`
+            - :docstring:`ee.ImageCollection.geetools.scaleAndOffset`
+
         Examples:
             .. jupyter-execute::
 
@@ -237,7 +249,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('MODIS/006/MOD11A2').getOffsetParams()
+                ee.ImageCollection('MODIS/006/MOD11A2').geetools.getOffsetParams()
         """
         return ee_extra.STAC.core.getOffsetParams(self._obj)
 
@@ -246,6 +258,10 @@ class ImageCollectionAccessor:
 
         Returns:
             Scaled image.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getOffsetParams`
+            - :docstring:`ee.ImageCollection.geetools.getScaleParams`
 
         Examples:
             .. code-block:: python
@@ -259,13 +275,19 @@ class ImageCollectionAccessor:
         return ee_extra.STAC.core.scaleAndOffset(self._obj)
 
     def preprocess(self, **kwargs) -> ee.ImageCollection:
-        """Pre-processes the image: masks clouds and shadows, and scales and offsets the image.
+        """Pre-processes the image: masks clouds and shadows, and scales and offsets the image collection.
 
         Parameters:
             **kwargs: Keywords arguments for ``maskClouds`` method.
 
         Returns:
             Pre-processed image.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getScaleParams`
+            - :docstring:`ee.ImageCollection.geetools.getOffsetParams`
+            - :docstring:`ee.ImageCollection.geetools.scaleAndOffset`
+            - :docstring:`ee.ImageCollection.geetools.maskClouds`
 
         Examples:
             .. code-block:: python
@@ -279,10 +301,10 @@ class ImageCollectionAccessor:
         return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
     def getSTAC(self) -> dict:
-        """Gets the STAC of the image.
+        """Gets the STAC of the image collection.
 
         Returns:
-            STAC of the image.
+            STAC of the image collection.
 
         Examples:
             .. jupyter-execute::
@@ -292,7 +314,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('COPERNICUS/S2_SR').getSTAC()
+                ee.ImageCollection('COPERNICUS/S2_SR').geetools.getSTAC()
         """
         # extract the Asset id from the imagecollection
         assetId = self._obj.get("system:id").getInfo()
@@ -320,6 +342,9 @@ class ImageCollectionAccessor:
         Returns:
             DOI of the ee.Image dataset.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getCitation`
+
         Examples:
             .. jupyter-execute::
 
@@ -328,7 +353,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').getDOI()
+                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getDOI()
         """
         return ee_extra.STAC.core.getDOI(self._obj)
 
@@ -338,6 +363,9 @@ class ImageCollectionAccessor:
         Returns:
             Citation of the ee.Image dataset.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getDOI`
+
         Examples:
             .. jupyter-execute::
 
@@ -346,7 +374,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').getCitation()
+                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getCitation()
         """
         return ee_extra.STAC.core.getCitation(self._obj)
 
@@ -380,27 +408,53 @@ class ImageCollectionAccessor:
         )
 
     def tasseledCap(self) -> ee.ImageCollection:
-        """Calculates tasseled cap brightness, wetness, and greenness components.
+        """Calculates tasseled cap brightness, wetness, and greenness components for all images in the collection.
 
         Tasseled cap transformations are applied using coefficients published for these
         supported platforms:
 
-        * Sentinel-2 MSI Level 1C
-        * Landsat 9 OLI-2 SR
-        * Landsat 9 OLI-2 TOA
-        * Landsat 8 OLI SR
-        * Landsat 8 OLI TOA
-        * Landsat 7 ETM+ TOA
-        * Landsat 5 TM Raw DN
-        * Landsat 4 TM Raw DN
-        * Landsat 4 TM Surface Reflectance
-        * MODIS NBAR
+        * Sentinel-2 MSI Level 1C [1]_
+        * Landsat 9 OLI-2 SR [2]_
+        * Landsat 9 OLI-2 TOA [2]_
+        * Landsat 8 OLI SR [2]_
+        * Landsat 8 OLI TOA [2]_
+        * Landsat 7 ETM+ TOA [3]_
+        * Landsat 5 TM Raw DN [4]_
+        * Landsat 4 TM Raw DN [5]_
+        * Landsat 4 TM Surface Reflectance [6]_
+        * MODIS NBAR [7]_
 
         Parameters:
             self: ee.ImageCollection to calculate tasseled cap components for. Must belong to a supported platform.
 
         Returns:
             ImageCollections with the tasseled cap components as new bands.
+
+        References:
+            .. [1] Shi, T., & Xu, H. (2019). Derivation of Tasseled Cap Transformation
+                Coefficients for Sentinel-2 MSI At-Sensor Reflectance Data. IEEE Journal
+                of Selected Topics in Applied Earth Observations and Remote Sensing, 1-11.
+                doi:10.1109/jstars.2019.2938388
+            .. [2] Zhai, Y., Roy, D.P., Martins, V.S., Zhang, H.K., Yan, L., Li, Z. 2022.
+                Conterminous United States Landsat-8 top of atmosphere and surface reflectance
+                tasseled cap transformation coefficients. Remote Sensing of Environment,
+                274(2022). doi:10.1016/j.rse.2022.112992
+            .. [3] Huang, C., Wylie, B., Yang, L., Homer, C. and Zylstra, G., 2002.
+                Derivation of a tasselled cap transformation based on Landsat 7 at-satellite
+                reflectance. International journal of remote sensing, 23(8), pp.1741-1748.
+            .. [4] Crist, E.P., Laurin, R. and Cicone, R.C., 1986, September. Vegetation and
+                soils information contained in transformed Thematic Mapper data. In
+                Proceedings of IGARSS`86 symposium (pp. 1465-1470). Paris: European Space
+                Agency Publications Division.
+            .. [5] Crist, E.P. and Cicone, R.C., 1984. A physically-based transformation of
+                Thematic Mapper data---The TM Tasseled Cap. IEEE Transactions on Geoscience
+                and Remote sensing, (3), pp.256-263.
+            .. [6] Crist, E.P., 1985. A TM tasseled cap equivalent transformation for
+                reflectance factor data. Remote sensing of Environment, 17(3), pp.301-306.
+            .. [7] Lobser, S.E. and Cohen, W.B., 2007. MODIS tasselled cap: land cover
+                characteristics expressed through transformed MODIS data. International
+                Journal of Remote Sensing, 28(22), pp.5079-5101.
+
 
         Examples:
             .. code-block:: python
@@ -409,8 +463,8 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                image = ee.Image('COPERNICUS/S2_SR')
-                img = img.tasseledCap()
+                ic = ee.ImageCollection("LANDSAT/LT05/C01/T1")
+                ic = ic.geetools.tasseledCap()
         """
         return ee_extra.Spectral.core.tasseledCap(self._obj)
 
@@ -436,7 +490,7 @@ class ImageCollectionAccessor:
                 ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
                 ic2021 = ic.filterBounds(geom).filterDate('2021-07-01', '2021-10-01')
 
-                ic = ic2018.append(ic2021.first())
+                ic = ic2018.geetools.append(ic2021.first())
                 ic.getInfo()
         """
         return self._obj.merge(ee.ImageCollection([image]))
