@@ -185,6 +185,7 @@ class FeatureCollectionAccessor:
         idByIndex = ee.Dictionary.fromLists(indexes, ids)
         return self._obj.map(lambda f: f.set(name, idByIndex.get(f.get("system:index"))))
 
+    # TODO: Fix the example
     def mergeGeometries(self, maxError: float | int | ee.number | None = None) -> ee.Geometry:
         """Merge the geometries included in the features.
 
@@ -195,7 +196,7 @@ class FeatureCollectionAccessor:
             the dissolved geometry
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
