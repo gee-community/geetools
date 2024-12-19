@@ -1987,7 +1987,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.plot_hist`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
