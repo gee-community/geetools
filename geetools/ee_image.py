@@ -97,7 +97,7 @@ class ImageAccessor:
         )
         return self._obj.rename(bandNames)
 
-    def addPrefix(self, prefix: str | ee.String, bands: list | ee.List = []):
+    def addPrefix(self, prefix: str | ee.String, bands: list | ee.List = []) -> ee.Image:
         """Add a prefix to the image selected band.
 
         Add a prefix to the selected band. If no band is specified, the prefix is added to all bands.
@@ -678,7 +678,7 @@ class ImageAccessor:
             },
         ).rename(band.cat("_gauss"))
 
-    def repeat(self, band, repeats: int | ee.Number) -> ee.image:
+    def repeat(self, band, repeats: int | ee.Number) -> ee.Image:
         """Repeat a band of the image.
 
         Args:

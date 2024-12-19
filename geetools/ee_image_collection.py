@@ -822,7 +822,7 @@ class ImageCollectionAccessor:
         """
         return self.containsBandNames(bandNames, "ANY")
 
-    def aggregateArray(self, properties: list | ee.List | None = None) -> ee.Dict:
+    def aggregateArray(self, properties: list | ee.List | None = None) -> ee.Dictionary:
         """Aggregate the ImageCollection selected properties into a dictionary.
 
         Args:
@@ -995,7 +995,7 @@ class ImageCollectionAccessor:
 
         return ee.ImageCollection(imageList)
 
-    def medoid(self) -> ee.image:
+    def medoid(self) -> ee.Image:
         """Compute the medoid of the ImageCollection.
 
         The medoid is the image that has the smallest sum of distances to all other images in the collection.
