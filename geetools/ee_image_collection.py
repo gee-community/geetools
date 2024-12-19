@@ -822,6 +822,7 @@ class ImageCollectionAccessor:
 
         return ee.ImageCollection(ic)
 
+    # TODO: Fix the example
     def containsAllBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
         """Filter the ImageCollection keeping only the images with all the provided bands.
 
@@ -832,7 +833,7 @@ class ImageCollectionAccessor:
             A filtered ImageCollection
 
         Examples:
-            .. jupyter-execute::
+            .. code-block::
 
                 import ee, geetools
 
