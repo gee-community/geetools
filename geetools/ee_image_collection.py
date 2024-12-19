@@ -556,7 +556,7 @@ class ImageCollectionAccessor:
         Examples:
             .. jupyter-execute::
 
-                import ee, LDCGEETools
+                import ee, geetools
 
                 collection = (
                     ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
@@ -641,7 +641,7 @@ class ImageCollectionAccessor:
         Examples:
             .. jupyter-execute::
 
-                import ee, LDCGEETools
+                import ee, geetools
 
                 collection = (
                     ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
@@ -761,14 +761,14 @@ class ImageCollectionAccessor:
         Examples:
             .. jupyter-execute::
 
-                import ee, LDCGEETools
+                import ee, geetools
                 collection = (
                     ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
                     .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
                     .filterDate("2014-01-01", "2014-12-31")
                 )
                 valid = collection.geetools.validPixels("B1")
-                print(valid.getInfo()).
+                print(valid.getInfo())
         """
         # compute the mask for the specified band
         band = self._obj.first().bandNames().get(0) if band == "" else ee.String(band)
@@ -790,7 +790,7 @@ class ImageCollectionAccessor:
         Examples:
             .. jupyter-execute::
 
-                import ee, LDCGEETools
+                import ee, geetools
 
                 collection = (
                     ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
