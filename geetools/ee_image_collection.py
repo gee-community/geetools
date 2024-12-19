@@ -122,7 +122,7 @@ class ImageCollectionAccessor:
         """
         return ee_extra.ImageCollection.core.closest(self._obj, date, tolerance, unit)
 
-    # TODO: We can add the additional examples in https://eemont.readthedocs.io/en/latest/classes/stubs/eemont.imagecollection.spectralIndices.html
+    # TODO: We can add the additional examples using https://eemont.readthedocs.io/en/latest/classes/stubs/eemont.imagecollection.spectralIndices.html
     def spectralIndices(
         self,
         index: str = "NDVI",

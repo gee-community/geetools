@@ -830,6 +830,7 @@ class ImageAccessor:
         """
         return ee_extra.Spectral.core.indices()
 
+    # TODO: We can add the additional examples using https://eemont.readthedocs.io/en/latest/classes/stubs/eemont.imagecollection.spectralIndices.html
     def spectralIndices(
         self,
         index: str = "NDVI",
