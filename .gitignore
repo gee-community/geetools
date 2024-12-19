@@ -95,6 +95,9 @@ ipython_config.py
 #   install all needed dependencies.
 #Pipfile.lock
 
+# uv
+uv.lock
+
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
 
@@ -140,6 +143,9 @@ cython_debug/
 
 # vscode config
 .vscode/
+
+# JetBrains config
+.idea/
 
 # sandbox Notebook
 sandbox.ipynb
