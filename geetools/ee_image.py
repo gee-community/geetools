@@ -1842,6 +1842,7 @@ class ImageAccessor:
 
         return ee.Dictionary.fromLists(features, values)
 
+    # TODO: Fix it. Idem for plot_by_bands.
     def plot_by_regions(
         self,
         type: str,
@@ -1891,7 +1892,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.plot_hist
 
         Examples:
-            .. jupyter-execute::
+            .. block-code:: python
 
                 import ee, geetools
 
