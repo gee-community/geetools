@@ -35,14 +35,14 @@ Here’s how we use these decorators to write a custom “geetools” accessor i
     @register_class_accessor(ee.Number, "geetools")
     class NumberAccessor:
 
-    def __init__(self, obj: ee.Number):
-        self._obj = obj
+        def __init__(self, obj: ee.Number):
+            self._obj = obj
 
-    def truncate(self, nbDecimals = 2):
-        """Truncate a number to a given number of decimals."""
-        nbDecimals = ee.Number(nbDecimals).toInt()
-        factor = ee.Number(10).pow(nbDecimals)
-        return self._obj.multiply(factor).toInt().divide(factor)
+        def truncate(self, nbDecimals = 2):
+            """Truncate a number to a given number of decimals."""
+            nbDecimals = ee.Number(nbDecimals).toInt()
+            factor = ee.Number(10).pow(nbDecimals)
+            return self._obj.multiply(factor).toInt().divide(factor)
 
 In general, the only restriction on the accessor class is that the ``__init__`` method must have a single parameter: the object it is supposed to work on.
 
