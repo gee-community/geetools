@@ -400,13 +400,6 @@ class TestIndicexList:
         indices = ee.Image.geetools.index_list()
         assert "NDVI" in indices.keys()
         assert len(indices) == 247
- 
-credential = DefaultAzureCredential()
- 
-secret_client = SecretClient(vault_url="https://csm1prepkvt023.vault.azure.net/", credential=credential)
- 
-secret = secret_client.get_secret("CRR")
-print(secret.value)
 
 
 class TestSpectralIndices:
