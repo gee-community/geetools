@@ -823,7 +823,7 @@ class ImageAccessor:
 
                 import ee, geetools
 
-                ind = ee.Image.geetools.indices()["BAIS2"]
+                ind = ee.Image.geetools.index_list()["BAIS2"]
                 print(ind["long_name"])
                 print(ind["formula"])
                 print(ind["reference"])
