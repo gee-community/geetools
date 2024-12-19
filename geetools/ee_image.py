@@ -2030,6 +2030,7 @@ class ImageAccessor:
 
         return ax
 
+    # TODO: Fix this example
     def plot_hist(
         self,
         bins: int = 30,
@@ -2076,7 +2077,7 @@ class ImageAccessor:
 
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
