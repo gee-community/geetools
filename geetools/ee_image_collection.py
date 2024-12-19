@@ -116,6 +116,7 @@ class ImageCollectionAccessor:
                 import ee
                 import geetools
 
+                ee.Initialize()
                 s2 = ee.ImageCollection('COPERNICUS/S2_SR').geetools.closest('2020-10-15')
                 s2.size().getInfo()
         """
