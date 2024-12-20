@@ -1892,7 +1892,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.plot_hist
 
         Examples:
-            .. block-code:: python
+            .. code-block:: python
 
                 import ee, geetools
 
