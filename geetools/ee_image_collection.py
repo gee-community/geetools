@@ -35,6 +35,8 @@ class ImageCollectionAccessor:
         self._obj = obj
 
     # -- ee-extra wrapper ------------------------------------------------------
+    # TODO: Currently (2024-12-20) there are a bug when you use this method with any S2.
+    #  This bug is related with ee-extra, so we have to wait until they fix the bug
     def maskClouds(
         self,
         method: str = "cloud_prob",
@@ -96,9 +98,6 @@ class ImageCollectionAccessor:
             cdi,
         )
 
-    # TODO: This method takes a lot of time, but it seems that is a problem of ee-extra.
-    #  By the way, I can't understad why. This is the source code:
-    #  https://github.com/r-earthengine/ee_extra/blob/master/ee_extra/ImageCollection/core.py
     def closest(
         self, date: ee.Date | str, tolerance: int = 1, unit: str = "month"
     ) -> ee.ImageCollection:
@@ -114,13 +113,18 @@ class ImageCollectionAccessor:
             Closest images to the specified date.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee
                 import geetools
 
                 ee.Initialize()
-                s2 = ee.ImageCollection('COPERNICUS/S2_SR').geetools.closest('2020-10-15')
+                geom = ee.Geometry.point(-122.196, 41.411)
+                s2 = (
+                    ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+                    .filterBounds(geom)
+                    .geetools.closest('2020-10-15')
+                )
                 s2.size().getInfo()
         """
         return ee_extra.ImageCollection.core.closest(self._obj, date, tolerance, unit)
@@ -277,7 +281,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                S2 = ee.ImageCollection('COPERNICUS/S2_SR').scaleAndOffset()
+                S2 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED').scaleAndOffset()
         """
         return ee_extra.STAC.core.scaleAndOffset(self._obj)
 
@@ -303,7 +307,7 @@ class ImageCollectionAccessor:
                 import geetools
 
                 ee.Initialize()
-                S2 = ee.ImageCollection('COPERNICUS/S2_SR').preprocess()
+                S2 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED').preprocess()
         """
         return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
@@ -321,7 +325,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('COPERNICUS/S2_SR').geetools.getSTAC()
+                ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED').geetools.getSTAC()
         """
         # extract the Asset id from the imagecollection
         assetId = self._obj.get("system:id").getInfo()
@@ -491,7 +495,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ic = ee.ImageCollection('COPERNICUS/S2_SR');
+                ic = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED');
 
                 geom = ee.Geometry.Point(-122.196, 41.411);
                 ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
@@ -515,7 +519,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ic = ee.ImageCollection('COPERNICUS/S2_SR');
+                ic = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED');
 
                 geom = ee.Geometry.Point(-122.196, 41.411);
                 ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
@@ -541,7 +545,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ic = ee.ImageCollection('COPERNICUS/S2_SR');
+                ic = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED');
 
                 geom = ee.Geometry.Point(-122.196, 41.411);
                 ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
