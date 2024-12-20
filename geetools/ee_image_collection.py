@@ -96,6 +96,9 @@ class ImageCollectionAccessor:
             cdi,
         )
 
+    # TODO: This method takes a lot of time, but it seems that is a problem of ee-extra.
+    #  By the way, I can't understad why. This is the source code:
+    #  https://github.com/r-earthengine/ee_extra/blob/master/ee_extra/ImageCollection/core.py
     def closest(
         self, date: ee.Date | str, tolerance: int = 1, unit: str = "month"
     ) -> ee.ImageCollection:
@@ -111,7 +114,7 @@ class ImageCollectionAccessor:
             Closest images to the specified date.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
