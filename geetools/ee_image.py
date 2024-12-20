@@ -1557,7 +1557,7 @@ class ImageAccessor:
 
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 fig, ax = plt.subplots()
-                image.geetools.plot(["B2", "B3", "B4"], image.geometry(), ax)
+                image.geetools.plot(["B4", "B3", "B2"], image.geometry(), ax)
         """
         if ax is None:
             fig, ax = plt.subplots()
