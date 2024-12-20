@@ -29,7 +29,7 @@ class JoinAccessor:
             primary: the first collection
             secondary: the second collection
             field: the field to join by
-            outer: whether to keep non matching features
+            outer: whether to keep non-matching features
 
         Returns:
             the joined collection

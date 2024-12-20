@@ -24,7 +24,7 @@ class InitializeAccessor:
         """Initialize Earthengine API using a specific user.
 
         Equivalent to the ``ee.initialize`` function but with a specific credential file stored in
-        the machine by the :py:meth:`ee.Authenticate.geetools.new_user <geetools.ee_autheticate.AuthenticateAccessor.new_user>`
+        the machine by the :py:meth:`ee.Authenticate.geetools.new_user <geetools.ee_authenticate.AuthenticateAccessor.new_user>`
         function.
 
         Args:

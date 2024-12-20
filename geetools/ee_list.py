@@ -159,7 +159,7 @@ class ListAccessor:
     ) -> ee.List:
         """Create a sequence from ini to end by step.
 
-        Similar to ``ee.List.sequence``, but if end != last item then adds the end to the end of the resuting list.
+        Similar to ``ee.List.sequence``, but if end != last item then adds the end to the end of the resulting list.
 
         Parameters:
             ini: The initial value of the sequence.
@@ -214,7 +214,7 @@ class ListAccessor:
     def join(self, separator: str | ee.String = ", ") -> ee.String:
         """Format a list to a string.
 
-        Same as the join method but elements that cannot be stringified will be returned as the object type.
+        Same as the join method but elements that cannot be stringtified will be returned as the object type.
 
         Parameters:
             separator: The separator to use.

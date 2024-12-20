@@ -64,7 +64,7 @@ class FeatureCollectionAccessor:
                 # transform the featureCollection into an image
                 img = vatican.geetools.toImage(color=1).rename("gaul")
 
-                # Define a custom colormap ffor the raster representation
+                # Define a custom colormap for the raster representation
                 # it will only have 1 color: teal for the first value and white for everything else
                 cmap = ListedColormap(['teal', 'white'])
 
@@ -186,11 +186,11 @@ class FeatureCollectionAccessor:
         return self._obj.map(lambda f: f.set(name, idByIndex.get(f.get("system:index"))))
 
     # TODO: Fix the example
-    def mergeGeometries(self, maxError: float | int | ee.number | None = None) -> ee.Geometry:
+    def mergeGeometries(self, maxError: float | int | ee.Number | None = None) -> ee.Geometry:
         """Merge the geometries included in the features.
 
         Args:
-            maxError: The maximum amount of error tolerated when performing any necessary reprojection.
+            maxError: The maximum amount of error tolerated when performing any necessary re-projection.
 
         Returns:
             the dissolved geometry
@@ -204,7 +204,7 @@ class FeatureCollectionAccessor:
 
                 initialize_documentation()
 
-                # create a featurecollection containing 2 bounding boxes
+                # create a FeatureCollection containing 2 bounding boxes
                 fc = ee.FeatureCollection([
                     ee.Geometry.BBox(-1, -1, 1, 1),
                     ee.Geometry.BBox(0, 0, 2, 2)
@@ -229,7 +229,7 @@ class FeatureCollectionAccessor:
 
         This method is made to avoid errors when performing zonal statistics and/or other surfaces operations.
         These operations won't work on geometries that are Lines or points. The methods remove these geometry
-        types from GEometryCollections and rremove features that don't have any polygon geometry.
+        types from GeometryCollections and remove features that don't have any polygon geometry.
 
         Returns:
             The parsed collection with only polygon/MultiPolygon geometries
@@ -277,7 +277,7 @@ class FeatureCollectionAccessor:
     ) -> ee.Dictionary:
         """Get a dictionary with all feature values for each properties.
 
-        This method is returning a dictionary with all the properties as keys and their values in each feaure as a list.
+        This method is returning a dictionary with all the properties as keys and their values in each feature as a list.
 
         .. code-block::
 
@@ -422,9 +422,9 @@ class FeatureCollectionAccessor:
             type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             featureId: The property to use as the x-axis (name the features). Defaults to "system:index".
             properties: A list of properties to plot. Defaults to all properties.
-            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties length.
+            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties' length.
             colors: A list of colors to use for plotting the properties. If not provided, the default colors from the matplotlib library will be used.
-            ax: The matplotlib axes to use. If not provided, the plot will be send to a new figure.
+            ax: The matplotlib axes to use. If not provided, the plot will be sent to a new figure.
             kwargs: Additional arguments from the ``pyplot`` function.
 
         See Also:
@@ -488,9 +488,9 @@ class FeatureCollectionAccessor:
             type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             featureId: The property to use as the y-axis (name the features). Defaults to "system:index".
             properties: A list of properties to plot. Defaults to all properties.
-            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties length.
+            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties' length.
             colors: A list of colors to use for plotting the properties. If not provided, the default colors from the matplotlib library will be used.
-            ax: The matplotlib axes to use. If not provided, the plot will be send to a new figure.
+            ax: The matplotlib axes to use. If not provided, the plot will be sent to a new figure.
             kwargs: Additional arguments from the ``pyplot`` function.
 
         See Also:
@@ -546,7 +546,7 @@ class FeatureCollectionAccessor:
         Args:
             property: The property to display
             label: The label to use for the property. If not provided, the property name will be used.
-            ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
+            ax: The matplotlib axes to use. If not provided, the plot will be sent to the current axes (``plt.gca()``)
             color: The color to use for the plot. If not provided, the default colors from the matplotlib library will be used.
             kwargs: Additional arguments from the ``pyplot.hist`` function.
 
@@ -657,7 +657,7 @@ class FeatureCollectionAccessor:
                 )
 
                 # style the figure
-                ax.set_title("France departements")
+                ax.set_title("France departments")
                 ax.set_xlabel("Longitude (°)")
                 ax.set_ylabel("Latitude (°)")
                 ax.set_xticks([])

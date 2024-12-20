@@ -511,7 +511,7 @@ class ImageCollectionAccessor:
         """A binary ee.Image where only pixels that are masked in all images of the collection get masked.
 
         Returns:
-            ee.Image of the mask. 1 where at least 1 pixel is valid 0 elswere
+            ee.Image of the mask. 1 where at least 1 pixel is valid 0 elsewhere
 
         Examples:
             .. code-block::
@@ -638,7 +638,7 @@ class ImageCollectionAccessor:
 
         Here in this function an extra band is added to each image for each of the evaluated bands with the outlier status. The band name is the original band name with the suffix "_outlier". A value of 1 means that the pixel is an outlier, 0 means that it is not.
 
-        Optionally users can discard this band by setting ``drop`` to ``True`` and the outlier will simply be masked from each ilmage. This is useful when the outlier band is not needed and the user wants to save space.
+        Optionally users can discard this band by setting ``drop`` to ``True`` and the outlier will simply be masked from each image. This is useful when the outlier band is not needed and the user wants to save space.
 
         idea from: https://www.kdnuggets.com/2017/02/removing-outliers-standard-deviation-python.html
 
@@ -1027,7 +1027,7 @@ class ImageCollectionAccessor:
         """Fill masked pixels with the first valid pixel in the stack of images.
 
         The method will for every image, fill all the pixels with the latest nono masked pixel in the stack of images.
-        I requires the image to have a valid "system:time_start" property.
+        It requires the image to have a valid "system:time_start" property.
         As the imageCollection will need to be sorted limit the analysis to a reasonable number of image by filtering your data beforehand.
 
         Returns:
@@ -2349,7 +2349,7 @@ class ImageCollectionAccessor:
             geometry: The region over which to reduce the data.
             scale: A nominal scale in meters to work in.
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
-            crstransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
             bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
             maxPixels: The maximum number of pixels to reduce.
             tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
@@ -2473,7 +2473,7 @@ class ImageCollectionAccessor:
     ) -> ee.FeatureCollection:
         """Apply a reducer to all the pixels in specific regions on each images of a collection.
 
-        The result will be shaped as a FeatureCollection with the idProperty as key and for each of them the reduced band values over one regions.
+        The result will be shaped as a FeatureCollection with the idProperty as key and for each of them the reduced band values over one region.
         Each feature will have the same properties as the original feature collection and thus be identified by a key pair:
         "system:id" + "system:image_property"
 
@@ -2502,7 +2502,7 @@ class ImageCollectionAccessor:
             idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
             scale: A nominal scale in meters to work in.
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
-            crstransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
             tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:

@@ -131,7 +131,7 @@ class ImageAccessor:
     def rename(self, names: dict | ee.Dictionary) -> ee.Image:
         """Rename the bands of the image based on a dictionary.
 
-        It's the same function as the one from GEE but it takes a dictionary as input.
+        It's the same function as the one from GEE, but it takes a dictionary as input.
         Keys are the old names and values are the new names.
 
         Parameters:
@@ -405,7 +405,7 @@ class ImageAccessor:
     ) -> ee.Image:
         """Make a buffer around every masked pixel of the Image.
 
-        The buffer will be made using the specified radius, kernelType and units and will mask surrounfing pixels.
+        The buffer will be made using the specified radius, kernelType and units and will mask surrounding pixels.
 
         Parameters:
             radius: The radius of the buffer.
@@ -442,8 +442,8 @@ class ImageAccessor:
         """Create an image with the given values and names.
 
         Parameters:
-            values: The values to initialize the image with. If one value is given, it will be used for all bands.
-            names: The names of the bands. By default it uses the earthen engine default value, "constant".
+            values: The values to initialize the image width. If one value is given, it will be used for all bands.
+            names: The names of the bands. By default, it uses the earthen engine default value, "constant".
 
         Returns:
             An image with the given values and names.
@@ -480,10 +480,10 @@ class ImageAccessor:
         """Create an image with the same band names, projection and scale as the original image.
 
         The projection is computed on the first band, make sure all bands have the same.
-        The procduced image can also copy the properties of the original image and keep the mask.
+        The produced image can also copy the properties of the original image and keep the mask.
 
         Parameters:
-            fillValue: The value to fill the image with.
+            fillValue: The value to fill the image width.
             copyProperties: If True, the properties of the original image will be copied to the new one.
             keepMask: If True, the mask of the original image will be copied to the new one.
             keepFootprint: If True, the footprint of the original image will be used to clip the new image.
@@ -785,7 +785,7 @@ class ImageAccessor:
         An islet is a set of non-masked pixels connected together by their edges of very small surface. The user define the offset of the island size and we compute the max number of pixels to improve computation speed. The inpt Image needs to be a single band binary image.
 
         Args:
-            offset: The limit of the islet size in square metters
+            offset: The limit of the islet size in square meters
 
         Returns:
             The islet mask
@@ -911,7 +911,7 @@ class ImageAccessor:
 
                 ee.Initialize()
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                image = image.geetools.specralIndices(["NDVI", "NDFI"])
+                image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
         # fmt: off
         return ee_extra.Spectral.core.spectralIndices(
@@ -1356,7 +1356,7 @@ class ImageAccessor:
             other: The image to compute the distance to.
 
         Returns:
-            and Image with the euclidean distance between the two images for each band.
+            and Image with the Euclidean distance between the two images for each band.
 
         Examples:
             .. code-block:: python
@@ -1860,7 +1860,7 @@ class ImageAccessor:
     ) -> Axes:
         """Plot the reduced values for each region.
 
-        Each region will be plotted using the ``regionId`` as x-axis label defauting to "system:index" if not provided.
+        Each region will be plotted using the ``regionId`` as x-axis label defaulting to "system:index" if not provided.
         If no ``bands`` are provided, all bands will be plotted.
         If no ``labels`` are provided, the band names will be used.
 
@@ -1870,7 +1870,7 @@ class ImageAccessor:
         Parameters:
             type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
-            rreducer: The name of the reducer or a reducer object to use. Default is "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is "mean".
             bands: The bands to compute the reducer on. Default to all bands.
             regionId: The property used to label region. Defaults to "system:index".
             labels: The labels to use for the output dictionary. Default to the band names.
@@ -1956,7 +1956,7 @@ class ImageAccessor:
     ) -> Axes:
         """Plot the reduced values for each bands.
 
-        Each band will be plotted using the ``labels`` as x-axis label defauting to band names if not provided.
+        Each band will be plotted using the ``labels`` as x-axis label defaulting to band names if not provided.
         If no ``bands`` are provided, all bands will be plotted.
         If no ``regionId`` are provided, the "system;index" property will be used.
 
@@ -2056,7 +2056,7 @@ class ImageAccessor:
             bands: The bands to plot the histogram for. Default to all bands.
             labels: The labels to use for the output dictionary. Default to the band names.
             colors: The colors to use for the plot. Default to the default matplotlib colors.
-            prescision: The number of decimal to keep for the histogram bins values. Default is 2.
+            precision: The number of decimal to keep for the histogram bins values. Default is 2.
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
             scale: The scale to use for the computation. Default is 10,000m.
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
