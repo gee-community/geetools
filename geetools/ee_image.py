@@ -42,7 +42,7 @@ class ImageAccessor:
             The image with the date band added.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -79,7 +79,7 @@ class ImageAccessor:
             The image with the suffix added to the selected bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -110,7 +110,7 @@ class ImageAccessor:
             The image with the prefix added to the selected bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -141,7 +141,7 @@ class ImageAccessor:
             The image with the new band names.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -168,7 +168,7 @@ class ImageAccessor:
             The image without the specified bands.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -201,7 +201,7 @@ class ImageAccessor:
             The original image with the DOY band converted to a date band.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -239,7 +239,7 @@ class ImageAccessor:
             A dictionary with the band names and the value at the given point.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -262,7 +262,7 @@ class ImageAccessor:
             The minimum scale of the image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -285,7 +285,7 @@ class ImageAccessor:
             The merged image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -323,7 +323,7 @@ class ImageAccessor:
             The method has a known bug when the projection of the image is different than 3857. As we use a buffer, the grid cells can slightly overlap. Feel free to open a Issue and contribute if you feel it needs improvements.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -376,7 +376,7 @@ class ImageAccessor:
             The clipped imageCollection.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -416,7 +416,7 @@ class ImageAccessor:
             The image with the buffer mask applied.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -449,7 +449,7 @@ class ImageAccessor:
             An image with the given values and names.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -492,7 +492,7 @@ class ImageAccessor:
             An image with the same band names, projection and scale as the original image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -548,7 +548,7 @@ class ImageAccessor:
             The image with the new reduced band added
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -581,7 +581,7 @@ class ImageAccessor:
             The image with the geometry masked.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -613,7 +613,7 @@ class ImageAccessor:
             The string corresponding to the image
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -652,7 +652,7 @@ class ImageAccessor:
             The image with the gaussian filter applied.An single band image with the gaussian filter applied.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -689,7 +689,7 @@ class ImageAccessor:
             The image with the band repeated
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -721,7 +721,7 @@ class ImageAccessor:
             The image with the zero values removed from each band.
 
         Example:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -757,7 +757,7 @@ class ImageAccessor:
             The image with the interpolated bands
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -791,7 +791,7 @@ class ImageAccessor:
             The islet mask
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -819,7 +819,7 @@ class ImageAccessor:
             List of indices implemented in this module
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -932,7 +932,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.scaleAndOffset`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -954,7 +954,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.scaleAndOffset`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -1022,7 +1022,7 @@ class ImageAccessor:
             STAC of the image.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -1061,7 +1061,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.getCitation`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -1082,7 +1082,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.getDOI`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -1633,7 +1633,7 @@ class ImageAccessor:
             A single ee.Image with one band per image in the passed list
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1702,7 +1702,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.plot_by_bands`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1793,7 +1793,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.plot_by_regions`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
