@@ -181,7 +181,7 @@ class ImageCollectionAccessor:
             slope: Soil line slope, default = 1.0
             intercept: Soil line intercept, default = 0.0
             gamma: Weighting coefficient used for ARVI, default = 1.0
-            omega: Weighting coefficient  used for MBWI, default = 2.0
+            omega: Weighting coefficient used for MBWI, default = 2.0
             beta: Calibration parameter used for NDSIns, default = 0.05
             k: Slope parameter by soil used for NIRvH2, default = 0.0
             fdelta: Adjustment factor used for SEVI, default = 0.581
@@ -724,10 +724,10 @@ class ImageCollectionAccessor:
             decode_timedelta: If True, decode variables and coordinates with time units in {"days", "hours", "minutes", "seconds", "milliseconds", "microseconds"} into timedelta objects. If False, leave them encoded as numbers. If None (default), assume the same value of decode_time.
             use_cftime: Only relevant if encoded dates come from a standard calendar (e.g. "gregorian", "proleptic_gregorian", "standard", or not specified).  If None (default), attempt to decode times to ``np.datetime64[ns]`` objects; if this is not possible, decode times to ``cftime.datetime`` objects. If True, always decode times to ``cftime.datetime`` objects, regardless of whether or not they can be represented using ``np.datetime64[ns]`` objects.  If False, always decode times to ``np.datetime64[ns]`` objects; if this is not possible raise an error.
             concat_characters: Should character arrays be concatenated to strings, for example: ["h", "e", "l", "l", "o"] -> "hello"
-            decode_coords: bool or {"coordinates", "all"}, Controls which variables are set as coordinate variables: - "coordinates" or True: Set variables referred to in the ``'coordinates'`` attribute of the datasets or individual variables as coordinate variables. - "all": Set variables referred to in  ``'grid_mapping'``, ``'bounds'`` and other attributes as coordinate variables.
+            decode_coords: bool or {"coordinates", "all"}, Controls which variables are set as coordinate variables: - "coordinates" or True: Set variables referred to in the ``'coordinates'`` attribute of the datasets or individual variables as coordinate variables. - "all": Set variables referred to in ``'grid_mapping'``, ``'bounds'`` and other attributes as coordinate variables.
             crs: The coordinate reference system (a CRS code or WKT string). This defines the frame of reference to coalesce all variables upon opening. By default, data is opened with 'EPSG:4326'.
             scale: The scale in the ``crs`` or ``projection``'s units of measure -- either meters or degrees. This defines the scale that all data is represented in upon opening. By default, the scale is 1° when the CRS is in degrees or 10,000 when in meters.
-            projection: Specify an ``ee.Projection`` object to define the ``scale`` and ``crs`` (or other coordinate reference system) with which to coalesce all variables upon opening. By default, the scale and reference system is set by the the ``crs`` and ``scale`` arguments.
+            projection: Specify an ``ee.Projection`` object to define the ``scale`` and ``crs`` (or other coordinate reference system) with which to coalesce all variables upon opening. By default, the scale and reference system is set by the ``crs`` and ``scale`` arguments.
             geometry: Specify an ``ee.Geometry`` to define the regional bounds when opening the data. When not set, the bounds are defined by the CRS's ``area_of_use`` boundaries. If those aren't present, the bounds are derived from the geometry of the first image of the collection.
             primary_dim_name: Override the name of the primary dimension of the output Dataset. By default, the name is 'time'.
             primary_dim_property: Override the ``ee.Image`` property for which to derive the values of the primary dimension. By default, this is 'system:time_start'.
@@ -2338,14 +2338,14 @@ class ImageCollectionAccessor:
             }
 
         Warning:
-            The method makes a call to the pure Python ``uuid`` package so it cannot be used in a server-side ``map`` function.
+            The method makes a call to the pure Python ``uuid`` package, so it cannot be used in a server-side ``map`` function.
 
         Parameters:
             idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection. One should use a meaningful property to avoid conflicts. in case of conflicts, the images with the same property will be mosaicked together (e.g. all raw satellite imagery with the same date) to make sure the final reducer have 1 single entry per idProperty.
             reducer: THe reducer to apply.
             idType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
             idReducer: If the multiple images have the same idProperty, they will be aggregated beforehand using the provided reducer. default to a mosaic behaviour to match most of the satellite imagery collection where the world is split for each date between multiple images.
-            idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
+            idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string ("%s"). You can specify any other format compatible with band names.
             geometry: The region over which to reduce the data.
             scale: A nominal scale in meters to work in.
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
@@ -2491,7 +2491,7 @@ class ImageCollectionAccessor:
             sentinel2_id_3,feature_2,feature2_prop1,feature2_prop2,...,reduced_image3_band1_feature2,reduced_image3_band2_feature2,...
 
         Warning:
-            The method makes a call to the pure Python uuid package so it cannot be used in a server-side map function.
+            The method makes a call to the pure Python uuid package, so it cannot be used in a server-side map function.
 
         Parameters:
             reducer: The reducer to apply.
@@ -2499,7 +2499,7 @@ class ImageCollectionAccessor:
             idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection. One should use a meaningful property to avoid conflicts. in case of conflicts, the images with the same property will be mosaicked together (e.g. all raw satellite imagery with the same date) to make sure the final reducer have 1 single entry per idProperty.
             idType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
             idReducer: If the multiple images have the same idProperty, they will be aggregated beforehand using the provided reducer. default to a mosaic behaviour to match most of the satellite imagery collection where the world is split for each date between multiple images.
-            idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
+            idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string ("%s"). You can specify any other format compatible with band names.
             scale: A nominal scale in meters to work in.
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
             crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.

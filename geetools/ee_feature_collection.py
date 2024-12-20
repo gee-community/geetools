@@ -275,7 +275,7 @@ class FeatureCollectionAccessor:
         properties: list | ee.List = [],
         labels: list = [],
     ) -> ee.Dictionary:
-        """Get a dictionary with all feature values for each properties.
+        """Get a dictionary with all feature values for each property.
 
         This method is returning a dictionary with all the properties as keys and their values in each feature as a list.
 
@@ -295,7 +295,7 @@ class FeatureCollectionAccessor:
             labels: A list of names to replace properties names. Default to the properties names.
 
         Returns:
-            A dictionary with all the properties as keys and their values in each feaure as a list.
+            A dictionary with all the properties as keys and their values in each feature as a list.
 
         See Also:
             - :docstring:`ee.FeatureCollection.geetools.byFeatures`

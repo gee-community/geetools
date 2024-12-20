@@ -32,7 +32,7 @@ class ImageAccessor:
     def addDate(self, format: str | ee.String = "") -> ee.Image:
         """Add a band with the date of the image in the provided format.
 
-        If no format is provided, the date is stored as a Timestamp in millisecond in a band "date". If format band is provided, the date is store in a int8 band with the date in the provided format. This format needs to be a string that can be converted to a number.
+        If no format is provided, the date is stored as a Timestamp in millisecond in a band "date". If format band is provided, the date is store in an int8 band with the date in the provided format. This format needs to be a string that can be converted to a number.
         If not an error will be thrown.
 
         Args:
@@ -320,7 +320,7 @@ class ImageAccessor:
             The grid as a FeatureCollection.
 
         Note:
-            The method has a known bug when the projection of the image is different than 3857. As we use a buffer, the grid cells can slightly overlap. Feel free to open a Issue and contribute if you feel it needs improvements.
+            The method has a known bug when the projection of the image is different from 3857. As we use a buffer, the grid cells can slightly overlap. Feel free to open an Issue and contribute if you feel it needs improvements.
 
         Examples:
             .. code-block:: python
@@ -649,7 +649,7 @@ class ImageAccessor:
             band: The band to apply the gaussian filter to. If empty, the first one is selected.
 
         Returns:
-            The image with the gaussian filter applied.An single band image with the gaussian filter applied.
+            The image with the gaussian filter applied. A single band image with the gaussian filter applied.
 
         Examples:
             .. code-block:: python
@@ -782,7 +782,7 @@ class ImageAccessor:
     def isletMask(self, offset: float | int | ee.Number) -> ee.Image:
         """Compute the islet mask from an image.
 
-        An islet is a set of non-masked pixels connected together by their edges of very small surface. The user define the offset of the island size and we compute the max number of pixels to improve computation speed. The inpt Image needs to be a single band binary image.
+        An islet is a set of non-masked pixels connected together by their edges of very small surface. The user define the offset of the islet size, and we compute the max number of pixels to improve computation speed. The input Image needs to be a single band binary image.
 
         Args:
             offset: The limit of the islet size in square meters
@@ -881,7 +881,7 @@ class ImageAccessor:
             slope: Soil line slope, default = 1.0
             intercept: Soil line intercept, default = 0.0
             gamma: Weighting coefficient used for ARVI, default = 1.0
-            omega: Weighting coefficient  used for MBWI, default = 2.0
+            omega: Weighting coefficient used for MBWI, default = 2.0
             beta: Calibration parameter used for NDSIns, default = 0.05
             k: Slope parameter by soil used for NIRvH2, default = 0.0
             fdelta: Adjustment factor used for SEVI, default = 0.581
@@ -1543,7 +1543,7 @@ class ImageAccessor:
             ax: The matplotlib axis to plot the image on.
             fc: a FeatureCollection object to overlay on top of the image. Default is None, it can be a different object from the region.
             cmap: The colormap to use for the image. Default is 'viridis'. can only ber used for single band images.
-            crs: The coordinate reference system of the image. by default we will use EPSG:4326
+            crs: The coordinate reference system of the image. By default, we will use EPSG:4326
             scale: The scale of the image.
             color: The color of the overlaid feature collection. Default is "k" (black).
 
@@ -1936,7 +1936,7 @@ class ImageAccessor:
 
     # TODO: This example throws the following error:
     #  AttributeError: 'Reducer' object has no attribute 'aggregate_array'
-    #  That was throwned by the method byRegions, in the line:
+    #  That was thrown by the method byRegions, in the line:
     #  features = regions.aggregate_array(regionId)
     #  I think that is produced due before the method doesn't have the "type" argument
     def plot_by_bands(
@@ -1954,7 +1954,7 @@ class ImageAccessor:
         crsTransform: list | None = None,
         tileScale: float = 1,
     ) -> Axes:
-        """Plot the reduced values for each bands.
+        """Plot the reduced values for each band.
 
         Each band will be plotted using the ``labels`` as x-axis label defaulting to band names if not provided.
         If no ``bands`` are provided, all bands will be plotted.
