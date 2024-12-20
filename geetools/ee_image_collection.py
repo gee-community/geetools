@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime as dt
+from typing import Any
 
 import ee
 import ee_extra
@@ -113,7 +114,7 @@ class ImageCollectionAccessor:
             Closest images to the specified date.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -220,7 +221,7 @@ class ImageCollectionAccessor:
         )
         # fmt: on
 
-    def getScaleParams(self) -> dict:
+    def getScaleParams(self) -> dict[str, float]:
         """Gets the scale parameters for each band of the image.
 
         Returns:
@@ -231,7 +232,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.scaleAndOffset`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -242,7 +243,7 @@ class ImageCollectionAccessor:
         """
         return ee_extra.STAC.core.getScaleParams(self._obj)
 
-    def getOffsetParams(self) -> dict:
+    def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
 
         Returns:
@@ -253,7 +254,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.scaleAndOffset`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -311,14 +312,14 @@ class ImageCollectionAccessor:
         """
         return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
-    def getSTAC(self) -> dict:
+    def getSTAC(self) -> dict[str, Any]:
         """Gets the STAC of the image collection.
 
         Returns:
             STAC of the image collection.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -357,7 +358,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.getCitation`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -378,7 +379,7 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.getDOI`
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee
                 import geetools
@@ -489,7 +490,7 @@ class ImageCollectionAccessor:
             ImageCollection with the new image appended.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -539,7 +540,7 @@ class ImageCollectionAccessor:
             ee.Image at the specified index.
 
         Examples:
-            .. jupyter-execute::
+            .. code-block:: python
 
                 import ee, geetools
 

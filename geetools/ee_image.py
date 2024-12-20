@@ -1,7 +1,7 @@
 """Toolbox for the ``ee.Image`` class."""
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional
 
 import ee
 import ee_extra
@@ -812,7 +812,7 @@ class ImageAccessor:
         return isletArea.lt(offset).rename("mask").selfMask()
 
     # -- ee-extra wrapper ------------------------------------------------------
-    def index_list(cls) -> dict:
+    def index_list(cls) -> dict[str, dict]:
         """Return the list of indices implemented in this module.
 
         Returns:
@@ -921,7 +921,7 @@ class ImageAccessor:
         )
         # fmt: on
 
-    def getScaleParams(self) -> dict:
+    def getScaleParams(self) -> dict[str, float]:
         """Gets the scale parameters for each band of the image.
 
         Returns:
@@ -943,7 +943,7 @@ class ImageAccessor:
         """
         return ee_extra.STAC.core.getScaleParams(self._obj)
 
-    def getOffsetParams(self) -> dict:
+    def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
 
         Returns:
@@ -1015,7 +1015,7 @@ class ImageAccessor:
         """
         return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
-    def getSTAC(self) -> dict:
+    def getSTAC(self) -> dict[str, Any]:
         """Gets the STAC of the image.
 
         Returns:
