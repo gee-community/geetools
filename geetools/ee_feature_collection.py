@@ -1,4 +1,4 @@
-"""Toolbox for the `ee.FeatureCollection` class."""
+"""Toolbox for the :py:class:`ee.FeatureCollection` class."""
 from __future__ import annotations
 
 from typing import Protocol
@@ -23,10 +23,10 @@ class GeoInterface(Protocol):
 
 @register_class_accessor(ee.FeatureCollection, "geetools")
 class FeatureCollectionAccessor:
-    """Toolbox for the `ee.FeatureCollection` class."""
+    """Toolbox for the :py:class:`ee.FeatureCollection` class."""
 
     def __init__(self, obj: ee.FeatureCollection):
-        """Initialize the FeatureCollection class."""
+        """Initialize the :py:class:`ee.FeatureCollection` class."""
         self._obj = obj
 
     def toImage(
@@ -34,7 +34,7 @@ class FeatureCollectionAccessor:
         color: str | ee.String | int | ee.Number = 0,
         width: str | ee.String | int | ee.Number = "",
     ) -> ee.Image:
-        """Paint the current FeatureCollection to an Image.
+        """Paint the current :py:class:`ee.FeatureCollection` to an Image.
 
         It's a simple wrapper on Image.paint() method
 
@@ -102,7 +102,7 @@ class FeatureCollectionAccessor:
             selectors: a list of properties to add in the output. If the list is empty all properties will be added.
 
         Returns:
-            a ee.Dictionary with values of keyColumn as keys and ee.Dictionary as values. The output will look like:
+            a :py:class:`ee.Dictionary` with values of keyColumn as keys and :py:class:`ee.Dictionary` as values. The output will look like:
 
         Examples:
             .. jupyter-execute::
@@ -290,7 +290,7 @@ class FeatureCollectionAccessor:
         The output remain server side and can be used to create a client side plot.
 
         Args:
-            featureId: The property used to label features. Defaults to "system:index".
+            featureId: The property used to label features. Defaults to ``"system:index"``.
             properties: A list of properties to get the values from.
             labels: A list of names to replace properties names. Default to the properties names.
 
@@ -353,7 +353,7 @@ class FeatureCollectionAccessor:
         The output remain server side and can be used to create a client side plot.
 
         Args:
-            featureId: The property to use as the feature id. Defaults to "system:index". This property needs to be a string property.
+            featureId: The property to use as the feature id. Defaults to ``"system:index"``. This property needs to be a string property.
             properties: A list of properties to get the values from.
             labels: A list of names to replace properties names. Default to the properties names.
 
@@ -409,18 +409,18 @@ class FeatureCollectionAccessor:
         ax: Axes | None = None,
         **kwargs,
     ) -> Axes:
-        """Plot the values of a ``ee.FeatureCollection`` by feature.
+        """Plot the values of a :py:class:`ee.FeatureCollection` by feature.
 
         Each feature property selected in properties will be plotted using the ``featureId`` as the x-axis.
         If no ``properties`` are provided, all properties will be plotted.
-        If no ``featureId`` is provided, the "system:index" property will be used.
+        If no ``featureId`` is provided, the ``"system:index"`` property will be used.
 
         Warning:
             This function is a client-side function.
 
         Args:
-            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
-            featureId: The property to use as the x-axis (name the features). Defaults to "system:index".
+            type: The type of plot to use. Defaults to ``"bar"``. can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
+            featureId: The property to use as the x-axis (name the features). Defaults to ``"system:index"``.
             properties: A list of properties to plot. Defaults to all properties.
             labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties' length.
             colors: A list of colors to use for plotting the properties. If not provided, the default colors from the matplotlib library will be used.
@@ -477,7 +477,7 @@ class FeatureCollectionAccessor:
         ax: Axes | None = None,
         **kwargs,
     ) -> Axes:
-        """Plot the values of a FeatureCollection by property.
+        """Plot the values of a :py:class:`ee.FeatureCollection` by property.
 
         Each features will be represented by a color and each property will be a bar of the bar chart.
 
@@ -485,8 +485,8 @@ class FeatureCollectionAccessor:
             This function is a client-side function.
 
         Args:
-            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
-            featureId: The property to use as the y-axis (name the features). Defaults to "system:index".
+            type: The type of plot to use. Defaults to ``"bar"``. can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
+            featureId: The property to use as the y-axis (name the features). Defaults to ``"system:index"``.
             properties: A list of properties to plot. Defaults to all properties.
             labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties' length.
             colors: A list of colors to use for plotting the properties. If not provided, the default colors from the matplotlib library will be used.
@@ -548,7 +548,7 @@ class FeatureCollectionAccessor:
             label: The label to use for the property. If not provided, the property name will be used.
             ax: The matplotlib axes to use. If not provided, the plot will be sent to the current axes (``plt.gca()``)
             color: The color to use for the plot. If not provided, the default colors from the matplotlib library will be used.
-            kwargs: Additional arguments from the ``pyplot.hist`` function.
+            kwargs: Additional arguments from the :py:func:`matplotlib.pyplot.hist` function.
 
         See Also:
             - :docstring:`ee.FeatureCollection.geetools.plot_by_features`
@@ -685,7 +685,7 @@ class FeatureCollectionAccessor:
 
     @classmethod
     def fromGeoInterface(cls, data: dict | GeoInterface) -> ee.FeatureCollection:
-        """Create a FeatureCollection from a geo interface.
+        """Create a :py:class:`ee.FeatureCollection` from a geo interface.
 
         The ``geo_interface`` is a protocol representing a vector collection as a python GeoJSON-like dictionary structure.
         More information is available at https://gist.github.com/sgillies/2217756. Note that the :py:class:`ee.FeatureCollection`
@@ -695,7 +695,7 @@ class FeatureCollectionAccessor:
         that respects the protocol described in the link above.
 
         Parameters:
-            data: The geo_interface to create the FeatureCollection from.
+            data: The geo_interface to create the :py:class:`ee.FeatureCollection` from.
             crs: The CRS to use for the FeatureCollection. Default to "EPSG:4326".
 
         Returns:

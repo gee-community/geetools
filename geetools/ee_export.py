@@ -9,7 +9,7 @@ from .utils import format_asset_id, format_description
 
 @register_class_accessor(ee.batch.Export, "geetools")
 class ExportAccessor:
-    """Toolbox for the ``ee.batch.Export`` class."""
+    """Toolbox for the :py:class:`ee.batch.Export` class."""
 
     def __init__(self, obj: ee.batch.Export):
         """Initialize the ExportAccessor class."""

@@ -1,4 +1,4 @@
-"""Extra methods for the ``ee.List`` class."""
+"""Extra methods for the :py:class:`ee.List` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.List, "geetools")
 class ListAccessor:
-    """Toolbox for the ``ee.List`` class."""
+    """Toolbox for the :py:class:`ee.List` class."""
 
     def __init__(self, obj: ee.List):
         """Initialize the List class."""

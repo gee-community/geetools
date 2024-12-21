@@ -1,4 +1,4 @@
-"""Extra method for the ``ee.Filter`` class."""
+"""Extra method for the :py:class:`ee.Filter` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.Filter, "geetools")
 class FilterAccessor:
-    """Toolbox for the ``ee.Filter`` class."""
+    """Toolbox for the :py:class:`ee.Filter` class."""
 
     def __init__(self, obj: ee.Filter):
         """Initialize the Filter class."""

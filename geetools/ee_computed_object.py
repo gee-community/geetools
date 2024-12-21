@@ -1,4 +1,4 @@
-"""Extra tools for the ``ee.ComputedObject`` class."""
+"""Extra tools for the :py:class:`ee.ComputedObject` class."""
 from __future__ import annotations
 
 import json

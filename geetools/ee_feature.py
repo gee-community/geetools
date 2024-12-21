@@ -1,4 +1,4 @@
-"""Toolbox for the ``ee.Feature`` class."""
+"""Toolbox for the :py:class:`ee.Feature` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.Feature, "geetools")
 class FeatureAccessor:
-    """Toolbox for the ``ee.Feature`` class."""
+    """Toolbox for the :py:class:`ee.Feature` class."""
 
     def __init__(self, obj: ee.Feature):
         """Initialize the class."""

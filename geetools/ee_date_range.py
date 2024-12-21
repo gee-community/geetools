@@ -1,4 +1,4 @@
-"""Extra tools for the ``ee.DateRange`` class."""
+"""Extra tools for the :py:class:`ee.DateRange` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.DateRange, "geetools")
 class DateRangeAccessor:
-    """Toolbox for the ``ee.DateRange`` class."""
+    """Toolbox for the :py:class:`ee.DateRange` class."""
 
     def __init__(self, obj: ee.DateRange):
         """Initialize the DateRange class."""
@@ -16,7 +16,7 @@ class DateRangeAccessor:
 
     # -- date range operations -------------------------------------------------
     def split(self, interval: int | ee.Number, unit: str = "day") -> ee.List:
-        """Convert a ``ee.DateRange`` to a list of ``ee.DateRange``.
+        """Convert a :py:class:`ee.DateRange` to a list of :py:class:`ee.DateRange`.
 
         The DateRange will be split in multiple DateRanges of the specified interval and Unit.
         For example "1", "day". if the end date is not included the last dateRange length will be adapted.

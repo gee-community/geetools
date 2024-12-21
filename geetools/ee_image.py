@@ -1,4 +1,4 @@
-"""Toolbox for the ``ee.Image`` class."""
+"""Toolbox for the :py:class:`ee.Image` class."""
 from __future__ import annotations
 
 from typing import Any, Optional
@@ -22,7 +22,7 @@ from .utils import plot_data
 
 @register_class_accessor(ee.Image, "geetools")
 class ImageAccessor:
-    """Toolbox for the ``ee.Image`` class."""
+    """Toolbox for the :py:class:`ee.Image` class."""
 
     def __init__(self, obj: ee.Image):
         """Initialize the Image class."""
@@ -184,7 +184,7 @@ class ImageAccessor:
 
     def doyToDate(
         self,
-        year,
+        year: int | float | ee.Number,
         dateFormat: str | ee.String = "yyyyMMdd",
         band: str | ee.String = "",
     ) -> ee.Image:
@@ -638,10 +638,14 @@ class ImageAccessor:
         return patternList.iterate(replaceProperties, string)
 
     def gauss(self, band: str | ee.String = "") -> ee.Image:
-        """Apply a gaussian filter to the image.
+        r"""Apply a gaussian filter to the image.
 
-        We apply the following function to the image: "exp(((val-mean)**2)/(-2*(std**2)))"
-        where val is the value of the pixel, mean is the mean of the image, std is the standard deviation of the image.
+        We apply the following function to the image:
+
+        .. math::
+            \exp\left(\frac{(\text{val}-\text{mean})^2}{-2*(\text{std}^2)}\right)
+
+        where :math:`\text{val}` is the value of the pixel, :math:`\text{mean}` is the mean of the image, :math:`\text{std}` is the standard deviation of the image.
 
         See the `Gaussian filter <https://en.wikipedia.org/wiki/Gaussian_function>`_ Wikipedia page for more information.
 
@@ -990,7 +994,7 @@ class ImageAccessor:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image.
 
         Parameters:
-            **kwargs: Keywords arguments for ``maskClouds`` method.
+            **kwargs: Keywords arguments for `~.maskClouds` method.
 
         Returns:
             Pre-processed image.
@@ -1055,7 +1059,7 @@ class ImageAccessor:
         """Gets the DOI of the image, if available.
 
         Returns:
-            DOI of the ``ee.Image`` dataset.
+            DOI of the :py:class:`ee.Image` dataset.
 
         See Also:
             - :docstring:`ee.Image.geetools.getCitation`
@@ -1076,7 +1080,7 @@ class ImageAccessor:
         """Gets the citation of the image, if available.
 
         Returns:
-            Citation of the ``ee.Image`` dataset.
+            Citation of the :py:class:`ee.Image` dataset.
 
         See Also:
             - :docstring:`ee.Image.geetools.getDOI`
@@ -1140,7 +1144,7 @@ class ImageAccessor:
         * MODIS NBAR [7]_
 
         Parameters:
-            self: ``ee.Image`` to calculate tasseled cap components for. Must belong to a supported platform.
+            self: :py:class:`ee.Image` to calculate tasseled cap components for. Must belong to a supported platform.
 
         Returns:
             Image with the tasseled cap components as new bands.
@@ -1389,10 +1393,9 @@ class ImageAccessor:
             scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
             band: The band to use. Defaults to the first band.
             proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. In most cases the user should not change this value, but in case of conflicts, choose a value that is out of the range of the image values.
-
-        Kwargs:
-            maxPixels: The maximum number of pixels to reduce.
-            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+            **kwargs:
+                - ``maxPixels``: The maximum number of pixels to reduce.
+                - ``tileScale``: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             The percentage of masked pixels within the region
@@ -1628,7 +1631,7 @@ class ImageAccessor:
             images: a list of ee.Image
 
         Returns:
-            A single ``ee.Image`` with one band per image in the passed list
+            A single :py:class:`ee.Image` with one band per image in the passed list
 
         Examples:
             .. code-block:: python

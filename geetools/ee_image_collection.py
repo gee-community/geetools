@@ -1,9 +1,9 @@
-"""Toolbox for the ``ee.ImageCollection`` class."""
+"""Toolbox for the :py:class:`ee.ImageCollection` class."""
 from __future__ import annotations
 
 import uuid
 from datetime import datetime as dt
-from typing import Any
+from typing import Any, Iterable
 
 import ee
 import ee_extra
@@ -29,7 +29,7 @@ EE_DATE_FORMAT = "YYYY-MM-dd'T'HH-mm-ss"
 #  issue.
 @register_class_accessor(ee.ImageCollection, "geetools")
 class ImageCollectionAccessor:
-    """Toolbox for the ``ee.ImageCollection`` class."""
+    """Toolbox for the :py:class:`ee.ImageCollection` class."""
 
     def __init__(self, obj: ee.ImageCollection):
         """Instantiate the class."""
@@ -50,10 +50,10 @@ class ImageCollectionAccessor:
         buffer: int = 250,
         cdi: int | None = None,
     ) -> ee.ImageCollection:
-        """Masks clouds and shadows in each image of an ``ee.ImageCollection`` (valid just for Surface Reflectance products).
+        """Masks clouds and shadows in each image of an :py:class:`ee.ImageCollection` (valid just for Surface Reflectance products).
 
         Parameters:
-            self: ``ee.ImageCollection`` to mask.
+            self: :py:class:`ee.ImageCollection` to mask.
             method: Method used to mask clouds. This parameter is ignored for Landsat products.
                 Available options:
                     - 'cloud_prob' : Use cloud probability.
@@ -105,10 +105,10 @@ class ImageCollectionAccessor:
         """Gets the closest image (or set of images if the collection intersects a region that requires multiple scenes) to the specified date.
 
         Parameters:
-            self: Image Collection from which to get the closest image to the specified date.
+            self: :py:class:`ee.ImageCollection` from which to get the closest image to the specified date.
             date: Date of interest. The method will look for images closest to this date.
             tolerance: Filter the collection to [date - tolerance, date + tolerance) before searching the closest image. This speeds up the searching process for collections with a high temporal resolution.
-            unit: Units for tolerance. Available units: ``'year'``, ``'month'``, ``'week'``, ``'day'``, ``'hour'``, ``'minute'`` or ``'second'``.
+            unit: Units for tolerance. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
 
         Returns:
             Closest images to the specified date.
@@ -290,7 +290,7 @@ class ImageCollectionAccessor:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image collection.
 
         Parameters:
-            **kwargs: Keywords arguments for ``maskClouds`` method.
+            **kwargs: Keywords arguments for `~.maskClouds` method.
 
         Returns:
             Pre-processed image.
@@ -391,7 +391,7 @@ class ImageCollectionAccessor:
         return ee_extra.STAC.core.getCitation(self._obj)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.ImageCollection:
-        """Apply panchromatic sharpening to the ``ee.ImageCollection`` images.
+        """Apply panchromatic sharpening to the :py:class:`ee.ImageCollection` images.
 
         Optionally, run quality assessments between the original and sharpened Image to
         measure spectral distortion and set results as properties of the sharpened Image.
@@ -437,7 +437,7 @@ class ImageCollectionAccessor:
         * MODIS NBAR [7]_
 
         Parameters:
-            self: ``ee.ImageCollection`` to calculate tasseled cap components for. Must belong to a supported platform.
+            self: :py:class:`ee.ImageCollection` to calculate tasseled cap components for. Must belong to a supported platform.
 
         Returns:
             ImageCollections with the tasseled cap components as new bands.
@@ -487,7 +487,7 @@ class ImageCollectionAccessor:
             image: Image to append to the collection.
 
         Returns:
-            ``ee.ImageCollection`` with the new image appended.
+            :py:class:`ee.ImageCollection` with the new image appended.
 
         Examples:
             .. code-block:: python
@@ -531,13 +531,13 @@ class ImageCollectionAccessor:
         return ee.Image(masks.sum().gt(0))
 
     def iloc(self, index: int) -> ee.Image:
-        """Get Image from the ``ee.ImageCollection`` by index.
+        """Get Image from the :py:class:`ee.ImageCollection` by index.
 
         Args:
             index: Index of the image to get.
 
         Returns:
-            ee.Image at the specified index.
+            :py:class`ee.Image` at the specified index.
 
         Examples:
             .. code-block:: python
@@ -560,7 +560,7 @@ class ImageCollectionAccessor:
         Args:
             band: the name of the band to integrate
             time: the name of the property to use as time. It must be a date property of the images.
-            unit: the time unit use to compute the integral. It can be one of the following: ["year", "month", "day", "hour", "minute", "second"]. If non is set, the time will be normalized on the integral length.
+            unit: the time unit use to compute the integral. It can be one of the following: ``year``, ``month``, ``day``, ``hour``, ``minute``, ``second``. If non is set, the time will be normalized on the integral length.
 
         Returns:
             An Image object with the integrated band for each pixel
@@ -648,7 +648,7 @@ class ImageCollectionAccessor:
             drop: whether to drop the outlier band from the images
 
         Returns:
-            an ``ee.ImageCollection`` with the outlier band added to each image or masked if ``drop`` is ``True``
+            an :py:class:`ee.ImageCollection` with the outlier band added to each image or masked if ``drop`` is ``True``
 
         Examples:
             .. code-block:: python
@@ -695,7 +695,7 @@ class ImageCollectionAccessor:
 
     def to_xarray(
         self,
-        drop_variables: tuple[str, ...] | None = None,
+        drop_variables: str | Iterable[str] | None = None,
         io_chunks: object = None,
         n_images: int = -1,
         mask_and_scale: bool = True,
@@ -713,7 +713,7 @@ class ImageCollectionAccessor:
         ee_mask_value: float | None = None,
         request_byte_limit: int = REQUEST_BYTE_LIMIT,
     ) -> Dataset:
-        """Open an Earth Engine ``ee.ImageCollection`` as an ``xarray.Dataset``.
+        """Open an Earth Engine :py:class:`ee.ImageCollection` as an ``xarray.Dataset``.
 
         Args:
             drop_variables: Variables or bands to drop before opening.
@@ -790,14 +790,14 @@ class ImageCollectionAccessor:
         return validPixel.addBands(validPct)
 
     def containsBandNames(self, bandNames: list | ee.List, filter: str) -> ee.ImageCollection:
-        """Filter the ``ee.ImageCollection`` by band names using the provided filter.
+        """Filter the :py:class:`ee.ImageCollection` by band names using the provided filter.
 
         Args:
             bandNames: list of band names to filter
-            filter: type of filter to apply. To keep images that contains all the specified bands use "ALL". To get the images including at least one of the specified band use "ANY".
+            filter: type of filter to apply. To keep images that contains all the specified bands use ``"ALL"``. To get the images including at least one of the specified band use ``"ANY"``.
 
         Returns:
-            A filtered ImageCollection
+            A filtered :py:class:`ee.ImageCollection`
 
         Examples:
             .. code-block:: python
@@ -835,13 +835,13 @@ class ImageCollectionAccessor:
         return ee.ImageCollection(ic)
 
     def containsAllBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
-        """Filter the ``ee.ImageCollection`` keeping only the images with all the provided bands.
+        """Filter the :py:class:`ee.ImageCollection` keeping only the images with all the provided bands.
 
         Args:
             bandNames: list of band names to filter
 
         Returns:
-            A filtered ImageCollection
+            A filtered :py:class:`ee.ImageCollection`
 
         Examples:
             .. code-block::
@@ -862,13 +862,13 @@ class ImageCollectionAccessor:
         return self.containsBandNames(bandNames, "ALL")
 
     def containsAnyBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
-        """Filter the ``ee.ImageCollection`` keeping only the images with any of the provided bands.
+        """Filter the :py:class:`ee.ImageCollection` keeping only the images with any of the provided bands.
 
         Args:
             bandNames: list of band names to filter
 
         Returns:
-            A filtered ImageCollection
+            A filtered :py:class:`ee.ImageCollection`
 
         Examples:
             .. code-block:: python
@@ -889,7 +889,7 @@ class ImageCollectionAccessor:
         return self.containsBandNames(bandNames, "ANY")
 
     def aggregateArray(self, properties: list | ee.List | None = None) -> ee.Dictionary:
-        """Aggregate the ``ee.ImageCollection`` selected properties into a dictionary.
+        """Aggregate the :py:class:`ee.ImageCollection` selected properties into a dictionary.
 
         Args:
             properties: list of properties to aggregate. If None, all properties are aggregated.
@@ -918,19 +918,19 @@ class ImageCollectionAccessor:
         return ee.Dictionary.fromLists(keys, values)
 
     def groupInterval(self, unit: str = "month", duration: int = 1) -> ee.List:
-        """Transform the ``ee.ImageCollection`` into a list of smaller collection of the specified duration.
+        """Transform the :py:class:`ee.ImageCollection` into a list of smaller collection of the specified duration.
 
-        For example using unit as "month" and duration as 1, the ``ee.ImageCollection`` will be transformed
-        into a list of ``ee.ImageCollection`` with each ``ee.ImageCollection`` containing images for each month.
+        For example using unit as "month" and duration as 1, the :py:class:`ee.ImageCollection` will be transformed
+        into a list of :py:class:`ee.ImageCollection` with each :py:class:`ee.ImageCollection` containing images for each month.
         Make sure the collection is filtered beforehand to reduce the number of images that needs to be
         processed.
 
         Args:
-            unit: The unit of time to split the collection. Available units: ``'year'``, ``'month'``, ``'week'``, ``'day'``, ``'hour'``, ``'minute'`` or ``'second'``.
+            unit: The unit of time to split the collection. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
             duration: The duration of each split.
 
         Returns:
-            A list of ``ee.ImageCollection`` grouped by interval
+            A list of :py:class:`ee.ImageCollection` grouped by interval
 
         Examples:
             .. code-block:: python
@@ -973,18 +973,18 @@ class ImageCollectionAccessor:
     ) -> ee.ImageCollection:
         """Reduce the images included in the same duration interval using the provided reducer.
 
-        For example using unit as "month" and duration as 1, the ``ee.ImageCollection`` will be reduced
-        into a new ``ee.ImageCollection`` with each image containing the reduced values for each month.
+        For example using unit as "month" and duration as 1, the :py:class:`ee.ImageCollection` will be reduced
+        into a new :py:class:`ee.ImageCollection` with each image containing the reduced values for each month.
         Make sure the collection is filtered beforehand to reduce the number of images that needs to be
         processed.
 
         Args:
             reducer: The name of the reducer to use or a Reducer object. Default is ``"mean"``.
-            unit: The unit of time to split the collection. Available units: ``'year'``, ``'month'``, ``'week'``, ``'day'``, ``'hour'``, ``'minute'`` or ``'second'``.
+            unit: The unit of time to split the collection. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
             duration: The duration of each split.
 
         Returns:
-            A new ``ee.ImageCollection`` with the reduced images.
+            A new :py:class:`ee.ImageCollection` with the reduced images.
 
         Examples:
             .. code-block:: python
@@ -1031,7 +1031,7 @@ class ImageCollectionAccessor:
         As the imageCollection will need to be sorted limit the analysis to a reasonable number of image by filtering your data beforehand.
 
         Returns:
-            An ``ee.ImageCollection`` with all pixels unmasked in every image.
+            An :py:class:`ee.ImageCollection` with all pixels unmasked in every image.
 
         Examples:
             .. code-block:: python
@@ -1062,13 +1062,13 @@ class ImageCollectionAccessor:
         return ee.ImageCollection(imageList)
 
     def medoid(self) -> ee.Image:
-        """Compute the medoid of the ImageCollection.
+        """Compute the medoid of the :py:class:`ee.ImageCollection`.
 
         The medoid is the image that has the smallest sum of distances to all other images in the collection.
         The distance is computed using the Euclidean distance between the pixels of the images.
 
         Returns:
-            An Image that is the medoid of the ImageCollection.
+            An Image that is the medoid of the :py:class:`ee.ImageCollection`
 
         Examples:
             .. code-block:: python
@@ -1376,7 +1376,7 @@ class ImageCollectionAccessor:
 
         ic = self._obj.map(doy_tag)
 
-        # create a list of ImageCollection where every images of the same day are grouped together
+        # create a list of :py:class:`ee.ImageCollection` where every images of the same day are grouped together
         dayList = ee.List.sequence(0, 366)
 
         def filter_doy(d: ee.Number) -> ee.ImageCollection:
@@ -2130,7 +2130,7 @@ class ImageCollectionAccessor:
         """Plot the reduced data for each image in the collection by years for a single band.
 
         This method is plotting the reduced data for each image in the collection by years for a single band.
-        To set the start and end of the season, use the :py:method:`ee.Date.getRelative` or :py:class:`time.struct_time` method to get the day of the year.
+        To set the start and end of the season, use the :py:meth:`ee.Date.getRelative` or :py:class:`time.struct_time` method to get the day of the year.
 
         Parameters:
             band: The band to reduce.
@@ -2473,7 +2473,7 @@ class ImageCollectionAccessor:
     ) -> ee.FeatureCollection:
         """Apply a reducer to all the pixels in specific regions on each images of a collection.
 
-        The result will be shaped as a FeatureCollection with the idProperty as key and for each of them the reduced band values over one region.
+        The result will be shaped as a :py:class:`ee.FeatureCollection` with the ``idProperty`` as key and for each of them the reduced band values over one region.
         Each feature will have the same properties as the original feature collection and thus be identified by a key pair:
         "system:id" + "system:image_property"
 

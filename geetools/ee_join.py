@@ -1,4 +1,4 @@
-"""Extra methods for the ``ee.Join`` class."""
+"""Extra methods for the :py:class:`ee.Join` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.Join, "geetools")
 class JoinAccessor:
-    """Toolbox for the ``ee.Join`` class."""
+    """Toolbox for the :py:class:`ee.Join` class."""
 
     def __init__(self, obj: ee.join):
         """Initialize the Join class."""

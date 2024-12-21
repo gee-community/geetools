@@ -1,4 +1,4 @@
-"""Toolbox for the ``ee.Geometry`` class."""
+"""Toolbox for the :py:class:`ee.Geometry` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.Geometry, "geetools")
 class GeometryAccessor:
-    """Toolbox for the ``ee.Geometry`` class."""
+    """Toolbox for the :py:class:`ee.Geometry` class."""
 
     def __init__(self, obj: ee.Geometry):
         """Initialize the Geometry class."""
