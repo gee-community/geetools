@@ -227,7 +227,7 @@ class ImageAccessor:
 
     # -- the rest --------------------------------------------------------------
 
-    def getValues(self, point: ee.Geometry.Point, scale: int | ee.Number = 0) -> ee.Dictionary:
+    def getValues(self, point: ee.Geometry, scale: int | ee.Number = 0) -> ee.Dictionary:
         """Get the value of the image at the given point using specified geometry.
 
         The result is presented as a dictionary where the keys are the bands name and the value the mean value of the band at the given point.
@@ -1621,7 +1621,7 @@ class ImageAccessor:
     #  Note: the second example is even correct? It seems to fail always, the error was:
     #  EEException: Image.rename: Can't add a band named '2' to image because a band with this name already exists. Existing bands: [1, 2].
     @classmethod
-    def fromList(cls, images: ee.List | list):
+    def fromList(cls, images: ee.List | list) -> ee.Image:
         """Create a single image by passing a list of images.
 
         Warning: The bands cannot have repeated names, if so, it will throw an error (see examples).
@@ -1661,7 +1661,7 @@ class ImageAccessor:
 
     def byBands(
         self,
-        regions: ee.featurecollection,
+        regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
         bands: list = [],
         regionId: str = "system:index",
@@ -1751,7 +1751,7 @@ class ImageAccessor:
 
     def byRegions(
         self,
-        regions: ee.featurecollection,
+        regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
         bands: list = [],
         regionId: str = "system:index",
