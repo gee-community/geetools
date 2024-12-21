@@ -10,29 +10,29 @@ from .accessors import register_class_accessor
 class JoinAccessor:
     """Toolbox for the :py:class:`ee.Join` class."""
 
-    def __init__(self, obj: ee.join):
+    def __init__(self, obj: ee.Join):
         """Initialize the Join class."""
         self._obj = obj
 
     @staticmethod
     def byProperty(
-        primary: ee.Collection,
-        secondary: ee.Collection,
+        primary: ee.FeatureCollection,
+        secondary: ee.FeatureCollection,
         field: str | ee.String,
         outer: bool = False,
-    ) -> ee.Collection:
+    ) -> ee.FeatureCollection:
         """Join 2 collections by a given property field.
 
-        It assumes ids are unique so uses ee.Join.saveFirst.
+        It assumes ids are unique so uses :py:meth:`ee.Join.saveFirst`.
 
         Args:
-            primary: the first collection
-            secondary: the second collection
-            field: the field to join by
-            outer: whether to keep non-matching features
+            primary: The first collection.
+            secondary: The second collection.
+            field: The field to join by.
+            outer: Whether to keep non-matching features.
 
         Returns:
-            the joined collection
+            The joined collection.
 
 
         Example:

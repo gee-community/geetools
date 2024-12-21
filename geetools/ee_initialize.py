@@ -1,4 +1,4 @@
-"""Tools for the ``ee.Initialize`` function."""
+"""Tools for the :py:func:`ee.Initialize` function."""
 from __future__ import annotations
 
 import json
@@ -23,7 +23,7 @@ class InitializeAccessor:
     def from_user(name: str = "", credential_pathname: str = "", project: str = "") -> None:
         """Initialize Earthengine API using a specific user.
 
-        Equivalent to the ``ee.initialize`` function but with a specific credential file stored in
+        Equivalent to the :py:func:`ee.Initialize` function but with a specific credential file stored in
         the machine by the :py:meth:`ee.Authenticate.geetools.new_user <geetools.ee_authenticate.AuthenticateAccessor.new_user>`
         function.
 
@@ -74,7 +74,7 @@ class InitializeAccessor:
     def from_service_account(private_key: str) -> None:
         """Initialize Earthengine API using a service account.
 
-        Equivalent to the ``ee.initialize`` function but with a specific service account json key.
+        Equivalent to the :py:func:`ee.Initialize` function but with a specific service account json key.
 
         Args:
             private_key: The private key of the service account in json format.

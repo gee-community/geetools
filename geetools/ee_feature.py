@@ -18,7 +18,7 @@ class FeatureAccessor:
         """Convert a :py:class:`ee.Feature` composed of a multiGeometry geometry into a :py:class:`ee.FeatureCollection`.
 
         Returns:
-            The FeatureCollection
+            The :py:class:`ee.FeatureCollection`
 
         Example:
             .. jupyter-execute::

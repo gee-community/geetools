@@ -36,14 +36,14 @@ class FeatureCollectionAccessor:
     ) -> ee.Image:
         """Paint the current :py:class:`ee.FeatureCollection` to an Image.
 
-        It's a simple wrapper on Image.paint() method
+        It's a simple wrapper on :py:meth:`ee.Image.paint` method.
 
         Args:
             color: The pixel value to paint into every band of the input image, either as a number which will be used for all features, or the name of a numeric property to take from each feature in the collection.
             width: Line width, either as a number which will be the line width for all geometries, or the name of a numeric property to take from each feature in the collection. If unspecified, the geometries will be filled instead of outlined.
 
         Returns:
-            The painted image
+            The painted image.
 
         Examples:
             .. jupyter-execute::
@@ -139,11 +139,11 @@ class FeatureCollectionAccessor:
         """Add a unique numeric identifier, starting from parameter ``start``.
 
         Args:
-            name: The name of the property to add. Defaults to "id".
+            name: The name of the property to add. Defaults to ``"id"``.
             start: The starting value of the id. Defaults to 1.
 
         Returns:
-            The parsed collection with a new id property
+            The parsed collection with a new id property.
 
         Example:
             .. jupyter-execute::
@@ -193,7 +193,7 @@ class FeatureCollectionAccessor:
             maxError: The maximum amount of error tolerated when performing any necessary re-projection.
 
         Returns:
-            the dissolved geometry
+            The dissolved geometry.
 
         Example:
             .. code-block:: python
@@ -232,7 +232,7 @@ class FeatureCollectionAccessor:
         types from GeometryCollections and remove features that don't have any polygon geometry.
 
         Returns:
-            The parsed collection with only polygon/MultiPolygon geometries
+            The parsed collection with only polygon/MultiPolygon geometries.
 
         Example:
             .. code-block:: python
@@ -425,7 +425,7 @@ class FeatureCollectionAccessor:
             labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties' length.
             colors: A list of colors to use for plotting the properties. If not provided, the default colors from the matplotlib library will be used.
             ax: The matplotlib axes to use. If not provided, the plot will be sent to a new figure.
-            kwargs: Additional arguments from the ``pyplot`` function.
+            kwargs: Additional arguments from the ``pyplot`` type selected.
 
         See Also:
             - :docstring:`ee.FeatureCollection.geetools.byFeatures`
@@ -546,9 +546,9 @@ class FeatureCollectionAccessor:
         Args:
             property: The property to display
             label: The label to use for the property. If not provided, the property name will be used.
-            ax: The matplotlib axes to use. If not provided, the plot will be sent to the current axes (``plt.gca()``)
+            ax: The matplotlib axes to use. If not provided, the plot will be sent to the current axes (using :py:func:`matplotlib.pyplot.gca`).
             color: The color to use for the plot. If not provided, the default colors from the matplotlib library will be used.
-            kwargs: Additional arguments from the :py:func:`matplotlib.pyplot.hist` function.
+            **kwargs: Additional arguments from the :py:func:`matplotlib.pyplot.hist` function.
 
         See Also:
             - :docstring:`ee.FeatureCollection.geetools.plot_by_features`
@@ -696,10 +696,10 @@ class FeatureCollectionAccessor:
 
         Parameters:
             data: The geo_interface to create the :py:class:`ee.FeatureCollection` from.
-            crs: The CRS to use for the FeatureCollection. Default to "EPSG:4326".
+            crs: The CRS to use for the FeatureCollection. Default to ``EPSG:4326``.
 
         Returns:
-            The created FeatureCollection.
+            The created :py:class:`ee.FeatureCollection` from the geo_interface.
 
         Examples:
             .. code-block:: python

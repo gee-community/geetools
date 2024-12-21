@@ -159,7 +159,7 @@ class ListAccessor:
     ) -> ee.List:
         """Create a sequence from ini to end by step.
 
-        Similar to ``ee.List.sequence``, but if end != last item then adds the end to the end of the resulting list.
+        Similar to :py:meth:`ee.List.sequence`, but if ``end != last`` item then adds the end to the end of the resulting list.
 
         Parameters:
             ini: The initial value of the sequence.
@@ -191,7 +191,7 @@ class ListAccessor:
             replace: the dictionary with the values to replace. the keys are the values to replace and the values are the new values.
 
         Returns:
-            A list with the values replaced
+            A list with the values replaced.
 
         Examples:
             .. jupyter-execute::
@@ -239,7 +239,7 @@ class ListAccessor:
     def toStrings(self) -> ee.List:
         """Convert elements of a list into Strings.
 
-        If the list contains other elements that are not strings or numbers, it will return the object type. For example, ['a', 1, ee.Image(0)] -> ['a', '1', 'Image'].
+        If the list contains other elements that are not strings or numbers, it will return the object type. For example, ``['a', 1, ee.Image(0)] -> ['a', '1', 'Image']``.
 
         Returns:
             A list of strings corresponding to the elements of the list.
@@ -271,7 +271,7 @@ class ListAccessor:
         The nested lists need to all have the same size. The size of the first element will be taken as reference.
 
         Returns:
-            A list of lists with the zipped elements
+            A list of lists with the zipped elements.
 
         Examples:
             .. jupyter-execute::

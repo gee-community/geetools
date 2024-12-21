@@ -16,10 +16,10 @@ class DictionaryAccessor:
 
     # -- alternative constructor -----------------------------------------------
     def fromPairs(self, list_: list | ee.List) -> ee.Dictionary:
-        """Create a dictionary from a list of [[key, value], ...]] pairs.
+        """Create a dictionary from a list of ``[[key, value], ...]]`` pairs.
 
         Parameters:
-            list_: A list of pairs (key, value).
+            list_: A list of pairs ``(key, value)``.
 
         Returns:
             A dictionary using the pairs.

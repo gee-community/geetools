@@ -290,7 +290,7 @@ class ImageCollectionAccessor:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image collection.
 
         Parameters:
-            **kwargs: Keywords arguments for `~.maskClouds` method.
+            **kwargs: Keywords arguments for :py:meth:`ee.ImageCollection.geetools.maskClouds <geetools.ee_image_collection.ImageCollectionAccessor.maskClouds>` method.
 
         Returns:
             Pre-processed image.
@@ -352,7 +352,7 @@ class ImageCollectionAccessor:
         """Gets the DOI of the collection, if available.
 
         Returns:
-            DOI of the ee.Image dataset.
+            DOI of the :py:class:`ee.Image` dataset.
 
         See Also:
             - :docstring:`ee.ImageCollection.geetools.getCitation`
@@ -373,7 +373,7 @@ class ImageCollectionAccessor:
         """Gets the citation of the image, if available.
 
         Returns:
-            Citation of the ee.Image dataset.
+            Citation of the :py:class:`ee.Image` dataset.
 
         See Also:
             - :docstring:`ee.ImageCollection.geetools.getDOI`
@@ -440,7 +440,7 @@ class ImageCollectionAccessor:
             self: :py:class:`ee.ImageCollection` to calculate tasseled cap components for. Must belong to a supported platform.
 
         Returns:
-            ImageCollections with the tasseled cap components as new bands.
+            Image Collections with the tasseled cap components as new bands.
 
         References:
             .. [1] Shi, T., & Xu, H. (2019). Derivation of Tasseled Cap Transformation
@@ -508,10 +508,10 @@ class ImageCollectionAccessor:
         return self._obj.merge(ee.ImageCollection([image]))
 
     def collectionMask(self) -> ee.Image:
-        """A binary ee.Image where only pixels that are masked in all images of the collection get masked.
+        """A binary :py:class:`ee.Image` where only pixels that are masked in all images of the collection get masked.
 
         Returns:
-            ee.Image of the mask. 1 where at least 1 pixel is valid 0 elsewhere
+            :py:class:`ee.Image` of the mask. 1 where at least 1 pixel is valid 0 elsewhere
 
         Examples:
             .. code-block::
@@ -537,7 +537,7 @@ class ImageCollectionAccessor:
             index: Index of the image to get.
 
         Returns:
-            :py:class`ee.Image` at the specified index.
+            :py:class:`ee.Image` at the specified index.
 
         Examples:
             .. code-block:: python
@@ -558,12 +558,12 @@ class ImageCollectionAccessor:
         """Compute the integral of a band over time or a specified property.
 
         Args:
-            band: the name of the band to integrate
+            band: the name of the band to integrate.
             time: the name of the property to use as time. It must be a date property of the images.
             unit: the time unit use to compute the integral. It can be one of the following: ``year``, ``month``, ``day``, ``hour``, ``minute``, ``second``. If non is set, the time will be normalized on the integral length.
 
         Returns:
-            An Image object with the integrated band for each pixel
+            An :py:class:`ee.Image` object with the integrated band for each pixel.
 
         Examples:
             .. code-block:: python
@@ -629,12 +629,12 @@ class ImageCollectionAccessor:
             outlier = value < mean-(sigma*stddev)
 
         In a 1D example it would be:
-        - values = [1, 5, 6, 4, 7, 10]
-        - mean = 5.5
-        - std dev = 3
-        - mean + (sigma*stddev) = 8.5
-        - mean - (sigma*stddev) = 2.5
-        - outliers = values between 2.5 and 8.5 = [1, 10]
+            - values = [1, 5, 6, 4, 7, 10]
+            - mean = 5.5
+            - std dev = 3
+            - mean + (sigma*stddev) = 8.5
+            - mean - (sigma*stddev) = 2.5
+            - outliers = values between 2.5 and 8.5 = [1, 10]
 
         Here in this function an extra band is added to each image for each of the evaluated bands with the outlier status. The band name is the original band name with the suffix "_outlier". A value of 1 means that the pixel is an outlier, 0 means that it is not.
 
@@ -643,12 +643,12 @@ class ImageCollectionAccessor:
         idea from: https://www.kdnuggets.com/2017/02/removing-outliers-standard-deviation-python.html
 
         Args:
-            bands: the bands to evaluate for outliers. If empty, all bands are evaluated
-            sigma: the number of standard deviations to use to compute the outlier
-            drop: whether to drop the outlier band from the images
+            bands: The bands to evaluate for outliers. If empty, all bands are evaluated.
+            sigma: The number of standard deviations to use to compute the outlier.
+            drop: Whether to drop the outlier band from the images.
 
         Returns:
-            an :py:class:`ee.ImageCollection` with the outlier band added to each image or masked if ``drop`` is ``True``
+            A :py:class:`ee.ImageCollection` with the outlier band added to each image or masked if ``drop`` is ``True``.
 
         Examples:
             .. code-block:: python
@@ -766,9 +766,10 @@ class ImageCollectionAccessor:
         one with the number of valid pixels (``valid``) and another with the percentage of valid pixels (``pct_valid``).
 
         Args:
-            band: the band to evaluate for valid pixels. If empty, use the first band
+            band: the band to evaluate for valid pixels. If empty, use the first band.
+
         Returns:
-            an Image with the number of valid pixels or the percentage of valid pixels.
+            An Image with the number of valid pixels or the percentage of valid pixels.
 
         Examples:
             .. code-block:: python
@@ -1027,7 +1028,7 @@ class ImageCollectionAccessor:
         """Fill masked pixels with the first valid pixel in the stack of images.
 
         The method will for every image, fill all the pixels with the latest nono masked pixel in the stack of images.
-        It requires the image to have a valid "system:time_start" property.
+        It requires the image to have a valid ``"system:time_start"`` property.
         As the imageCollection will need to be sorted limit the analysis to a reasonable number of image by filtering your data beforehand.
 
         Returns:
@@ -1068,7 +1069,7 @@ class ImageCollectionAccessor:
         The distance is computed using the Euclidean distance between the pixels of the images.
 
         Returns:
-            An Image that is the medoid of the :py:class:`ee.ImageCollection`
+            An Image that is the medoid of the :py:class:`ee.ImageCollection`.
 
         Examples:
             .. code-block:: python

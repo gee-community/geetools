@@ -41,10 +41,10 @@ class ExportAccessor:
 
             Parameters:
                 imagecollection: The image collection to export.
-                index_property: The property of the image to use as name. Default is "system:id".
+                index_property: The property of the image to use as name. Default is ``"system:id"``.
                 description: The description of the task.
                 assetId: The asset id where to export the image collection.
-                **kwargs: every parameter that you would use for a vanilla ee.batch.Export.image.toAsset
+                **kwargs: every parameter that you would use for a vanilla :py:meth:`ee.batch.Export.image.toAsset`
 
             Returns:
                 The task created.
@@ -107,10 +107,10 @@ class ExportAccessor:
 
             Parameters:
                 imagecollection: The image collection to export.
-                index_property: The property of the image to use as name. Default is "system:id".
+                index_property: The property of the image to use as name. Default is ``"system:id"``.
                 description: The description of the task.
                 folder: The folder id where to export the image collection. It will be stored at the root of the drive.
-                **kwargs: every parameter that you would use for a vanilla ee.batch.Export.image.toDrive
+                **kwargs: every parameter that you would use for a vanilla :py:meth:`ee.batch.Export.image.toDrive`
 
             Returns:
                 The list of created tasks
@@ -171,10 +171,10 @@ class ExportAccessor:
 
             Parameters:
                 imagecollection: The image collection to export.
-                index_property: The property of the image to use as name. Default is "system:id".
+                index_property: The property of the image to use as name. Default is ``"system:id"``.
                 description: The description of the task.
                 folder: The folder id where to export the image collection. It will be stored at the root of the drive.
-                **kwargs: every parameter that you would use for a vanilla ee.batch.Export.image.toCloudStorage
+                **kwargs: every parameter that you would use for a vanilla :py:meth:`ee.batch.Export.image.toCloudStorage`
 
             Returns:
                 The list of created tasks

@@ -317,7 +317,7 @@ class ImageAccessor:
             geometry: The geometry to use as reference for the grid. If None, the image footprint will be used.
 
         Returns:
-            The grid as a FeatureCollection.
+            The grid as a :py:class:`FeatureCollection`.
 
         Note:
             The method has a known bug when the projection of the image is different from 3857. As we use a buffer, the grid cells can slightly overlap. Feel free to open an Issue and contribute if you feel it needs improvements.
@@ -364,16 +364,16 @@ class ImageAccessor:
     def clipOnCollection(
         self, fc: ee.FeatureCollection, keepProperties: int | ee.Number = 1
     ) -> ee.ImageCollection:
-        """Clip an image to a FeatureCollection.
+        """Clip an image to a :py:class:`ee.FeatureCollection`.
 
-        The image will be clipped to every single features of the featureCollection as one independent image.
+        The image will be clipped to every single features of the ``featureCollection`` as one independent image.
 
         Parameters:
-            fc: The featureCollection to clip to.
-            keepProperties: If True, the properties of the featureCollection will be added to the clipped image.
+            fc: The :py:class:`ee.FeatureCollection` to clip to.
+            keepProperties: If True, the properties of the :py:class:`ee.FeatureCollection` will be added to the clipped image.
 
         Returns:
-            The clipped imageCollection.
+            The clipped :py:class:`ee.ImageCollection`.
 
         Examples:
             .. code-block:: python
@@ -443,7 +443,7 @@ class ImageAccessor:
 
         Parameters:
             values: The values to initialize the image width. If one value is given, it will be used for all bands.
-            names: The names of the bands. By default, it uses the earthen engine default value, "constant".
+            names: The names of the bands. By default, it uses the earthen engine default value, ``constant``.
 
         Returns:
             An image with the given values and names.
@@ -607,7 +607,7 @@ class ImageAccessor:
 
         Args:
             string: The pattern to use for the string
-            dateFormat: The date format to use for the system_date property
+            dateFormat: The date format to use for the ``system_date`` property
 
         Returns:
             The string corresponding to the image
@@ -643,7 +643,7 @@ class ImageAccessor:
         We apply the following function to the image:
 
         .. math::
-            \exp\left(\frac{(\text{val}-\text{mean})^2}{-2*(\text{std}^2)}\right)
+            \exp\left(\frac{(\text{val}-\text{mean})^2}{-2 \cdot (\text{std}^2)}\right)
 
         where :math:`\text{val}` is the value of the pixel, :math:`\text{mean}` is the mean of the image, :math:`\text{std}` is the standard deviation of the image.
 
@@ -749,9 +749,9 @@ class ImageAccessor:
         return ee.ImageCollection(bands.map(remove)).toBands().rename(bands)
 
     def interpolateBands(self, src: list | ee.List, to: list | ee.List) -> ee.Image:
-        """Interpolate bands from the "src" value range to the "to" value range.
+        """Interpolate bands from the ``src`` value range to the ``to`` value range.
 
-        The Interpolation is performed linearly using the "extrapolate" option of the "interpolate" method.
+        The Interpolation is performed linearly using the ``extrapolate`` option of the :py:meth:`ee.Image.interpolate` method.
 
         Args:
             src: The source value range
@@ -789,10 +789,10 @@ class ImageAccessor:
         An islet is a set of non-masked pixels connected together by their edges of very small surface. The user define the offset of the islet size, and we compute the max number of pixels to improve computation speed. The input Image needs to be a single band binary image.
 
         Args:
-            offset: The limit of the islet size in square meters
+            offset: The limit of the islet size in square meters.
 
         Returns:
-            The islet mask
+            The islet mask.
 
         Examples:
             .. code-block:: python
@@ -994,7 +994,7 @@ class ImageAccessor:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image.
 
         Parameters:
-            **kwargs: Keywords arguments for `~.maskClouds` method.
+            **kwargs: Keywords arguments for :py:meth:`ee.Image.geetools.maskClouds <geetools.ee_image.ImageAccessor.maskClouds>` method.
 
         Returns:
             Pre-processed image.
@@ -1322,7 +1322,7 @@ class ImageAccessor:
 
         Parameters:
             mask: The mask to compute the distance to.
-            kernel: The kernel type to use for the distance computation default to "euclidean".
+            kernel: The kernel type to use for the distance computation default to ``"euclidean"``.
             radius: The radius of the kernel.
             band_name: The name of the band to store the distance values.
 
@@ -1398,7 +1398,7 @@ class ImageAccessor:
                 - ``tileScale``: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
-            The percentage of masked pixels within the region
+            The percentage of masked pixels within the region.
 
         Examples:
             .. code-block:: python
@@ -1450,7 +1450,7 @@ class ImageAccessor:
                 - ``tileScale``: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
-            The passed table with the new column containing the percentage of masked pixels within the region
+            The passed table with the new column containing the percentage of masked pixels within the region.
 
         Examples:
             .. code-block:: python
@@ -1506,7 +1506,7 @@ class ImageAccessor:
                 - ``tileScale``: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
-            The same image with the percentage of masked pixels as a property
+            The same image with the percentage of masked pixels as a property.
 
         Examples:
             .. code-block:: python
@@ -1543,10 +1543,10 @@ class ImageAccessor:
             region: The geometry borders to plot the image on.
             ax: The matplotlib axis to plot the image on.
             fc: a FeatureCollection object to overlay on top of the image. Default is None, it can be a different object from the region.
-            cmap: The colormap to use for the image. Default is 'viridis'. can only ber used for single band images.
-            crs: The coordinate reference system of the image. By default, we will use EPSG:4326
+            cmap: The colormap to use for the image. Default is ``viridis``. can only ber used for single band images.
+            crs: The coordinate reference system of the image. By default, we will use ``"EPSG:4326"``
             scale: The scale of the image.
-            color: The color of the overlaid feature collection. Default is "k" (black).
+            color: The color of the overlaid feature collection. Default is ``k`` (black).
 
         Examples:
             .. code-block:: python
@@ -1686,8 +1686,8 @@ class ImageAccessor:
 
         Parameters:
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            regionId: The property used to label region. Defaults to "system:index".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            regionId: The property used to label region. Defaults to ``"system:index"``.
             labels: The labels to use for the output dictionary. Default to the band names.
             bands: The bands to compute the reducer on. Default to all bands.
             scale: The scale to use for the computation. Default is 10000m.
@@ -1776,8 +1776,8 @@ class ImageAccessor:
 
         Parameters:
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            regionId: The property used to label region. Defaults to "system:index".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            regionId: The property used to label region. Defaults to ``"system:index"``.
             labels: The labels to use for the output dictionary. Default to the band names.
             bands: The bands to compute the reducer on. Default to all bands.
             scale: The scale to use for the computation. Default is 10000m.
@@ -1966,7 +1966,7 @@ class ImageAccessor:
             This method is client-side.
 
         Parameters:
-            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
+            type: The type of plot to use. Defaults to ``"bar"``. can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
             reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
             bands: The bands to compute the reducer on. Default to all bands.
