@@ -50,10 +50,10 @@ class ImageCollectionAccessor:
         buffer: int = 250,
         cdi: int | None = None,
     ) -> ee.ImageCollection:
-        """Masks clouds and shadows in each image of an ImageCollection (valid just for Surface Reflectance products).
+        """Masks clouds and shadows in each image of an ``ee.ImageCollection`` (valid just for Surface Reflectance products).
 
         Parameters:
-            self: ImageCollection to mask.
+            self: ``ee.ImageCollection`` to mask.
             method: Method used to mask clouds. This parameter is ignored for Landsat products.
                 Available options:
                     - 'cloud_prob' : Use cloud probability.
@@ -108,7 +108,7 @@ class ImageCollectionAccessor:
             self: Image Collection from which to get the closest image to the specified date.
             date: Date of interest. The method will look for images closest to this date.
             tolerance: Filter the collection to [date - tolerance, date + tolerance) before searching the closest image. This speeds up the searching process for collections with a high temporal resolution.
-            unit: Units for tolerance. Available units: 'year', 'month', 'week', 'day', 'hour', 'minute' or 'second'.
+            unit: Units for tolerance. Available units: ``'year'``, ``'month'``, ``'week'``, ``'day'``, ``'hour'``, ``'minute'`` or ``'second'``.
 
         Returns:
             Closest images to the specified date.
@@ -391,7 +391,7 @@ class ImageCollectionAccessor:
         return ee_extra.STAC.core.getCitation(self._obj)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.ImageCollection:
-        """Apply panchromatic sharpening to the ImageCollection images.
+        """Apply panchromatic sharpening to the ``ee.ImageCollection`` images.
 
         Optionally, run quality assessments between the original and sharpened Image to
         measure spectral distortion and set results as properties of the sharpened Image.
@@ -437,7 +437,7 @@ class ImageCollectionAccessor:
         * MODIS NBAR [7]_
 
         Parameters:
-            self: ee.ImageCollection to calculate tasseled cap components for. Must belong to a supported platform.
+            self: ``ee.ImageCollection`` to calculate tasseled cap components for. Must belong to a supported platform.
 
         Returns:
             ImageCollections with the tasseled cap components as new bands.
@@ -487,7 +487,7 @@ class ImageCollectionAccessor:
             image: Image to append to the collection.
 
         Returns:
-            ImageCollection with the new image appended.
+            ``ee.ImageCollection`` with the new image appended.
 
         Examples:
             .. code-block:: python
@@ -531,7 +531,7 @@ class ImageCollectionAccessor:
         return ee.Image(masks.sum().gt(0))
 
     def iloc(self, index: int) -> ee.Image:
-        """Get Image from the ImageCollection by index.
+        """Get Image from the ``ee.ImageCollection`` by index.
 
         Args:
             index: Index of the image to get.
@@ -648,7 +648,7 @@ class ImageCollectionAccessor:
             drop: whether to drop the outlier band from the images
 
         Returns:
-            an ImageCollection with the outlier band added to each image or masked if ``drop`` is ``True``
+            an ``ee.ImageCollection`` with the outlier band added to each image or masked if ``drop`` is ``True``
 
         Examples:
             .. code-block:: python
@@ -713,7 +713,7 @@ class ImageCollectionAccessor:
         ee_mask_value: float | None = None,
         request_byte_limit: int = REQUEST_BYTE_LIMIT,
     ) -> Dataset:
-        """Open an Earth Engine ImageCollection as an ``xarray.Dataset``.
+        """Open an Earth Engine ``ee.ImageCollection`` as an ``xarray.Dataset``.
 
         Args:
             drop_variables: Variables or bands to drop before opening.
@@ -790,7 +790,7 @@ class ImageCollectionAccessor:
         return validPixel.addBands(validPct)
 
     def containsBandNames(self, bandNames: list | ee.List, filter: str) -> ee.ImageCollection:
-        """Filter the ImageCollection by band names using the provided filter.
+        """Filter the ``ee.ImageCollection`` by band names using the provided filter.
 
         Args:
             bandNames: list of band names to filter
@@ -835,7 +835,7 @@ class ImageCollectionAccessor:
         return ee.ImageCollection(ic)
 
     def containsAllBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
-        """Filter the ImageCollection keeping only the images with all the provided bands.
+        """Filter the ``ee.ImageCollection`` keeping only the images with all the provided bands.
 
         Args:
             bandNames: list of band names to filter
@@ -862,7 +862,7 @@ class ImageCollectionAccessor:
         return self.containsBandNames(bandNames, "ALL")
 
     def containsAnyBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
-        """Filter the ImageCollection keeping only the images with any of the provided bands.
+        """Filter the ``ee.ImageCollection`` keeping only the images with any of the provided bands.
 
         Args:
             bandNames: list of band names to filter
@@ -889,7 +889,7 @@ class ImageCollectionAccessor:
         return self.containsBandNames(bandNames, "ANY")
 
     def aggregateArray(self, properties: list | ee.List | None = None) -> ee.Dictionary:
-        """Aggregate the ImageCollection selected properties into a dictionary.
+        """Aggregate the ``ee.ImageCollection`` selected properties into a dictionary.
 
         Args:
             properties: list of properties to aggregate. If None, all properties are aggregated.
@@ -918,15 +918,15 @@ class ImageCollectionAccessor:
         return ee.Dictionary.fromLists(keys, values)
 
     def groupInterval(self, unit: str = "month", duration: int = 1) -> ee.List:
-        """Transform the ImageCollection into a list of smaller collection of the specified duration.
+        """Transform the ``ee.ImageCollection`` into a list of smaller collection of the specified duration.
 
-        For example using unit as "month" and duration as 1, the ImageCollection will be transformed
-        into a list of ImageCollection with each ImageCollection containing images for each month.
+        For example using unit as "month" and duration as 1, the ``ee.ImageCollection`` will be transformed
+        into a list of ``ee.ImageCollection`` with each ``ee.ImageCollection`` containing images for each month.
         Make sure the collection is filtered beforehand to reduce the number of images that needs to be
         processed.
 
         Args:
-            unit: The unit of time to split the collection. Available units: 'year', 'month', 'week', 'day', 'hour', 'minute' or 'second'.
+            unit: The unit of time to split the collection. Available units: ``'year'``, ``'month'``, ``'week'``, ``'day'``, ``'hour'``, ``'minute'`` or ``'second'``.
             duration: The duration of each split.
 
         Returns:
@@ -973,14 +973,14 @@ class ImageCollectionAccessor:
     ) -> ee.ImageCollection:
         """Reduce the images included in the same duration interval using the provided reducer.
 
-        For example using unit as "month" and duration as 1, the ImageCollection will be reduced
-        into a new ImageCollection with each image containing the reduced values for each month.
+        For example using unit as "month" and duration as 1, the ``ee.ImageCollection`` will be reduced
+        into a new ``ee.ImageCollection`` with each image containing the reduced values for each month.
         Make sure the collection is filtered beforehand to reduce the number of images that needs to be
         processed.
 
         Args:
-            reducer: The name of the reducer to use or a Reducer object. Default is "mean".
-            unit: The unit of time to split the collection. Available units: 'year', 'month', 'week', 'day', 'hour', 'minute' or 'second'.
+            reducer: The name of the reducer to use or a Reducer object. Default is ``"mean"``.
+            unit: The unit of time to split the collection. Available units: ``'year'``, ``'month'``, ``'week'``, ``'day'``, ``'hour'``, ``'minute'`` or ``'second'``.
             duration: The duration of each split.
 
         Returns:
@@ -1031,7 +1031,7 @@ class ImageCollectionAccessor:
         As the imageCollection will need to be sorted limit the analysis to a reasonable number of image by filtering your data beforehand.
 
         Returns:
-            An ImageCollection with all pixels unmasked in every image.
+            An ``ee.ImageCollection`` with all pixels unmasked in every image.
 
         Examples:
             .. code-block:: python
@@ -1153,8 +1153,8 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            reducer: The name of the reducer or a reducer object use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
             scale: The scale in meters to use for the reduction. default is 10000m
@@ -1245,9 +1245,9 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             regions: The regions to reduce the data on.
-            label: The property to use as label for each region. Default is "system:index".
-            reducer: The name of the reducer or a reducer object use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            label: The property to use as label for each region. Default is ``"system:index"``.
+            reducer: The name of the reducer or a reducer object use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             scale: The scale in meters to use for the reduction. default is 10000m
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
             crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
@@ -1335,9 +1335,9 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is "mean".
-            timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is ``"mean"``.
+            timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
             scale: The scale in meters to use for the reduction. default is 10000m
@@ -1451,10 +1451,10 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             regions: The regions to reduce the data on.
-            label: The property to use as label for each region. Default is "system:index".
-            spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is "mean".
-            timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            label: The property to use as label for each region. Default is ``"system:index"``.
+            spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is ``"mean"``.
+            timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             scale: The scale in meters to use for the reduction. default is 10000m
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
             crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
@@ -1547,7 +1547,7 @@ class ImageCollectionAccessor:
         """Aggregate for each year on a single region a single band.
 
         This method is returning a dictionary with all the years as keys and their reduced value for each day of the season over the specified region for a specific band as value.
-        To set the start and end of the season, use the :py:method:`ee.Date.getRelative` or :py:class:`time.struct_time` method to get the day of the year.
+        To set the start and end of the season, use the :py:meth:`ee.Date.getRelative` or :py:class:`time.struct_time` method to get the day of the year.
 
         .. code-block::
 
@@ -1562,8 +1562,8 @@ class ImageCollectionAccessor:
             region: The region to reduce the data on.
             seasonStart: The day of the year that marks the start of the season.
             seasonEnd: The day of the year that marks the end of the season.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             scale: The scale in meters to use for the reduction. default is 10000m
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
             crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
@@ -1684,8 +1684,8 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             region: The region to reduce the data on.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             scale: The scale in meters to use for the reduction. default is 10000m
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
             crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
@@ -1773,8 +1773,8 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
             colors: The colors to use for the bands. If empty, the default colors are used.
@@ -1862,9 +1862,9 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             regions: The regions to reduce the data on.
-            label: The property to use as label for each region. Default is "system:index".
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            label: The property to use as label for each region. Default is ``"system:index"``.
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             colors: The colors to use for the regions. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
             scale: The scale in meters to use for the reduction. default is 10000m
@@ -1951,9 +1951,9 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            spatialReducer: The name of the reducer or a reducer object to use. Default is "mean".
-            timeReducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            spatialReducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            timeReducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
             colors: The colors to use for the bands. If empty, the default colors are used.
@@ -2042,10 +2042,10 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             regions: The regions to reduce the data on.
-            label: The property to use as label for each region. Default is "system:index".
-            spatialReducer: The name of the reducer or a reducer object to use. Default is "mean".
-            timeReducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            label: The property to use as label for each region. Default is ``"system:index"``.
+            spatialReducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            timeReducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             colors: The colors to use for the regions. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
             scale: The scale in meters to use for the reduction. default is 10000m
@@ -2137,8 +2137,8 @@ class ImageCollectionAccessor:
             region: The region to reduce the data on.
             seasonStart: The day of the year that marks the start of the season.
             seasonEnd: The day of the year that marks the end of the season.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             colors: The colors to use for the regions. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
             scale: The scale in meters to use for the reduction. default is 10000m
@@ -2241,8 +2241,8 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             region: The region to reduce the data on.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             colors: The colors to use for the regions. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
             scale: The scale in meters to use for the reduction. default is 10000m

@@ -603,7 +603,7 @@ class ImageAccessor:
     ) -> ee.String:
         """Create a string from using the given pattern and using the image properties.
 
-        The ``system_date`` property is special cased to fit the dateFormat parameter.
+        The ``system_date`` property is special cased to fit the ``dateFormat`` parameter.
 
         Args:
             string: The pattern to use for the string
@@ -1055,7 +1055,7 @@ class ImageAccessor:
         """Gets the DOI of the image, if available.
 
         Returns:
-            DOI of the ee.Image dataset.
+            DOI of the ``ee.Image`` dataset.
 
         See Also:
             - :docstring:`ee.Image.geetools.getCitation`
@@ -1076,7 +1076,7 @@ class ImageAccessor:
         """Gets the citation of the image, if available.
 
         Returns:
-            Citation of the ee.Image dataset.
+            Citation of the ``ee.Image`` dataset.
 
         See Also:
             - :docstring:`ee.Image.geetools.getDOI`
@@ -1140,7 +1140,7 @@ class ImageAccessor:
         * MODIS NBAR [7]_
 
         Parameters:
-            self: ee.Image to calculate tasseled cap components for. Must belong to a supported platform.
+            self: ``ee.Image`` to calculate tasseled cap components for. Must belong to a supported platform.
 
         Returns:
             Image with the tasseled cap components as new bands.
@@ -1349,7 +1349,7 @@ class ImageAccessor:
 
         return self._obj.addBands(final)
 
-    def distance(self, other: ee.image) -> ee.Image:
+    def distance(self, other: ee.Image) -> ee.Image:
         """Compute the sum of all spectral distance between two images.
 
         Parameters:
@@ -1443,9 +1443,8 @@ class ImageAccessor:
             band: The band to use. Defaults to the first band.
             proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. In most cases the user should not change this value, but in case of conflicts, choose a value that is out of the range of the image values.
             columnName: name of the column that will hold the value.
-
-        Kwargs:
-            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+            **kwargs:
+                - ``tileScale``: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             The passed table with the new column containing the percentage of masked pixels within the region
@@ -1499,10 +1498,9 @@ class ImageAccessor:
             scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
             proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
             propertyName: the name of the property where the value will be saved
-
-        Kwargs:
-            maxPixels: The maximum number of pixels to reduce.
-            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+            **kwargs:
+                - ``maxPixels``: The maximum number of pixels to reduce.
+                - ``tileScale``: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             The same image with the percentage of masked pixels as a property
@@ -1630,7 +1628,7 @@ class ImageAccessor:
             images: a list of ee.Image
 
         Returns:
-            A single ee.Image with one band per image in the passed list
+            A single ``ee.Image`` with one band per image in the passed list
 
         Examples:
             .. code-block:: python
@@ -1868,11 +1866,11 @@ class ImageAccessor:
             This method is client-side.
 
         Parameters:
-            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
+            type: The type of plot to use. Defaults to ``"bar"``. can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
             bands: The bands to compute the reducer on. Default to all bands.
-            regionId: The property used to label region. Defaults to "system:index".
+            regionId: The property used to label region. Defaults to ``"system:index"``.
             labels: The labels to use for the output dictionary. Default to the band names.
             colors: The colors to use for the plot. Default to the default matplotlib colors.
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
@@ -1889,7 +1887,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.byRegions`
             - :docstring:`ee.Image.geetools.byBands`
             - :docstring:`ee.Image.geetools.plot_by_bands`
-            - :docstring:`ee.Image.geetools.plot_hist
+            - :docstring:`ee.Image.geetools.plot_hist`
 
         Examples:
             .. code-block:: python
@@ -1958,18 +1956,18 @@ class ImageAccessor:
 
         Each band will be plotted using the ``labels`` as x-axis label defaulting to band names if not provided.
         If no ``bands`` are provided, all bands will be plotted.
-        If no ``regionId`` are provided, the "system;index" property will be used.
+        If no ``regionId`` are provided, the ``"system:index"`` property will be used.
 
 
         Warning:
             This method is client-side.
 
         Parameters:
-            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
+            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
             bands: The bands to compute the reducer on. Default to all bands.
-            regionId: The property used to label region. Defaults to "system:index".
+            regionId: The property used to label region. Defaults to ``"system:index"``.
             labels: The labels to use for the output dictionary. Default to the band names.
             colors: The colors to use for the plot. Default to the default matplotlib colors.
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
@@ -2064,7 +2062,7 @@ class ImageAccessor:
             bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
             maxPixels: The maximum number of pixels to reduce. default to 10**7.
             tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
-            kwargs: Keyword arguments passed to the matplotlib fill_between() function.
+            **kwargs: Keyword arguments passed to the `matplotlib.fill_between() <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.fill_between.html>`_ function.
 
         Returns:
             The matplotlib axis with the plot.
