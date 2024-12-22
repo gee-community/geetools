@@ -1,4 +1,4 @@
-"""Extra methods for the ``ee.Array`` class."""
+"""Extra methods for the :py:class:`ee.Array` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.Array, "geetools")
 class ArrayAccessor:
-    """Toolbox for the ``ee.Array`` class."""
+    """Toolbox for the :py:class:`ee.Array` class."""
 
     def __init__(self, obj: ee.Array):
         """Initialize the Array class."""

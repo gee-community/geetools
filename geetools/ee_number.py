@@ -1,4 +1,4 @@
-"""Extra methods for the ``ee.Number`` class."""
+"""Extra methods for the :py:class:`ee.Number` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.Number, "geetools")
 class NumberAccessor:
-    """toolbox for the ``ee.Number`` class."""
+    """toolbox for the :py:class:`ee.Number` class."""
 
     def __init__(self, obj: ee.Number):
         """Initialize the Number class."""

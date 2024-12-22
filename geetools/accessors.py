@@ -14,7 +14,7 @@ def register_class_accessor(klass: type, name: str) -> Callable:
         name: The name of the accessor namespace
 
     Returns:
-        The accessor function to to the class.
+        The accessor function to the class.
     """
 
     def decorator(accessor: Callable) -> object:
@@ -37,15 +37,15 @@ def register_class_accessor(klass: type, name: str) -> Callable:
     return decorator
 
 
-def register_function_accessor(func: type, name: str) -> Callable:
-    """Add a Accessor class to function through the provided namespace.
+def register_function_accessor(func: Callable, name: str) -> Callable:
+    """Add an Accessor class to function through the provided namespace.
 
     Parameters:
         func: The function to set the accessor to.
         name: The name of the accessor namespace.
 
     Returns:
-        The accessor function to to the function.
+        The accessor function to the function.
     """
 
     def decorator(accessor: Callable) -> object:

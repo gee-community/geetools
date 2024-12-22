@@ -73,7 +73,7 @@ class Profiler:
         return int(number * 10 ** mapping[multiplier])
 
     def _to_dict(self, input: str) -> dict:
-        """Transform the output of a Earthengine profiler into a dictionary compatible with pandas DataFrame."""
+        """Transform the output of an Earthengine profiler into a dictionary compatible with pandas DataFrame."""
         # Split the string into lines
         lines = input.strip().splitlines()
 

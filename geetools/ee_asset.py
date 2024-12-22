@@ -110,7 +110,7 @@ class Asset(os.PathLike):
         return self._path.as_posix()
 
     def as_uri(self) -> str:
-        """Return the asset id as a uri.
+        """Return the asset id as an uri.
 
         The uri can be directly copy/pasted to your browser to see the asset in the GEE code editor.
 
@@ -126,7 +126,7 @@ class Asset(os.PathLike):
         """Return True if the asset is absolute.
 
         An absolute asset path starts with "projects" and contains "assets" at the 3rd position.
-        We don't check if the project name exist in this method, simply the sctructure of the path.
+        We don't check if the project name exist in this method, simply the structure of the path.
 
         Args:
             raised: If True, raise an exception if the asset is not absolute. Defaults to False.
@@ -495,7 +495,7 @@ class Asset(os.PathLike):
         Args:
             parents: If True, create all the parents of the folder. Defaults to False.
             exist_ok: If True, do not raise an error if the folder already exists. Defaults to False.
-            image_collection: If True, create an image collection asset. Otherwise create a folder asset. Defaults to False.
+            image_collection: If True, create an image collection asset. Otherwise, create a folder asset. Defaults to False.
 
         Examples:
             .. code-block:: python
@@ -579,7 +579,7 @@ class Asset(os.PathLike):
     def delete(self, recursive: bool = False, dry_run: bool | None = None) -> list:
         """Remove the asset.
 
-        This method will delete an asset (any type) asset and all its potential children. by default it is not recursive and will raise an error if the container is not empty.
+        This method will delete an asset (any type) asset and all its potential children. By default, it is not recursive and will raise an error if the container is not empty.
         By setting the recursive argument to True, the method will delete all the children and the container asset (including potential subfolders).
         To avoid deleting important assets by accident the method is set to dry_run by default.
 

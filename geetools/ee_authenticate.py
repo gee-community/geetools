@@ -1,4 +1,4 @@
-"""Toolbox for the ``ee.Authenticate`` function."""
+"""Toolbox for the :py:func:`ee.Authenticate` function."""
 from __future__ import annotations
 
 from contextlib import suppress
@@ -13,13 +13,13 @@ from .accessors import register_function_accessor
 
 @register_function_accessor(ee.Authenticate, "geetools")
 class AuthenticateAccessor:
-    """Create an accessor for the ``ee.Authenticate`` function."""
+    """Create an accessor for the :py:func:`ee.Authenticate` function."""
 
     @staticmethod
     def new_user(name: str = "", credential_pathname: str = "") -> None:
         """Authenticate the user and save the credentials in a specific folder.
 
-        Equivalent to ee.Authenticate but where the registered user will not be the default one (the one you get when running :py:meth:`ee.Initialize`)
+        Equivalent to :py:func:`ee.Authenticate` but where the registered user will not be the default one (the one you get when running :py:func:`ee.Initialize`)
 
         Args:
             name: The name of the user. If not set, it will reauthenticate default.
@@ -80,7 +80,7 @@ class AuthenticateAccessor:
             (credential_path / name).unlink()
 
     @staticmethod
-    def list_user(credential_pathname: str = "") -> list:
+    def list_user(credential_pathname: str = "") -> list[str]:
         """return all the available users in the set folder.
 
         To reach "default" simply omit the ``name`` parameter in the User methods

@@ -93,11 +93,11 @@ def plot_data(
 
     Args:
         type: The type of plot to use. can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
-        data: the data to use as inputs of the graph. please follow the fomrmat specified in the documentation.
+        data: the data to use as inputs of the graph. Please follow the format specified in the documentation.
         label_name: The name of the property that was used to generate the labels
         property_names: The list of names that was used to name the values. They will be used to order the keys of the data dictionary.
         colors: A list of colors to use for the plot. If not provided, the default colors from the matplotlib library will be used.
-        ax: The matplotlib axes to use. If not provided, the plot will be send to a new figure.
+        ax: The matplotlib axes to use. If not provided, the plot will be sent to a new figure.
         kwargs: Additional arguments from the ``pyplot`` chat type selected.
     """
     # define the ax if not provided by the user
@@ -243,7 +243,7 @@ def plot_data(
 
 
 def initialize_documentation():
-    """Initialize Earthe Engine Python API in the context of the Documentation build.
+    """Initialize Earth Engine Python API in the context of the Documentation build.
 
     Warning:
         This method is only used in the documentation build and should not be used in a production environment.

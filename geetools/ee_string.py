@@ -1,4 +1,4 @@
-"""Extra methods for the ``ee.String`` class."""
+"""Extra methods for the :py:class:`ee.String` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.String, "geetools")
 class StringAccessor:
-    """Toolbox for the ``ee.String`` class."""
+    """Toolbox for the :py:class:`ee.String` class."""
 
     def __init__(self, obj: ee.String):
         """Initialize the String class."""

@@ -1,4 +1,4 @@
-"""Extra tools for the ``ee.ComputedObject`` class."""
+"""Extra tools for the :py:class:`ee.ComputedObject` class."""
 from __future__ import annotations
 
 import json
@@ -45,9 +45,9 @@ def isInstance(self, klass: type) -> ee.Number:
 # -- .gee files ----------------------------------------------------------------
 @_register_extention(ee.ComputedObject)  # type: ignore
 def save(self, path: os.PathLike) -> Path:
-    """Save a ``ComputedObject`` to a .gee file.
+    """Save a :py:class:`ee.ComputedObject` to a .gee file.
 
-    The file contains the JSON representation of the object. it still need to be computed via ``getInfo()`` to be used.
+    The file contains the JSON representation of the object. It still needs to be computed via :py:meth:`ee.ComputedObject.getInfo` to be used.
 
     Parameters:
         path: The path to save the object to.
