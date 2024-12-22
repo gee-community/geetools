@@ -1011,7 +1011,7 @@ class ImageAccessor:
 
                 initialize_documentation()
 
-                ee.ImageCollection('COPERNICUS/S2_SR').first().getSTAC()
+                ee.ImageCollection('COPERNICUS/S2_SR').first().geetools.getSTAC()
         """
         # extract the Asset id from the imagecollection
         assetId = self._obj.get("system:id").getInfo()
@@ -1067,7 +1067,7 @@ class ImageAccessor:
 
                 initialize_documentation()
 
-                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().getCitation()
+                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().geetools.getCitation()
         """
         stac = self.getSTAC()
         error_msg = "Citation not found in the STAC"
