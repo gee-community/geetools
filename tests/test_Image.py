@@ -399,7 +399,7 @@ class TestIndicexList:
     def test_indices(self):
         indices = ee.Image.geetools.index_list()
         assert "NDVI" in indices.keys()
-        assert len(indices) == 228
+        assert len(indices) == 247
 
 
 class TestSpectralIndices:
