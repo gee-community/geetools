@@ -279,7 +279,7 @@ class ImageCollectionAccessor:
         return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
     def getSTAC(self) -> dict:
-        """Gets the STAC of the image.
+        """Gets the STAC of the imageCollection.
 
         Returns:
             STAC of the image.
