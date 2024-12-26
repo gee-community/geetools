@@ -668,7 +668,9 @@ class FeatureCollectionAccessor:
 
         # get the data from the server
         names = self._obj.first().propertyNames()
-        names = names.filter(ee.Filter.stringStartsWith("item", "system:").Not())
+        nonSystemNames = names.filter(ee.Filter.stringStartsWith("item", "system:").Not()).sort()
+        systemNames = names.filter(ee.Filter.stringStartsWith("item", "system:")).sort()
+        names = nonSystemNames.cat(systemNames)
         property = property if property != "" else names.get(0).getInfo()
         data = self._obj.select([property]).getInfo()
 
