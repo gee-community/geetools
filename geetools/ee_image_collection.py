@@ -282,7 +282,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                S2 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED').scaleAndOffset()
+                S2 = ee.ImageCollection('COPERNICUS/S2_SR').scaleAndOffset()
         """
         return ee_extra.STAC.core.scaleAndOffset(self._obj)
 
@@ -308,7 +308,7 @@ class ImageCollectionAccessor:
                 import geetools
 
                 ee.Initialize()
-                S2 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED').preprocess()
+                S2 = ee.ImageCollection('COPERNICUS/S2_SR').preprocess()
         """
         return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
@@ -326,7 +326,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED').geetools.getSTAC()
+                ee.ImageCollection('COPERNICUS/S2_SR').geetools.getSTAC()
         """
         # extract the Asset id from the imagecollection
         assetId = self._obj.get("system:id").getInfo()
@@ -496,7 +496,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ic = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED');
+                ic = ee.ImageCollection('COPERNICUS/S2_SR');
 
                 geom = ee.Geometry.Point(-122.196, 41.411);
                 ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
@@ -520,7 +520,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ic = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED');
+                ic = ee.ImageCollection('COPERNICUS/S2_SR');
 
                 geom = ee.Geometry.Point(-122.196, 41.411);
                 ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
@@ -546,7 +546,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ic = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED');
+                ic = ee.ImageCollection('COPERNICUS/S2_SR');
 
                 geom = ee.Geometry.Point(-122.196, 41.411);
                 ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
