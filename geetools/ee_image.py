@@ -309,7 +309,9 @@ class ImageAccessor:
     ) -> ee.FeatureCollection:
         """Convert an image to a grid of polygons.
 
-        Based on the size given by the user, the tool will build a grid of size*pixelSize x size * pixelSize cells. Each cell will be a polygon. Note that for images that have multiple scale depending on the band, we will use the first one or the one stated in the parameters.
+        Based on the size given by the user, the tool will build a grid of size*pixelSize x size * pixelSize cells.
+        Each cell will be a polygon. Note that for images that have multiple scale depending on the band,
+        we will use the first one or the one stated in the parameters.
 
         Parameters:
             size: The size of the grid. It will be size * pixelSize x size * pixelSize cells.
@@ -832,7 +834,10 @@ class ImageAccessor:
                 print(ind["formula"])
                 print(ind["reference"])
         """
-        return ee_extra.Spectral.core.indices()
+        url = "https://raw.githubusercontent.com/awesome-spectral-indices/awesome-spectral-indices/main/output/spectral-indices-dict.json"
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()["SpectralIndices"]
 
     # TODO: We can add the additional examples using https://eemont.readthedocs.io/en/latest/classes/stubs/eemont.imagecollection.spectralIndices.html
     def spectralIndices(
@@ -1026,12 +1031,12 @@ class ImageAccessor:
             STAC of the image.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 ee.ImageCollection('COPERNICUS/S2_SR').first().geetools.getSTAC()
         """
@@ -1065,16 +1070,18 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.getCitation`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().geetools.getDOI()
         """
-        return ee_extra.STAC.core.getDOI(self._obj)
+        stac = self.getSTAC()
+        error_msg = "DOI not found in the STAC"
+        return stac["sci:doi"] if "sci:doi" in stac else error_msg
 
     def getCitation(self) -> str:
         """Gets the citation of the image, if available.
@@ -1086,16 +1093,18 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.getDOI`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().geetools.getCitation()
         """
-        return ee_extra.STAC.core.getCitation(self._obj)
+        stac = self.getSTAC()
+        error_msg = "Citation not found in the STAC"
+        return stac["sci:citation"] if "sci:citation" in stac else error_msg
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.Image:
         """Apply panchromatic sharpening to the Image.

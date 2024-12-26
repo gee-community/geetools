@@ -949,10 +949,13 @@ class ImageCollectionAccessor:
                 split = collection.geetools.groupInterval("month", 1)
                 print(split.getInfo())
         """
+        sizeName = "__geetools_generated_size__"  # set generated properties name
+
         # as everything is relyin on the "system:time_start" property
         # we sort the image collection in the first place. In most collection it will change nothing
         # so free of charge unless for plumbing
         ic = self._obj.sort("system:time_start")
+        toCopy = ic.first().propertyNames()
 
         # transform the interval into a duration in milliseconds
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
@@ -962,6 +965,20 @@ class ImageCollectionAccessor:
         DateRangeList = ee.DateRange(start, end).geetools.split(duration, unit)
         imageCollectionList = DateRangeList.map(
             lambda dr: ic.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
+        )
+
+        def add_size(ic):
+            ic = ee.ImageCollection(ic)
+            return ic.set({sizeName: ic.size()})
+
+        def delete_size_property(ic):
+            ic = ee.ImageCollection(ic)
+            return ee.ImageCollection(ic.copyProperties(ic, properties=toCopy))
+
+        imageCollectionList = (
+            imageCollectionList.map(add_size)
+            .filter(ee.Filter.gt(sizeName, 0))
+            .map(delete_size_property)
         )
 
         return ee.List(imageCollectionList)
@@ -1011,16 +1028,20 @@ class ImageCollectionAccessor:
         red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
 
         def reduce(ic):
-            timeList = ee.ImageCollection(ic).aggregate_array("system:time_start")
+            ic = ee.ImageCollection(ic)
+            timeList = ic.aggregate_array("system:time_start")
             start, end = timeList.get(0), timeList.get(-1)
-            bandNames = ee.ImageCollection(ic).first().bandNames()
-            image = ee.ImageCollection(ic).reduce(red).rename(bandNames)
+            firstImg = ic.first()
+            bandNames = firstImg.bandNames()
+            propertyNames = firstImg.propertyNames()
+            image = ic.reduce(red).rename(bandNames).copyProperties(firstImg, propertyNames)
             return image.set("system:time_start", start, "system:time_end", end)
 
         reducedImagesList = imageCollectionList.map(reduce)
 
         # set back the original properties
-        ic = ee.ImageCollection(reducedImagesList).copyProperties(self._obj)
+        propertyNames = self._obj.propertyNames()
+        ic = ee.ImageCollection(reducedImagesList).copyProperties(self._obj, propertyNames)
 
         return ee.ImageCollection(ic)
 
