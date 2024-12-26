@@ -90,7 +90,7 @@ jobs:
           name: coverage
           path: coverage.xml
       - name: codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
           files: ./coverage.xml
