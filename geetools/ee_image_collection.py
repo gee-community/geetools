@@ -24,9 +24,6 @@ EE_DATE_FORMAT = "YYYY-MM-dd'T'HH-mm-ss"
 "The javascript format to use to burn date object in GEE."
 
 
-# TODO: Usually the image collection "LANDSAT/LC08/C01/T1_TOA" brings
-#  an error when trying to be imported. It is a future work to fix this
-#  issue.
 @register_class_accessor(ee.ImageCollection, "geetools")
 class ImageCollectionAccessor:
     """Toolbox for the :py:class:`ee.ImageCollection` class."""
@@ -36,8 +33,6 @@ class ImageCollectionAccessor:
         self._obj = obj
 
     # -- ee-extra wrapper ------------------------------------------------------
-    # TODO: Currently (2024-12-20) there are a bug when you use this method with any S2.
-    #  This bug is related with ee-extra, so we have to wait until they fix the bug
     def maskClouds(
         self,
         method: str = "cloud_prob",
@@ -130,7 +125,6 @@ class ImageCollectionAccessor:
         """
         return ee_extra.ImageCollection.core.closest(self._obj, date, tolerance, unit)
 
-    # TODO: We can add the additional examples using https://eemont.readthedocs.io/en/latest/classes/stubs/eemont.imagecollection.spectralIndices.html
     def spectralIndices(
         self,
         index: str = "NDVI",
@@ -1146,7 +1140,6 @@ class ImageCollectionAccessor:
 
         return ee.Image(medoid).select(bandNames)
 
-    # TODO: Fix the example
     def datesByBands(
         self,
         region: ee.Geometry,

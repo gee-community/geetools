@@ -839,7 +839,6 @@ class ImageAccessor:
         response.raise_for_status()
         return response.json()["SpectralIndices"]
 
-    # TODO: We can add the additional examples using https://eemont.readthedocs.io/en/latest/classes/stubs/eemont.imagecollection.spectralIndices.html
     def spectralIndices(
         self,
         index: str = "NDVI",
@@ -1532,8 +1531,6 @@ class ImageAccessor:
         value = self.maskCoverRegion(region, scale, None, proxyValue, **kwargs)
         return self._obj.set(propertyName, value)
 
-    # TODO: Update this method. It throws the following error:
-    #  EEException: Image.load: Image asset 'COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT' not found (does not exist or caller does not have access).
     def plot(
         self,
         bands: list,
@@ -1627,9 +1624,6 @@ class ImageAccessor:
 
         return ax
 
-    # TODO: Fix the example
-    #  Note: the second example is even correct? It seems to fail always, the error was:
-    #  EEException: Image.rename: Can't add a band named '2' to image because a band with this name already exists. Existing bands: [1, 2].
     @classmethod
     def fromList(cls, images: ee.List | list) -> ee.Image:
         """Create a single image by passing a list of images.
@@ -1852,7 +1846,6 @@ class ImageAccessor:
 
         return ee.Dictionary.fromLists(features, values)
 
-    # TODO: Fix it. Idem for plot_by_bands.
     def plot_by_regions(
         self,
         type: str,
@@ -1944,11 +1937,6 @@ class ImageAccessor:
 
         return ax
 
-    # TODO: This example throws the following error:
-    #  AttributeError: 'Reducer' object has no attribute 'aggregate_array'
-    #  That was thrown by the method byRegions, in the line:
-    #  features = regions.aggregate_array(regionId)
-    #  I think that is produced due before the method doesn't have the "type" argument
     def plot_by_bands(
         self,
         type: str,
@@ -2040,7 +2028,6 @@ class ImageAccessor:
 
         return ax
 
-    # TODO: Fix this example
     def plot_hist(
         self,
         bins: int = 30,
