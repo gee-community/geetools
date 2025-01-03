@@ -1,4 +1,4 @@
-"""Extra methods for the ``ee.Date`` class."""
+"""Extra methods for the :py:class:`ee.Date` class."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -12,7 +12,7 @@ EE_EPOCH = datetime(1970, 1, 1, 0, 0, 0)
 
 @register_class_accessor(ee.Date, "geetools")
 class DateAccessor:
-    """Toolbox for the ``ee.Date`` class."""
+    """Toolbox for the :py:class:`ee.Date` class."""
 
     def __init__(self, obj: ee.Date):
         """Initialize the Date class."""
@@ -27,7 +27,7 @@ class DateAccessor:
             unit: The unit to return the number of. One of: ``second``, ``minute``, ``hour``, ``day``, ``month``, ``year``.
 
         Returns:
-            The date as a ``ee.Date`` object.
+            The date as a :py:class:`ee.Date` object.
 
         Examples:
             .. jupyter-execute::
@@ -52,7 +52,7 @@ class DateAccessor:
             year: The year.
 
         Returns:
-            The date as a ``ee.Date`` object.
+            The date as a :py:class:`ee.Date` object.
 
         Examples:
             .. jupyter-execute::
@@ -89,10 +89,10 @@ class DateAccessor:
         return ee.Date(datetime.now().isoformat())
 
     def to_datetime(self) -> datetime:
-        """Convert a ``ee.Date`` to a ``datetime.datetime``.
+        """Convert a :py:class:`ee.Date` to a :py:class:`datetime.datetime`.
 
         Returns:
-            The ``datetime.datetime`` representation of the ``ee.Date``.
+            The :py:class:`datetime.datetime` representation of the :py:class:`ee.Date`.
 
         Examples:
             .. jupyter-execute::

@@ -9,7 +9,7 @@ from .utils import format_asset_id, format_description
 
 @register_class_accessor(ee.batch.Export, "geetools")
 class ExportAccessor:
-    """Toolbox for the ``ee.batch.Export`` class."""
+    """Toolbox for the :py:class:`ee.batch.Export` class."""
 
     def __init__(self, obj: ee.batch.Export):
         """Initialize the ExportAccessor class."""
@@ -41,10 +41,10 @@ class ExportAccessor:
 
             Parameters:
                 imagecollection: The image collection to export.
-                index_property: The property of the image to use as name. Default is "system:id".
+                index_property: The property of the image to use as name. Default is ``"system:id"``.
                 description: The description of the task.
                 assetId: The asset id where to export the image collection.
-                **kwargs: every parameter that you would use for a vanilla ee.batch.Export.image.toAsset
+                **kwargs: every parameter that you would use for a vanilla :py:meth:`ee.batch.Export.image.toAsset`
 
             Returns:
                 The task created.
@@ -62,7 +62,6 @@ class ExportAccessor:
 
                     # export the collection
                     tasks = geetools.batch.Export.imagecollection.toAsset(collection, "system:index", "test export")
-                ```
             """
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
@@ -108,10 +107,10 @@ class ExportAccessor:
 
             Parameters:
                 imagecollection: The image collection to export.
-                index_property: The property of the image to use as name. Default is "system:id".
+                index_property: The property of the image to use as name. Default is ``"system:id"``.
                 description: The description of the task.
                 folder: The folder id where to export the image collection. It will be stored at the root of the drive.
-                **kwargs: every parameter that you would use for a vanilla ee.batch.Export.image.toDrive
+                **kwargs: every parameter that you would use for a vanilla :py:meth:`ee.batch.Export.image.toDrive`
 
             Returns:
                 The list of created tasks
@@ -172,10 +171,10 @@ class ExportAccessor:
 
             Parameters:
                 imagecollection: The image collection to export.
-                index_property: The property of the image to use as name. Default is "system:id".
+                index_property: The property of the image to use as name. Default is ``"system:id"``.
                 description: The description of the task.
                 folder: The folder id where to export the image collection. It will be stored at the root of the drive.
-                **kwargs: every parameter that you would use for a vanilla ee.batch.Export.image.toCloudStorage
+                **kwargs: every parameter that you would use for a vanilla :py:meth:`ee.batch.Export.image.toCloudStorage`
 
             Returns:
                 The list of created tasks

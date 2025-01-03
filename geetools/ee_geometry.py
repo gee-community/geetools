@@ -1,4 +1,4 @@
-"""Toolbox for the ``ee.Geometry`` class."""
+"""Toolbox for the :py:class:`ee.Geometry` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.Geometry, "geetools")
 class GeometryAccessor:
-    """Toolbox for the ``ee.Geometry`` class."""
+    """Toolbox for the :py:class:`ee.Geometry` class."""
 
     def __init__(self, obj: ee.Geometry):
         """Initialize the Geometry class."""
@@ -40,7 +40,7 @@ class GeometryAccessor:
                 multiPoly = ee.Geometry.MultiPolygon([poly0, poly1], proj="EPSG:4326")
 
                 # create a geometry collection from them
-                geometryColllection = ee.Algorithms.GeometryConstructors.MultiGeometry(
+                geometryCollection = ee.Algorithms.GeometryConstructors.MultiGeometry(
                     [multiPoly, poly0, poly1, point0, line],
                     crs="EPSG:4326",
                     geodesic=True,
@@ -48,7 +48,7 @@ class GeometryAccessor:
                 )
 
                 # extract only the LineString geometries from the collection
-                geom = geometryColllection.geetools.keepType('LineString')
+                geom = geometryCollection.geetools.keepType('LineString')
                 geom.getInfo()
         """
         # will raise an error if self is not a GeometryCollection

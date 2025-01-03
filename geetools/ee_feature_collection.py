@@ -1,4 +1,4 @@
-"""Toolbox for the `ee.FeatureCollection` class."""
+"""Toolbox for the :py:class:`ee.FeatureCollection` class."""
 from __future__ import annotations
 
 from typing import Protocol
@@ -23,10 +23,10 @@ class GeoInterface(Protocol):
 
 @register_class_accessor(ee.FeatureCollection, "geetools")
 class FeatureCollectionAccessor:
-    """Toolbox for the `ee.FeatureCollection` class."""
+    """Toolbox for the :py:class:`ee.FeatureCollection` class."""
 
     def __init__(self, obj: ee.FeatureCollection):
-        """Initialize the FeatureCollection class."""
+        """Initialize the :py:class:`ee.FeatureCollection` class."""
         self._obj = obj
 
     def toImage(
@@ -34,16 +34,16 @@ class FeatureCollectionAccessor:
         color: str | ee.String | int | ee.Number = 0,
         width: str | ee.String | int | ee.Number = "",
     ) -> ee.Image:
-        """Paint the current FeatureCollection to an Image.
+        """Paint the current :py:class:`ee.FeatureCollection` to an Image.
 
-        It's a simple wrapper on Image.paint() method
+        It's a simple wrapper on :py:meth:`ee.Image.paint` method.
 
         Args:
             color: The pixel value to paint into every band of the input image, either as a number which will be used for all features, or the name of a numeric property to take from each feature in the collection.
             width: Line width, either as a number which will be the line width for all geometries, or the name of a numeric property to take from each feature in the collection. If unspecified, the geometries will be filled instead of outlined.
 
         Returns:
-            The painted image
+            The painted image.
 
         Examples:
             .. jupyter-execute::
@@ -64,7 +64,7 @@ class FeatureCollectionAccessor:
                 # transform the featureCollection into an image
                 img = vatican.geetools.toImage(color=1).rename("gaul")
 
-                # Define a custom colormap ffor the raster representation
+                # Define a custom colormap for the raster representation
                 # it will only have 1 color: teal for the first value and white for everything else
                 cmap = ListedColormap(['teal', 'white'])
 
@@ -102,7 +102,7 @@ class FeatureCollectionAccessor:
             selectors: a list of properties to add in the output. If the list is empty all properties will be added.
 
         Returns:
-            a ee.Dictionary with values of keyColumn as keys and ee.Dictionary as values. The output will look like:
+            a :py:class:`ee.Dictionary` with values of keyColumn as keys and :py:class:`ee.Dictionary` as values. The output will look like:
 
         Examples:
             .. jupyter-execute::
@@ -139,11 +139,11 @@ class FeatureCollectionAccessor:
         """Add a unique numeric identifier, starting from parameter ``start``.
 
         Args:
-            name: The name of the property to add. Defaults to "id".
+            name: The name of the property to add. Defaults to ``"id"``.
             start: The starting value of the id. Defaults to 1.
 
         Returns:
-            The parsed collection with a new id property
+            The parsed collection with a new id property.
 
         Example:
             .. jupyter-execute::
@@ -185,14 +185,14 @@ class FeatureCollectionAccessor:
         idByIndex = ee.Dictionary.fromLists(indexes, ids)
         return self._obj.map(lambda f: f.set(name, idByIndex.get(f.get("system:index"))))
 
-    def mergeGeometries(self, maxError: float | int | ee.number | None = None) -> ee.Geometry:
+    def mergeGeometries(self, maxError: float | int | ee.Number | None = None) -> ee.Geometry:
         """Merge the geometries included in the features.
 
         Args:
-            maxError: The maximum amount of error tolerated when performing any necessary reprojection.
+            maxError: The maximum amount of error tolerated when performing any necessary re-projection.
 
         Returns:
-            the dissolved geometry
+            The dissolved geometry.
 
         Example:
             .. code-block:: python
@@ -203,7 +203,7 @@ class FeatureCollectionAccessor:
 
                 initialize_documentation()
 
-                # create a featurecollection containing 2 bounding boxes
+                # create a FeatureCollection containing 2 bounding boxes
                 fc = ee.FeatureCollection([
                     ee.Geometry.BBox(-1, -1, 1, 1),
                     ee.Geometry.BBox(0, 0, 2, 2)
@@ -227,10 +227,10 @@ class FeatureCollectionAccessor:
 
         This method is made to avoid errors when performing zonal statistics and/or other surfaces operations.
         These operations won't work on geometries that are Lines or points. The methods remove these geometry
-        types from GEometryCollections and rremove features that don't have any polygon geometry.
+        types from GeometryCollections and remove features that don't have any polygon geometry.
 
         Returns:
-            The parsed collection with only polygon/MultiPolygon geometries
+            The parsed collection with only polygon/MultiPolygon geometries.
 
         Example:
             .. code-block:: python
@@ -273,9 +273,9 @@ class FeatureCollectionAccessor:
         properties: list | ee.List = [],
         labels: list = [],
     ) -> ee.Dictionary:
-        """Get a dictionary with all feature values for each properties.
+        """Get a dictionary with all feature values for each property.
 
-        This method is returning a dictionary with all the properties as keys and their values in each feaure as a list.
+        This method is returning a dictionary with all the properties as keys and their values in each feature as a list.
 
         .. code-block::
 
@@ -288,12 +288,12 @@ class FeatureCollectionAccessor:
         The output remain server side and can be used to create a client side plot.
 
         Args:
-            featureId: The property used to label features. Defaults to "system:index".
+            featureId: The property used to label features. Defaults to ``"system:index"``.
             properties: A list of properties to get the values from.
             labels: A list of names to replace properties names. Default to the properties names.
 
         Returns:
-            A dictionary with all the properties as keys and their values in each feaure as a list.
+            A dictionary with all the properties as keys and their values in each feature as a list.
 
         See Also:
             - :docstring:`ee.FeatureCollection.geetools.byFeatures`
@@ -351,7 +351,7 @@ class FeatureCollectionAccessor:
         The output remain server side and can be used to create a client side plot.
 
         Args:
-            featureId: The property to use as the feature id. Defaults to "system:index". This property needs to be a string property.
+            featureId: The property to use as the feature id. Defaults to ``"system:index"``. This property needs to be a string property.
             properties: A list of properties to get the values from.
             labels: A list of names to replace properties names. Default to the properties names.
 
@@ -407,23 +407,23 @@ class FeatureCollectionAccessor:
         ax: Axes | None = None,
         **kwargs,
     ) -> Axes:
-        """Plot the values of a ``ee.FeatureCollection`` by feature.
+        """Plot the values of a :py:class:`ee.FeatureCollection` by feature.
 
         Each feature property selected in properties will be plotted using the ``featureId`` as the x-axis.
         If no ``properties`` are provided, all properties will be plotted.
-        If no ``featureId`` is provided, the "system:index" property will be used.
+        If no ``featureId`` is provided, the ``"system:index"`` property will be used.
 
         Warning:
             This function is a client-side function.
 
         Args:
-            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
-            featureId: The property to use as the x-axis (name the features). Defaults to "system:index".
+            type: The type of plot to use. Defaults to ``"bar"``. can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
+            featureId: The property to use as the x-axis (name the features). Defaults to ``"system:index"``.
             properties: A list of properties to plot. Defaults to all properties.
-            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties length.
+            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties' length.
             colors: A list of colors to use for plotting the properties. If not provided, the default colors from the matplotlib library will be used.
-            ax: The matplotlib axes to use. If not provided, the plot will be send to a new figure.
-            kwargs: Additional arguments from the ``pyplot`` function.
+            ax: The matplotlib axes to use. If not provided, the plot will be sent to a new figure.
+            kwargs: Additional arguments from the ``pyplot`` type selected.
 
         See Also:
             - :docstring:`ee.FeatureCollection.geetools.byFeatures`
@@ -475,7 +475,7 @@ class FeatureCollectionAccessor:
         ax: Axes | None = None,
         **kwargs,
     ) -> Axes:
-        """Plot the values of a FeatureCollection by property.
+        """Plot the values of a :py:class:`ee.FeatureCollection` by property.
 
         Each features will be represented by a color and each property will be a bar of the bar chart.
 
@@ -483,12 +483,12 @@ class FeatureCollectionAccessor:
             This function is a client-side function.
 
         Args:
-            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
-            featureId: The property to use as the y-axis (name the features). Defaults to "system:index".
+            type: The type of plot to use. Defaults to ``"bar"``. can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
+            featureId: The property to use as the y-axis (name the features). Defaults to ``"system:index"``.
             properties: A list of properties to plot. Defaults to all properties.
-            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties length.
+            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties' length.
             colors: A list of colors to use for plotting the properties. If not provided, the default colors from the matplotlib library will be used.
-            ax: The matplotlib axes to use. If not provided, the plot will be send to a new figure.
+            ax: The matplotlib axes to use. If not provided, the plot will be sent to a new figure.
             kwargs: Additional arguments from the ``pyplot`` function.
 
         See Also:
@@ -544,9 +544,9 @@ class FeatureCollectionAccessor:
         Args:
             property: The property to display
             label: The label to use for the property. If not provided, the property name will be used.
-            ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
+            ax: The matplotlib axes to use. If not provided, the plot will be sent to the current axes (using :py:func:`matplotlib.pyplot.gca`).
             color: The color to use for the plot. If not provided, the default colors from the matplotlib library will be used.
-            kwargs: Additional arguments from the ``pyplot.hist`` function.
+            **kwargs: Additional arguments from the :py:func:`matplotlib.pyplot.hist` function.
 
         See Also:
             - :docstring:`ee.FeatureCollection.geetools.plot_by_features`
@@ -655,7 +655,7 @@ class FeatureCollectionAccessor:
                 )
 
                 # style the figure
-                ax.set_title("France departements")
+                ax.set_title("France departments")
                 ax.set_xlabel("Longitude (°)")
                 ax.set_ylabel("Latitude (°)")
                 ax.set_xticks([])
@@ -685,7 +685,7 @@ class FeatureCollectionAccessor:
 
     @classmethod
     def fromGeoInterface(cls, data: dict | GeoInterface) -> ee.FeatureCollection:
-        """Create a FeatureCollection from a geo interface.
+        """Create a :py:class:`ee.FeatureCollection` from a geo interface.
 
         The ``geo_interface`` is a protocol representing a vector collection as a python GeoJSON-like dictionary structure.
         More information is available at https://gist.github.com/sgillies/2217756. Note that the :py:class:`ee.FeatureCollection`
@@ -695,14 +695,14 @@ class FeatureCollectionAccessor:
         that respects the protocol described in the link above.
 
         Parameters:
-            data: The geo_interface to create the FeatureCollection from.
-            crs: The CRS to use for the FeatureCollection. Default to "EPSG:4326".
+            data: The geo_interface to create the :py:class:`ee.FeatureCollection` from.
+            crs: The CRS to use for the FeatureCollection. Default to ``EPSG:4326``.
 
         Returns:
-            The created FeatureCollection.
+            The created :py:class:`ee.FeatureCollection` from the geo_interface.
 
         Examples:
-            code-block:: python
+            .. code-block:: python
 
                 import geetools
 

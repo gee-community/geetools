@@ -1,8 +1,9 @@
-"""Toolbox for the ``ee.ImageCollection`` class."""
+"""Toolbox for the :py:class:`ee.ImageCollection` class."""
 from __future__ import annotations
 
 import uuid
 from datetime import datetime as dt
+from typing import Any, Iterable
 
 import ee
 import ee_extra
@@ -25,7 +26,7 @@ EE_DATE_FORMAT = "YYYY-MM-dd'T'HH-mm-ss"
 
 @register_class_accessor(ee.ImageCollection, "geetools")
 class ImageCollectionAccessor:
-    """Toolbox for the ``ee.ImageCollection`` class."""
+    """Toolbox for the :py:class:`ee.ImageCollection` class."""
 
     def __init__(self, obj: ee.ImageCollection):
         """Instantiate the class."""
@@ -44,10 +45,10 @@ class ImageCollectionAccessor:
         buffer: int = 250,
         cdi: int | None = None,
     ) -> ee.ImageCollection:
-        """Masks clouds and shadows in each image of an ImageCollection (valid just for Surface Reflectance products).
+        """Masks clouds and shadows in each image of an :py:class:`ee.ImageCollection` (valid just for Surface Reflectance products).
 
         Parameters:
-            self: ImageCollection to mask.
+            self: :py:class:`ee.ImageCollection` to mask.
             method: Method used to mask clouds. This parameter is ignored for Landsat products.
                 Available options:
                     - 'cloud_prob' : Use cloud probability.
@@ -99,9 +100,10 @@ class ImageCollectionAccessor:
         """Gets the closest image (or set of images if the collection intersects a region that requires multiple scenes) to the specified date.
 
         Parameters:
+            self: :py:class:`ee.ImageCollection` from which to get the closest image to the specified date.
             date: Date of interest. The method will look for images closest to this date.
             tolerance: Filter the collection to [date - tolerance, date + tolerance) before searching the closest image. This speeds up the searching process for collections with a high temporal resolution.
-            unit: Units for tolerance. Available units: 'year', 'month', 'week', 'day', 'hour', 'minute' or 'second'.
+            unit: Units for tolerance. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
 
         Returns:
             Closest images to the specified date.
@@ -112,7 +114,13 @@ class ImageCollectionAccessor:
                 import ee
                 import geetools
 
-                s2 = ee.ImageCollection('COPERNICUS/S2_SR').closest('2020-10-15')
+                ee.Initialize()
+                geom = ee.Geometry.point(-122.196, 41.411)
+                s2 = (
+                    ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+                    .filterBounds(geom)
+                    .geetools.closest('2020-10-15')
+                )
                 s2.size().getInfo()
         """
         return ee_extra.ImageCollection.core.closest(self._obj, date, tolerance, unit)
@@ -143,7 +151,7 @@ class ImageCollectionAccessor:
         lambdaG: float | int = 555.0,
         online: bool = False,
     ) -> ee.ImageCollection:
-        """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
+        """Computes one or more spectral indices (indices are added as bands) for an image collection from the Awesome List of Spectral Indices.
 
         Parameters:
             self: Image to compute indices on. Must be scaled to [0,1].
@@ -167,7 +175,7 @@ class ImageCollectionAccessor:
             slope: Soil line slope, default = 1.0
             intercept: Soil line intercept, default = 0.0
             gamma: Weighting coefficient used for ARVI, default = 1.0
-            omega: Weighting coefficient  used for MBWI, default = 2.0
+            omega: Weighting coefficient used for MBWI, default = 2.0
             beta: Calibration parameter used for NDSIns, default = 0.05
             k: Slope parameter by soil used for NIRvH2, default = 0.0
             fdelta: Adjustment factor used for SEVI, default = 0.581
@@ -185,7 +193,10 @@ class ImageCollectionAccessor:
             drop: Whether to drop all bands except the new spectral indices, default = False
 
         Returns:
-            Image with the computed spectral index, or indices, as new bands.
+            Image collection with the computed spectral index, or indices, as new bands.
+
+        See Also:
+            - :docstring:`ee.Image.geetools.scaleAndOffset`
 
         Examples:
             .. code-block:: python
@@ -194,7 +205,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                image = image.geetools.specralIndices(["NDVI", "NDFI"])
+                image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
         # fmt: off
         return ee_extra.Spectral.core.spectralIndices(
@@ -204,12 +215,15 @@ class ImageCollectionAccessor:
         )
         # fmt: on
 
-    def getScaleParams(self) -> dict:
+    def getScaleParams(self) -> dict[str, float]:
         """Gets the scale parameters for each band of the image.
 
         Returns:
             Dictionary with the scale parameters for each band.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getOffsetParams`
+            - :docstring:`ee.ImageCollection.geetools.scaleAndOffset`
 
         Examples:
             .. code-block:: python
@@ -223,21 +237,25 @@ class ImageCollectionAccessor:
         """
         return ee_extra.STAC.core.getScaleParams(self._obj)
 
-    def getOffsetParams(self) -> dict:
+    def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
 
         Returns:
             Dictionary with the offset parameters for each band.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getScaleParams`
+            - :docstring:`ee.ImageCollection.geetools.scaleAndOffset`
+
         Examples:
             .. code-block:: python
 
-            import ee
-            import geetools
+                import ee
+                import geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            ee.ImageCollection('MODIS/006/MOD11A2').getOffsetParams()
+                ee.ImageCollection('MODIS/006/MOD11A2').geetools.getOffsetParams()
         """
         return ee_extra.STAC.core.getOffsetParams(self._obj)
 
@@ -246,6 +264,10 @@ class ImageCollectionAccessor:
 
         Returns:
             Scaled image.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getOffsetParams`
+            - :docstring:`ee.ImageCollection.geetools.getScaleParams`
 
         Examples:
             .. code-block:: python
@@ -259,40 +281,46 @@ class ImageCollectionAccessor:
         return ee_extra.STAC.core.scaleAndOffset(self._obj)
 
     def preprocess(self, **kwargs) -> ee.ImageCollection:
-        """Pre-processes the image: masks clouds and shadows, and scales and offsets the image.
+        """Pre-processes the image: masks clouds and shadows, and scales and offsets the image collection.
 
         Parameters:
-            **kwargs: Keywords arguments for ``maskClouds`` method.
+            **kwargs: Keywords arguments for :py:meth:`ee.ImageCollection.geetools.maskClouds <geetools.ee_image_collection.ImageCollectionAccessor.maskClouds>` method.
 
         Returns:
             Pre-processed image.
 
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getScaleParams`
+            - :docstring:`ee.ImageCollection.geetools.getOffsetParams`
+            - :docstring:`ee.ImageCollection.geetools.scaleAndOffset`
+            - :docstring:`ee.ImageCollection.geetools.maskClouds`
+
         Examples:
             .. code-block:: python
 
-            import ee
-            import geetools
+                import ee
+                import geetools
 
-            ee.Initialize()
-            S2 = ee.ImageCollection('COPERNICUS/S2_SR').preprocess()
+                ee.Initialize()
+                S2 = ee.ImageCollection('COPERNICUS/S2_SR').preprocess()
         """
         return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
-    def getSTAC(self) -> dict:
-        """Gets the STAC of the imageCollection.
+    def getSTAC(self) -> dict[str, Any]:
+        """Gets the STAC of the image collection.
 
         Returns:
-            STAC of the image.
+            STAC of the image collection.
 
         Examples:
             .. code-block:: python
 
-            import ee
-            import geetools
+                import ee
+                import geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            ee.ImageCollection('COPERNICUS/S2_SR').getSTAC()
+                ee.ImageCollection('COPERNICUS/S2_SR').geetools.getSTAC()
         """
         # extract the Asset id from the imagecollection
         assetId = self._obj.get("system:id").getInfo()
@@ -318,7 +346,10 @@ class ImageCollectionAccessor:
         """Gets the DOI of the collection, if available.
 
         Returns:
-            DOI of the ee.Image dataset.
+            DOI of the :py:class:`ee.Image` dataset.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getCitation`
 
         Examples:
             .. code-block:: python
@@ -328,7 +359,7 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').getDOI()
+                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getDOI()
         """
         return ee_extra.STAC.core.getDOI(self._obj)
 
@@ -336,7 +367,10 @@ class ImageCollectionAccessor:
         """Gets the citation of the image, if available.
 
         Returns:
-            Citation of the ee.Image dataset.
+            Citation of the :py:class:`ee.Image` dataset.
+
+        See Also:
+            - :docstring:`ee.ImageCollection.geetools.getDOI`
 
         Examples:
             .. code-block:: python
@@ -346,12 +380,12 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').getCitation()
+                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getCitation()
         """
         return ee_extra.STAC.core.getCitation(self._obj)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.ImageCollection:
-        """Apply panchromatic sharpening to the ImageCollection images.
+        """Apply panchromatic sharpening to the :py:class:`ee.ImageCollection` images.
 
         Optionally, run quality assessments between the original and sharpened Image to
         measure spectral distortion and set results as properties of the sharpened Image.
@@ -380,27 +414,53 @@ class ImageCollectionAccessor:
         )
 
     def tasseledCap(self) -> ee.ImageCollection:
-        """Calculates tasseled cap brightness, wetness, and greenness components.
+        """Calculates tasseled cap brightness, wetness, and greenness components for all images in the collection.
 
         Tasseled cap transformations are applied using coefficients published for these
         supported platforms:
 
-        * Sentinel-2 MSI Level 1C
-        * Landsat 9 OLI-2 SR
-        * Landsat 9 OLI-2 TOA
-        * Landsat 8 OLI SR
-        * Landsat 8 OLI TOA
-        * Landsat 7 ETM+ TOA
-        * Landsat 5 TM Raw DN
-        * Landsat 4 TM Raw DN
-        * Landsat 4 TM Surface Reflectance
-        * MODIS NBAR
+        * Sentinel-2 MSI Level 1C [1]_
+        * Landsat 9 OLI-2 SR [2]_
+        * Landsat 9 OLI-2 TOA [2]_
+        * Landsat 8 OLI SR [2]_
+        * Landsat 8 OLI TOA [2]_
+        * Landsat 7 ETM+ TOA [3]_
+        * Landsat 5 TM Raw DN [4]_
+        * Landsat 4 TM Raw DN [5]_
+        * Landsat 4 TM Surface Reflectance [6]_
+        * MODIS NBAR [7]_
 
         Parameters:
-            self: ee.ImageCollection to calculate tasseled cap components for. Must belong to a supported platform.
+            self: :py:class:`ee.ImageCollection` to calculate tasseled cap components for. Must belong to a supported platform.
 
         Returns:
-            ImageCollections with the tasseled cap components as new bands.
+            Image Collections with the tasseled cap components as new bands.
+
+        References:
+            .. [1] Shi, T., & Xu, H. (2019). Derivation of Tasseled Cap Transformation
+                Coefficients for Sentinel-2 MSI At-Sensor Reflectance Data. IEEE Journal
+                of Selected Topics in Applied Earth Observations and Remote Sensing, 1-11.
+                doi:10.1109/jstars.2019.2938388
+            .. [2] Zhai, Y., Roy, D.P., Martins, V.S., Zhang, H.K., Yan, L., Li, Z. 2022.
+                Conterminous United States Landsat-8 top of atmosphere and surface reflectance
+                tasseled cap transformation coefficients. Remote Sensing of Environment,
+                274(2022). doi:10.1016/j.rse.2022.112992
+            .. [3] Huang, C., Wylie, B., Yang, L., Homer, C. and Zylstra, G., 2002.
+                Derivation of a tasselled cap transformation based on Landsat 7 at-satellite
+                reflectance. International journal of remote sensing, 23(8), pp.1741-1748.
+            .. [4] Crist, E.P., Laurin, R. and Cicone, R.C., 1986, September. Vegetation and
+                soils information contained in transformed Thematic Mapper data. In
+                Proceedings of IGARSS`86 symposium (pp. 1465-1470). Paris: European Space
+                Agency Publications Division.
+            .. [5] Crist, E.P. and Cicone, R.C., 1984. A physically-based transformation of
+                Thematic Mapper data---The TM Tasseled Cap. IEEE Transactions on Geoscience
+                and Remote sensing, (3), pp.256-263.
+            .. [6] Crist, E.P., 1985. A TM tasseled cap equivalent transformation for
+                reflectance factor data. Remote sensing of Environment, 17(3), pp.301-306.
+            .. [7] Lobser, S.E. and Cohen, W.B., 2007. MODIS tasselled cap: land cover
+                characteristics expressed through transformed MODIS data. International
+                Journal of Remote Sensing, 28(22), pp.5079-5101.
+
 
         Examples:
             .. code-block:: python
@@ -409,8 +469,8 @@ class ImageCollectionAccessor:
 
                 ee.Initialize()
 
-                image = ee.Image('COPERNICUS/S2_SR')
-                img = img.tasseledCap()
+                ic = ee.ImageCollection("LANDSAT/LT05/C01/T1")
+                ic = ic.geetools.tasseledCap()
         """
         return ee_extra.Spectral.core.tasseledCap(self._obj)
 
@@ -421,7 +481,7 @@ class ImageCollectionAccessor:
             image: Image to append to the collection.
 
         Returns:
-            ImageCollection with the new image appended.
+            :py:class:`ee.ImageCollection` with the new image appended.
 
         Examples:
             .. code-block:: python
@@ -436,16 +496,16 @@ class ImageCollectionAccessor:
                 ic2018 = ic.filterBounds(geom).filterDate('2019-07-01', '2019-10-01')
                 ic2021 = ic.filterBounds(geom).filterDate('2021-07-01', '2021-10-01')
 
-                ic = ic2018.append(ic2021.first())
+                ic = ic2018.geetools.append(ic2021.first())
                 ic.getInfo()
         """
         return self._obj.merge(ee.ImageCollection([image]))
 
     def collectionMask(self) -> ee.Image:
-        """A binary ee.Image where only pixels that are masked in all images of the collection get masked.
+        """A binary :py:class:`ee.Image` where only pixels that are masked in all images of the collection get masked.
 
         Returns:
-            ee.Image of the mask. 1 where at least 1 pixel is valid 0 elswere
+            :py:class:`ee.Image` of the mask. 1 where at least 1 pixel is valid 0 elsewhere
 
         Examples:
             .. code-block::
@@ -465,13 +525,13 @@ class ImageCollectionAccessor:
         return ee.Image(masks.sum().gt(0))
 
     def iloc(self, index: int) -> ee.Image:
-        """Get Image from the ImageCollection by index.
+        """Get Image from the :py:class:`ee.ImageCollection` by index.
 
         Args:
             index: Index of the image to get.
 
         Returns:
-            ee.Image at the specified index.
+            :py:class:`ee.Image` at the specified index.
 
         Examples:
             .. code-block:: python
@@ -492,17 +552,17 @@ class ImageCollectionAccessor:
         """Compute the integral of a band over time or a specified property.
 
         Args:
-            band: the name of the band to integrate
+            band: the name of the band to integrate.
             time: the name of the property to use as time. It must be a date property of the images.
-            unit: the time unit use to compute the integral. It can be one of the following: ["year", "month", "day", "hour", "minute", "second"]. If non is set, the time will be normalized on the integral length.
+            unit: the time unit use to compute the integral. It can be one of the following: ``year``, ``month``, ``day``, ``hour``, ``minute``, ``second``. If non is set, the time will be normalized on the integral length.
 
         Returns:
-            An Image object with the integrated band for each pixel
+            An :py:class:`ee.Image` object with the integrated band for each pixel.
 
         Examples:
             .. code-block:: python
 
-                import ee, LDCGEETools
+                import ee, geetools
 
                 collection = (
                     ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
@@ -563,31 +623,31 @@ class ImageCollectionAccessor:
             outlier = value < mean-(sigma*stddev)
 
         In a 1D example it would be:
-        - values = [1, 5, 6, 4, 7, 10]
-        - mean = 5.5
-        - std dev = 3
-        - mean + (sigma*stddev) = 8.5
-        - mean - (sigma*stddev) = 2.5
-        - outliers = values between 2.5 and 8.5 = [1, 10]
+            - values = [1, 5, 6, 4, 7, 10]
+            - mean = 5.5
+            - std dev = 3
+            - mean + (sigma*stddev) = 8.5
+            - mean - (sigma*stddev) = 2.5
+            - outliers = values between 2.5 and 8.5 = [1, 10]
 
         Here in this function an extra band is added to each image for each of the evaluated bands with the outlier status. The band name is the original band name with the suffix "_outlier". A value of 1 means that the pixel is an outlier, 0 means that it is not.
 
-        Optionally users can discard this band by setting ``drop`` to ``True`` and the outlier will simply be masked from each ilmage. This is useful when the outlier band is not needed and the user wants to save space.
+        Optionally users can discard this band by setting ``drop`` to ``True`` and the outlier will simply be masked from each image. This is useful when the outlier band is not needed and the user wants to save space.
 
         idea from: https://www.kdnuggets.com/2017/02/removing-outliers-standard-deviation-python.html
 
         Args:
-            bands: the bands to evaluate for outliers. If empty, all bands are evaluated
-            sigma: the number of standard deviations to use to compute the outlier
-            drop: whether to drop the outlier band from the images
+            bands: The bands to evaluate for outliers. If empty, all bands are evaluated.
+            sigma: The number of standard deviations to use to compute the outlier.
+            drop: Whether to drop the outlier band from the images.
 
         Returns:
-            an ImageCollection with the outlier band added to each image or masked if ``drop`` is ``True``
+            A :py:class:`ee.ImageCollection` with the outlier band added to each image or masked if ``drop`` is ``True``.
 
         Examples:
             .. code-block:: python
 
-                import ee, LDCGEETools
+                import ee, geetools
 
                 collection = (
                     ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
@@ -629,7 +689,7 @@ class ImageCollectionAccessor:
 
     def to_xarray(
         self,
-        drop_variables: tuple[str, ...] | None = None,
+        drop_variables: str | Iterable[str] | None = None,
         io_chunks: object = None,
         n_images: int = -1,
         mask_and_scale: bool = True,
@@ -647,7 +707,7 @@ class ImageCollectionAccessor:
         ee_mask_value: float | None = None,
         request_byte_limit: int = REQUEST_BYTE_LIMIT,
     ) -> Dataset:
-        """Open an Earth Engine ImageCollection as an ``xarray.Dataset``.
+        """Open an Earth Engine :py:class:`ee.ImageCollection` as an ``xarray.Dataset``.
 
         Args:
             drop_variables: Variables or bands to drop before opening.
@@ -658,10 +718,10 @@ class ImageCollectionAccessor:
             decode_timedelta: If True, decode variables and coordinates with time units in {"days", "hours", "minutes", "seconds", "milliseconds", "microseconds"} into timedelta objects. If False, leave them encoded as numbers. If None (default), assume the same value of decode_time.
             use_cftime: Only relevant if encoded dates come from a standard calendar (e.g. "gregorian", "proleptic_gregorian", "standard", or not specified).  If None (default), attempt to decode times to ``np.datetime64[ns]`` objects; if this is not possible, decode times to ``cftime.datetime`` objects. If True, always decode times to ``cftime.datetime`` objects, regardless of whether or not they can be represented using ``np.datetime64[ns]`` objects.  If False, always decode times to ``np.datetime64[ns]`` objects; if this is not possible raise an error.
             concat_characters: Should character arrays be concatenated to strings, for example: ["h", "e", "l", "l", "o"] -> "hello"
-            decode_coords: bool or {"coordinates", "all"}, Controls which variables are set as coordinate variables: - "coordinates" or True: Set variables referred to in the ``'coordinates'`` attribute of the datasets or individual variables as coordinate variables. - "all": Set variables referred to in  ``'grid_mapping'``, ``'bounds'`` and other attributes as coordinate variables.
+            decode_coords: bool or {"coordinates", "all"}, Controls which variables are set as coordinate variables: - "coordinates" or True: Set variables referred to in the ``'coordinates'`` attribute of the datasets or individual variables as coordinate variables. - "all": Set variables referred to in ``'grid_mapping'``, ``'bounds'`` and other attributes as coordinate variables.
             crs: The coordinate reference system (a CRS code or WKT string). This defines the frame of reference to coalesce all variables upon opening. By default, data is opened with 'EPSG:4326'.
             scale: The scale in the ``crs`` or ``projection``'s units of measure -- either meters or degrees. This defines the scale that all data is represented in upon opening. By default, the scale is 1° when the CRS is in degrees or 10,000 when in meters.
-            projection: Specify an ``ee.Projection`` object to define the ``scale`` and ``crs`` (or other coordinate reference system) with which to coalesce all variables upon opening. By default, the scale and reference system is set by the the ``crs`` and ``scale`` arguments.
+            projection: Specify an ``ee.Projection`` object to define the ``scale`` and ``crs`` (or other coordinate reference system) with which to coalesce all variables upon opening. By default, the scale and reference system is set by the ``crs`` and ``scale`` arguments.
             geometry: Specify an ``ee.Geometry`` to define the regional bounds when opening the data. When not set, the bounds are defined by the CRS's ``area_of_use`` boundaries. If those aren't present, the bounds are derived from the geometry of the first image of the collection.
             primary_dim_name: Override the name of the primary dimension of the output Dataset. By default, the name is 'time'.
             primary_dim_property: Override the ``ee.Image`` property for which to derive the values of the primary dimension. By default, this is 'system:time_start'.
@@ -700,20 +760,22 @@ class ImageCollectionAccessor:
         one with the number of valid pixels (``valid``) and another with the percentage of valid pixels (``pct_valid``).
 
         Args:
-            band: the band to evaluate for valid pixels. If empty, use the first band
+            band: the band to evaluate for valid pixels. If empty, use the first band.
+
         Returns:
-            an Image with the number of valid pixels or the percentage of valid pixels.
+            An Image with the number of valid pixels or the percentage of valid pixels.
 
         Examples:
             .. code-block:: python
-                import ee, LDCGEETools
+
+                import ee, geetools
                 collection = (
                     ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
                     .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
                     .filterDate("2014-01-01", "2014-12-31")
                 )
                 valid = collection.geetools.validPixels("B1")
-                print(valid.getInfo()).
+                print(valid.getInfo())
         """
         # compute the mask for the specified band
         band = self._obj.first().bandNames().get(0) if band == "" else ee.String(band)
@@ -723,19 +785,19 @@ class ImageCollectionAccessor:
         return validPixel.addBands(validPct)
 
     def containsBandNames(self, bandNames: list | ee.List, filter: str) -> ee.ImageCollection:
-        """Filter the ImageCollection by band names using the provided filter.
+        """Filter the :py:class:`ee.ImageCollection` by band names using the provided filter.
 
         Args:
             bandNames: list of band names to filter
-            filter: type of filter to apply. To keep images that contains all the specified bands use "ALL". To get the images including at least one of the specified band use "ANY".
+            filter: type of filter to apply. To keep images that contains all the specified bands use ``"ALL"``. To get the images including at least one of the specified band use ``"ANY"``.
 
         Returns:
-            A filtered ImageCollection
+            A filtered :py:class:`ee.ImageCollection`
 
         Examples:
             .. code-block:: python
 
-                import ee, LDCGEETools
+                import ee, geetools
 
                 collection = (
                     ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
@@ -768,16 +830,16 @@ class ImageCollectionAccessor:
         return ee.ImageCollection(ic)
 
     def containsAllBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
-        """Filter the ImageCollection keeping only the images with all the provided bands.
+        """Filter the :py:class:`ee.ImageCollection` keeping only the images with all the provided bands.
 
         Args:
             bandNames: list of band names to filter
 
         Returns:
-            A filtered ImageCollection
+            A filtered :py:class:`ee.ImageCollection`
 
         Examples:
-            .. code-block:: python
+            .. code-block::
 
                 import ee, geetools
 
@@ -795,13 +857,13 @@ class ImageCollectionAccessor:
         return self.containsBandNames(bandNames, "ALL")
 
     def containsAnyBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
-        """Filter the ImageCollection keeping only the images with any of the provided bands.
+        """Filter the :py:class:`ee.ImageCollection` keeping only the images with any of the provided bands.
 
         Args:
             bandNames: list of band names to filter
 
         Returns:
-            A filtered ImageCollection
+            A filtered :py:class:`ee.ImageCollection`
 
         Examples:
             .. code-block:: python
@@ -821,8 +883,8 @@ class ImageCollectionAccessor:
         """
         return self.containsBandNames(bandNames, "ANY")
 
-    def aggregateArray(self, properties: list | ee.List | None = None) -> ee.Dict:
-        """Aggregate the ImageCollection selected properties into a dictionary.
+    def aggregateArray(self, properties: list | ee.List | None = None) -> ee.Dictionary:
+        """Aggregate the :py:class:`ee.ImageCollection` selected properties into a dictionary.
 
         Args:
             properties: list of properties to aggregate. If None, all properties are aggregated.
@@ -851,19 +913,19 @@ class ImageCollectionAccessor:
         return ee.Dictionary.fromLists(keys, values)
 
     def groupInterval(self, unit: str = "month", duration: int = 1) -> ee.List:
-        """Transform the ImageCollection into a list of smaller collection of the specified duration.
+        """Transform the :py:class:`ee.ImageCollection` into a list of smaller collection of the specified duration.
 
-        For example using unit as "month" and duration as 1, the ImageCollection will be transformed
-        into a list of ImageCollection with each ImageCollection containing images for each month.
-        Make sure the collection is filtered beforeend to reduce the number of images that needs to be
+        For example using unit as "month" and duration as 1, the :py:class:`ee.ImageCollection` will be transformed
+        into a list of :py:class:`ee.ImageCollection` with each :py:class:`ee.ImageCollection` containing images for each month.
+        Make sure the collection is filtered beforehand to reduce the number of images that needs to be
         processed.
 
         Args:
-            unit: The unit of time to split the collection. Available units: 'year', 'month', 'week', 'day', 'hour', 'minute' or 'second'.
+            unit: The unit of time to split the collection. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
             duration: The duration of each split.
 
         Returns:
-            A list of imagecollection grouped by interval
+            A list of :py:class:`ee.ImageCollection` grouped by interval
 
         Examples:
             .. code-block:: python
@@ -923,18 +985,18 @@ class ImageCollectionAccessor:
     ) -> ee.ImageCollection:
         """Reduce the images included in the same duration interval using the provided reducer.
 
-        For example using unit as "month" and duration as 1, the ImageCollection will be reduced
-        into a new ImageCollection with each image containing the reduced values for each month.
+        For example using unit as "month" and duration as 1, the :py:class:`ee.ImageCollection` will be reduced
+        into a new :py:class:`ee.ImageCollection` with each image containing the reduced values for each month.
         Make sure the collection is filtered beforehand to reduce the number of images that needs to be
         processed.
 
         Args:
-            reducer: The name of the reducer to use or a Reducer object. Default is "mean".
-            unit: The unit of time to split the collection. Available units: 'year', 'month', 'week', 'day', 'hour', 'minute' or 'second'.
+            reducer: The name of the reducer to use or a Reducer object. Default is ``"mean"``.
+            unit: The unit of time to split the collection. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
             duration: The duration of each split.
 
         Returns:
-            A new ImageCollection with the reduced images.
+            A new :py:class:`ee.ImageCollection` with the reduced images.
 
         Examples:
             .. code-block:: python
@@ -981,14 +1043,14 @@ class ImageCollectionAccessor:
         """Fill masked pixels with the first valid pixel in the stack of images.
 
         The method will for every image, fill all the pixels with the latest nono masked pixel in the stack of images.
-        I requires the image to have a valid "system:time_start" property.
+        It requires the image to have a valid ``"system:time_start"`` property.
         As the imageCollection will need to be sorted limit the analysis to a reasonable number of image by filtering your data beforehand.
 
         Returns:
-            An ImageCollection with all pixels unmasked in every image.
+            An :py:class:`ee.ImageCollection` with all pixels unmasked in every image.
 
         Examples:
-            .. code:: python
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1015,17 +1077,17 @@ class ImageCollectionAccessor:
 
         return ee.ImageCollection(imageList)
 
-    def medoid(self) -> ee.image:
-        """Compute the medoid of the ImageCollection.
+    def medoid(self) -> ee.Image:
+        """Compute the medoid of the :py:class:`ee.ImageCollection`.
 
         The medoid is the image that has the smallest sum of distances to all other images in the collection.
         The distance is computed using the Euclidean distance between the pixels of the images.
 
         Returns:
-            An Image that is the medoid of the ImageCollection.
+            An Image that is the medoid of the :py:class:`ee.ImageCollection`.
 
         Examples:
-            .. code:: python
+            .. code-block:: python
 
                 import ee, geetools
 
@@ -1106,8 +1168,8 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            reducer: The name of the reducer or a reducer object use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
             scale: The scale in meters to use for the reduction. default is 10000m
@@ -1198,9 +1260,9 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             regions: The regions to reduce the data on.
-            label: The property to use as label for each region. Default is "system:index".
-            reducer: The name of the reducer or a reducer object use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            label: The property to use as label for each region. Default is ``"system:index"``.
+            reducer: The name of the reducer or a reducer object use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             scale: The scale in meters to use for the reduction. default is 10000m
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
             crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
@@ -1217,23 +1279,23 @@ class ImageCollectionAccessor:
         Examples:
             .. code-block:: python
 
-            import ee, geetools
+                import ee, geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            collection = (
-                ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
-                .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
-                .filterDate("2014-01-01", "2014-12-31")
-            )
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
 
-            regions = ee.FeatureCollection([
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
-            ])
+                regions = ee.FeatureCollection([
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
+                ])
 
-            reduced = collection.geetools.datesByRegions("B1", regions, "name", "mean", 10000, "system:time_start")
-            print(reduced.getInfo())
+                reduced = collection.geetools.datesByRegions("B1", regions, "name", "mean", 10000, "system:time_start")
+                print(reduced.getInfo())
         """
         # aggregate all the dates of the image collection into bands of a single image
         def to_string(date: ee.Date) -> ee.String:
@@ -1288,9 +1350,9 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is "mean".
-            timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is ``"mean"``.
+            timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
             scale: The scale in meters to use for the reduction. default is 10000m
@@ -1329,7 +1391,7 @@ class ImageCollectionAccessor:
 
         ic = self._obj.map(doy_tag)
 
-        # create a list of ImageCollection where every images of the same day are grouped together
+        # create a list of :py:class:`ee.ImageCollection` where every images of the same day are grouped together
         dayList = ee.List.sequence(0, 366)
 
         def filter_doy(d: ee.Number) -> ee.ImageCollection:
@@ -1404,10 +1466,10 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             regions: The regions to reduce the data on.
-            label: The property to use as label for each region. Default is "system:index".
-            spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is "mean".
-            timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            label: The property to use as label for each region. Default is ``"system:index"``.
+            spatialReducer: The name of the reducer or a reducer object to use for spatial reduction. Default is ``"mean"``.
+            timeReducer: The name of the reducer or a reducer object to use for time reduction. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             scale: The scale in meters to use for the reduction. default is 10000m
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
             crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
@@ -1500,7 +1562,7 @@ class ImageCollectionAccessor:
         """Aggregate for each year on a single region a single band.
 
         This method is returning a dictionary with all the years as keys and their reduced value for each day of the season over the specified region for a specific band as value.
-        To set the start and end of the season, use the :py:method:`ee.Date.getRelative` or :py:class:`time.struct_time` method to get the day of the year.
+        To set the start and end of the season, use the :py:meth:`ee.Date.getRelative` or :py:class:`time.struct_time` method to get the day of the year.
 
         .. code-block::
 
@@ -1515,8 +1577,8 @@ class ImageCollectionAccessor:
             region: The region to reduce the data on.
             seasonStart: The day of the year that marks the start of the season.
             seasonEnd: The day of the year that marks the end of the season.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             scale: The scale in meters to use for the reduction. default is 10000m
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
             crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
@@ -1637,8 +1699,8 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             region: The region to reduce the data on.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             scale: The scale in meters to use for the reduction. default is 10000m
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
             crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
@@ -1726,8 +1788,8 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
             colors: The colors to use for the bands. If empty, the default colors are used.
@@ -1815,9 +1877,9 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             regions: The regions to reduce the data on.
-            label: The property to use as label for each region. Default is "system:index".
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            label: The property to use as label for each region. Default is ``"system:index"``.
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             colors: The colors to use for the regions. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
             scale: The scale in meters to use for the reduction. default is 10000m
@@ -1840,22 +1902,22 @@ class ImageCollectionAccessor:
         Examples:
             .. code-block:: python
 
-            import ee, geetools
+                import ee, geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            collection = (
-                ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
-                .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
-                .filterDate("2014-01-01", "2014-12-31")
-            )
+                collection = (
+                    ee.ImageCollection("LANDSAT/LC08/C01/T1_TOA")
+                    .filterBounds(ee.Geometry.Point(-122.262, 37.8719))
+                    .filterDate("2014-01-01", "2014-12-31")
+                )
 
-            regions = ee.FeatureCollection([
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
-                ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
-            ])
+                regions = ee.FeatureCollection([
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(10000), {"name": "region1"}),
+                    ee.Feature(ee.Geometry.Point(-122.262, 37.8719).buffer(20000), {"name": "region2"})
+                ])
 
-            collection.geetools.plot_dates_by_regions("B1", regions, "name", "mean", 10000, "system:time_start")
+                collection.geetools.plot_dates_by_regions("B1", regions, "name", "mean", 10000, "system:time_start")
         """
         # get the reduced data
         raw_data = self.datesByRegions(
@@ -1904,9 +1966,9 @@ class ImageCollectionAccessor:
 
         Parameters:
             region: The region to reduce the data on.
-            spatialReducer: The name of the reducer or a reducer object to use. Default is "mean".
-            timeReducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            spatialReducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            timeReducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             bands: The bands to reduce. If empty, all bands are reduced.
             labels: The labels to use for the bands. If empty, the bands names are used.
             colors: The colors to use for the bands. If empty, the default colors are used.
@@ -1995,10 +2057,10 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             regions: The regions to reduce the data on.
-            label: The property to use as label for each region. Default is "system:index".
-            spatialReducer: The name of the reducer or a reducer object to use. Default is "mean".
-            timeReducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            label: The property to use as label for each region. Default is ``"system:index"``.
+            spatialReducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            timeReducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             colors: The colors to use for the regions. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
             scale: The scale in meters to use for the reduction. default is 10000m
@@ -2083,15 +2145,15 @@ class ImageCollectionAccessor:
         """Plot the reduced data for each image in the collection by years for a single band.
 
         This method is plotting the reduced data for each image in the collection by years for a single band.
-        To set the start and end of the season, use the :py:method:`ee.Date.getRelative` or :py:class:`time.struct_time` method to get the day of the year.
+        To set the start and end of the season, use the :py:meth:`ee.Date.getRelative` or :py:class:`time.struct_time` method to get the day of the year.
 
         Parameters:
             band: The band to reduce.
             region: The region to reduce the data on.
             seasonStart: The day of the year that marks the start of the season.
             seasonEnd: The day of the year that marks the end of the season.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             colors: The colors to use for the regions. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
             scale: The scale in meters to use for the reduction. default is 10000m
@@ -2194,8 +2256,8 @@ class ImageCollectionAccessor:
         Parameters:
             band: The band to reduce.
             region: The region to reduce the data on.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            dateProperty: The property to use as date for each image. Default is "system:time_start".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            dateProperty: The property to use as date for each image. Default is ``"system:time_start"``.
             colors: The colors to use for the regions. If empty, the default colors are used.
             ax: The matplotlib axes to plot the data on. If None, a new figure is created.
             scale: The scale in meters to use for the reduction. default is 10000m
@@ -2291,18 +2353,18 @@ class ImageCollectionAccessor:
             }
 
         Warning:
-            The method makes a call to the pure Python ``uuid`` package so it cannot be used in a server-side ``map`` function.
+            The method makes a call to the pure Python ``uuid`` package, so it cannot be used in a server-side ``map`` function.
 
         Parameters:
             idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection. One should use a meaningful property to avoid conflicts. in case of conflicts, the images with the same property will be mosaicked together (e.g. all raw satellite imagery with the same date) to make sure the final reducer have 1 single entry per idProperty.
             reducer: THe reducer to apply.
             idType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
             idReducer: If the multiple images have the same idProperty, they will be aggregated beforehand using the provided reducer. default to a mosaic behaviour to match most of the satellite imagery collection where the world is split for each date between multiple images.
-            idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
+            idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string ("%s"). You can specify any other format compatible with band names.
             geometry: The region over which to reduce the data.
             scale: A nominal scale in meters to work in.
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
-            crstransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
             bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
             maxPixels: The maximum number of pixels to reduce.
             tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
@@ -2426,7 +2488,7 @@ class ImageCollectionAccessor:
     ) -> ee.FeatureCollection:
         """Apply a reducer to all the pixels in specific regions on each images of a collection.
 
-        The result will be shaped as a FeatureCollection with the idProperty as key and for each of them the reduced band values over one regions.
+        The result will be shaped as a :py:class:`ee.FeatureCollection` with the ``idProperty`` as key and for each of them the reduced band values over one region.
         Each feature will have the same properties as the original feature collection and thus be identified by a key pair:
         "system:id" + "system:image_property"
 
@@ -2444,7 +2506,7 @@ class ImageCollectionAccessor:
             sentinel2_id_3,feature_2,feature2_prop1,feature2_prop2,...,reduced_image3_band1_feature2,reduced_image3_band2_feature2,...
 
         Warning:
-            The method makes a call to the pure Python uuid package so it cannot be used in a server-side map function.
+            The method makes a call to the pure Python uuid package, so it cannot be used in a server-side map function.
 
         Parameters:
             reducer: The reducer to apply.
@@ -2452,10 +2514,10 @@ class ImageCollectionAccessor:
             idProperty: The property to use as the key of the resulting dictionary. If not specified, the key of the dictionary is the index of the image in the collection. One should use a meaningful property to avoid conflicts. in case of conflicts, the images with the same property will be mosaicked together (e.g. all raw satellite imagery with the same date) to make sure the final reducer have 1 single entry per idProperty.
             idType: The type of the idProperty. Default is ee.Number. As Dates are stored as numbers in metadata, we need to know what parsing to apply to the property in advance.
             idReducer: If the multiple images have the same idProperty, they will be aggregated beforehand using the provided reducer. default to a mosaic behaviour to match most of the satellite imagery collection where the world is split for each date between multiple images.
-            idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string  ("%s"). You can specify any other format compatible with band names.
+            idFormat: If a date format is used for the IdProperty, the values will be formatted as "YYYY-MM-ddThh-mm-ss". If a number format is used for the IdProperty, the values will be formatted as a string ("%s"). You can specify any other format compatible with band names.
             scale: A nominal scale in meters to work in.
             crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
-            crstransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
             tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:

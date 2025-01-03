@@ -1,4 +1,4 @@
-"""Extra methods for the ``ee.List`` class."""
+"""Extra methods for the :py:class:`ee.List` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.List, "geetools")
 class ListAccessor:
-    """Toolbox for the ``ee.List`` class."""
+    """Toolbox for the :py:class:`ee.List` class."""
 
     def __init__(self, obj: ee.List):
         """Initialize the List class."""
@@ -159,7 +159,7 @@ class ListAccessor:
     ) -> ee.List:
         """Create a sequence from ini to end by step.
 
-        Similar to ``ee.List.sequence``, but if end != last item then adds the end to the end of the resuting list.
+        Similar to :py:meth:`ee.List.sequence`, but if ``end != last`` item then adds the end to the end of the resulting list.
 
         Parameters:
             ini: The initial value of the sequence.
@@ -191,7 +191,7 @@ class ListAccessor:
             replace: the dictionary with the values to replace. the keys are the values to replace and the values are the new values.
 
         Returns:
-            A list with the values replaced
+            A list with the values replaced.
 
         Examples:
             .. jupyter-execute::
@@ -211,10 +211,10 @@ class ListAccessor:
         list = keys.iterate(lambda k, p: ee.List(p).replace(k, replace.get(k)), self._obj)
         return ee.List(list)  # to avoid returning a ComputedObject
 
-    def join(self, separator: str | ee.String = ", ") -> ee.string:
+    def join(self, separator: str | ee.String = ", ") -> ee.String:
         """Format a list to a string.
 
-        Same as the join method but elements that cannot be stringified will be returned as the object type.
+        Same as the join method but elements that cannot be stringtified will be returned as the object type.
 
         Parameters:
             separator: The separator to use.
@@ -223,7 +223,7 @@ class ListAccessor:
             A string with the list elements separated by commas.
 
         Examples:
-            .. juptyer-execute::
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
@@ -239,13 +239,13 @@ class ListAccessor:
     def toStrings(self) -> ee.List:
         """Convert elements of a list into Strings.
 
-        If the list contains other elements that are not strings or numbers, it will return the object type. For example, ['a', 1, ee.Image(0)] -> ['a', '1', 'Image'].
+        If the list contains other elements that are not strings or numbers, it will return the object type. For example, ``['a', 1, ee.Image(0)] -> ['a', '1', 'Image']``.
 
         Returns:
             A list of strings corresponding to the elements of the list.
 
         Examples:
-            .. juptyer-execute::
+            .. jupyter-execute::
 
                 import ee, geetools
                 from geetools.utils import initialize_documentation
@@ -271,7 +271,7 @@ class ListAccessor:
         The nested lists need to all have the same size. The size of the first element will be taken as reference.
 
         Returns:
-            A list of lists with the zipped elements
+            A list of lists with the zipped elements.
 
         Examples:
             .. jupyter-execute::

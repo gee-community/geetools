@@ -1,4 +1,4 @@
-"""Extra methods for the ``ee.Dictionary`` class."""
+"""Extra methods for the :py:class:`ee.Dictionary` class."""
 from __future__ import annotations
 
 import ee
@@ -8,7 +8,7 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.Dictionary, "geetools")
 class DictionaryAccessor:
-    """Toolbox for the ``ee.Dictionary`` class."""
+    """Toolbox for the :py:class:`ee.Dictionary` class."""
 
     def __init__(self, obj: ee.Dictionary):
         """Initialize the Dictionary class."""
@@ -16,10 +16,10 @@ class DictionaryAccessor:
 
     # -- alternative constructor -----------------------------------------------
     def fromPairs(self, list: list | ee.List) -> ee.Dictionary:
-        """Create a dictionary from a list of [[key, value], ...]] pairs.
+        """Create a dictionary from a list of ``[[key, value], ...]]`` pairs.
 
         Parameters:
-            list: A list of pairs (key, value).
+            list: A list of pairs ``(key, value)``.
 
         Returns:
             A dictionary using the pairs.
