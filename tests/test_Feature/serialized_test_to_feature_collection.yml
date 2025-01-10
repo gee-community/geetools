@@ -1,0 +1,69 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        features:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_0_0
+                  body: '1'
+              dropNulls:
+                constantValue: false
+              list:
+                functionInvocationValue:
+                  arguments:
+                    geometry:
+                      functionInvocationValue:
+                        arguments:
+                          feature:
+                            valueReference: '2'
+                        functionName: Feature.geometry
+                  functionName: Geometry.geometries
+            functionName: List.map
+      functionName: Collection
+  '1':
+    functionInvocationValue:
+      arguments:
+        feature:
+          valueReference: '2'
+        geometry:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Feature.setGeometry
+  '2':
+    functionInvocationValue:
+      arguments:
+        key:
+          valueReference: '3'
+        object:
+          functionInvocationValue:
+            arguments:
+              key:
+                valueReference: '4'
+              object:
+                functionInvocationValue:
+                  arguments:
+                    geometry:
+                      functionInvocationValue:
+                        arguments:
+                          coordinates:
+                            constantValue:
+                            - - 0
+                              - 0
+                            - - 0
+                              - 1
+                        functionName: GeometryConstructors.MultiPoint
+                  functionName: Feature
+              value:
+                valueReference: '3'
+            functionName: Element.set
+        value:
+          valueReference: '4'
+      functionName: Element.set
+  '3':
+    constantValue: bar
+  '4':
+    constantValue: foo
