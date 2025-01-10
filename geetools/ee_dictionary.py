@@ -101,23 +101,26 @@ class DictionaryAccessor:
         """
 
         def features_from_dict(key, value) -> ee.Feature:
-            key = ee.String(key)
-            feat = ee.Feature(None, {"system:index": key})
-            return feat.set(ee.Dictionary(value))
+            index = {"system:index": ee.String(key)}
+            props = ee.Dictionary(value).combine(index)
+            return ee.Feature(None, props)
 
         def features_from_list(key, value) -> ee.Feature:
-            key = ee.String(key)
-            feat = ee.Feature(None, {"system:index": key})
-            value = ee.List(value)
-            keys = ee.List.sequence(1, value.size())
-            keys = keys.map(lambda k: ee.String("value_").cat(ee.Number(k).toInt()))
-            properties = ee.Dictionary.fromLists(keys, value)
-            return feat.set(properties)
+            index = {"system:index": ee.String(key)}
+            values = ee.List(value)
+            columns = ee.List.sequence(0, values.size().subtract(1))
+            columns = columns.map(lambda k: ee.String("value_").cat(ee.Number(k).toInt()))
+            props = ee.Dictionary.fromLists(columns, values).combine(index)
+            return ee.Feature(None, props)
+
+        def features_from_any(key, value) -> ee.Feature:
+            props = {"system:index": ee.String(key), "value": value}
+            return ee.Feature(None, props)
 
         if valueType == ee.Dictionary:
             features = self._obj.map(features_from_dict).values()
         elif valueType == ee.List:
             features = self._obj.map(features_from_list).values()
         else:
-            return ee.FeatureCollection([ee.Feature(None, self._obj)])
+            features = self._obj.map(features_from_any).values()
         return ee.FeatureCollection(features)

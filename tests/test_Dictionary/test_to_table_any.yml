@@ -1,12 +1,15 @@
 columns:
-  ADM0_CODE: String
-  ADM0_NAME: String
   system:index: String
+  value: String
 features:
 - geometry: null
-  id: '0'
+  id: ADM0_CODE
   properties:
-    ADM0_CODE: '12'
-    ADM0_NAME: Argentina
+    value: '12'
+  type: Feature
+- geometry: null
+  id: ADM0_NAME
+  properties:
+    value: Argentina
   type: Feature
 type: FeatureCollection
