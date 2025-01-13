@@ -5,8 +5,6 @@ from typing import Literal
 
 import ee
 
-import geetools  # noqa: F401
-
 from .accessors import register_class_accessor
 
 

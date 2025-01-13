@@ -1,7 +1,7 @@
 """Test the Dictionary class methods."""
 import ee
 
-import geetools  # noqa
+import geetools  # noqa: F401
 
 
 class TestFromPairs:
