@@ -1,15 +1,15 @@
 columns:
   system:index: String
-  value: String
+  value: Integer
 features:
 - geometry: null
-  id: ADM0_CODE
+  id: bar
   properties:
-    value: '12'
+    value: 2
   type: Feature
 - geometry: null
-  id: ADM0_NAME
+  id: foo
   properties:
-    value: Argentina
+    value: 1
   type: Feature
 type: FeatureCollection
