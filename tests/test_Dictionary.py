@@ -36,7 +36,7 @@ class TestToTable:
     """Test the `toTable` method."""
 
     def test_to_table_any(self, data_regression):
-        ee_dict = ee.Dictionary({"ADM0_NAME": "Argentina", "ADM0_CODE": "12"})
+        ee_dict = ee.Dictionary({"foo": 1, "bar": 2})
         res = ee_dict.geetools.toTable()
         data_regression.check(res.getInfo())
 

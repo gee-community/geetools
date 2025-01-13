@@ -90,23 +90,30 @@ class DictionaryAccessor:
 
         There are 3 different type of values handled by this method:
 
-        1. value (default): when values are a `ee.String` or `ee.Number`, the
-           keys will be saved in the column "system:index" and the values in the
-           column "value".
+        1. value (default): when values are a :py:class:`ee.String` or
+           :py:class:`ee.Number`, the keys will be saved in the column
+           ``system:index`` and the values in the column "value".
 
-        2. dict: when values are a ee.Dictionary, the keys will be saved in the
-           column "system:index" and the values will be treated as each
-           Feature's properties.
+        2. dict: when values are a :py:class:`ee.Dictionary`, the keys will be
+           saved in the column ``system:index`` and the values will be treated
+           as each Feature's properties.
 
-        3. list: when values are a ee.List of numbers or strings, the keys will
-           be saved in the column "system:index" and the values in as many
-           columns as items in the list. The column name pattern is "value_{i}"
-           where i is the position of the element in the list.
+        3. list: when values are a :py:class:ee.List of numbers or strings,
+           the keys will be saved in the column ``system:index`` and the values
+           in as many columns as items in the list. The column name pattern is
+           "value_{i}" where i is the position of the element in the list.
 
         These are the only supported patterns. Other patterns should be converted
         to one of these. For example, the values of a reduction using the
-        reducer `ee.Reducer.frequencyHistogram()` are of type `ee.Array` and
-        the array contains lists.
+        reducer :py:meth:`ee.Reducer.frequencyHistogram` are of type
+        :py:class:`ee.Array` and the array contains lists.
+
+        Parameters:
+            valueType: this will define how to process the values.
+
+        Returns:
+            a collection in which the keys of the :py:class:`ee.Dictionary` are
+            in the ``system:index`` and the values are in new columns.
 
         Examples:
             .. code-block:: python
@@ -154,21 +161,16 @@ class DictionaryAccessor:
                     geometry=ee.Geometry.Point([0,0]).buffer(1000),
                     scale=100
                 )
+
                 # process to get desired format
                 res = ee.Array(ee.Dictionary(ran).get('random'))
                 reslist = res.toList()
                 keys = reslist.map(lambda i: ee.Number(ee.List(i).get(0)).multiply(100).toInt().format())
                 values = reslist.map(lambda i: ee.Number(ee.List(i).get(1)).toInt())
                 final = ee.Dictionary.fromLists(keys, values)
+
                 # fetch
                 final.geetools.toTable().getInfo()
-
-        Parameters:
-            valueType: this will define how to process the values.
-
-        Returns:
-            a ee.FeatureCollection in which the keys of the ee.Dictionary are
-            in the `system:index` and the values are in new columns.
         """
 
         def features_from_dict(key, value) -> ee.Feature:
