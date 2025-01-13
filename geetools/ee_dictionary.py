@@ -1,7 +1,7 @@
 """Extra methods for the ``ee.Dictionary`` class."""
 from __future__ import annotations
 
-from typing import Any
+from typing import Literal
 
 import ee
 
@@ -83,144 +83,88 @@ class DictionaryAccessor:
         """
         return ee.List(list).map(lambda key: self._obj.get(key))
 
-    def toTable(self, valueType: ee.List | ee.Dictionary | Any = Any) -> ee.FeatureCollection:
+    def toTable(
+        self, valueType: Literal["dict", "list", "value"] = "value"
+    ) -> ee.FeatureCollection:
         """Convert a :py:class:`ee.Dictionary` to a :py:class:`ee.FeatureCollection` with no geometries (table).
 
         There are 3 different type of values handled by this method:
 
-        1. Any (default): when values are a `ee.String` or `ee.Number`, the
-        keys will be saved in the column "system:index" and the values in the
-        column "value".
+        1. value (default): when values are a `ee.String` or `ee.Number`, the
+           keys will be saved in the column "system:index" and the values in the
+           column "value".
 
-        .. code-block:: python
+        2. dict: when values are a ee.Dictionary, the keys will be saved in the
+           column "system:index" and the values will be treated as each
+           Feature's properties.
 
-            import ee, geetools
+        3. list: when values are a ee.List of numbers or strings, the keys will
+           be saved in the column "system:index" and the values in as many
+           columns as items in the list. The column name pattern is "value_{i}"
+           where i is the position of the element in the list.
 
-            ee.Initialize()
+        These are the only supported patterns. Other patterns should be converted
+        to one of these. For example, the values of a reduction using the
+        reducer `ee.Reducer.frequencyHistogram()` are of type `ee.Array` and
+        the array contains lists.
 
-            d = ee.Dictionary({"foo": 1, "bar": 2})
-            d.geetools.toTable().getInfo()
+        Examples:
+            .. code-block:: python
 
-            >> {
-              'type': FeatureCollection,
-              'columns': {
-                'system:index': String,
-                'value': String
-              },
-              features: [
-                {
-                  'type': Feature,
-                  'geometry': null,
-                  'id': 'foo',
-                  'properties': {
-                    'value': 1,
-                  },
-                },
-                {
-                  'type': Feature,
-                  'geometry': null,
-                  'id': 'bar',
-                  'properties': {
-                    'value': 2,
-                  },
-                }
-            ]}
+                import ee, geetools
 
-        2. ee.Dictionary: when values are a ee.Dictionary, the
-        keys will be saved in the column "system:index" and the values will be
-        treated as each Feature's properties.
+                ee.Initialize()
 
-        .. code-block:: python
+                d = ee.Dictionary({"foo": 1, "bar": 2})
+                d.geetools.toTable().getInfo()
 
-            import ee, geetools
+            .. code-block:: python
 
-            ee.Initialize()
+                import ee, geetools
 
-            d = ee.Dictionary({
-              "Argentina": {"ADM0_CODE": 12, "Shape_Area": 278.289196625},
-              "Armenia": {"ADM0_CODE": 13, "Shape_Area": 3.13783139285},
-            })
-            d.geetools.toTable().getInfo()
+                ee.Initialize()
 
-            >> {
-              'type': FeatureCollection,
-              'columns': {
-                'system:index': String,
-                'ADM0_CODE': Integer,
-                'Shape_Area': Float
-              },
-              features: [
-                {
-                  'type': Feature,
-                  'geometry': null,
-                  'id': 'Argentina',
-                  'properties': {
-                    'ADM0_CODE': 12
-                    'Shape_Area': 278.289196625
-                  },
-                },
-                {
-                  'type': Feature,
-                  'geometry': null,
-                  'id': 'Armenia',
-                  'properties': {
-                    'ADM0_CODE': 13
-                    'Shape_Area': 3.13783139285
-                  },
-                }
-            ]}
+                d = ee.Dictionary({
+                  "Argentina": {"ADM0_CODE": 12, "Shape_Area": 278.289196625},
+                  "Armenia": {"ADM0_CODE": 13, "Shape_Area": 3.13783139285},
+                })
+                d.geetools.toTable('dict').getInfo()
 
-        3. ee.List: when values are a ee.List of numbers or strings, the
-        keys will be saved in the column "system:index" and the values in
-        as many columns as items in the list. The column name pattern is
-        "value_{i}" where i is the position of the element in the list.
+            .. code-block:: python
 
-        .. code-block:: python
+                import ee, geetools
 
-            import ee, geetools
+                ee.Initialize()
 
-            ee.Initialize()
+                d = ee.Dictionary({
+                  "Argentina": [12, 278.289196625],
+                  "Armenia": [13, 3.13783139285],
+                })
+                d.geetools.toTable().getInfo()
 
-            d = ee.Dictionary({
-              "Argentina": [12, 278.289196625],
-              "Armenia": [13, 3.13783139285],
-            })
-            d.geetools.toTable().getInfo()
+            .. code-block:: python
 
-            >> {
-              'type': FeatureCollection,
-              'columns': {
-                'system:index': String,
-                'value_0': Integer,
-                'value_1': Float
-              },
-              features: [
-                {
-                  'type': Feature,
-                  'geometry': null,
-                  'id': 'Argentina',
-                  'properties': {
-                    'value_0': 12
-                    'value_1': 278.289196625
-                  },
-                },
-                {
-                  'type': Feature,
-                  'geometry': null,
-                  'id': 'Armenia',
-                  'properties': {
-                    'value_0': 13
-                    'value_1': 3.13783139285
-                  },
-                }
-            ]}
+                import ee, geetools
+
+                ee.Initialize()
+
+                # reduction
+                ran = ee.Image.random().multiply(10).reduceRegion(
+                    reducer=ee.Reducer.fixedHistogram(0, 1.1, 11),
+                    geometry=ee.Geometry.Point([0,0]).buffer(1000),
+                    scale=100
+                )
+                # process to get desired format
+                res = ee.Array(ee.Dictionary(ran).get('random'))
+                reslist = res.toList()
+                keys = reslist.map(lambda i: ee.Number(ee.List(i).get(0)).multiply(100).toInt().format())
+                values = reslist.map(lambda i: ee.Number(ee.List(i).get(1)).toInt())
+                final = ee.Dictionary.fromLists(keys, values)
+                # fetch
+                final.geetools.toTable().getInfo()
 
         Parameters:
-            valueType: this will define how to process the values. In case of
-            ee.List the values will be stored in columns named `value_<position>`.
-            In case of a ee.Dictionary, column names will be created from the keys.
-            For any other type, it will return a table with one feature with
-            one column per key.
+            valueType: this will define how to process the values.
 
         Returns:
             a ee.FeatureCollection in which the keys of the ee.Dictionary are
@@ -244,10 +188,10 @@ class DictionaryAccessor:
             props = {"system:index": ee.String(key), "value": value}
             return ee.Feature(None, props)
 
-        if valueType == ee.Dictionary:
-            features = self._obj.map(features_from_dict).values()
-        elif valueType == ee.List:
-            features = self._obj.map(features_from_list).values()
-        else:
-            features = self._obj.map(features_from_any).values()
+        make_features = {
+            "list": features_from_list,
+            "dict": features_from_dict,
+            "value": features_from_any,
+        }
+        features = self._obj.map(make_features[valueType]).values()
         return ee.FeatureCollection(features)

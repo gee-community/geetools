@@ -42,7 +42,7 @@ class TestToTable:
 
     def test_to_table_list(self, data_regression):
         ee_dict = ee.Dictionary({"Argentina": [12, 278.289196625], "Armenia": [13, 3.13783139285]})
-        res = ee_dict.geetools.toTable(ee.List)
+        res = ee_dict.geetools.toTable("list")
         data_regression.check(res.getInfo())
 
     def test_to_table_dict(self, data_regression):
@@ -52,5 +52,5 @@ class TestToTable:
                 "Armenia": {"ADM0_CODE": 13, "Shape_Area": 3.13783139285},
             }
         )
-        res = ee_dict.geetools.toTable(ee.Dictionary)
+        res = ee_dict.geetools.toTable("dict")
         data_regression.check(res.getInfo())
