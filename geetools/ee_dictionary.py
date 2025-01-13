@@ -86,7 +86,134 @@ class DictionaryAccessor:
     def toTable(self, valueType: ee.List | ee.Dictionary | Any = Any) -> ee.FeatureCollection:
         """Convert a :py:class:`ee.Dictionary` to a :py:class:`ee.FeatureCollection` with no geometries (table).
 
-        The keys will always be stored in `system:index` column.
+        There are 3 different type of values handled by this method:
+
+        1. Any (default): when values are a `ee.String` or `ee.Number`, the
+        keys will be saved in the column "system:index" and the values in the
+        column "value".
+
+        .. code-block:: python
+
+            import ee, geetools
+
+            ee.Initialize()
+
+            d = ee.Dictionary({"foo": 1, "bar": 2})
+            d.geetools.toTable().getInfo()
+
+            >> {
+              'type': FeatureCollection,
+              'columns': {
+                'system:index': String,
+                'value': String
+              },
+              features: [
+                {
+                  'type': Feature,
+                  'geometry': null,
+                  'id': 'foo',
+                  'properties': {
+                    'value': 1,
+                  },
+                },
+                {
+                  'type': Feature,
+                  'geometry': null,
+                  'id': 'bar',
+                  'properties': {
+                    'value': 2,
+                  },
+                }
+            ]}
+
+        2. ee.Dictionary: when values are a ee.Dictionary, the
+        keys will be saved in the column "system:index" and the values will be
+        treated as each Feature's properties.
+
+        .. code-block:: python
+
+            import ee, geetools
+
+            ee.Initialize()
+
+            d = ee.Dictionary({
+              "Argentina": {"ADM0_CODE": 12, "Shape_Area": 278.289196625},
+              "Armenia": {"ADM0_CODE": 13, "Shape_Area": 3.13783139285},
+            })
+            d.geetools.toTable().getInfo()
+
+            >> {
+              'type': FeatureCollection,
+              'columns': {
+                'system:index': String,
+                'ADM0_CODE': Integer,
+                'Shape_Area': Float
+              },
+              features: [
+                {
+                  'type': Feature,
+                  'geometry': null,
+                  'id': 'Argentina',
+                  'properties': {
+                    'ADM0_CODE': 12
+                    'Shape_Area': 278.289196625
+                  },
+                },
+                {
+                  'type': Feature,
+                  'geometry': null,
+                  'id': 'Armenia',
+                  'properties': {
+                    'ADM0_CODE': 13
+                    'Shape_Area': 3.13783139285
+                  },
+                }
+            ]}
+
+        3. ee.List: when values are a ee.List of numbers or strings, the
+        keys will be saved in the column "system:index" and the values in
+        as many columns as items in the list. The column name pattern is
+        "value_{i}" where i is the position of the element in the list.
+
+        .. code-block:: python
+
+            import ee, geetools
+
+            ee.Initialize()
+
+            d = ee.Dictionary({
+              "Argentina": [12, 278.289196625],
+              "Armenia": [13, 3.13783139285],
+            })
+            d.geetools.toTable().getInfo()
+
+            >> {
+              'type': FeatureCollection,
+              'columns': {
+                'system:index': String,
+                'value_0': Integer,
+                'value_1': Float
+              },
+              features: [
+                {
+                  'type': Feature,
+                  'geometry': null,
+                  'id': 'Argentina',
+                  'properties': {
+                    'value_0': 12
+                    'value_1': 278.289196625
+                  },
+                },
+                {
+                  'type': Feature,
+                  'geometry': null,
+                  'id': 'Armenia',
+                  'properties': {
+                    'value_0': 13
+                    'value_1': 3.13783139285
+                  },
+                }
+            ]}
 
         Parameters:
             valueType: this will define how to process the values. In case of
