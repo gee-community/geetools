@@ -5,6 +5,8 @@ from typing import Literal
 
 import ee
 
+import geetools  # noqa: F401
+
 from .accessors import register_class_accessor
 
 
@@ -116,20 +118,22 @@ class DictionaryAccessor:
             in the ``system:index`` and the values are in new columns.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 d = ee.Dictionary({"foo": 1, "bar": 2})
                 d.geetools.toTable().getInfo()
 
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 d = ee.Dictionary({
                   "Argentina": {"ADM0_CODE": 12, "Shape_Area": 278.289196625},
@@ -137,11 +141,12 @@ class DictionaryAccessor:
                 })
                 d.geetools.toTable('dict').getInfo()
 
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 d = ee.Dictionary({
                   "Argentina": [12, 278.289196625],
@@ -149,11 +154,12 @@ class DictionaryAccessor:
                 })
                 d.geetools.toTable().getInfo()
 
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 # reduction
                 ran = ee.Image.random().multiply(10).reduceRegion(
