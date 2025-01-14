@@ -1,0 +1,15 @@
+columns:
+  system:index: String
+  value: Integer
+features:
+- geometry: null
+  id: bar
+  properties:
+    value: 2
+  type: Feature
+- geometry: null
+  id: foo
+  properties:
+    value: 1
+  type: Feature
+type: FeatureCollection
