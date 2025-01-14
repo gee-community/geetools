@@ -1,0 +1,19 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        list:
+          functionInvocationValue:
+            arguments:
+              list:
+                constantValue:
+                - a
+                - b
+                - c
+              other:
+                constantValue:
+                - 1
+                - 2
+            functionName: List.cat
+      functionName: List.distinct

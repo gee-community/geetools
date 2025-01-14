@@ -63,7 +63,7 @@ Homepage = "https://github.com/gee-community/geetools"
     "httplib2",
     "pytest-regressions",
     "Pillow",
-    "pytest-gee>=0.4.0", # get the special regressions
+    "pytest-gee>=0.6.0", # get the serialized regressions
     "jsonschema",
 ]
 doc = [

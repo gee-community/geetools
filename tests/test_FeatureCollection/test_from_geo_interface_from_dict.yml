@@ -1,11 +1,8 @@
-columns:
-  name: String
-  system:index: String
 features:
 - geometry:
     coordinates:
-    - -104.99404
-    - 39.75621
+    - -104.994
+    - 39.7562
     type: Point
   id: '0'
   properties:

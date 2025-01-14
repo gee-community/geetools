@@ -1,0 +1,84 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        keys:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_0_0
+                  body: '1'
+              dropNulls:
+                constantValue: false
+              list:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      valueReference: '2'
+                    property:
+                      valueReference: '3'
+                  functionName: AggregateFeatureCollection.array
+            functionName: List.map
+        values:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_0_0
+                  body: '4'
+              dropNulls:
+                constantValue: false
+              list:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      valueReference: '2'
+                    count:
+                      functionInvocationValue:
+                        arguments:
+                          collection:
+                            valueReference: '2'
+                        functionName: Collection.size
+                  functionName: Collection.toList
+            functionName: List.map
+      functionName: Dictionary.fromLists
+  '1':
+    functionInvocationValue:
+      arguments:
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: String
+  '2':
+    functionInvocationValue:
+      arguments:
+        collection:
+          functionInvocationValue:
+            arguments:
+              tableId:
+                constantValue: FAO/GAUL/2015/level0
+            functionName: Collection.loadTable
+        filter:
+          functionInvocationValue:
+            arguments:
+              leftField:
+                valueReference: '3'
+              rightValue:
+                constantValue: Ar
+            functionName: Filter.stringStartsWith
+      functionName: Collection.filter
+  '3':
+    constantValue: ADM0_NAME
+  '4':
+    functionInvocationValue:
+      arguments:
+        element:
+          argumentReference: _MAPPING_VAR_0_0
+        properties:
+          constantValue:
+          - ADM0_CODE
+          - Shape_Area
+      functionName: Element.toDictionary

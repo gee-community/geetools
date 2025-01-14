@@ -1,0 +1,47 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        first:
+          constantValue:
+          - a
+          - b
+          - c
+        function:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_0_0
+            - _MAPPING_VAR_0_1
+            body: '1'
+        list:
+          functionInvocationValue:
+            arguments:
+              dictionary:
+                valueReference: '2'
+            functionName: Dictionary.keys
+      functionName: List.iterate
+  '1':
+    functionInvocationValue:
+      arguments:
+        list:
+          argumentReference: _MAPPING_VAR_0_1
+        newval:
+          functionInvocationValue:
+            arguments:
+              dictionary:
+                valueReference: '2'
+              key:
+                functionInvocationValue:
+                  arguments:
+                    input:
+                      argumentReference: _MAPPING_VAR_0_0
+                  functionName: String
+            functionName: Dictionary.get
+        oldval:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: List.replace
+  '2':
+    constantValue:
+      a: foo
+      c: bar
