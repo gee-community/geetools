@@ -98,7 +98,7 @@ class DictionaryAccessor:
            saved in the column ``system:index`` and the values will be treated
            as each Feature's properties.
 
-        3. list: when values are a :py:class:ee.List of numbers or strings,
+        3. list: when values are a :py:class:`ee.List` of numbers or strings,
            the keys will be saved in the column ``system:index`` and the values
            in as many columns as items in the list. The column name pattern is
            "value_{i}" where i is the position of the element in the list.
