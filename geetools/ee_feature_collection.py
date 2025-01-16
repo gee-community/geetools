@@ -93,7 +93,9 @@ class FeatureCollectionAccessor:
         return ee.Image().paint(self._obj, **params)
 
     def toDictionary(
-        self, keyColumn: str | ee.String = "system:index", selectors: list | ee.List = []
+        self,
+        keyColumn: str | ee.String = "system:index",
+        selectors: list[str] | ee.List | None = None,
     ) -> ee.Dictionary:
         """Convert to Dictionary.
 
@@ -270,8 +272,8 @@ class FeatureCollectionAccessor:
     def byProperties(
         self,
         featureId: str | ee.String = "system:index",
-        properties: list | ee.List = [],
-        labels: list = [],
+        properties: list[str] | ee.List | None = None,
+        labels: list[str] | None = None,
     ) -> ee.Dictionary:
         """Get a dictionary with all feature values for each property.
 
@@ -289,7 +291,7 @@ class FeatureCollectionAccessor:
 
         Args:
             featureId: The property used to label features. Defaults to ``"system:index"``.
-            properties: A list of properties to get the values from.
+            properties: A list of properties to get the values from. By default, all properties will be used.
             labels: A list of names to replace properties names. Default to the properties names.
 
         Returns:
@@ -333,8 +335,8 @@ class FeatureCollectionAccessor:
     def byFeatures(
         self,
         featureId: str | ee.String = "system:index",
-        properties: list | ee.List = [],
-        labels: list = [],
+        properties: list[str] | ee.List | None = None,
+        labels: list[str] | None = None,
     ) -> ee.Dictionary:
         """Get a dictionary with all property values for each feature.
 
@@ -352,7 +354,7 @@ class FeatureCollectionAccessor:
 
         Args:
             featureId: The property to use as the feature id. Defaults to ``"system:index"``. This property needs to be a string property.
-            properties: A list of properties to get the values from.
+            properties: A list of properties to get the values from. By default, all properties will be used.
             labels: A list of names to replace properties names. Default to the properties names.
 
         Returns:
@@ -401,9 +403,9 @@ class FeatureCollectionAccessor:
         self,
         type: str = "bar",
         featureId: str = "system:index",
-        properties: list = [],
-        labels: list = [],
-        colors: list = [],
+        properties: list[str] | None = None,
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         **kwargs,
     ) -> Axes:
@@ -469,9 +471,9 @@ class FeatureCollectionAccessor:
         self,
         type: str = "bar",
         featureId: str = "system:index",
-        properties: list | ee.List = [],
-        labels: list = [],
-        colors: list = [],
+        properties: list[str] | ee.List | None = None,
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         **kwargs,
     ) -> Axes:
@@ -533,7 +535,7 @@ class FeatureCollectionAccessor:
         property: str | ee.String,
         label: str = "",
         ax: Axes | None = None,
-        color=None,
+        color: str | None = None,
         **kwargs,
     ) -> Axes:
         """Plot the histogram of a specific property.

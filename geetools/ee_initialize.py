@@ -20,7 +20,7 @@ class InitializeAccessor:
     """Toolbox for the ``ee.Initialize`` function."""
 
     @staticmethod
-    def from_user(name: str = "", credential_pathname: str = "", project: str = "") -> None:
+    def from_user(name: str = "", credential_pathname: str | Path = "", project: str = "") -> None:
         """Initialize Earthengine API using a specific user.
 
         Equivalent to the :py:func:`ee.Initialize` function but with a specific credential file stored in

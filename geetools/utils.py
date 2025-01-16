@@ -74,7 +74,7 @@ def plot_data(
     type: str,
     data: dict,
     label_name: str,
-    colors: list = [],
+    colors: list[str] | None = None,
     ax: Axes | None = None,
     **kwargs,
 ) -> Axes:
@@ -242,7 +242,7 @@ def plot_data(
     return ax
 
 
-def initialize_documentation():
+def initialize_documentation() -> None:
     """Initialize Earth Engine Python API in the context of the Documentation build.
 
     Warning:

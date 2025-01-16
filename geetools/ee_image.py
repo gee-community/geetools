@@ -6,6 +6,10 @@ from typing import Any, Optional
 import ee
 import ee_extra
 import ee_extra.Algorithms.core
+import ee_extra.QA.clouds
+import ee_extra.QA.pipelines
+import ee_extra.Spectral.core
+import ee_extra.STAC.core
 import geopandas as gpd
 import numpy as np
 import requests
@@ -66,7 +70,9 @@ class ImageAccessor:
 
         return self._obj.addBands(dateBand)
 
-    def addSuffix(self, suffix: str | ee.String, bands: list | ee.List = []) -> ee.Image:
+    def addSuffix(
+        self, suffix: str | ee.String, bands: list[str] | ee.List | None = None
+    ) -> ee.Image:
         """Add a suffix to the image selected band.
 
         Add a suffix to the selected band. If no band is specified, the suffix is added to all bands.
@@ -90,14 +96,16 @@ class ImageAccessor:
                 print(image.bandNames().getInfo())
         """
         suffix = ee.String(suffix)
-        bands = self._obj.bandNames() if bands == [] else ee.List(bands)
+        bands = self._obj.bandNames() if bands is None else ee.List(bands)
         bandNames = bands.iterate(
             lambda b, n: ee.List(n).replace(b, ee.String(b).cat(suffix)),
             self._obj.bandNames(),
         )
         return self._obj.rename(bandNames)
 
-    def addPrefix(self, prefix: str | ee.String, bands: list | ee.List = []) -> ee.Image:
+    def addPrefix(
+        self, prefix: str | ee.String, bands: list[str] | ee.List | None = None
+    ) -> ee.Image:
         """Add a prefix to the image selected band.
 
         Add a prefix to the selected band. If no band is specified, the prefix is added to all bands.
@@ -121,7 +129,7 @@ class ImageAccessor:
                 print(image.bandNames().getInfo())
         """
         prefix = ee.String(prefix)
-        bands = self._obj.bandNames() if bands == [] else ee.List(bands)
+        bands = self._obj.bandNames() if bands is None else ee.List(bands)
         bandNames = bands.iterate(
             lambda b, n: ee.List(n).replace(b, prefix.cat(ee.String(b))),
             self._obj.bandNames(),
@@ -158,7 +166,7 @@ class ImageAccessor:
         )
         return self._obj.rename(bands)
 
-    def remove(self, bands: list | ee.List) -> ee.Image:
+    def remove(self, bands: list[str] | ee.List) -> ee.Image:
         """Remove bands from the image.
 
         Parameters:
@@ -275,7 +283,7 @@ class ImageAccessor:
         scales = bandNames.map(lambda b: self._obj.select(ee.String(b)).projection().nominalScale())
         return ee.Number(scales.sort().get(0))
 
-    def merge(self, images: list | ee.List) -> ee.Image:
+    def merge(self, images: list[ee.Image] | ee.List) -> ee.Image:
         """Merge images into a single image.
 
         Parameters:
@@ -438,8 +446,8 @@ class ImageAccessor:
     @classmethod
     def full(
         self,
-        values: list | ee.List = [0],
-        names: list | ee.List = ["constant"],
+        values: list[float | int] | ee.List | None = None,
+        names: list[str] | ee.List | None = None,
     ) -> ee.Image:
         """Create an image with the given values and names.
 
@@ -460,7 +468,8 @@ class ImageAccessor:
                 image = ee.Image.geetools.full([1, 2, 3], ['a', 'b', 'c'])
                 print(image.bandNames().getInfo())
         """
-        values, names = ee.List(values), ee.List(names)
+        values = ee.List(values) if values else ee.List([0])
+        names = ee.List(names) if names else ee.List(["constant"])
 
         # resize value to the same length as names
         values = ee.List(
@@ -536,7 +545,7 @@ class ImageAccessor:
     def reduceBands(
         self,
         reducer: str | ee.Reducer,
-        bands: list | ee.List = [],
+        bands: list[str] | ee.List | None = None,
         name: str | ee.String = "",
     ) -> ee.Image:
         """Reduce the image using the selected reducer and adding the result as a band using the selected name.
@@ -564,7 +573,8 @@ class ImageAccessor:
         if not isinstance(reducer, str):
             raise TypeError("reducer must be a Python string")
 
-        bands, name = ee.List(bands), ee.String(name)
+        bands = ee.List(bands) if bands else ee.List([])
+        name = ee.String(name)
         bands = ee.Algorithms.If(bands.size().eq(0), self._obj.bandNames(), bands)
         name = ee.Algorithms.If(name.equals(ee.String("")), reducer, name)
         red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
@@ -684,7 +694,7 @@ class ImageAccessor:
             },
         ).rename(band.cat("_gauss"))
 
-    def repeat(self, band, repeats: int | ee.Number) -> ee.Image:
+    def repeat(self, band: str | ee.String, repeats: int | ee.Number) -> ee.Image:
         """Repeat a band of the image.
 
         Args:
@@ -750,7 +760,11 @@ class ImageAccessor:
 
         return ee.ImageCollection(bands.map(remove)).toBands().rename(bands)
 
-    def interpolateBands(self, src: list | ee.List, to: list | ee.List) -> ee.Image:
+    def interpolateBands(
+        self,
+        src: list[float | int | ee.Number] | ee.List,
+        to: list[float | int | ee.Number] | ee.List,
+    ) -> ee.Image:
         """Interpolate bands from the ``src`` value range to the ``to`` value range.
 
         The Interpolation is performed linearly using the ``extrapolate`` option of the :py:meth:`ee.Image.interpolate` method.
@@ -818,7 +832,8 @@ class ImageAccessor:
         return isletArea.lt(offset).rename("mask").selfMask()
 
     # -- ee-extra wrapper ------------------------------------------------------
-    def index_list(cls) -> dict[str, dict]:
+    @staticmethod
+    def index_list() -> dict[str, dict]:
         """Return the list of indices implemented in this module.
 
         Returns:
@@ -841,7 +856,7 @@ class ImageAccessor:
 
     def spectralIndices(
         self,
-        index: str = "NDVI",
+        index: str | list[str] = "NDVI",
         G: float | int = 2.5,
         C1: float | int = 6.0,
         C2: float | int = 7.5,
@@ -1197,7 +1212,7 @@ class ImageAccessor:
     def matchHistogram(
         self,
         target: ee.Image,
-        bands: dict,
+        bands: dict[str, str],
         geometry: ee.Geometry | None = None,
         maxBuckets: int = 256,
     ) -> ee.Image:
@@ -1296,7 +1311,7 @@ class ImageAccessor:
             cdi,
         )
 
-    def removeProperties(self, properties: list | ee.List) -> ee.Image:
+    def removeProperties(self, properties: list[str] | ee.List) -> ee.Image:
         """Remove a list of properties from an image.
 
         Args:
@@ -1533,7 +1548,7 @@ class ImageAccessor:
 
     def plot(
         self,
-        bands: list,
+        bands: list[str],
         region: ee.Geometry,
         ax: Axes | None = None,
         fc: ee.FeatureCollection = None,
@@ -1624,8 +1639,8 @@ class ImageAccessor:
 
         return ax
 
-    @classmethod
-    def fromList(cls, images: ee.List | list) -> ee.Image:
+    @staticmethod
+    def fromList(images: ee.List | list[ee.Image]) -> ee.Image:
         """Create a single image by passing a list of images.
 
         Warning: The bands cannot have repeated names, if so, it will throw an error (see examples).
@@ -1667,9 +1682,9 @@ class ImageAccessor:
         self,
         regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
-        bands: list = [],
+        bands: list[str] | None = None,
         regionId: str = "system:index",
-        labels: list = [],
+        labels: list[str] | None = None,
         scale: int = 10000,
         crs: str | None = None,
         crsTransform: list | None = None,
@@ -1724,10 +1739,10 @@ class ImageAccessor:
         features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # get the bands to be used in the reducer
-        eeBands = ee.List(bands) if len(bands) else self._obj.bandNames()
+        eeBands = ee.List(bands) if bands else self._obj.bandNames()
 
         # retrieve the label to use for each bands if provided
-        eeLabels = ee.List(labels) if len(labels) else eeBands
+        eeLabels = ee.List(labels) if labels else eeBands
 
         # by default for 1 band image, the reducers are renaming the output band. To ensure it keeps
         #  the original band name we add setOutputs that is ignored for multi band images.
@@ -1757,9 +1772,9 @@ class ImageAccessor:
         self,
         regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
-        bands: list = [],
+        bands: list[str] | None = None,
         regionId: str = "system:index",
-        labels: list = [],
+        labels: list[str] | None = None,
         scale: int = 10000,
         crs: str | None = None,
         crsTransform: list | None = None,
@@ -1815,10 +1830,10 @@ class ImageAccessor:
         features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # get the bands to be used in the reducer
-        bands = ee.List(bands) if len(bands) else self._obj.bandNames()
+        bands = ee.List(bands) if bands else self._obj.bandNames()
 
         # retrieve the label to use for each bands if provided
-        labels = ee.List(labels) if len(labels) else bands
+        labels = ee.List(labels) if labels else bands
 
         # by default for 1 band image, the reducers are renaming the output band. To ensure it keeps
         #  the original band name we add setOutputs that is ignored for multi band images.
@@ -1851,10 +1866,10 @@ class ImageAccessor:
         type: str,
         regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
-        bands: list = [],
+        bands: list[str] | None = None,
         regionId: str = "system:index",
-        labels: list = [],
-        colors: list = [],
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         scale: int = 10000,
         crs: str | None = None,
@@ -1927,8 +1942,8 @@ class ImageAccessor:
         features = features.getInfo()
 
         # extract the labels from the parameters
-        eeBands = ee.List(bands) if len(bands) else self._obj.bandNames()
-        labels = labels if len(labels) else eeBands.getInfo()
+        eeBands = ee.List(bands) if bands else self._obj.bandNames()
+        labels = labels if labels else eeBands.getInfo()
 
         # reorder the data according to the labels id set by the user
         data = {b: {f: data[b][f] for f in features} for b in labels}
@@ -1942,10 +1957,10 @@ class ImageAccessor:
         type: str,
         regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
-        bands: list = [],
+        bands: list[str] | None = None,
         regionId: str = "system:index",
-        labels: list = [],
-        colors: list = [],
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         scale: int = 10000,
         crs: str | None = None,
@@ -2018,8 +2033,8 @@ class ImageAccessor:
         features = features.getInfo()
 
         # extract the labels from the parameters
-        eeBands = ee.List(bands) if len(bands) else self._obj.bandNames()
-        labels = labels if len(labels) else eeBands.getInfo()
+        eeBands = ee.List(bands) if bands else self._obj.bandNames()
+        labels = labels if labels else eeBands.getInfo()
 
         # reorder the data according to the labels id set by the user
         data = {f: {b: data[f][b] for b in labels} for f in features}
@@ -2032,9 +2047,9 @@ class ImageAccessor:
         self,
         bins: int = 30,
         region: ee.Geometry | None = None,
-        bands: list = [],
-        labels: list = [],
-        colors: list = [],
+        bands: list[str] | None = None,
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         precision: int = 2,
         ax: Axes | None = None,
         scale: int = 10000,
@@ -2084,8 +2099,12 @@ class ImageAccessor:
                 normClim.geetools.plot_hist()
         """
         # extract the bands from the image
-        eeBands = ee.List(bands) if len(bands) == 0 else self._obj.bandNames()
-        eeLabels = ee.List(labels).flatten() if len(labels) == 0 else eeBands
+        # TODO: In this case, the default is "to all bands",
+        #  but the original implementation the default was an empty list.
+        #  Is that correct?
+        eeBands = ee.List(bands) if bands else self._obj.bandNames()
+        # TODO: Same here
+        eeLabels = ee.List(labels).flatten() if labels else eeBands
         labels = eeLabels.getInfo()
 
         # retrieve the region from the parameters
