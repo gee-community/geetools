@@ -2105,7 +2105,8 @@ class ImageAccessor:
         eeBands = ee.List(bands) if bands else self._obj.bandNames()
         # TODO: Same here
         eeLabels = ee.List(labels).flatten() if labels else eeBands
-        labels = eeLabels.getInfo()
+        new_labels: list[str] = eeLabels.getInfo()
+        new_colors: list[str] = colors if colors else plt.get_cmap("tab10").colors
 
         # retrieve the region from the parameters
         region = region if region else self._obj.geometry()
@@ -2141,17 +2142,17 @@ class ImageAccessor:
         # every value is duplicated but the first one to create a scale like display.
         # the values are treated the same way we simply drop the last duplication to get the same size.
         p = 10**precision  # multiplier use to truncate the float values
-        x = [int(d[0] * p) / p for d in raw_data[labels[0]] for _ in range(2)][1:]
-        data = {l: [int(d[1]) for d in raw_data[l] for _ in range(2)][:-1] for l in labels}
+        x = [int(d[0] * p) / p for d in raw_data[new_labels[0]] for _ in range(2)][1:]
+        data = {l: [int(d[1]) for d in raw_data[l] for _ in range(2)][:-1] for l in new_labels}
 
         # create the graph objcet if not provided
         if ax is None:
             fig, ax = plt.subplots()
 
         # display the histogram as a fill_between plot to respect GEE lib design
-        for i, label in enumerate(labels):
-            kwargs["facecolor"] = to_rgba(colors[i], 0.2)
-            kwargs["edgecolor"] = to_rgba(colors[i], 1)
+        for i, label in enumerate(new_labels):
+            kwargs["facecolor"] = to_rgba(new_colors[i], 0.2)
+            kwargs["edgecolor"] = to_rgba(new_colors[i], 1)
             ax.fill_between(x, data[label], label=label, **kwargs)
 
         # customize the layout of the axis
