@@ -1,6 +1,7 @@
 """Toolbox for the :py:func:`ee.Authenticate` function."""
 from __future__ import annotations
 
+import os
 from contextlib import suppress
 from pathlib import Path
 from shutil import move
@@ -16,7 +17,7 @@ class AuthenticateAccessor:
     """Create an accessor for the :py:func:`ee.Authenticate` function."""
 
     @staticmethod
-    def new_user(name: str = "", credential_pathname: str | Path = "") -> None:
+    def new_user(name: str = "", credential_pathname: str | os.PathLike = "") -> None:
         """Authenticate the user and save the credentials in a specific folder.
 
         Equivalent to :py:func:`ee.Authenticate` but where the registered user will not be the default one (the one you get when running :py:func:`ee.Initialize`).
@@ -55,7 +56,7 @@ class AuthenticateAccessor:
                 move(Path(dir) / default.name, default)
 
     @staticmethod
-    def delete_user(name: str = "", credential_pathname: str | Path = "") -> None:
+    def delete_user(name: str = "", credential_pathname: str | os.PathLike = "") -> None:
         """Delete a user credential file.
 
         Args:
@@ -80,7 +81,7 @@ class AuthenticateAccessor:
             (credential_path / name).unlink()
 
     @staticmethod
-    def list_user(credential_pathname: str | Path = "") -> list[str]:
+    def list_user(credential_pathname: str | os.PathLike = "") -> list[str]:
         """return all the available users in the set folder.
 
         To reach "default" simply omit the ``name`` parameter in the User methods.
@@ -105,7 +106,7 @@ class AuthenticateAccessor:
         return [f.name.replace("credentials", "") or "default" for f in files]
 
     @staticmethod
-    def rename_user(new: str, old: str = "", credential_pathname: str | Path = "") -> None:
+    def rename_user(new: str, old: str = "", credential_pathname: str | os.PathLike = "") -> None:
         """Rename a user without changing the credentials.
 
         Args:

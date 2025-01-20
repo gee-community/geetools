@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 from pathlib import Path
 
@@ -20,7 +21,7 @@ class InitializeAccessor:
     """Toolbox for the ``ee.Initialize`` function."""
 
     @staticmethod
-    def from_user(name: str = "", credential_pathname: str | Path = "", project: str = "") -> None:
+    def from_user(name: str = "", credential_pathname: str | os.PathLike = "", project: str = ""):
         """Initialize Earthengine API using a specific user.
 
         Equivalent to the :py:func:`ee.Initialize` function but with a specific credential file stored in
@@ -71,7 +72,7 @@ class InitializeAccessor:
         _project_id = project or tokens["project_id"]
 
     @staticmethod
-    def from_service_account(private_key: str) -> None:
+    def from_service_account(private_key: str):
         """Initialize Earthengine API using a service account.
 
         Equivalent to the :py:func:`ee.Initialize` function but with a specific service account json key.
