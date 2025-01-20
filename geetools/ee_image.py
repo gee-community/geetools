@@ -61,7 +61,7 @@ class ImageAccessor:
         """
         # parse the inputs
         isMillis = ee.String(format).equals(ee.String(""))
-        format = ee.String(format) if format is None else ee.String("YYYYMMdd")
+        format = ee.String(format) if format else ee.String("YYYYMMdd")
 
         # extract the date from the object and create a image band from it
         date = self._obj.date()
@@ -96,7 +96,7 @@ class ImageAccessor:
                 print(image.bandNames().getInfo())
         """
         suffix = ee.String(suffix)
-        bands = self._obj.bandNames() if bands is None else ee.List(bands)
+        bands = ee.List(bands) if bands is not None else self._obj.bandNames()
         bandNames = bands.iterate(
             lambda b, n: ee.List(n).replace(b, ee.String(b).cat(suffix)),
             self._obj.bandNames(),
@@ -129,7 +129,7 @@ class ImageAccessor:
                 print(image.bandNames().getInfo())
         """
         prefix = ee.String(prefix)
-        bands = self._obj.bandNames() if bands is None else ee.List(bands)
+        bands = ee.List(bands) if bands is not None else self._obj.bandNames()
         bandNames = bands.iterate(
             lambda b, n: ee.List(n).replace(b, prefix.cat(ee.String(b))),
             self._obj.bandNames(),
@@ -222,7 +222,7 @@ class ImageAccessor:
                 print(image.reduceRegion(ee.Reducer.min(), vatican, 1).getInfo())
         """
         year = ee.Number(year)
-        band = ee.String(band) if band is None else ee.String(self._obj.bandNames().get(0))
+        band = ee.String(band) if band else ee.String(self._obj.bandNames().get(0))
         dateFormat = ee.String(dateFormat)
 
         doyList = ee.List.sequence(0, 365)
@@ -345,7 +345,7 @@ class ImageAccessor:
                 grid = image.geetools.toGrid(1, 'B2', buffer)
                 print(grid.getInfo())
         """
-        band = ee.String(band) if band is None else self._obj.bandNames().get(0)
+        band = ee.String(band) if band else self._obj.bandNames().get(0)
         projection = self._obj.select(band).projection()
         size = projection.nominalScale().multiply(ee.Number(size).toInt())
 
@@ -468,8 +468,8 @@ class ImageAccessor:
                 image = ee.Image.geetools.full([1, 2, 3], ['a', 'b', 'c'])
                 print(image.bandNames().getInfo())
         """
-        values = ee.List(values) if values is None else ee.List([0])
-        names = ee.List(names) if names is None else ee.List(["constant"])
+        values = ee.List(values) if values is not None else ee.List([0])
+        names = ee.List(names) if names is not None else ee.List(["constant"])
 
         # resize value to the same length as names
         values = ee.List(
@@ -573,7 +573,7 @@ class ImageAccessor:
         if not isinstance(reducer, str):
             raise TypeError("reducer must be a Python string")
 
-        bands = ee.List(bands) if bands is None else ee.List([])
+        bands = ee.List(bands) if bands is not None else ee.List([])
         name = ee.String(name)
         bands = ee.Algorithms.If(bands.size().eq(0), self._obj.bandNames(), bands)
         name = ee.Algorithms.If(name.equals(ee.String("")), reducer, name)
@@ -678,7 +678,7 @@ class ImageAccessor:
                 image = image.geetools.gauss()
                 print(image.bandNames().getInfo())
         """
-        band = ee.String(band) if band is None else ee.String(self._obj.bandNames().get(0))
+        band = ee.String(band) if band else ee.String(self._obj.bandNames().get(0))
         image = self._obj.select(band)
 
         kwargs = {"geometry": image.geometry(), "bestEffort": True}
@@ -1739,10 +1739,10 @@ class ImageAccessor:
         features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # get the bands to be used in the reducer
-        eeBands = ee.List(bands) if bands is None else self._obj.bandNames()
+        eeBands = ee.List(bands) if bands is not None else self._obj.bandNames()
 
         # retrieve the label to use for each bands if provided
-        eeLabels = ee.List(labels) if labels is None else eeBands
+        eeLabels = ee.List(labels) if labels is not None else eeBands
 
         # by default for 1 band image, the reducers are renaming the output band. To ensure it keeps
         #  the original band name we add setOutputs that is ignored for multi band images.
@@ -1830,10 +1830,10 @@ class ImageAccessor:
         features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # get the bands to be used in the reducer
-        bands = ee.List(bands) if bands is None else self._obj.bandNames()
+        bands = ee.List(bands) if bands is not None else self._obj.bandNames()
 
         # retrieve the label to use for each bands if provided
-        labels = ee.List(labels) if labels is None else bands
+        labels = ee.List(labels) if labels is not None else bands
 
         # by default for 1 band image, the reducers are renaming the output band. To ensure it keeps
         #  the original band name we add setOutputs that is ignored for multi band images.
@@ -1942,8 +1942,8 @@ class ImageAccessor:
         features = features.getInfo()
 
         # extract the labels from the parameters
-        eeBands = ee.List(bands) if bands is None else self._obj.bandNames()
-        labels = labels if labels is None else eeBands.getInfo()
+        eeBands = ee.List(bands) if bands is not None else self._obj.bandNames()
+        labels = labels if labels is not None else eeBands.getInfo()
 
         # reorder the data according to the labels id set by the user
         data = {b: {f: data[b][f] for f in features} for b in labels}
@@ -2033,8 +2033,8 @@ class ImageAccessor:
         features = features.getInfo()
 
         # extract the labels from the parameters
-        eeBands = ee.List(bands) if bands is None else self._obj.bandNames()
-        labels = labels if labels is None else eeBands.getInfo()
+        eeBands = ee.List(bands) if bands is not None else self._obj.bandNames()
+        labels = labels if labels is not None else eeBands.getInfo()
 
         # reorder the data according to the labels id set by the user
         data = {f: {b: data[f][b] for b in labels} for f in features}
@@ -2102,14 +2102,14 @@ class ImageAccessor:
         # TODO: In this case, the default is "to all bands",
         #  but the original implementation the default was an empty list.
         #  Is that correct?
-        eeBands = ee.List(bands) if bands is None else self._obj.bandNames()
+        eeBands = ee.List(bands) if bands is not None else self._obj.bandNames()
         # TODO: Same here
-        eeLabels = ee.List(labels).flatten() if labels is None else eeBands
+        eeLabels = ee.List(labels).flatten() if labels is not None else eeBands
         new_labels: list[str] = eeLabels.getInfo()
-        new_colors: list[str] = colors if colors is None else plt.get_cmap("tab10").colors
+        new_colors: list[str] = colors if colors is not None else plt.get_cmap("tab10").colors
 
         # retrieve the region from the parameters
-        region = region if region is None else self._obj.geometry()
+        region = region if region is not None else self._obj.geometry()
 
         # extract the data from the server
         image = self._obj.select(eeBands).rename(eeLabels).clip(region)
