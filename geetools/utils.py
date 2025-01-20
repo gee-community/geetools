@@ -242,7 +242,7 @@ def plot_data(
     return ax
 
 
-def initialize_documentation() -> None:
+def initialize_documentation():
     """Initialize Earth Engine Python API in the context of the Documentation build.
 
     Warning:

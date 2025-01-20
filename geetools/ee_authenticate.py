@@ -17,7 +17,7 @@ class AuthenticateAccessor:
     """Create an accessor for the :py:func:`ee.Authenticate` function."""
 
     @staticmethod
-    def new_user(name: str = "", credential_pathname: str | os.PathLike = "") -> None:
+    def new_user(name: str = "", credential_pathname: str | os.PathLike = ""):
         """Authenticate the user and save the credentials in a specific folder.
 
         Equivalent to :py:func:`ee.Authenticate` but where the registered user will not be the default one (the one you get when running :py:func:`ee.Initialize`).
@@ -56,7 +56,7 @@ class AuthenticateAccessor:
                 move(Path(dir) / default.name, default)
 
     @staticmethod
-    def delete_user(name: str = "", credential_pathname: str | os.PathLike = "") -> None:
+    def delete_user(name: str = "", credential_pathname: str | os.PathLike = ""):
         """Delete a user credential file.
 
         Args:
@@ -106,7 +106,7 @@ class AuthenticateAccessor:
         return [f.name.replace("credentials", "") or "default" for f in files]
 
     @staticmethod
-    def rename_user(new: str, old: str = "", credential_pathname: str | os.PathLike = "") -> None:
+    def rename_user(new: str, old: str = "", credential_pathname: str | os.PathLike = ""):
         """Rename a user without changing the credentials.
 
         Args:
