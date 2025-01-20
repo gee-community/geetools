@@ -127,7 +127,7 @@ class FeatureCollectionAccessor:
                 print(json.dumps(countries.getInfo(), indent=2))
         """
         uniqueIds = self._obj.aggregate_array(keyColumn)
-        selectors = ee.List(selectors) if selectors else self._obj.first().propertyNames()
+        selectors = ee.List(selectors) if selectors is None else self._obj.first().propertyNames()
         keyColumn = ee.String(keyColumn)
 
         features = self._obj.toList(self._obj.size())
@@ -321,14 +321,16 @@ class FeatureCollectionAccessor:
         features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # retrieve properties for each feature
-        properties = ee.List(properties) if properties else self._obj.first().propertyNames()
+        properties = (
+            ee.List(properties) if properties is None else self._obj.first().propertyNames()
+        )
         properties = properties.remove(featureId)
         values = properties.map(
             lambda p: ee.Dictionary.fromLists(features, self._obj.aggregate_array(p))
         )
 
         # get the label to use in the dictionary if requested
-        labels = ee.List(labels) if labels else properties
+        labels = ee.List(labels) if labels is None else properties
 
         return ee.Dictionary.fromLists(labels, values)
 
@@ -380,9 +382,9 @@ class FeatureCollectionAccessor:
 
         """
         # compute the properties and their labels
-        props = ee.List(properties) if properties else self._obj.first().propertyNames()
+        props = ee.List(properties) if properties is None else self._obj.first().propertyNames()
         props = props.remove(featureId)
-        labels = ee.List(labels) if labels else props
+        labels = ee.List(labels) if labels is None else props
 
         # create a function to get the properties of a feature
         # we need to map the featureCollection into a list as it's not possible to return something else than a
@@ -455,14 +457,18 @@ class FeatureCollectionAccessor:
                     label.set_rotation(45)
         """
         # Get the features and properties
-        props = ee.List(properties) if properties else self._obj.first().propertyNames().getInfo()
+        props = (
+            ee.List(properties)
+            if properties is None
+            else self._obj.first().propertyNames().getInfo()
+        )
         props = props.remove(featureId)
 
         # get the data from server
         data = self.byProperties(featureId, props, labels).getInfo()
 
         # reorder the data according to the labels or properties set by the user
-        labels = labels if labels else props.getInfo()
+        labels = labels if labels is None else props.getInfo()
         data = {k: data[k] for k in labels}
 
         return plot_data(type=type, data=data, label_name=featureId, colors=colors, ax=ax, **kwargs)
@@ -518,14 +524,14 @@ class FeatureCollectionAccessor:
         """
         # Get the features and properties
         fc = self._obj
-        props = ee.List(properties) if properties else fc.first().propertyNames()
+        props = ee.List(properties) if properties is None else fc.first().propertyNames()
         props = props.remove(featureId)
 
         # get the data from server
         data = self.byFeatures(featureId, props, labels).getInfo()
 
         # reorder the data according to the lapbes or properties set by the user
-        labels = labels if labels else props.getInfo()
+        labels = labels if labels is None else props.getInfo()
         data = {f: {k: data[f][k] for k in labels} for f in data.keys()}
 
         return plot_data(type=type, data=data, label_name=featureId, colors=colors, ax=ax, **kwargs)

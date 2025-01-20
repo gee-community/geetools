@@ -669,7 +669,7 @@ class ImageCollectionAccessor:
         """
         # cast parameters and compute the outlier band names
         initBands = self._obj.first().bandNames()
-        statBands = ee.List(bands) if bands else initBands
+        statBands = ee.List(bands) if bands is None else initBands
         outBands = statBands.map(lambda b: ee.String(b).cat("_outlier"))
 
         # compute the mean and std dev for each band
@@ -1214,8 +1214,8 @@ class ImageCollectionAccessor:
                 print(reduced.getInfo())
         """
         # cast parameters
-        eeBands = ee.List(bands) if bands else self._obj.first().bandNames()
-        eeLabels = ee.List(labels) if labels else eeBands
+        eeBands = ee.List(bands) if bands is None else self._obj.first().bandNames()
+        eeLabels = ee.List(labels) if labels is None else eeBands
 
         # recast band names as labels in the source collection
         ic = self._obj.select(eeBands).map(lambda i: i.rename(eeLabels))
@@ -1384,8 +1384,8 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
         """
         # cast parameters
-        bands = ee.List(bands) if bands else self._obj.first().bandNames()
-        labels = ee.List(labels) if labels else bands
+        bands = ee.List(bands) if bands is None else self._obj.first().bandNames()
+        labels = ee.List(labels) if labels is None else bands
 
         # recast band names as labels in the source collection
         ic = self._obj.select(bands).map(lambda i: i.rename(labels))
