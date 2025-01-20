@@ -2099,11 +2099,7 @@ class ImageAccessor:
                 normClim.geetools.plot_hist()
         """
         # extract the bands from the image
-        # TODO: In this case, the default is "to all bands",
-        #  but the original implementation the default was an empty list.
-        #  Is that correct?
         eeBands = ee.List(bands) if bands is not None else self._obj.bandNames()
-        # TODO: Same here
         eeLabels = ee.List(labels).flatten() if labels is not None else eeBands
         new_labels: list[str] = eeLabels.getInfo()
         new_colors: list[str] = colors if colors is not None else plt.get_cmap("tab10").colors
