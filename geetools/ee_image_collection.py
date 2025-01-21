@@ -7,6 +7,12 @@ from typing import Any, Iterable
 
 import ee
 import ee_extra
+import ee_extra.Algorithms.core
+import ee_extra.ImageCollection.core
+import ee_extra.QA.clouds
+import ee_extra.QA.pipelines
+import ee_extra.Spectral.core
+import ee_extra.STAC.core
 import requests
 import xarray
 from ee import apifunction
@@ -127,7 +133,7 @@ class ImageCollectionAccessor:
 
     def spectralIndices(
         self,
-        index: str = "NDVI",
+        index: str | list[str] = "NDVI",
         G: float | int = 2.5,
         C1: float | int = 6.0,
         C2: float | int = 7.5,
@@ -611,7 +617,10 @@ class ImageCollectionAccessor:
         return ee.Image(self._obj.iterate(computeIntegral, s))
 
     def outliers(
-        self, bands: list | ee.List = [], sigma: float | int | ee.Number = 2, drop: bool = False
+        self,
+        bands: list[str] | ee.List | None = None,
+        sigma: float | int | ee.Number = 2,
+        drop: bool = False,
     ) -> ee.ImageCollection:
         """Compute the outlier for each pixel in the specified bands.
 
@@ -660,7 +669,7 @@ class ImageCollectionAccessor:
         """
         # cast parameters and compute the outlier band names
         initBands = self._obj.first().bandNames()
-        statBands = ee.List(bands) if bands else initBands
+        statBands = ee.List(bands) if bands is not None else initBands
         outBands = statBands.map(lambda b: ee.String(b).cat("_outlier"))
 
         # compute the mean and std dev for each band
@@ -784,12 +793,12 @@ class ImageCollectionAccessor:
         validPct = validPixel.divide(self._obj.size()).multiply(100).rename("pct_valid")
         return validPixel.addBands(validPct)
 
-    def containsBandNames(self, bandNames: list | ee.List, filter: str) -> ee.ImageCollection:
+    def containsBandNames(self, bandNames: list[str] | ee.List, filter: str) -> ee.ImageCollection:
         """Filter the :py:class:`ee.ImageCollection` by band names using the provided filter.
 
         Args:
-            bandNames: list of band names to filter
-            filter: type of filter to apply. To keep images that contains all the specified bands use ``"ALL"``. To get the images including at least one of the specified band use ``"ANY"``.
+            bandNames: List of band names to filter.
+            filter: Type of filter to apply. To keep images that contains all the specified bands use ``"ALL"``. To get the images including at least one of the specified band use ``"ANY"``.
 
         Returns:
             A filtered :py:class:`ee.ImageCollection`
@@ -829,11 +838,11 @@ class ImageCollectionAccessor:
 
         return ee.ImageCollection(ic)
 
-    def containsAllBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
+    def containsAllBands(self, bandNames: list[str] | ee.List) -> ee.ImageCollection:
         """Filter the :py:class:`ee.ImageCollection` keeping only the images with all the provided bands.
 
         Args:
-            bandNames: list of band names to filter
+            bandNames: List of band names to filter.
 
         Returns:
             A filtered :py:class:`ee.ImageCollection`
@@ -856,11 +865,11 @@ class ImageCollectionAccessor:
         """
         return self.containsBandNames(bandNames, "ALL")
 
-    def containsAnyBands(self, bandNames: list | ee.List) -> ee.ImageCollection:
+    def containsAnyBands(self, bandNames: list[str] | ee.List) -> ee.ImageCollection:
         """Filter the :py:class:`ee.ImageCollection` keeping only the images with any of the provided bands.
 
         Args:
-            bandNames: list of band names to filter
+            bandNames: List of band names to filter.
 
         Returns:
             A filtered :py:class:`ee.ImageCollection`
@@ -883,11 +892,11 @@ class ImageCollectionAccessor:
         """
         return self.containsBandNames(bandNames, "ANY")
 
-    def aggregateArray(self, properties: list | ee.List | None = None) -> ee.Dictionary:
+    def aggregateArray(self, properties: list[str] | ee.List | None = None) -> ee.Dictionary:
         """Aggregate the :py:class:`ee.ImageCollection` selected properties into a dictionary.
 
         Args:
-            properties: list of properties to aggregate. If None, all properties are aggregated.
+            properties: List of properties to aggregate. If None, all properties are aggregated.
 
         Returns:
             A dictionary with the properties as keys and the aggregated values as values.
@@ -1145,8 +1154,8 @@ class ImageCollectionAccessor:
         region: ee.Geometry,
         reducer: str | ee.Reducer = "mean",
         dateProperty: str = "system:time_start",
-        bands: list = [],
-        labels: list = [],
+        bands: list[str] | None = None,
+        labels: list[str] | None = None,
         scale: int = 10000,
         crs: str | None = None,
         crsTransform: list | None = None,
@@ -1205,8 +1214,8 @@ class ImageCollectionAccessor:
                 print(reduced.getInfo())
         """
         # cast parameters
-        eeBands = ee.List(bands) if len(bands) else self._obj.first().bandNames()
-        eeLabels = ee.List(labels) if len(labels) else eeBands
+        eeBands = ee.List(bands) if bands is not None else self._obj.first().bandNames()
+        eeLabels = ee.List(labels) if labels is not None else eeBands
 
         # recast band names as labels in the source collection
         ic = self._obj.select(eeBands).map(lambda i: i.rename(eeLabels))
@@ -1327,8 +1336,8 @@ class ImageCollectionAccessor:
         spatialReducer: str | ee.Reducer = "mean",
         timeReducer: str | ee.Reducer = "mean",
         dateProperty: str = "system:time_start",
-        bands: list = [],
-        labels: list = [],
+        bands: list[str] | None = None,
+        labels: list[str] | None = None,
         scale: int = 10000,
         crs: str | None = None,
         crsTransform: list | None = None,
@@ -1375,8 +1384,8 @@ class ImageCollectionAccessor:
             - :docstring:`ee.ImageCollection.geetools.plot_doy_by_years`
         """
         # cast parameters
-        bands = ee.List(bands) if len(bands) else self._obj.first().bandNames()
-        labels = ee.List(labels) if len(labels) else bands
+        bands = ee.List(bands) if bands is not None else self._obj.first().bandNames()
+        labels = ee.List(labels) if labels is not None else bands
 
         # recast band names as labels in the source collection
         ic = self._obj.select(bands).map(lambda i: i.rename(labels))
@@ -1407,7 +1416,7 @@ class ImageCollectionAccessor:
             getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
         )
 
-        def timeReduce(c: ee.imageCollection) -> ee.image:
+        def timeReduce(c: ee.ImageCollection) -> ee.image:
             c = ee.ImageCollection(c)
             i = c.reduce(timeRed).rename(labels)
             i = i.set(size_metadata, c.get(size_metadata))
@@ -1513,7 +1522,7 @@ class ImageCollectionAccessor:
             getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
         )
 
-        def timeReduce(c: ee.imageCollection) -> ee.image:
+        def timeReduce(c: ee.ImageCollection) -> ee.image:
             c = ee.ImageCollection(c)
             i = c.reduce(timeRed).rename([band])
             i = i.set(size_metadata, c.get(size_metadata))
@@ -1771,9 +1780,9 @@ class ImageCollectionAccessor:
         region: ee.Geometry,
         reducer: str | ee.Reducer = "mean",
         dateProperty: str = "system:time_start",
-        bands: list = [],
-        labels: list = [],
-        colors: list = [],
+        bands: list[str] | None = None,
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         scale: int = 10000,
         crs: str | None = None,
@@ -1863,7 +1872,7 @@ class ImageCollectionAccessor:
         label: str = "system:index",
         reducer: str | ee.Reducer = "mean",
         dateProperty: str = "system:time_start",
-        colors: list = [],
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         scale: int = 10000,
         crs: str | None = None,
@@ -1949,9 +1958,9 @@ class ImageCollectionAccessor:
         spatialReducer: str | ee.Reducer = "mean",
         timeReducer: str | ee.Reducer = "mean",
         dateProperty: str = "system:time_start",
-        bands: list = [],
-        labels: list = [],
-        colors: list = [],
+        bands: list[str] | None = None,
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         scale: int = 10000,
         crs: str | None = None,
@@ -2043,7 +2052,7 @@ class ImageCollectionAccessor:
         spatialReducer: str | ee.Reducer = "mean",
         timeReducer: str | ee.Reducer = "mean",
         dateProperty: str = "system:time_start",
-        colors: list = [],
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         scale: int = 10000,
         crs: str | None = None,
@@ -2133,7 +2142,7 @@ class ImageCollectionAccessor:
         seasonEnd: int | ee.Number,
         reducer: str | ee.Reducer = "mean",
         dateProperty: str = "system:time_start",
-        colors: list = [],
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         scale: int = 10000,
         crs: str | None = None,
@@ -2240,7 +2249,7 @@ class ImageCollectionAccessor:
         region: ee.Geometry,
         reducer: str | ee.Reducer = "mean",
         dateProperty: str = "system:time_start",
-        colors: list = [],
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         scale: int = 10000,
         crs: str | None = None,
