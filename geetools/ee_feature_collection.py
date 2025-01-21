@@ -275,7 +275,7 @@ class FeatureCollectionAccessor:
         self,
         featureId: str | ee.String = "system:index",
         properties: list[str] | ee.List | None = None,
-        labels: list[str] | None = None,
+        labels: list[str] | ee.List | None = None,
     ) -> ee.Dictionary:
         """Get a dictionary with all feature values for each property.
 
@@ -340,7 +340,7 @@ class FeatureCollectionAccessor:
         self,
         featureId: str | ee.String = "system:index",
         properties: list[str] | ee.List | None = None,
-        labels: list[str] | None = None,
+        labels: list[str] | ee.List | None = None,
     ) -> ee.Dictionary:
         """Get a dictionary with all property values for each feature.
 
