@@ -14,6 +14,14 @@ class TestToDatetime:
         assert datetime.month == 1
         assert datetime.day == 1
 
+    def test_to_datetime_timezone(self, date_instance):
+        dt = date_instance.geetools.to_datetime("America/Buenos_Aires")
+        # Buenos Aires time is -3
+        assert dt.year == 2019
+        assert dt.month == 12
+        assert dt.day == 31
+        assert dt.hour == 21
+
 
 class TestGetUnitSinceEpoch:
     """Test the getUnitSinceEpoch method."""
