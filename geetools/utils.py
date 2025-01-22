@@ -74,7 +74,7 @@ def plot_data(
     type: str,
     data: dict,
     label_name: str,
-    colors: list = [],
+    colors: list[str] | None = None,
     ax: Axes | None = None,
     **kwargs,
 ) -> Axes:
