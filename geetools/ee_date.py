@@ -96,7 +96,7 @@ class DateAccessor:
         the timezone from it, thus it must be passed as argument.
 
         Args:
-            tz: time zone. Defaults to UTC.
+            tz: time zone, defaulted to "UTC". Other names can be found here: https://www.joda.org/joda-time/timezones.html
 
         Returns:
             The :py:class:`datetime.datetime` representation of the :py:class:`ee.Date`.
