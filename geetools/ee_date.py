@@ -1,8 +1,8 @@
 """Extra methods for the :py:class:`ee.Date` class."""
 from __future__ import annotations
 
-import zoneinfo
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import ee
 
@@ -89,7 +89,7 @@ class DateAccessor:
         """
         return ee.Date(datetime.now().isoformat())
 
-    def to_datetime(self, tz=zoneinfo.ZoneInfo("UTC")) -> datetime:
+    def to_datetime(self, tz: str | ZoneInfo = ZoneInfo("UTC")) -> datetime:
         """Convert a :py:class:`ee.Date` to a :py:class:`datetime.datetime`.
 
         Since `ee.Date` object is not timezone aware, there is no way to get
@@ -113,8 +113,9 @@ class DateAccessor:
                 d.strftime('%Y-%m-%d')
 
         """
-        datestr = self._obj.format(None, str(tz)).getInfo()
-        return datetime.fromisoformat(datestr)
+        tz = tz if isinstance(tz, ZoneInfo) else ZoneInfo(tz)
+        timestamp = self._obj.millis().getInfo() / 1000
+        return datetime.fromtimestamp(timestamp, tz=ZoneInfo("UTC")).astimezone(tz)
 
     def getUnitSinceEpoch(self, unit: str = "day") -> ee.Number:
         """Get the number of units since epoch (1970-01-01).
