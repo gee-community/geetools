@@ -1,4 +1,7 @@
 """Test the Date class methods."""
+from datetime import datetime as dt
+from zoneinfo import ZoneInfo
+
 import ee
 import pytest
 
@@ -9,18 +12,20 @@ class TestToDatetime:
     """Test the toDatetime method."""
 
     def test_to_datetime(self, date_instance):
-        datetime = date_instance.geetools.to_datetime()
-        assert datetime.year == 2020
-        assert datetime.month == 1
-        assert datetime.day == 1
+        py_dt = date_instance.geetools.to_datetime()
+        assert py_dt == dt(2020, 1, 1, tzinfo=ZoneInfo("UTC"))
 
     def test_to_datetime_timezone(self, date_instance):
-        dt = date_instance.geetools.to_datetime("America/Buenos_Aires")
+        tz = ZoneInfo("America/Buenos_Aires")
+        py_dt = date_instance.geetools.to_datetime(tz)
         # Buenos Aires time is -3
-        assert dt.year == 2019
-        assert dt.month == 12
-        assert dt.day == 31
-        assert dt.hour == 21
+        assert py_dt == dt(2019, 12, 31, 21, tzinfo=tz)
+
+    def test_to_datetime_str_timezone(self, date_instance):
+        str_tz = "America/Buenos_Aires"
+        py_dt = date_instance.geetools.to_datetime(str_tz)
+        # Buenos Aires time is -3
+        assert py_dt == dt(2019, 12, 31, 21, tzinfo=ZoneInfo(str_tz))
 
 
 class TestGetUnitSinceEpoch:
