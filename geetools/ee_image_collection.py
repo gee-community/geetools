@@ -804,7 +804,7 @@ class ImageCollectionAccessor:
         Args:
             bandNames: List of band names to filter.
             filter: Type of filter to apply. To keep images that contains all the specified bands use ``"ALL"``. To get the images including at least one of the specified band use ``"ANY"``.
-            bandNamesProperty: the name of the property that contains the band names. Defaults to 'system:band_name' because GEE stores them there.
+            bandNamesProperty: the name of the property that contains the band names. Defaults to GEE native default: 'system:band_name'.
 
         Returns:
             A filtered :py:class:`ee.ImageCollection`
@@ -851,7 +851,7 @@ class ImageCollectionAccessor:
 
         Args:
             bandNames: List of band names to filter.
-            bandNamesProperty: the name of the property that contains the band names. Defaults to 'system:band_name' because GEE stores them there.
+            bandNamesProperty: the name of the property that contains the band names. Defaults to GEE native default: 'system:band_name'.
 
         Returns:
             A filtered :py:class:`ee.ImageCollection`.
@@ -883,7 +883,7 @@ class ImageCollectionAccessor:
 
         Args:
             bandNames: List of band names to filter.
-            bandNamesProperty: the name of the property that contains the band names. Defaults to 'system:band_name' because GEE stores them there.
+            bandNamesProperty: the name of the property that contains the band names. Defaults to GEE native default: 'system:band_name'.
 
         Returns:
             A filtered :py:class:`ee.ImageCollection`
