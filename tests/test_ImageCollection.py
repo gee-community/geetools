@@ -238,6 +238,12 @@ class TestContainsBandNames:
         ic = ic.geetools.containsAllBands(["B2", "B3"])
         assert ic.size().getInfo() == 2449
 
+    def test_contains_all_property_name(self, aster):
+        ic = aster.geetools.containsAllBands(
+            ["B3N", "B02", "B01"], bandNamesProperty="ORIGINAL_BANDS_PRESENT"
+        )
+        assert ic.size().getInfo() == 2
+
     def test_contains_all_mismatch(self, s2_sr):
         ic = s2_sr.select(["B2", "B3", "B4"])
         ic = ic.geetools.containsAllBands(["B2", "B3", "B5"])
@@ -247,6 +253,12 @@ class TestContainsBandNames:
         ic = s2_sr.select(["B2", "B3", "B4"])
         ic = ic.geetools.containsAnyBands(["B2", "B3", "B5"])
         assert ic.size().getInfo() == 2449
+
+    def test_contains_any_property_name(self, aster):
+        ic = aster.geetools.containsAnyBands(
+            ["B3N", "B02", "B01"], bandNamesProperty="ORIGINAL_BANDS_PRESENT"
+        )
+        assert ic.size().getInfo() == 2
 
     def test_contains_any_mismatch(self, s2_sr):
         ic = s2_sr.select(["B2", "B3", "B4"])

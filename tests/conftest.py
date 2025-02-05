@@ -78,6 +78,16 @@ def s2_sr(amazonas) -> ee.ImageCollection:
 
 
 @pytest.fixture
+def aster(vatican) -> ee.ImageCollection:
+    """Aster collection in Vatican City for year 2020."""
+    return (
+        ee.ImageCollection("ASTER/AST_L1T_003")
+        .filterBounds(vatican.geometry())
+        .filterDate("2020-01-01", "2021-01-01")
+    )
+
+
+@pytest.fixture
 def vatican():
     """Return the vatican city."""
     level0 = ee.FeatureCollection("FAO/GAUL/2015/level0")
