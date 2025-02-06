@@ -266,3 +266,12 @@ def stac_schema():
 def jaxa_rainfall():
     """Return the JAXA rain collection."""
     return ee.ImageCollection("JAXA/GPM_L3/GSMaP/v6/operational")
+
+
+@pytest.fixture
+def l9_cloudy_image():
+    """A Landsat 9 image that contains clouds, shadows, water and snow.
+
+    This image is located in Argentina and Chile (Patagonia).
+    """
+    return ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
