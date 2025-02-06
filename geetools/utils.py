@@ -267,3 +267,74 @@ def initialize_documentation():
         )
 
     pass
+
+
+def format_bandname(name: str, replacement: str = "_") -> str:
+    """Format a band name to be allowed in GEE."""
+    banned = list(".*/¿?[]{}+#$%&")
+    return str([name.replace(char, replacement) for char in banned][0])
+
+
+def format_bits_info(bits_info: dict) -> dict:
+    """Format the bits information to match the expected.
+
+    Args:
+        bits_info: the bits information.
+
+    Example:
+        .. code-block:: python
+
+            from geetools.utils import format_bitmask
+
+            bitmask = {
+                '0': 'shadows',
+                '1-2': {
+                    '0': 'no clouds',
+                    '1': 'high clouds',
+                    '2': 'mid clouds',
+                    '3': 'low clouds'
+                }
+            }
+            bitmask = format_bitmask(bitmask)
+    """
+    final_bit_info = {}
+    for bit, info in bits_info.items():
+        parts = bit.split("-")
+        start = parts[0].strip()
+        end = parts[1].strip() if len(parts) > 1 else start
+        try:
+            start, end = int(start), int(end)
+        except ValueError:
+            raise ValueError(
+                f"start and end bits must be numeric. Found start: '{start}' end: '{end}' in '{bit}'"
+            )
+        formatted_key = f"{start}-{end}"
+        nbits = end - start + 1
+        # bits info can be a string or dict
+        if isinstance(info, str):
+            if nbits > 1:
+                raise ValueError(
+                    f"Cannot use a single information value for bits '{formatted_key}'. Use a dict instead."
+                )
+            if len(info) == 0:
+                raise ValueError(f"Value for '{bit}' must contain at least one character.")
+            formatted_info = {"1": format_bandname(info)}
+        elif isinstance(info, dict):
+            formatted_info = {}
+            for pos, value in info.items():
+                value = format_bandname(value)
+                if len(value) == 0:
+                    raise ValueError(
+                        f"Value for '{bit}' in position '{pos}' must contain at least one character."
+                    )
+                try:
+                    pos = int(pos)
+                except ValueError:
+                    raise ValueError(f"Value '{pos}' not allowed as bit information in '{bit}'.")
+                if pos >= 2**nbits:
+                    raise ValueError(f"Value '{pos}' is out of range ('{bit}').")
+                formatted_info[str(pos)] = value
+        else:
+            raise ValueError(f"Type {type(info)} not allowed as bit information. Found {info}.")
+        final_bit_info[formatted_key] = formatted_info
+    return final_bit_info
