@@ -298,6 +298,7 @@ def format_bits_info(bits_info: dict) -> dict:
             bitmask = format_bitmask(bitmask)
     """
     final_bit_info = {}
+    classes = []
     for bit, info in bits_info.items():
         parts = bit.split("-")
         start = parts[0].strip()
@@ -318,10 +319,20 @@ def format_bits_info(bits_info: dict) -> dict:
                 )
             if len(info) == 0:
                 raise ValueError(f"Value for '{bit}' must contain at least one character.")
+            if info in classes:
+                raise ValueError(
+                    f"Bits information cannot contain duplicated names. '{info}' is duplicated."
+                )
+            classes.append(info)
             formatted_info = {"1": format_bandname(info)}
         elif isinstance(info, dict):
             formatted_info = {}
             for pos, value in info.items():
+                if value in classes:
+                    raise ValueError(
+                        f"Bits information cannot contain duplicated names. '{value}' is duplicated."
+                    )
+                classes.append(value)
                 value = format_bandname(value)
                 if len(value) == 0:
                     raise ValueError(
