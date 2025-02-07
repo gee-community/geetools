@@ -267,3 +267,22 @@ def initialize_documentation():
         )
 
     pass
+
+
+def format_bandname(name: str, replacement: str = "_") -> str:
+    """Format a band name to be allowed in GEE."""
+    banned = list(".*/¿?[]{}+#$%&")
+    return str([name.replace(char, replacement) for char in banned][0])
+
+
+def format_class_info(class_info: dict) -> dict:
+    """Format the class information.
+
+    Args:
+        class_info: class information in a dict ({class value: class name})
+    """
+    final = {}
+    for class_value, class_name in class_info.items():
+        # make sure class value is an int, but store as str
+        final[str(int(class_value))] = format_bandname(class_name)
+    return final
