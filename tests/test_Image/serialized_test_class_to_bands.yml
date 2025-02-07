@@ -1,0 +1,131 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          functionInvocationValue:
+            arguments:
+              coordinates:
+                constantValue:
+                - - - -71.84476689765019
+                    - -42.81816243454466
+                  - - -71.84476689765019
+                    - -42.897690198549135
+                  - - -71.72391728827519
+                    - -42.897690198549135
+                  - - -71.72391728827519
+                    - -42.81816243454466
+              evenOdd:
+                constantValue: true
+            functionName: GeometryConstructors.Polygon
+        input:
+          functionInvocationValue:
+            arguments:
+              input:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          images:
+                            valueReference: '1'
+                        functionName: ImageCollection.fromImages
+                  functionName: ImageCollection.toBands
+              names:
+                functionInvocationValue:
+                  arguments:
+                    list:
+                      functionInvocationValue:
+                        arguments:
+                          baseAlgorithm:
+                            functionDefinitionValue:
+                              argumentNames:
+                              - _MAPPING_VAR_0_0
+                              body: '3'
+                          dropNulls:
+                            constantValue: false
+                          list:
+                            valueReference: '1'
+                        functionName: List.map
+                  functionName: List.flatten
+            functionName: Image.rename
+        scale:
+          constantValue: 10
+      functionName: Image.clipToBoundsAndScale
+  '1':
+    arrayValue:
+      values:
+      - functionInvocationValue:
+          arguments:
+            input:
+              functionInvocationValue:
+                arguments:
+                  image1:
+                    valueReference: '2'
+                  image2:
+                    functionInvocationValue:
+                      arguments:
+                        value:
+                          constantValue: 3
+                      functionName: Image.constant
+                functionName: Image.eq
+            names:
+              constantValue:
+              - shadow
+          functionName: Image.rename
+      - functionInvocationValue:
+          arguments:
+            input:
+              functionInvocationValue:
+                arguments:
+                  image1:
+                    valueReference: '2'
+                  image2:
+                    functionInvocationValue:
+                      arguments:
+                        value:
+                          constantValue: 9
+                      functionName: Image.constant
+                functionName: Image.eq
+            names:
+              constantValue:
+              - clouds_high
+          functionName: Image.rename
+      - functionInvocationValue:
+          arguments:
+            input:
+              functionInvocationValue:
+                arguments:
+                  image1:
+                    valueReference: '2'
+                  image2:
+                    functionInvocationValue:
+                      arguments:
+                        value:
+                          constantValue: 11
+                      functionName: Image.constant
+                functionName: Image.eq
+            names:
+              constantValue:
+              - snow
+          functionName: Image.rename
+  '2':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          constantValue:
+          - SCL
+        input:
+          functionInvocationValue:
+            arguments:
+              id:
+                constantValue: COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT
+            functionName: Image.load
+      functionName: Image.select
+  '3':
+    functionInvocationValue:
+      arguments:
+        image:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.bandNames
