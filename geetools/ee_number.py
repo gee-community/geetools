@@ -37,3 +37,50 @@ class NumberAccessor:
         nbDecimals = ee.Number(nbDecimals).toInt()
         factor = ee.Number(10).pow(nbDecimals)
         return self._obj.multiply(factor).toInt().divide(factor)
+
+    def isEqual(self, other: int | float | ee.Number) -> ee.Number:
+        """Check is a number is equal to another number.
+
+        Args:
+            other: The number to compare.
+
+        Returns:
+            A number with value 1 if the numbers are equal, 0 otherwise.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                n = ee.Number(1.23456).geetools.isEqual(1.23456)
+                n.getInfo()
+        """
+        return self._obj.subtract(other).eq(0)
+
+    def isClose(
+        self, other: int | float | ee.Number, tol: int | float | ee.Number = 1e-9
+    ) -> ee.Number:
+        """Check if a number is close to another number.
+
+        Args:
+            other: The number to compare.
+            tol: The tolerance to consider the numbers close.
+
+        Returns:
+            A number with value 1 if the numbers are close, 0 otherwise.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                n = ee.Number(1.23456).geetools.isClose(1.23456, 1e-5)
+                n.getInfo()
+        """
+        return self._obj.subtract(other).abs().lte(tol)
