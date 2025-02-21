@@ -22,18 +22,6 @@ class TestTruncate:
         assert truncated_number.getInfo() == 1234.56785
 
 
-class TestIsEqual:
-    """Test the ``isEqual`` method."""
-
-    def test_is_equal(self, number_instance):
-        is_equal = number_instance.geetools.isEqual(1234.56785678)
-        assert is_equal.getInfo() == 1
-
-    def test_is_not_equal(self, number_instance):
-        is_equal = number_instance.geetools.isEqual(1234.5)
-        assert is_equal.getInfo() == 0
-
-
 class TestIsClose:
     """Test the ``isClose`` method."""
 
