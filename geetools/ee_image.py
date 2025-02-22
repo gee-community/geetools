@@ -1741,7 +1741,7 @@ class ImageAccessor:
                   '10': 'cirrus'
                 }
                 image = ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
-                decoded = image.geetools.classMask(class_info, classes=["dark", "shadow"], "SCL")
+                decoded = image.geetools.classMask(class_info, classes=["dark", "shadow"], band="SCL")
                 decoded.getInfo()
         """
         masks = self.classToBands(class_info, band)
