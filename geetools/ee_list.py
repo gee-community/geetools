@@ -309,19 +309,20 @@ class ListAccessor:
                 l = l.geetools.chunked(3)
                 l.getInfo()
         """
+        size = self._obj.size()
         parts = ee.Number(parts).toInt()
-        elements = self._obj.size().divide(parts).floor()
+        elements = size.divide(parts).floor()
         inx_list = ee.List.sequence(0, parts.subtract(1))
         # last chunk
-        mod = self._obj.size().mod(elements)
-        rest = self._obj.slice(mod.multiply(-1))
+        mod = size.mod(elements)
+        rest = self._obj.slice(size.subtract(mod), size)
 
         def compute_parts(inx):
             inx = ee.Number(inx)
             start = inx.multiply(parts)
             end = start.add(elements)
             # handle last chunk (all this to avoid using ee.Algorithms.If)
-            is_last = self._obj.size().subtract(start).subtract(elements).eq(mod)
+            is_last = size.subtract(start).subtract(elements).eq(mod)
             tmp_rest = rest.map(lambda n: ee.Number(n).multiply(is_last))
             tmp_rest = tmp_rest.filter(ee.Filter.neq("item", 0))
             sl = self._obj.slice(start, end).cat(tmp_rest)

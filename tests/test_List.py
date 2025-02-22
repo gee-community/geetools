@@ -119,12 +119,14 @@ class TestJoin:
 class TestChunked:
     """Test the chunked method."""
 
-    def test_chunked_even(self):
+    def test_chunked_even(self, ee_list_regression):
         input = ee.List([1, 2, 3, 4, 5, 6, 7, 8, 9])
         chunked = input.geetools.chunked(3)
-        assert chunked.getInfo() == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        # should return -> [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        ee_list_regression.check(chunked)
 
-    def test_chunked_odd(self):
+    def test_chunked_odd(self, ee_list_regression):
         input = ee.List([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
         chunked = input.geetools.chunked(3)
-        assert chunked.getInfo() == [[1, 2, 3], [4, 5, 6], [7, 8, 9, 10]]
+        # should return -> [[1, 2, 3], [4, 5, 6], [7, 8, 9, 10]]
+        ee_list_regression.check(chunked)
