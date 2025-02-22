@@ -287,3 +287,44 @@ class ListAccessor:
         """
         indices = ee.List.sequence(0, ee.List(self._obj.get(0)).size().subtract(1))
         return indices.map(lambda i: self._obj.map(lambda j: ee.List(j).get(i)))
+
+    def chunked(self, parts: int | ee.Number) -> ee.List:
+        """Break a :py:class:`ee.List` into lists of length `parts`.
+
+        Args:
+            parts: the number of parts to get.
+
+        Returns:
+            a list of lists.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                l = ee.List([1,2,3,4,5,6,7,8,9])
+                l = l.geetools.chunked(3)
+                l.getInfo()
+        """
+        parts = ee.Number(parts).toInt()
+        elements = self._obj.size().divide(parts).floor()
+        inx_list = ee.List.sequence(0, parts.subtract(1))
+        # last chunk
+        mod = self._obj.size().mod(elements)
+        rest = self._obj.slice(mod.multiply(-1))
+
+        def compute_parts(inx):
+            inx = ee.Number(inx)
+            start = inx.multiply(parts)
+            end = start.add(elements)
+            # handle last chunk (all this to avoid using ee.Algorithms.If)
+            is_last = self._obj.size().subtract(start).subtract(elements).eq(mod)
+            tmp_rest = rest.map(lambda n: ee.Number(n).multiply(is_last))
+            tmp_rest = tmp_rest.filter(ee.Filter.neq("item", 0))
+            sl = self._obj.slice(start, end).cat(tmp_rest)
+            return sl
+
+        return ee.List(inx_list.map(compute_parts))
