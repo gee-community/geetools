@@ -1686,11 +1686,12 @@ class ImageAccessor:
             band: band that contains class information
 
         Example:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 class_info = {
                   '2': 'dark',
@@ -1700,8 +1701,9 @@ class ImageAccessor:
                   '9': 'clouds_high',
                   '10': 'cirrus'
                 }
-                image = ee.Image('ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
+                image = ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
                 decoded = image.geetools.classToBands(class_info, "SCL")
+                decoded.getInfo()
         """
         class_info = format_class_info(class_info)
         # I don't see the class info coming from the server, so it'll client side until I get challenged
@@ -1723,11 +1725,12 @@ class ImageAccessor:
             band: name of the bit band. Defaults to first band.
 
         Example:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
                 class_info = {
                   '2': 'dark',
@@ -1737,8 +1740,9 @@ class ImageAccessor:
                   '9': 'clouds_high',
                   '10': 'cirrus'
                 }
-                image = ee.Image('ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
+                image = ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
                 decoded = image.geetools.classMask(class_info, classes=["dark", "shadow"], "SCL")
+                decoded.getInfo()
         """
         masks = self.classToBands(class_info, band)
         masks = masks.select(classes) if classes else masks
