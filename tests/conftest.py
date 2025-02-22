@@ -275,3 +275,18 @@ def s2_class_image():
     This image is located in Argentina and Chile (Patagonia).
     """
     return ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
+
+
+@pytest.fixture
+def polygon_instance():
+    """Return a defined polygon instance."""
+    return ee.Geometry.Polygon(
+        [
+            [
+                [-71.84476689765019, -42.81816243454466],
+                [-71.84476689765019, -42.897690198549135],
+                [-71.72391728827519, -42.897690198549135],
+                [-71.72391728827519, -42.81816243454466],
+            ]
+        ]
+    )

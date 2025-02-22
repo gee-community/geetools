@@ -621,27 +621,17 @@ class TestMaskCover:
 class TestClassToBands:
     """Test the ``classToBands`` method."""
 
-    def test_class_to_bands(self, s2_class_image, ee_image_regression):
+    def test_class_to_bands(self, s2_class_image, polygon_instance, ee_image_regression):
         """Test the ``classToBands`` method."""
         class_info = {"3": "shadow", "9": "clouds_high", "11": "snow"}
         decoded = s2_class_image.geetools.classToBands(class_info, "SCL")
-        aoi = ee.Geometry.Polygon(
-            [
-                [
-                    [-71.84476689765019, -42.81816243454466],
-                    [-71.84476689765019, -42.897690198549135],
-                    [-71.72391728827519, -42.897690198549135],
-                    [-71.72391728827519, -42.81816243454466],
-                ]
-            ]
-        )
-        ee_image_regression.check(decoded, scale=10, region=aoi)
+        ee_image_regression.check(decoded, scale=10, region=polygon_instance)
 
 
 class TestClassMask:
     """Test the ``classMask`` method."""
 
-    def test_class_mask(self, s2_class_image, ee_image_regression):
+    def test_class_mask(self, s2_class_image, polygon_instance, ee_image_regression):
         """Test the ``classMask`` method."""
         class_info = {
             "2": "dark",
@@ -652,17 +642,7 @@ class TestClassMask:
             "10": "cirrus",
         }
         decoded = s2_class_image.geetools.classMask(class_info, band="SCL")
-        aoi = ee.Geometry.Polygon(
-            [
-                [
-                    [-71.84476689765019, -42.81816243454466],
-                    [-71.84476689765019, -42.897690198549135],
-                    [-71.72391728827519, -42.897690198549135],
-                    [-71.72391728827519, -42.81816243454466],
-                ]
-            ]
-        )
-        ee_image_regression.check(decoded, scale=10, region=aoi)
+        ee_image_regression.check(decoded, scale=10, region=polygon_instance)
 
 
 class TestPlot:
