@@ -61,7 +61,7 @@ class ExportAccessor:
                     collection = ee.ImageCollection("COPERNICUS/S2").limit(5)
 
                     # export the collection
-                    tasks = geetools.batch.Export.imagecollection.toAsset(collection, "system:index", "test export")
+                    tasks = ee.batch.Export.geetools.imagecollection.toAsset(collection, "system:index", "test export")
             """
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
@@ -127,7 +127,7 @@ class ExportAccessor:
                     collection = ee.ImageCollection("COPERNICUS/S2").limit(5)
 
                     # export the collection
-                    tasks = geetools.batch.Export.imagecollection.toDrive(collection, "system:index", "test export")
+                    tasks = ee.batch.Export.geetools.imagecollection.toDrive(collection, "system:index", "test export")
             """
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
@@ -191,7 +191,7 @@ class ExportAccessor:
                     collection = ee.ImageCollection("COPERNICUS/S2").limit(5)
 
                     # export the collection
-                    tasks = geetools.batch.Export.imagecollection.toDrive(collection, "system:index", "test export")
+                    tasks = ee.batch.Export.geetools.imagecollection.toDrive(collection, "system:index", "test export")
             """
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
