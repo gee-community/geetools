@@ -1,0 +1,24 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        features:
+          arrayValue:
+            values:
+            - functionInvocationValue:
+                arguments:
+                  geometry:
+                    functionInvocationValue:
+                      arguments:
+                        coordinates:
+                          constantValue:
+                          - -104.99404
+                          - 39.75621
+                      functionName: GeometryConstructors.Point
+                  metadata:
+                    constantValue:
+                      name: Coors Field
+                      system:index: '0'
+                functionName: Feature
+      functionName: Collection
