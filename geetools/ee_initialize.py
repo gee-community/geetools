@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-import tempfile
+import os
 from pathlib import Path
 
 import ee
@@ -20,7 +20,7 @@ class InitializeAccessor:
     """Toolbox for the ``ee.Initialize`` function."""
 
     @staticmethod
-    def from_user(name: str = "", credential_pathname: str = "", project: str = "") -> None:
+    def from_user(name: str = "", credential_pathname: str | os.PathLike = "", project: str = ""):
         """Initialize Earthengine API using a specific user.
 
         Equivalent to the :py:func:`ee.Initialize` function but with a specific credential file stored in
@@ -71,7 +71,7 @@ class InitializeAccessor:
         _project_id = project or tokens["project_id"]
 
     @staticmethod
-    def from_service_account(private_key: str) -> None:
+    def from_service_account(private_key: str):
         """Initialize Earthengine API using a service account.
 
         Equivalent to the :py:func:`ee.Initialize` function but with a specific service account json key.
@@ -92,14 +92,11 @@ class InitializeAccessor:
         # gather global variable to be modified
         global _project_id
 
-        # connect to GEE using a temp file to avoid writing the key to disk
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file = Path(temp_dir) / "private_key.json"
-            file.write_text(private_key)
-            ee_user = json.loads(private_key)["client_email"]
-            _project_id = json.loads(private_key)["project_id"]
-            credentials = ee.ServiceAccountCredentials(ee_user, str(file))
-            ee.Initialize(credentials=credentials, http_transport=httplib2.Http())
+        # connect to GEE using a ServiceAccountCredential object
+        ee_user = json.loads(private_key)["client_email"]
+        credentials = ee.ServiceAccountCredentials(ee_user, key_data=private_key)
+        _project_id = credentials.project_id
+        ee.Initialize(credentials=credentials, project=_project_id, http_transport=httplib2.Http())
 
     @staticmethod
     def project_id() -> str:

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import ee
 
@@ -88,8 +89,14 @@ class DateAccessor:
         """
         return ee.Date(datetime.now().isoformat())
 
-    def to_datetime(self) -> datetime:
+    def to_datetime(self, tz: str | ZoneInfo = ZoneInfo("UTC")) -> datetime:
         """Convert a :py:class:`ee.Date` to a :py:class:`datetime.datetime`.
+
+        Since `ee.Date` object is not timezone aware, there is no way to get
+        the timezone from it, thus it must be passed as argument.
+
+        Args:
+            tz: time zone, defaulted to "UTC". Other names can be found here: https://www.joda.org/joda-time/timezones.html
 
         Returns:
             The :py:class:`datetime.datetime` representation of the :py:class:`ee.Date`.
@@ -106,7 +113,9 @@ class DateAccessor:
                 d.strftime('%Y-%m-%d')
 
         """
-        return datetime.fromtimestamp(self._obj.millis().getInfo() / 1000.0)
+        tz = tz if isinstance(tz, ZoneInfo) else ZoneInfo(tz)
+        timestamp = self._obj.millis().getInfo() / 1000
+        return datetime.fromtimestamp(timestamp, tz=ZoneInfo("UTC")).astimezone(tz)
 
     def getUnitSinceEpoch(self, unit: str = "day") -> ee.Number:
         """Get the number of units since epoch (1970-01-01).

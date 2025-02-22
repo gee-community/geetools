@@ -18,7 +18,7 @@ class FeatureAccessor:
         """Convert a :py:class:`ee.Feature` composed of a multiGeometry geometry into a :py:class:`ee.FeatureCollection`.
 
         Returns:
-            The :py:class:`ee.FeatureCollection`
+            The :py:class:`ee.FeatureCollection`.
 
         Example:
             .. jupyter-execute::
@@ -37,14 +37,14 @@ class FeatureAccessor:
         fc = geoms.map(lambda g: self._obj.setGeometry(g))
         return ee.FeatureCollection(fc)
 
-    def removeProperties(self, properties: list | ee.List) -> ee.Feature:
+    def removeProperties(self, properties: list[str] | ee.List) -> ee.Feature:
         """Remove properties from a feature.
 
         Args:
-            properties : List of properties to remove
+            properties : List of properties to remove.
 
         Returns:
-            The feature without the properties
+            The feature without the properties.
 
         Example:
             .. jupyter-execute::
