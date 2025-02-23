@@ -21,7 +21,7 @@ from pyproj import CRS, Transformer
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
-from .utils import plot_data
+from .utils import format_bits_info, plot_data
 
 
 @register_class_accessor(ee.Image, "geetools")
@@ -1677,6 +1677,117 @@ class ImageAccessor:
         bandNames = ee.List(images).map(lambda i: ee.Image(i).bandNames()).flatten()
         ic = ee.ImageCollection.fromImages(images)
         return ic.toBands().rename(bandNames)
+
+    def bitsToBands(self, bits_info: dict, band: str | int = 0) -> ee.Image:
+        """Convert a band encoded in bits into binary bands.
+
+        Args:
+            bits_info: bits encodings information (client-side only).
+            band: name of the bit band. Defaults to first band.
+
+        Returns:
+            an image with one band per encoded bit.
+
+        Example:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ls = ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
+                bits = {
+                    '7': 'Water',
+                    '8-9': {
+                        '1': 'Low',
+                        '2': 'Medium',
+                        '3': 'High'
+                    }
+                }
+                decoded = ls.geetools.bitsToBands(bits, 'QA_PIXEL')
+        """
+        bitband = self._obj.select([band])
+        bits_info = format_bits_info(bits_info)
+        masks = []
+        for positions, values in bits_info.items():
+            start, end = positions.split("-")
+            start, end = ee.Image(int(start)), ee.Image(int(end)).add(1)
+            decoded = bitband.rightShift(end).leftShift(end).bitwiseXor(bitband).rightShift(start)
+            for position, val in values.items():
+                mask = ee.Image(int(position)).eq(decoded).rename(val)
+                masks.append(mask)
+        return ImageAccessor.fromList(masks)
+
+    def bitsMaskAll(
+        self, bits_info: dict, classes: Optional[list] = None, band: str | int = 0
+    ) -> ee.Image:
+        """Create a mask using the bits information.
+
+        Args:
+            bits_info: bits encodings information (client-side only).
+            classes: name of the classes to use for the mask. If None it will use all classes in bits_info.
+            band: name of the bit band. Defaults to first band.
+
+        Returns:
+            an image with one band named 'all_mask', with 1s where ALL classes are present and 0s where not.
+
+        Example:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ls = ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
+                bits = {
+                    '5': 'Snow',
+                    '8-9': {
+                        '1': 'Low',
+                        '2': 'Medium',
+                        '3': 'High'
+                    }
+                }
+                # Detect confusion between snow and medium probability clouds
+                mask = ls.geetools.bitsMaskAll(bits, ['Snow', 'Medium'], 'QA_PIXEL')
+        """
+        masks = self.bitsToBands(bits_info, band)
+        masks = masks.select(classes) if classes else masks
+        return masks.reduce(ee.Reducer.allNonZero()).rename("all_mask")
+
+    def bitsMaskAny(
+        self, bits_info: dict, classes: Optional[list] = None, band: str | int = 0
+    ) -> ee.Image:
+        """Create a mask using the bits information.
+
+        Args:
+            bits_info: bits encodings information (client-side only).
+            classes: name of the classes to use for the mask. If None it will use all classes in bits_info.
+            band: name of the bit band. Defaults to first band.
+
+        Returns:
+            an image with one band named 'any_mask', with 1s where ANY of the classes is present and 0s where not.
+
+        Example:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ls = ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
+                bits = {
+                    '7': 'Water',
+                    '8-9': {
+                        '1': 'Low',
+                        '2': 'Medium',
+                        '3': 'High'
+                    }
+                }
+                mask = ls.geetools.bitsMaskAny(bits, ['Water', 'High'], 'QA_PIXEL')
+        """
+        masks = self.bitsToBands(bits_info, band)
+        masks = masks.select(classes) if classes else masks
+        return masks.reduce(ee.Reducer.anyNonZero()).rename("any_mask")
 
     def byBands(
         self,
