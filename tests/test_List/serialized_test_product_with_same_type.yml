@@ -1,0 +1,66 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        list:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_2_0
+                  body: '1'
+              dropNulls:
+                constantValue: false
+              list:
+                valueReference: '4'
+            functionName: List.map
+      functionName: List.flatten
+  '1':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_0_0
+            body: '2'
+        dropNulls:
+          constantValue: false
+        list:
+          valueReference: '4'
+      functionName: List.map
+  '2':
+    functionInvocationValue:
+      arguments:
+        string1:
+          functionInvocationValue:
+            arguments:
+              input:
+                argumentReference: _MAPPING_VAR_2_0
+            functionName: String
+        string2:
+          valueReference: '3'
+      functionName: String.cat
+  '3':
+    functionInvocationValue:
+      arguments:
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: String
+  '4':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_0_0
+            body: '3'
+        dropNulls:
+          constantValue: false
+        list:
+          constantValue:
+          - a
+          - b
+          - c
+      functionName: List.map
