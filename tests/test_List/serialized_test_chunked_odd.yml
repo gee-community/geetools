@@ -3,11 +3,53 @@ values:
   '0':
     functionInvocationValue:
       arguments:
+        element:
+          functionInvocationValue:
+            arguments:
+              list:
+                functionInvocationValue:
+                  arguments:
+                    index:
+                      constantValue: -1
+                    list:
+                      valueReference: '1'
+                  functionName: List.get
+              other:
+                functionInvocationValue:
+                  arguments:
+                    end:
+                      valueReference: '6'
+                    list:
+                      valueReference: '7'
+                    start:
+                      functionInvocationValue:
+                        arguments:
+                          left:
+                            valueReference: '6'
+                          right:
+                            functionInvocationValue:
+                              arguments:
+                                left:
+                                  valueReference: '6'
+                                right:
+                                  valueReference: '5'
+                              functionName: Number.mod
+                        functionName: Number.subtract
+                  functionName: List.slice
+            functionName: List.cat
+        index:
+          constantValue: -1
+        list:
+          valueReference: '1'
+      functionName: List.set
+  '1':
+    functionInvocationValue:
+      arguments:
         baseAlgorithm:
           functionDefinitionValue:
             argumentNames:
-            - _MAPPING_VAR_1_0
-            body: '1'
+            - _MAPPING_VAR_0_0
+            body: '2'
         dropNulls:
           constantValue: false
         list:
@@ -17,7 +59,7 @@ values:
                 functionInvocationValue:
                   arguments:
                     left:
-                      valueReference: '3'
+                      valueReference: '4'
                     right:
                       constantValue: 1
                   functionName: Number.subtract
@@ -25,102 +67,55 @@ values:
                 constantValue: 0
             functionName: List.sequence
       functionName: List.map
-  '1':
-    functionInvocationValue:
-      arguments:
-        list:
-          functionInvocationValue:
-            arguments:
-              end:
-                functionInvocationValue:
-                  arguments:
-                    left:
-                      valueReference: '2'
-                    right:
-                      valueReference: '4'
-                  functionName: Number.add
-              list:
-                valueReference: '6'
-              start:
-                valueReference: '2'
-            functionName: List.slice
-        other:
-          functionInvocationValue:
-            arguments:
-              filter:
-                functionInvocationValue:
-                  arguments:
-                    filter:
-                      functionInvocationValue:
-                        arguments:
-                          leftField:
-                            constantValue: item
-                          rightValue:
-                            constantValue: 0
-                        functionName: Filter.equals
-                  functionName: Filter.not
-              list:
-                functionInvocationValue:
-                  arguments:
-                    baseAlgorithm:
-                      functionDefinitionValue:
-                        argumentNames:
-                        - _MAPPING_VAR_0_0
-                        body: '7'
-                    dropNulls:
-                      constantValue: false
-                    list:
-                      functionInvocationValue:
-                        arguments:
-                          end:
-                            valueReference: '5'
-                          list:
-                            valueReference: '6'
-                          start:
-                            functionInvocationValue:
-                              arguments:
-                                left:
-                                  valueReference: '5'
-                                right:
-                                  valueReference: '8'
-                              functionName: Number.subtract
-                        functionName: List.slice
-                  functionName: List.map
-            functionName: List.filter
-      functionName: List.cat
   '2':
     functionInvocationValue:
       arguments:
-        left:
-          argumentReference: _MAPPING_VAR_1_0
-        right:
+        end:
+          functionInvocationValue:
+            arguments:
+              left:
+                valueReference: '3'
+              right:
+                valueReference: '5'
+            functionName: Number.add
+        list:
+          valueReference: '7'
+        start:
           valueReference: '3'
-      functionName: Number.multiply
+      functionName: List.slice
   '3':
+    functionInvocationValue:
+      arguments:
+        left:
+          argumentReference: _MAPPING_VAR_0_0
+        right:
+          valueReference: '4'
+      functionName: Number.multiply
+  '4':
     functionInvocationValue:
       arguments:
         input:
           constantValue: 3
       functionName: Number.toInt
-  '4':
+  '5':
     functionInvocationValue:
       arguments:
         input:
           functionInvocationValue:
             arguments:
               left:
-                valueReference: '5'
+                valueReference: '6'
               right:
-                valueReference: '3'
+                valueReference: '4'
             functionName: Number.divide
       functionName: Number.floor
-  '5':
+  '6':
     functionInvocationValue:
       arguments:
         list:
-          valueReference: '6'
+          valueReference: '7'
       functionName: List.size
-  '6':
+  '7':
     constantValue:
     - 1
     - 2
@@ -132,37 +127,3 @@ values:
     - 8
     - 9
     - 10
-  '7':
-    functionInvocationValue:
-      arguments:
-        left:
-          argumentReference: _MAPPING_VAR_0_0
-        right:
-          functionInvocationValue:
-            arguments:
-              left:
-                functionInvocationValue:
-                  arguments:
-                    left:
-                      functionInvocationValue:
-                        arguments:
-                          left:
-                            valueReference: '5'
-                          right:
-                            valueReference: '2'
-                        functionName: Number.subtract
-                    right:
-                      valueReference: '4'
-                  functionName: Number.subtract
-              right:
-                valueReference: '8'
-            functionName: Number.eq
-      functionName: Number.multiply
-  '8':
-    functionInvocationValue:
-      arguments:
-        left:
-          valueReference: '5'
-        right:
-          valueReference: '4'
-      functionName: Number.mod

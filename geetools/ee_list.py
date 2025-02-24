@@ -321,11 +321,9 @@ class ListAccessor:
             inx = ee.Number(inx)
             start = inx.multiply(parts)
             end = start.add(elements)
-            # handle last chunk (all this to avoid using ee.Algorithms.If)
-            is_last = size.subtract(start).subtract(elements).eq(mod)
-            tmp_rest = rest.map(lambda n: ee.Number(n).multiply(is_last))
-            tmp_rest = tmp_rest.filter(ee.Filter.neq("item", 0))
-            sl = self._obj.slice(start, end).cat(tmp_rest)
+            sl = self._obj.slice(start, end)
             return sl
 
-        return ee.List(inx_list.map(compute_parts))
+        processed = ee.List(inx_list.map(compute_parts))
+        # add last chunk
+        return processed.set(-1, ee.List(processed.get(-1)).cat(rest))
