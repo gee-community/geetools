@@ -319,14 +319,14 @@ class ListAccessor:
         idxList = ee.List.sequence(0, parts.subtract(1))
 
         def compute_parts(idx: ee.Number) -> ee.List:
-            start = ee.Number(idx).multiply(parts)
+            start = ee.Number(idx).multiply(size)
             return self._obj.slice(start, start.add(size))
 
         chunked = ee.List(idxList.map(compute_parts))
 
         # add the rest of the elements (the rest of the euclidean division)
         # to the last chunk of the list.
-        rest = self._obj.slice(totalSize.subtract(totalSize.mod(size)), totalSize)
+        rest = self._obj.slice(totalSize.subtract(totalSize.mod(parts)), totalSize)
         lastChunk = ee.List(chunked.get(-1)).cat(rest)
 
         return chunked.set(-1, lastChunk)
