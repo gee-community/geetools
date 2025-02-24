@@ -1,0 +1,18 @@
+'20200101_0000':
+  gaugeQualityInfo_mean: 0.005995
+  hourlyPrecipRateGC_mean: 0.152207
+  hourlyPrecipRate_mean: 0.147741
+  observationTimeFlag_mean: -0.005505
+  satelliteInfoFlag_mean: 9426463.561311
+'20200131_0000':
+  gaugeQualityInfo_mean: 0.004548
+  hourlyPrecipRateGC_mean: 0.26215
+  hourlyPrecipRate_mean: 0.24375
+  observationTimeFlag_mean: 0.050515
+  satelliteInfoFlag_mean: 9631254.535388
+'20200301_0000':
+  gaugeQualityInfo_mean: 0.004031
+  hourlyPrecipRateGC_mean: 0.431561
+  hourlyPrecipRate_mean: 0.393217
+  observationTimeFlag_mean: 0.022673
+  satelliteInfoFlag_mean: 9465107.46433

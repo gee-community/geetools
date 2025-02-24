@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+import warnings
 from datetime import datetime as dt
 from typing import Any, Iterable
 
@@ -1005,6 +1006,7 @@ class ImageCollectionAccessor:
         reducer: str | ee.Reducer = "mean",
         unit: str = "month",
         duration: int = 1,
+        keep_original_names: bool = True,
     ) -> ee.ImageCollection:
         """Reduce the images included in the same duration interval using the provided reducer.
 
@@ -1017,6 +1019,7 @@ class ImageCollectionAccessor:
             reducer: The name of the reducer to use or a Reducer object. Default is ``"mean"``.
             unit: The unit of time to split the collection. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
             duration: The duration of each split.
+            keep_original_names: Whether to keep the original band names or not. This is a workaround to preserve older behaviour, it should disappear in the future.
 
         Returns:
             A new :py:class:`ee.ImageCollection` with the reduced images.
@@ -1044,12 +1047,32 @@ class ImageCollectionAccessor:
         # create a reducer from user parameters
         red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
 
+        # to avoid different behaviour between single and multi-band image we hard coded the
+        # band names to be suffixed with the reducer output names.
+        def outputNames(b):
+            return red.getOutputs().map(lambda o: ee.String(b).cat("_").cat(o))
+
+        bandNames = self._obj.first().bandNames().map(outputNames).flatten()
+
+        # original behaviour is keeping in the output the original band names which is not compatible with
+        # muli-output reducer for obvious reasons. We need to change this back to the original band names
+        # suffixed with the reducer output names to avoid non-regression issue we added the
+        # "keep_original_names" parameter that will be removed in downstream version
+        if keep_original_names is True and red.getOutputs().length().getInfo() == 1:
+            msg = (
+                "The `keep_original_names` parameter will be removed in future versions\n"
+                " and band names will not be renamed anymore. To keep the old behaviour, rename manually\n"
+                " the output like `ic = ic.map(lambda i: i.rename([<list of the original bands>]))`.\n"
+                " To drop this warning set the `keep_original_names` parameter to `False`."
+            )
+            warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
+            bandNames = self._obj.first().bandNames()
+
         def reduce(ic):
             ic = ee.ImageCollection(ic)
-            timeList = ic.aggregate_array("system:time_start")
-            start, end = timeList.get(0), timeList.get(-1)
+            start = ic.aggregate_min("system:time_start")
+            end = ic.aggregate_max("system:time_end")
             firstImg = ic.first()
-            bandNames = firstImg.bandNames()
             propertyNames = firstImg.propertyNames()
             image = ic.reduce(red).rename(bandNames).copyProperties(firstImg, propertyNames)
             return image.set("system:time_start", start, "system:time_end", end)
@@ -1065,7 +1088,7 @@ class ImageCollectionAccessor:
     def closestDate(self) -> ee.ImageCollection:
         """Fill masked pixels with the first valid pixel in the stack of images.
 
-        The method will for every image, fill all the pixels with the latest nono masked pixel in the stack of images.
+        The method will for every image, fill all the pixels with the latest non masked pixel in the stack of images.
         It requires the image to have a valid ``"system:time_start"`` property.
         As the imageCollection will need to be sorted limit the analysis to a reasonable number of image by filtering your data beforehand.
 
