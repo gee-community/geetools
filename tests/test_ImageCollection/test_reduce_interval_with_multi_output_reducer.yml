@@ -1,0 +1,33 @@
+'20200101_0000':
+  gaugeQualityInfo_max: 0.006202
+  gaugeQualityInfo_min: 0.002067
+  hourlyPrecipRateGC_max: 1.536121
+  hourlyPrecipRateGC_min: 0
+  hourlyPrecipRate_max: 7.068796
+  hourlyPrecipRate_min: 0
+  observationTimeFlag_max: 5.425659
+  observationTimeFlag_min: -5.981587
+  satelliteInfoFlag_max: 134217733
+  satelliteInfoFlag_min: -1
+'20200131_0000':
+  gaugeQualityInfo_max: 0.006202
+  gaugeQualityInfo_min: 0.002067
+  hourlyPrecipRateGC_max: 4.055826
+  hourlyPrecipRateGC_min: 0
+  hourlyPrecipRate_max: 7.90424
+  hourlyPrecipRate_min: 0
+  observationTimeFlag_max: 4.897762
+  observationTimeFlag_min: -5.244269
+  satelliteInfoFlag_max: 134217733
+  satelliteInfoFlag_min: -1
+'20200301_0000':
+  gaugeQualityInfo_max: 0.006202
+  gaugeQualityInfo_min: 0.002067
+  hourlyPrecipRateGC_max: 6.465589
+  hourlyPrecipRateGC_min: 0
+  hourlyPrecipRate_max: 10.038375
+  hourlyPrecipRate_min: 0
+  observationTimeFlag_max: 5.381519
+  observationTimeFlag_min: -5.264098
+  satelliteInfoFlag_max: 134217730.322997
+  satelliteInfoFlag_min: -1

@@ -1,63 +1,63 @@
 """Test the List class methods."""
 import ee
 
-import geetools  # noqa:F401
+import geetools  # noqa: F401
 
 
 class TestProduct:
     """Test the product method."""
 
-    def test_product_with_same_type(self, letter_list, data_regression):
+    def test_product_with_same_type(self, letter_list, ee_list_regression):
         product_list = letter_list.geetools.product(letter_list)
-        data_regression.check(product_list.getInfo())
+        ee_list_regression.check(product_list, prescision=4)
 
-    def test_product_with_different_type(self, letter_list, int_list, data_regression):
+    def test_product_with_different_type(self, letter_list, int_list, ee_list_regression):
         product_list = letter_list.geetools.product(int_list)
-        data_regression.check(product_list.getInfo())
+        ee_list_regression.check(product_list, prescision=4)
 
 
 class TestComplement:
     """Test the complement method."""
 
-    def test_complement_with_same_type(self, letter_list, data_regression):
+    def test_complement_with_same_type(self, letter_list, ee_list_regression):
         complement_list = letter_list.geetools.complement(letter_list)
-        data_regression.check(complement_list.getInfo())
+        ee_list_regression.check(complement_list, prescision=4)
 
-    def test_complement_with_different_type(self, letter_list, int_list, data_regression):
+    def test_complement_with_different_type(self, letter_list, int_list, ee_list_regression):
         complement_list = letter_list.geetools.complement(int_list)
-        data_regression.check(complement_list.getInfo())
+        ee_list_regression.check(complement_list, prescision=4)
 
 
 class TestIntersection:
     """Test the intersection method."""
 
-    def test_intersection_with_same_type(self, letter_list, data_regression):
+    def test_intersection_with_same_type(self, letter_list, ee_list_regression):
         intersection_list = letter_list.geetools.intersection(letter_list)
-        data_regression.check(intersection_list.getInfo())
+        ee_list_regression.check(intersection_list, prescision=4)
 
-    def test_intersection_with_different_type(self, letter_list, int_list, data_regression):
+    def test_intersection_with_different_type(self, letter_list, int_list, ee_list_regression):
         intersection_list = letter_list.geetools.intersection(int_list)
-        data_regression.check(intersection_list.getInfo())
+        ee_list_regression.check(intersection_list, prescision=4)
 
 
 class TestUnion:
     """Test the union method."""
 
-    def test_union_with_duplicate(self, letter_list, data_regression):
+    def test_union_with_duplicate(self, letter_list, ee_list_regression):
         union_list = letter_list.geetools.union(letter_list)
-        data_regression.check(union_list.getInfo())
+        ee_list_regression.check(union_list, prescision=4)
 
-    def test_union_without_dupplicates(self, letter_list, int_list, data_regression):
+    def test_union_without_dupplicates(self, letter_list, int_list, ee_list_regression):
         union_list = letter_list.geetools.union(int_list)
-        data_regression.check(union_list.getInfo())
+        ee_list_regression.check(union_list, prescision=4)
 
 
 class TestDelete:
     """Test the delete method."""
 
-    def test_delete(self, letter_list, data_regression):
+    def test_delete(self, letter_list, ee_list_regression):
         deleted_list = letter_list.geetools.delete(1)
-        data_regression.check(deleted_list.getInfo())
+        ee_list_regression.check(deleted_list, prescision=4)
 
 
 class TestSequence:
@@ -83,17 +83,17 @@ class TestSequence:
 class TestReplaceMany:
     """Test the replaceMany method."""
 
-    def test_replace_many(self, letter_list, data_regression):
+    def test_replace_many(self, letter_list, ee_list_regression):
         replaced_list = letter_list.geetools.replaceMany({"a": "foo", "c": "bar"})
-        data_regression.check(replaced_list.getInfo())
+        ee_list_regression.check(replaced_list, prescision=4)
 
 
 class TestZip:
     """Test the zip method."""
 
-    def test_zip(self, letter_list, data_regression):
+    def test_zip(self, letter_list, ee_list_regression):
         zipped_list = ee.List([letter_list, letter_list]).geetools.zip()
-        data_regression.check(zipped_list.getInfo())
+        ee_list_regression.check(zipped_list, prescision=4)
 
 
 class TestToStrings:

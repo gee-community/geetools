@@ -2,17 +2,19 @@
 import ee
 import pytest
 
+import geetools  # noqa: F401
+
 
 class TestByProperty:
     """Test the ``byProperty`` method."""
 
-    def test_by_property(self, fc1, fc2, data_regression):
+    def test_by_property(self, fc1, fc2, ee_feature_collection_regression):
         joined = ee.Join.geetools.byProperty(fc1, fc2, "id")
-        data_regression.check(joined.getInfo())
+        ee_feature_collection_regression.check(joined, prescision=4)
 
-    def test_by_property_outer(self, fc1, fc2, data_regression):
+    def test_by_property_outer(self, fc1, fc2, ee_feature_collection_regression):
         joined = ee.Join.geetools.byProperty(fc1, fc2, "id", outer=True)
-        data_regression.check(joined.getInfo())
+        ee_feature_collection_regression.check(joined, prescision=4)
 
     @pytest.fixture
     def fc1(self):
