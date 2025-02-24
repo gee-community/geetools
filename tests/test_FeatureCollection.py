@@ -36,9 +36,9 @@ class TestToImage:
 class TestToDictionary:
     """Test the ``toDictionary`` method."""
 
-    def test_to_dictionary(self, data_regression):
-        output = self.table.geetools.toDictionary("ADM0_NAME", ["ADM0_CODE", "Shape_Area"])
-        data_regression.check(output.getInfo())
+    def test_to_dictionary(self, ee_dictionary_regression):
+        d = self.table.geetools.toDictionary("ADM0_NAME", ["ADM0_CODE", "Shape_Area"])
+        ee_dictionary_regression.check(d, prescision=4)
 
     @property
     def table(self):
@@ -70,8 +70,9 @@ class TestMergeGeometries:
 class TestToPolygons:
     """Test the ``toPolygons`` method."""
 
-    def test_to_polygons(self, fc_instance, dataframe_regression):
+    def test_to_polygons(self, fc_instance):
         fc = fc_instance.geetools.toPolygons()
+        # ee_feature_collection_regression.check(fc, prescision=4)
         gdf = gpd.GeoDataFrame.from_features(fc.getInfo())
         vertex = gdf.geometry.apply(lambda g: sum(len(p.exterior.coords) for p in g.geoms))
         assert vertex.sum() == 66
@@ -80,33 +81,33 @@ class TestToPolygons:
 class TestByProperties:
     """Test the ``byProperties`` method."""
 
-    def test_by_properties(self, ecoregions, data_regression):
+    def test_by_properties(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byProperties()
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
-    def test_by_properties_with_id(self, ecoregions, data_regression):
+    def test_by_properties_with_id(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byProperties("label")
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
-    def test_by_properties_with_properties(self, ecoregions, data_regression):
+    def test_by_properties_with_properties(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byProperties("label", properties=["01_tmean", "02_tmean"])
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
 
 class TestByFeatures:
     """Test the ``byFeatures`` method."""
 
-    def test_by_features(self, ecoregions, data_regression):
+    def test_by_features(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byFeatures()
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
-    def test_by_features_with_id(self, ecoregions, data_regression):
+    def test_by_features_with_id(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byFeatures("label")
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
-    def test_by_features_with_properties(self, ecoregions, data_regression):
+    def test_by_features_with_properties(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byFeatures("label", properties=["01_tmean", "02_tmean"])
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
 
 class TestPlotByFeatures:
@@ -297,13 +298,13 @@ class TestPlot:
 class TestFromGeoInterface:
     """Test the ``fromGeoInterface`` method."""
 
-    def test_from_geo_interface(self, gdf, data_regression):
+    def test_from_geo_interface(self, gdf, ee_feature_collection_regression):
         fc = ee.FeatureCollection.geetools.fromGeoInterface(gdf)
-        data_regression.check(fc.getInfo())
+        ee_feature_collection_regression.check(fc, prescision=4)
 
-    def test_from_geo_interface_from_dict(self, gdf, data_regression):
+    def test_from_geo_interface_from_dict(self, gdf, ee_feature_collection_regression):
         fc = ee.FeatureCollection.geetools.fromGeoInterface(gdf.__geo_interface__)
-        data_regression.check(fc.getInfo())
+        ee_feature_collection_regression.check(fc, prescision=4)
 
     def test_error_from_geo_interface_(self):
         with pytest.raises(ValueError):

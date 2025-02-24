@@ -1,0 +1,23 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        list:
+          valueReference: '1'
+        other:
+          valueReference: '1'
+      functionName: List.cat
+  '1':
+    functionInvocationValue:
+      arguments:
+        list:
+          valueReference: '2'
+        other:
+          valueReference: '2'
+      functionName: List.removeAll
+  '2':
+    constantValue:
+    - a
+    - b
+    - c
