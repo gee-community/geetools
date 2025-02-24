@@ -309,21 +309,24 @@ class ListAccessor:
                 l = l.geetools.chunked(3)
                 l.getInfo()
         """
-        size = self._obj.size()
+        # parse the user parameters
         parts = ee.Number(parts).toInt()
-        elements = size.divide(parts).floor()
-        inx_list = ee.List.sequence(0, parts.subtract(1))
-        # last chunk
-        mod = size.mod(elements)
-        rest = self._obj.slice(size.subtract(mod), size)
+        totalSize = self._obj.size()
 
-        def compute_parts(inx):
-            inx = ee.Number(inx)
-            start = inx.multiply(parts)
-            end = start.add(elements)
-            sl = self._obj.slice(start, end)
-            return sl
+        # create a list of list of fixed sized elements corresponding of the
+        # euclidean division of the object length by the number of parts
+        size = totalSize.divide(parts).floor()
+        idxList = ee.List.sequence(0, parts.subtract(1))
 
-        processed = ee.List(inx_list.map(compute_parts))
-        # add last chunk
-        return processed.set(-1, ee.List(processed.get(-1)).cat(rest))
+        def compute_parts(idx: ee.Number) -> ee.List:
+            start = ee.Number(idx).multiply(parts)
+            return self._obj.slice(start, start.add(size))
+
+        chunked = ee.List(idxList.map(compute_parts))
+
+        # add the rest of the elements (the rest of the euclidean division)
+        # to the last chunk of the list.
+        rest = self._obj.slice(totalSize.subtract(totalSize.mod(size)), totalSize)
+        lastChunk = ee.List(chunked.get(-1)).cat(rest)
+
+        return chunked.set(-1, lastChunk)
