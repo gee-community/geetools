@@ -644,7 +644,7 @@ values:
           valueReference: '12'
       functionName: String.cat
   '4':
-    constantValue: 099c1b58286a41b283186451f450ed8e
+    constantValue: e111a832549349c789854cbda32c5184
   '5':
     functionInvocationValue:
       arguments:
@@ -707,32 +707,20 @@ values:
               value:
                 functionInvocationValue:
                   arguments:
-                    index:
-                      constantValue: 0
-                    list:
-                      functionInvocationValue:
-                        arguments:
-                          collection:
-                            argumentReference: _MAPPING_VAR_2_0
-                          property:
-                            valueReference: '7'
-                        functionName: AggregateFeatureCollection.array
-                  functionName: List.get
+                    collection:
+                      argumentReference: _MAPPING_VAR_2_0
+                    property:
+                      valueReference: '7'
+                  functionName: AggregateFeatureCollection.min
             functionName: Element.set
         value:
           functionInvocationValue:
             arguments:
-              index:
-                constantValue: -1
-              list:
-                functionInvocationValue:
-                  arguments:
-                    collection:
-                      argumentReference: _MAPPING_VAR_2_0
-                    property:
-                      valueReference: '6'
-                  functionName: AggregateFeatureCollection.array
-            functionName: List.get
+              collection:
+                argumentReference: _MAPPING_VAR_2_0
+              property:
+                valueReference: '6'
+            functionName: AggregateFeatureCollection.max
       functionName: Element.set
   '6':
     constantValue: system:time_end

@@ -1070,8 +1070,8 @@ class ImageCollectionAccessor:
 
         def reduce(ic):
             ic = ee.ImageCollection(ic)
-            start = ic.aggregate_array("system:time_start").get(0)
-            end = ic.aggregate_array("system:time_end").get(-1)
+            start = ic.aggregate_min("system:time_start")
+            end = ic.aggregate_max("system:time_end")
             firstImg = ic.first()
             propertyNames = firstImg.propertyNames()
             image = ic.reduce(red).rename(bandNames).copyProperties(firstImg, propertyNames)
@@ -1088,7 +1088,7 @@ class ImageCollectionAccessor:
     def closestDate(self) -> ee.ImageCollection:
         """Fill masked pixels with the first valid pixel in the stack of images.
 
-        The method will for every image, fill all the pixels with the latest nono masked pixel in the stack of images.
+        The method will for every image, fill all the pixels with the latest non masked pixel in the stack of images.
         It requires the image to have a valid ``"system:time_start"`` property.
         As the imageCollection will need to be sorted limit the analysis to a reasonable number of image by filtering your data beforehand.
 
