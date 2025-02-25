@@ -114,3 +114,19 @@ class TestJoin:
     def test_join_with_separator(self, mix_list):
         formatted = mix_list.geetools.join(separator="; ")
         assert formatted.getInfo() == "a; 1; Image"
+
+
+class TestChunked:
+    """Test the chunked method."""
+
+    def test_chunked_even(self, ee_list_regression):
+        input = ee.List([1, 2, 3, 4, 5, 6, 7, 8])
+        chunked = input.geetools.chunked(4)
+        # should return -> [[1, 2], [3, 4], [5, 6], [7, 8]]
+        ee_list_regression.check(chunked)
+
+    def test_chunked_odd(self, ee_list_regression):
+        input = ee.List([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        chunked = input.geetools.chunked(4)
+        # should return -> [[1, 2], [3, 4], [5, 6], [7, 8, 9]]
+        ee_list_regression.check(chunked)
