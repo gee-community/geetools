@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "geetools"
-version = "1.12.0"
+version = "1.13.0"
 description = "A collection of tools to work with Google Earth Engine Python API"
 keywords = [
   "python",
@@ -63,7 +63,7 @@ Homepage = "https://github.com/gee-community/geetools"
     "httplib2",
     "pytest-regressions",
     "Pillow",
-    "pytest-gee>=0.4.0", # get the special regressions
+    "pytest-gee>=0.6.0", # get the serialized regressions
     "jsonschema",
 ]
 doc = [
@@ -126,7 +126,7 @@ branch = true
 [tool.commitizen]
 tag_format = "v$major.$minor.$patch$prerelease"
 update_changelog_on_bump = false
-version = "1.12.0"
+version = "1.13.0"
 version_files = [
     "pyproject.toml:version",
     "geetools/__init__.py:__version__",

@@ -78,6 +78,16 @@ def s2_sr(amazonas) -> ee.ImageCollection:
 
 
 @pytest.fixture
+def aster(vatican) -> ee.ImageCollection:
+    """Aster collection in Vatican City for year 2020."""
+    return (
+        ee.ImageCollection("ASTER/AST_L1T_003")
+        .filterBounds(vatican.geometry())
+        .filterDate("2020-01-01", "2021-01-01")
+    )
+
+
+@pytest.fixture
 def vatican():
     """Return the vatican city."""
     level0 = ee.FeatureCollection("FAO/GAUL/2015/level0")
@@ -275,3 +285,26 @@ def l9_cloudy_image():
     This image is located in Argentina and Chile (Patagonia).
     """
     return ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
+
+
+def s2_class_image():
+    """A Sentinel 2 image that contains clouds, shadows, water and snow.
+
+    This image is located in Argentina and Chile (Patagonia).
+    """
+    return ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
+
+
+@pytest.fixture
+def polygon_instance():
+    """Return a defined polygon instance."""
+    return ee.Geometry.Polygon(
+        [
+            [
+                [-71.84476689765019, -42.81816243454466],
+                [-71.84476689765019, -42.897690198549135],
+                [-71.72391728827519, -42.897690198549135],
+                [-71.72391728827519, -42.81816243454466],
+            ]
+        ]
+    )

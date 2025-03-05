@@ -287,3 +287,46 @@ class ListAccessor:
         """
         indices = ee.List.sequence(0, ee.List(self._obj.get(0)).size().subtract(1))
         return indices.map(lambda i: self._obj.map(lambda j: ee.List(j).get(i)))
+
+    def chunked(self, parts: int | ee.Number) -> ee.List:
+        """Break a :py:class:`ee.List` into lists of length `parts`.
+
+        Args:
+            parts: the number of parts to get.
+
+        Returns:
+            a list of lists.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                l = ee.List([1,2,3,4,5,6,7,8,9])
+                l = l.geetools.chunked(3)
+                l.getInfo()
+        """
+        # parse the user parameters
+        parts = ee.Number(parts).toInt()
+        totalSize = self._obj.size()
+
+        # create a list of list of fixed sized elements corresponding of the
+        # euclidean division of the object length by the number of parts
+        size = totalSize.divide(parts).floor()
+        idxList = ee.List.sequence(0, parts.subtract(1))
+
+        def compute_parts(idx: ee.Number) -> ee.List:
+            start = ee.Number(idx).multiply(size)
+            return self._obj.slice(start, start.add(size))
+
+        chunked = ee.List(idxList.map(compute_parts))
+
+        # add the rest of the elements (the rest of the euclidean division)
+        # to the last chunk of the list.
+        rest = self._obj.slice(totalSize.subtract(totalSize.mod(parts)), totalSize)
+        lastChunk = ee.List(chunked.get(-1)).cat(rest)
+
+        return chunked.set(-1, lastChunk)

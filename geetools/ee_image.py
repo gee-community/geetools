@@ -21,7 +21,7 @@ from pyproj import CRS, Transformer
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
-from .utils import format_bits_info, plot_data
+from .utils import format_bits_info, format_class_info, plot_data
 
 
 @register_class_accessor(ee.Image, "geetools")
@@ -1788,6 +1788,76 @@ class ImageAccessor:
         masks = self.bitsToBands(bits_info, band)
         masks = masks.select(classes) if classes else masks
         return masks.reduce(ee.Reducer.anyNonZero()).rename("any_mask")
+
+    def classToBands(self, class_info: dict, band: str | int = 0) -> ee.Image:
+        """Convert each class into a separate binary mask.
+
+        Args:
+            class_info: class information.
+            band: band that contains class information
+
+        Example:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                class_info = {
+                  '2': 'dark',
+                  '3': 'shadow',
+                  '7': 'clouds_low',
+                  '8': 'clouds_mid',
+                  '9': 'clouds_high',
+                  '10': 'cirrus'
+                }
+                image = ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
+                decoded = image.geetools.classToBands(class_info, "SCL")
+                decoded.getInfo()
+        """
+        class_info = format_class_info(class_info)
+        # I don't see the class info coming from the server, so it'll client side until I get challenged
+        images = []
+        for class_value, class_name in class_info.items():
+            class_value = int(class_value)
+            mask = self._obj.select([band]).eq(class_value).rename(class_name)
+            images.append(mask)
+        return self.fromList(images)
+
+    def classMask(self, class_info: dict, classes: Optional[list] = None, band: str | int = 0):
+        """Create a mask using the class information.
+
+         In this case there is no option for "all" or "any" because class bands cannot contain 2 classes in the same pixel value.
+
+        Args:
+            class_info: class information (client-side only).
+            classes: name of the classes to use for the mask. If None it will use all classes in bits_info.
+            band: name of the bit band. Defaults to first band.
+
+        Example:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                class_info = {
+                  '2': 'dark',
+                  '3': 'shadow',
+                  '7': 'clouds_low',
+                  '8': 'clouds_mid',
+                  '9': 'clouds_high',
+                  '10': 'cirrus'
+                }
+                image = ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
+                decoded = image.geetools.classMask(class_info, classes=["dark", "shadow"], band="SCL")
+                decoded.getInfo()
+        """
+        masks = self.classToBands(class_info, band)
+        masks = masks.select(classes) if classes else masks
+        return masks.reduce(ee.Reducer.anyNonZero()).rename("mask")
 
     def byBands(
         self,

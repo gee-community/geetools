@@ -1,0 +1,56 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        destination:
+          functionInvocationValue:
+            arguments:
+              geometry:
+                functionInvocationValue:
+                  arguments:
+                    feature:
+                      valueReference: '1'
+                  functionName: Feature.geometry
+            functionName: Feature
+        exclude:
+          arrayValue:
+            values:
+            - valueReference: '3'
+        source:
+          valueReference: '1'
+      functionName: Element.copyProperties
+  '1':
+    functionInvocationValue:
+      arguments:
+        key:
+          valueReference: '2'
+        object:
+          functionInvocationValue:
+            arguments:
+              key:
+                valueReference: '3'
+              object:
+                functionInvocationValue:
+                  arguments:
+                    geometry:
+                      functionInvocationValue:
+                        arguments:
+                          coordinates:
+                            constantValue:
+                            - - 0
+                              - 0
+                            - - 0
+                              - 1
+                        functionName: GeometryConstructors.MultiPoint
+                  functionName: Feature
+              value:
+                valueReference: '2'
+            functionName: Element.set
+        value:
+          valueReference: '3'
+      functionName: Element.set
+  '2':
+    constantValue: bar
+  '3':
+    constantValue: foo

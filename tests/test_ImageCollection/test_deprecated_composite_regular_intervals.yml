@@ -1,0 +1,18 @@
+'20200101_0000':
+  gaugeQualityInfo: 0.006202
+  hourlyPrecipRate: 0.199016
+  hourlyPrecipRateGC: 0.2462
+  observationTimeFlag: -0.160625
+  satelliteInfoFlag: 8172316.590439
+'20200102_0000':
+  gaugeQualityInfo: 0.006202
+  hourlyPrecipRate: 0.139738
+  hourlyPrecipRateGC: 0.125355
+  observationTimeFlag: -0.076046
+  satelliteInfoFlag: 10486747.044832
+'20200103_0000':
+  gaugeQualityInfo: 0.005213
+  hourlyPrecipRate: 0.034242
+  hourlyPrecipRateGC: 0.028368
+  observationTimeFlag: 0.212139
+  satelliteInfoFlag: 12111611.320593

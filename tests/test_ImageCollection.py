@@ -238,6 +238,12 @@ class TestContainsBandNames:
         ic = ic.geetools.containsAllBands(["B2", "B3"])
         assert ic.size().getInfo() == 2449
 
+    def test_contains_all_property_name(self, aster):
+        ic = aster.geetools.containsAllBands(
+            ["B3N", "B02", "B01"], bandNamesProperty="ORIGINAL_BANDS_PRESENT"
+        )
+        assert ic.size().getInfo() == 2
+
     def test_contains_all_mismatch(self, s2_sr):
         ic = s2_sr.select(["B2", "B3", "B4"])
         ic = ic.geetools.containsAllBands(["B2", "B3", "B5"])
@@ -247,6 +253,12 @@ class TestContainsBandNames:
         ic = s2_sr.select(["B2", "B3", "B4"])
         ic = ic.geetools.containsAnyBands(["B2", "B3", "B5"])
         assert ic.size().getInfo() == 2449
+
+    def test_contains_any_property_name(self, aster):
+        ic = aster.geetools.containsAnyBands(
+            ["B3N", "B02", "B01"], bandNamesProperty="ORIGINAL_BANDS_PRESENT"
+        )
+        assert ic.size().getInfo() == 2
 
     def test_contains_any_mismatch(self, s2_sr):
         ic = s2_sr.select(["B2", "B3", "B4"])
@@ -325,22 +337,43 @@ class TestGroupInterval:
 class TestReduceInterval:
     """Test the ``reduceInterval`` method."""
 
-    def test_reduce_interval(self, jaxa_rainfall, amazonas, num_regression):
+    def test_reduce_interval_properties(self, jaxa_rainfall, data_regression):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         reduced = ic.geetools.reduceInterval()
-        values = {
-            k: np.nan if v is None else v for k, v in reduce(reduced, amazonas).getInfo().items()
-        }
-        num_regression.check(values)
+        data_regression.check(reduced.getInfo())
 
-    def test_reduce_interval_with_reducer(self, jaxa_rainfall, amazonas, num_regression):
+    def test_reduce_interval(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        reduced = ic.geetools.reduceInterval()
+        values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+        ee_dictionary_regression.check(values)
+
+    def test_reduce_interval_without_original_names(
+        self, jaxa_rainfall, amazonas, ee_dictionary_regression
+    ):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        reduced = ic.geetools.reduceInterval(keep_original_names=False)
+        values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+        ee_dictionary_regression.check(values)
+
+    def test_reduce_interval_with_reducer(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         reduced = ic.geetools.reduceInterval("max")
-        values = reduce(reduced, amazonas).getInfo()
-        values = {k: np.nan if v is None else v for k, v in values.items()}
-        num_regression.check(values)
+        values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+        ee_dictionary_regression.check(values)
+
+    def test_reduce_interval_with_multi_output_reducer(
+        self, jaxa_rainfall, amazonas, ee_dictionary_regression
+    ):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        reduced = ic.geetools.reduceInterval(ee.Reducer.minMax())
+        values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+        ee_dictionary_regression.check(values)
 
     def test_reduce_interval_with_non_existing_reducer_and_properties(self, jaxa_rainfall):
         # get 3 month worth of data and group it with default parameters
@@ -364,41 +397,43 @@ class TestReduceInterval:
         firstImg = ic.first()
         assert "system:id" in firstImg.propertyNames().getInfo()
 
-    def test_deprecated_reduce_equal_interval(self, jaxa_rainfall, amazonas, num_regression):
+    def test_deprecated_reduce_equal_interval(
+        self, jaxa_rainfall, amazonas, ee_dictionary_regression
+    ):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         with pytest.deprecated_call():
             reduced = geetools.imagecollection.reduceEqualInterval(ic, reducer="mean")
-            values = reduce(reduced, amazonas).getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
+            values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+            ee_dictionary_regression.check(values)
 
-    def test_deprecated_reduce_day_intervals(self, jaxa_rainfall, amazonas, num_regression):
+    def test_deprecated_reduce_day_intervals(
+        self, jaxa_rainfall, amazonas, ee_dictionary_regression
+    ):
         # get 3 days worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
         with pytest.deprecated_call():
             reduced = geetools.imagecollection.reduceDayIntervals(ic, reducer="mean")
-            values = reduce(reduced, amazonas).getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
+            values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+            ee_dictionary_regression.check(values)
 
-    def test_deprecated_composite_regular_intervals(self, jaxa_rainfall, amazonas, num_regression):
+    def test_deprecated_composite_regular_intervals(
+        self, jaxa_rainfall, amazonas, ee_dictionary_regression
+    ):
         # get 3 days worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
         with pytest.deprecated_call():
             reduced = geetools.composite.compositeRegularIntervals(ic, unit="day")
-            values = reduce(reduced, amazonas).getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
+            values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+            ee_dictionary_regression.check(values)
 
-    def test_deprecated_composite_by_month(self, jaxa_rainfall, amazonas, num_regression):
+    def test_deprecated_composite_by_month(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-01")
         with pytest.deprecated_call():
             reduced = geetools.composite.compositeByMonth(ic)
-            values = reduce(reduced, amazonas).getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
+            values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+            ee_dictionary_regression.check(values)
 
 
 class TestClosestDate:

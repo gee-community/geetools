@@ -1,0 +1,695 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        keys:
+          valueReference: '1'
+        values:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_10_0
+                  body: '23'
+              dropNulls:
+                constantValue: false
+              list:
+                valueReference: '1'
+            functionName: List.map
+      functionName: Dictionary.fromLists
+  '1':
+    functionInvocationValue:
+      arguments:
+        list:
+          functionInvocationValue:
+            arguments:
+              collection:
+                valueReference: '2'
+              property:
+                valueReference: '4'
+            functionName: AggregateFeatureCollection.array
+      functionName: List.distinct
+  '10':
+    functionInvocationValue:
+      arguments:
+        collection:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Collection.first
+  '11':
+    functionInvocationValue:
+      arguments:
+        destination:
+          argumentReference: _MAPPING_VAR_0_0
+        properties:
+          functionInvocationValue:
+            arguments:
+              element:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      valueReference: '12'
+                  functionName: Collection.first
+            functionName: Element.propertyNames
+        source:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Element.copyProperties
+  '12':
+    functionInvocationValue:
+      arguments:
+        collection:
+          valueReference: '9'
+        key:
+          valueReference: '7'
+      functionName: Collection.limit
+  '13':
+    constantValue: __geetools_generated_size__
+  '14':
+    functionInvocationValue:
+      arguments:
+        key:
+          valueReference: '13'
+        object:
+          argumentReference: _MAPPING_VAR_0_0
+        value:
+          functionInvocationValue:
+            arguments:
+              collection:
+                argumentReference: _MAPPING_VAR_0_0
+            functionName: Collection.size
+      functionName: Element.set
+  '15':
+    functionInvocationValue:
+      arguments:
+        collection:
+          valueReference: '12'
+        filter:
+          functionInvocationValue:
+            arguments:
+              leftValue:
+                functionInvocationValue:
+                  arguments:
+                    end:
+                      functionInvocationValue:
+                        arguments:
+                          dateRange:
+                            valueReference: '16'
+                        functionName: DateRange.end
+                    start:
+                      functionInvocationValue:
+                        arguments:
+                          dateRange:
+                            valueReference: '16'
+                        functionName: DateRange.start
+                  functionName: DateRange
+              rightField:
+                valueReference: '7'
+            functionName: Filter.dateRangeContains
+      functionName: Collection.filter
+  '16':
+    functionInvocationValue:
+      arguments:
+        start:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: DateRange
+  '17':
+    functionInvocationValue:
+      arguments:
+        end:
+          functionInvocationValue:
+            arguments:
+              index:
+                functionInvocationValue:
+                  arguments:
+                    left:
+                      argumentReference: _MAPPING_VAR_0_0
+                    right:
+                      constantValue: 1
+                  functionName: Number.add
+              list:
+                valueReference: '18'
+            functionName: List.get
+        start:
+          functionInvocationValue:
+            arguments:
+              index:
+                argumentReference: _MAPPING_VAR_0_0
+              list:
+                valueReference: '18'
+            functionName: List.get
+      functionName: DateRange
+  '18':
+    functionInvocationValue:
+      arguments:
+        list:
+          functionInvocationValue:
+            arguments:
+              element:
+                functionInvocationValue:
+                  arguments:
+                    input:
+                      valueReference: '19'
+                  functionName: Number.toFloat
+              list:
+                functionInvocationValue:
+                  arguments:
+                    end:
+                      valueReference: '19'
+                    start:
+                      functionInvocationValue:
+                        arguments:
+                          date:
+                            functionInvocationValue:
+                              arguments:
+                                dateRange:
+                                  valueReference: '20'
+                              functionName: DateRange.start
+                        functionName: Date.millis
+                    step:
+                      functionInvocationValue:
+                        arguments:
+                          left:
+                            functionInvocationValue:
+                              arguments:
+                                input:
+                                  constantValue: 1
+                              functionName: Number.toInt
+                          right:
+                            constantValue: 86400000
+                        functionName: Number.multiply
+                  functionName: List.sequence
+            functionName: List.add
+      functionName: List.distinct
+  '19':
+    functionInvocationValue:
+      arguments:
+        date:
+          functionInvocationValue:
+            arguments:
+              dateRange:
+                valueReference: '20'
+            functionName: DateRange.end
+      functionName: Date.millis
+  '2':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_0_0
+            body: '3'
+        collection:
+          functionInvocationValue:
+            arguments:
+              collection:
+                functionInvocationValue:
+                  arguments:
+                    destination:
+                      functionInvocationValue:
+                        arguments:
+                          images:
+                            functionInvocationValue:
+                              arguments:
+                                baseAlgorithm:
+                                  functionDefinitionValue:
+                                    argumentNames:
+                                    - _MAPPING_VAR_0_0
+                                    body: '5'
+                                dropNulls:
+                                  constantValue: false
+                                list:
+                                  functionInvocationValue:
+                                    arguments:
+                                      baseAlgorithm:
+                                        functionDefinitionValue:
+                                          argumentNames:
+                                          - _MAPPING_VAR_0_0
+                                          body: '11'
+                                      dropNulls:
+                                        constantValue: false
+                                      list:
+                                        functionInvocationValue:
+                                          arguments:
+                                            filter:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  leftField:
+                                                    valueReference: '13'
+                                                  rightValue:
+                                                    constantValue: 0
+                                                functionName: Filter.greaterThan
+                                            list:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  baseAlgorithm:
+                                                    functionDefinitionValue:
+                                                      argumentNames:
+                                                      - _MAPPING_VAR_0_0
+                                                      body: '14'
+                                                  dropNulls:
+                                                    constantValue: false
+                                                  list:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        baseAlgorithm:
+                                                          functionDefinitionValue:
+                                                            argumentNames:
+                                                            - _MAPPING_VAR_0_0
+                                                            body: '15'
+                                                        dropNulls:
+                                                          constantValue: false
+                                                        list:
+                                                          functionInvocationValue:
+                                                            arguments:
+                                                              baseAlgorithm:
+                                                                functionDefinitionValue:
+                                                                  argumentNames:
+                                                                  - _MAPPING_VAR_0_0
+                                                                  body: '17'
+                                                              dropNulls:
+                                                                constantValue: false
+                                                              list:
+                                                                functionInvocationValue:
+                                                                  arguments:
+                                                                    end:
+                                                                      functionInvocationValue:
+                                                                        arguments:
+                                                                          left:
+                                                                            functionInvocationValue:
+                                                                              arguments:
+                                                                                list:
+                                                                                  valueReference: '18'
+                                                                              functionName: List.size
+                                                                          right:
+                                                                            constantValue: 2
+                                                                        functionName: Number.subtract
+                                                                    start:
+                                                                      constantValue: 0
+                                                                  functionName: List.sequence
+                                                            functionName: List.map
+                                                      functionName: List.map
+                                                functionName: List.map
+                                          functionName: List.filter
+                                    functionName: List.map
+                              functionName: List.map
+                        functionName: ImageCollection.fromImages
+                    properties:
+                      functionInvocationValue:
+                        arguments:
+                          element:
+                            valueReference: '9'
+                        functionName: Element.propertyNames
+                    source:
+                      valueReference: '9'
+                  functionName: Element.copyProperties
+              filter:
+                functionInvocationValue:
+                  arguments:
+                    leftField:
+                      constantValue: .all
+                    rightValue:
+                      functionInvocationValue:
+                        arguments:
+                          geometry:
+                            valueReference: '22'
+                        functionName: Feature
+                  functionName: Filter.intersects
+            functionName: Collection.filter
+      functionName: Collection.map
+  '20':
+    functionInvocationValue:
+      arguments:
+        end:
+          functionInvocationValue:
+            arguments:
+              index:
+                constantValue: -1
+              list:
+                valueReference: '21'
+            functionName: List.get
+        start:
+          functionInvocationValue:
+            arguments:
+              index:
+                constantValue: 0
+              list:
+                valueReference: '21'
+            functionName: List.get
+      functionName: DateRange
+  '21':
+    functionInvocationValue:
+      arguments:
+        collection:
+          valueReference: '12'
+        property:
+          valueReference: '7'
+      functionName: AggregateFeatureCollection.array
+  '22':
+    functionInvocationValue:
+      arguments:
+        collection:
+          functionInvocationValue:
+            arguments:
+              collection:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          tableId:
+                            constantValue: FAO/GAUL/2015/level2
+                        functionName: Collection.loadTable
+                    filter:
+                      functionInvocationValue:
+                        arguments:
+                          leftField:
+                            constantValue: ADM0_NAME
+                          rightValue:
+                            constantValue: Colombia
+                        functionName: Filter.equals
+                  functionName: Collection.filter
+              filter:
+                functionInvocationValue:
+                  arguments:
+                    leftField:
+                      constantValue: ADM1_NAME
+                    rightValue:
+                      constantValue: Amazonas
+                  functionName: Filter.equals
+            functionName: Collection.filter
+      functionName: Collection.geometry
+  '23':
+    functionInvocationValue:
+      arguments:
+        keys:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_0_0
+                  body: '24'
+              dropNulls:
+                constantValue: false
+              list:
+                valueReference: '27'
+            functionName: List.map
+        values:
+          functionInvocationValue:
+            arguments:
+              dictionary:
+                functionInvocationValue:
+                  arguments:
+                    dictionary:
+                      valueReference: '28'
+                    selectors:
+                      valueReference: '27'
+                  functionName: Dictionary.select
+            functionName: Dictionary.values
+      functionName: Dictionary.fromLists
+  '24':
+    functionInvocationValue:
+      arguments:
+        start:
+          constantValue: 1
+        string:
+          functionInvocationValue:
+            arguments:
+              input:
+                valueReference: '25'
+              regex:
+                valueReference: '26'
+              replacement:
+                constantValue: ''
+            functionName: String.replace
+      functionName: String.slice
+  '25':
+    functionInvocationValue:
+      arguments:
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: String
+  '26':
+    functionInvocationValue:
+      arguments:
+        input:
+          argumentReference: _MAPPING_VAR_10_0
+      functionName: String
+  '27':
+    functionInvocationValue:
+      arguments:
+        filter:
+          functionInvocationValue:
+            arguments:
+              leftField:
+                constantValue: item
+              rightValue:
+                valueReference: '26'
+            functionName: Filter.stringStartsWith
+        list:
+          functionInvocationValue:
+            arguments:
+              dictionary:
+                valueReference: '28'
+            functionName: Dictionary.keys
+      functionName: List.filter
+  '28':
+    functionInvocationValue:
+      arguments:
+        bestEffort:
+          constantValue: false
+        geometry:
+          valueReference: '22'
+        image:
+          functionInvocationValue:
+            arguments:
+              input:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          images:
+                            functionInvocationValue:
+                              arguments:
+                                baseAlgorithm:
+                                  functionDefinitionValue:
+                                    argumentNames:
+                                    - _MAPPING_VAR_6_0
+                                    body: '29'
+                                dropNulls:
+                                  constantValue: false
+                                list:
+                                  valueReference: '1'
+                              functionName: List.map
+                        functionName: ImageCollection.fromImages
+                  functionName: ImageCollection.toBands
+              names:
+                functionInvocationValue:
+                  arguments:
+                    list:
+                      functionInvocationValue:
+                        arguments:
+                          baseAlgorithm:
+                            functionDefinitionValue:
+                              argumentNames:
+                              - _MAPPING_VAR_7_0
+                              body: '31'
+                          dropNulls:
+                            constantValue: false
+                          list:
+                            valueReference: '1'
+                        functionName: List.map
+                  functionName: List.flatten
+            functionName: Image.rename
+        reducer:
+          valueReference: '8'
+        tileScale:
+          constantValue: 1
+      functionName: Image.reduceRegion
+  '29':
+    functionInvocationValue:
+      arguments:
+        input:
+          functionInvocationValue:
+            arguments:
+              collection:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      valueReference: '2'
+                    filter:
+                      functionInvocationValue:
+                        arguments:
+                          leftField:
+                            valueReference: '4'
+                          rightValue:
+                            argumentReference: _MAPPING_VAR_6_0
+                        functionName: Filter.equals
+                  functionName: Collection.filter
+              reducer:
+                functionInvocationValue:
+                  arguments: {}
+                  functionName: Reducer.first
+            functionName: ImageCollection.reduce
+        names:
+          valueReference: '30'
+      functionName: Image.rename
+  '3':
+    functionInvocationValue:
+      arguments:
+        key:
+          valueReference: '4'
+        object:
+          argumentReference: _MAPPING_VAR_0_0
+        value:
+          functionInvocationValue:
+            arguments:
+              input:
+                functionInvocationValue:
+                  arguments:
+                    object:
+                      argumentReference: _MAPPING_VAR_0_0
+                    property:
+                      constantValue: system:index
+                  functionName: Element.get
+            functionName: String
+      functionName: Element.set
+  '30':
+    functionInvocationValue:
+      arguments:
+        image:
+          functionInvocationValue:
+            arguments:
+              collection:
+                valueReference: '2'
+            functionName: Collection.first
+      functionName: Image.bandNames
+  '31':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_0_0
+            body: '32'
+        dropNulls:
+          constantValue: false
+        list:
+          valueReference: '30'
+      functionName: List.map
+  '32':
+    functionInvocationValue:
+      arguments:
+        string1:
+          functionInvocationValue:
+            arguments:
+              string1:
+                functionInvocationValue:
+                  arguments:
+                    input:
+                      argumentReference: _MAPPING_VAR_7_0
+                  functionName: String
+              string2:
+                constantValue: _
+            functionName: String.cat
+        string2:
+          valueReference: '25'
+      functionName: String.cat
+  '4':
+    constantValue: 178acffbd4a34ce2a19e760b536ce8bd
+  '5':
+    functionInvocationValue:
+      arguments:
+        key:
+          valueReference: '6'
+        object:
+          functionInvocationValue:
+            arguments:
+              key:
+                valueReference: '7'
+              object:
+                functionInvocationValue:
+                  arguments:
+                    destination:
+                      functionInvocationValue:
+                        arguments:
+                          input:
+                            functionInvocationValue:
+                              arguments:
+                                collection:
+                                  argumentReference: _MAPPING_VAR_0_0
+                                reducer:
+                                  valueReference: '8'
+                              functionName: ImageCollection.reduce
+                          names:
+                            functionInvocationValue:
+                              arguments:
+                                image:
+                                  functionInvocationValue:
+                                    arguments:
+                                      collection:
+                                        valueReference: '9'
+                                    functionName: Collection.first
+                              functionName: Image.bandNames
+                        functionName: Image.rename
+                    properties:
+                      functionInvocationValue:
+                        arguments:
+                          element:
+                            valueReference: '10'
+                        functionName: Element.propertyNames
+                    source:
+                      valueReference: '10'
+                  functionName: Image.copyProperties
+              value:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      argumentReference: _MAPPING_VAR_0_0
+                    property:
+                      valueReference: '7'
+                  functionName: AggregateFeatureCollection.min
+            functionName: Element.set
+        value:
+          functionInvocationValue:
+            arguments:
+              collection:
+                argumentReference: _MAPPING_VAR_0_0
+              property:
+                valueReference: '6'
+            functionName: AggregateFeatureCollection.max
+      functionName: Element.set
+  '6':
+    constantValue: system:time_end
+  '7':
+    constantValue: system:time_start
+  '8':
+    functionInvocationValue:
+      arguments: {}
+      functionName: Reducer.mean
+  '9':
+    functionInvocationValue:
+      arguments:
+        collection:
+          functionInvocationValue:
+            arguments:
+              id:
+                constantValue: JAXA/GPM_L3/GSMaP/v6/operational
+            functionName: ImageCollection.load
+        filter:
+          functionInvocationValue:
+            arguments:
+              leftValue:
+                functionInvocationValue:
+                  arguments:
+                    end:
+                      constantValue: '2020-01-04'
+                    start:
+                      constantValue: '2020-01-01'
+                  functionName: DateRange
+              rightField:
+                valueReference: '7'
+            functionName: Filter.dateRangeContains
+      functionName: Collection.filter

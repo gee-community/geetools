@@ -349,3 +349,16 @@ def format_bits_info(bits_info: dict) -> dict:
             raise ValueError(f"Type {type(info)} not allowed as bit information. Found {info}.")
         final_bit_info[formatted_key] = formatted_info
     return final_bit_info
+
+
+def format_class_info(class_info: dict) -> dict:
+    """Format the class information.
+
+    Args:
+        class_info: class information in a dict ({class value: class name})
+    """
+    final = {}
+    for class_value, class_name in class_info.items():
+        # make sure class value is an int, but store as str
+        final[str(int(class_value))] = format_bandname(class_name)
+    return final
