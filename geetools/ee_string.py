@@ -41,6 +41,10 @@ class StringAccessor:
 
         Replace the keys in the string using the values provided in the dictionary. Follow the same pattern: value format as Python string.format method.
 
+        Numbers and Dates can be formatted using formatters:
+        for ee.Number use https://developers.google.com/earth-engine/apidocs/ee-number-format.
+        for ee.Date use https://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
+
         Parameters:
             template: A dictionary with the values to replace.
 
@@ -55,17 +59,32 @@ class StringAccessor:
 
                 initialize_documentation()
 
-                s = ee.String("{greeting} {name} !")
-                s = s.geetools.format({"greeting": "Hello", "name": "bob"})
+                s = ee.String("{greeting} developer, pi={number%.2f} start={start%tyyyy-MM-dd} end={end%tdd MMM yyyy}")
+                s = s.geetools.format({"greeting": "Hello", "number": 3.1415, "start": 1577836800000, "end": "2021-01-01"})
                 s.getInfo()
         """
         template = ee.Dictionary(template)
-        templateList = template.keys().zip(template.values())
+        template.keys().zip(template.values())
 
-        def replace_format(kv, s):
-            kv = ee.List(kv)
-            key, value = ee.String(kv.get(0)), ee.String(kv.get(1))
-            pattern = ee.String("{").cat(key).cat(ee.String("}"))
-            return ee.String(s).replace(pattern, value)
+        toFormat = self._obj.match("\\{([^\\}]+)\\}", "g")
 
-        return ee.String(templateList.iterate(replace_format, self._obj))
+        def replace_format(string, init):
+            clean = ee.String(string).slice(1, -1)
+            parts = clean.split("%")
+            keys = ee.List.sequence(1, parts.size()).map(lambda k: ee.Number(k).toInt().format())
+            rel = ee.Dictionary.fromLists(keys, parts)
+            key = ee.String(rel.get("1"))
+            value = template.get(key, "")
+            format = ee.String(rel.get("2", ""))
+            is_date = format.match("^t.+").size().gt(0)
+            is_number = parts.size().eq(2).And(is_date.Not())
+            formatted = ee.String(
+                ee.Algorithms.If(
+                    is_number,
+                    ee.Number(value).format(ee.String("%").cat(format)),
+                    ee.Algorithms.If(is_date, ee.Date(value).format(format.slice(1)), value),
+                )
+            )
+            return ee.String(init).replace(string, formatted)
+
+        return ee.String(toFormat.iterate(replace_format, self._obj))
