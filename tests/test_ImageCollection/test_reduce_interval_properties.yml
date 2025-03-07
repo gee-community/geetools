@@ -1,479 +1,191 @@
-bands: []
-features:
-- bands:
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      precision: float
-      type: PixelType
-    id: hourlyPrecipRate
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      precision: float
-      type: PixelType
-    id: hourlyPrecipRateGC
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      precision: float
-      type: PixelType
-    id: observationTimeFlag
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      max: 2147483647
-      min: -2147483648
-      precision: double
-      type: PixelType
-    id: satelliteInfoFlag
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      max: 32767
-      min: -32768
-      precision: double
-      type: PixelType
-    id: gaugeQualityInfo
-  id: JAXA/GPM_L3/GSMaP/v6/operational/20200101_0000
-  properties:
-    AlgorithmID: 3GSMAPH
-    AlgorithmVersion: v6.4133.0
-    GenerationDateTime: '2020-01-04T02:02:43.000Z'
-    ProductVersion: 03C
-    status: permanent
-    system:asset_size: 6887208
-    system:footprint:
-      coordinates:
-      - - -180
-        - -90
-      - - 180
-        - -90
-      - - 180
-        - 90
-      - - -180
-        - 90
-      - - -180
-        - -90
-      type: LinearRing
-    system:index: '20200101_0000'
-    system:time_end: 1580428800000
-    system:time_start: 1577836800000
-  type: Image
-  version: 1578169559065650.0
-- bands:
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      precision: float
-      type: PixelType
-    id: hourlyPrecipRate
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      precision: float
-      type: PixelType
-    id: hourlyPrecipRateGC
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      precision: float
-      type: PixelType
-    id: observationTimeFlag
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      max: 2147483647
-      min: -2147483648
-      precision: double
-      type: PixelType
-    id: satelliteInfoFlag
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      max: 32767
-      min: -32768
-      precision: double
-      type: PixelType
-    id: gaugeQualityInfo
-  id: JAXA/GPM_L3/GSMaP/v6/operational/20200131_0000
-  properties:
-    AlgorithmID: 3GSMAPH
-    AlgorithmVersion: v6.4133.0
-    GenerationDateTime: '2020-02-03T02:02:38.000Z'
-    ProductVersion: 03C
-    status: permanent
-    system:asset_size: 7084398
-    system:footprint:
-      coordinates:
-      - - -180
-        - -90
-      - - 180
-        - -90
-      - - 180
-        - 90
-      - - -180
-        - 90
-      - - -180
-        - -90
-      type: LinearRing
-    system:index: '20200131_0000'
-    system:time_end: 1583020800000
-    system:time_start: 1580428800000
-  type: Image
-  version: 1580764329071700.0
-- bands:
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      precision: float
-      type: PixelType
-    id: hourlyPrecipRate
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      precision: float
-      type: PixelType
-    id: hourlyPrecipRateGC
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      precision: float
-      type: PixelType
-    id: observationTimeFlag
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      max: 2147483647
-      min: -2147483648
-      precision: double
-      type: PixelType
-    id: satelliteInfoFlag
-  - crs: EPSG:4326
-    crs_transform:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 1
-    - 0
-    data_type:
-      max: 32767
-      min: -32768
-      precision: double
-      type: PixelType
-    id: gaugeQualityInfo
-  id: JAXA/GPM_L3/GSMaP/v6/operational/20200301_0000
-  properties:
-    AlgorithmID: 3GSMAPH
-    AlgorithmVersion: v6.4133.0
-    GenerationDateTime: '2020-03-04T02:02:32.000Z'
-    ProductVersion: 03C
-    status: permanent
-    system:asset_size: 6692065
-    system:footprint:
-      coordinates:
-      - - -180
-        - -90
-      - - 180
-        - -90
-      - - 180
-        - 90
-      - - -180
-        - 90
-      - - -180
-        - -90
-      type: LinearRing
-    system:index: '20200301_0000'
-    system:time_end: 1585609200000
-    system:time_start: 1583020800000
-  type: Image
-  version: 1583353952631314
-id: JAXA/GPM_L3/GSMaP/v6/operational
-properties:
-  date_range:
-  - 1393632000000
-  - 1647907200000
-  description: "<p>Global Satellite Mapping of Precipitation (GSMaP) provides\na global\
-    \ hourly rain rate with a 0.1 x 0.1 degree resolution. GSMaP\nis a product of\
-    \ the Global Precipitation Measurement (GPM) mission,\nwhich provides global precipitation\
-    \ observations at three hour\nintervals.  Values are estimated using multi-band\
-    \ passive microwave\nand infrared radiometers from the GPM Core Observatory satellite\n\
-    and with the assistance of a constellation of other satellites.  GPM&#39;s\nprecipitation\
-    \ rate retrieval algorithm is based on a radiative\ntransfer model. The gauge-adjusted\
-    \ rate is calculated based on\nthe optimization of the 24h accumulation of GSMaP\
-    \ hourly rain rate\nto daily precipitation by NOAA/CPC gauge measurement. This\
-    \ dataset\nis processed by GSMaP algorithm version 6 (product version 3).\nSee\
-    \ <a href=\"https://www.eorc.jaxa.jp/GPM/doc/algorithm/GSMaPforGPM_20140902_E.pdf\"\
-    >GSMaP Technical Documentation</a>\nfor more details.</p><p>This dataset contains\
-    \ provisional products GSMaP_NRT that are\nregularly replaced with updated versions\
-    \ when the GSMaP_MVK data\nbecome available.\nThe products are marked with a metadata\
-    \ property called &#39;&#39;status&#39;&#39;.\nWhen a product is initially made\
-    \ available, the property value\nis &#39;&#39;provisional&#39;&#39;. Once a provisional\
-    \ product has been updated\nwith the final version, this value is updated to &#39;&#39;permanent&#39;&#39;.</p><p>GSMaP\
-    \ for the reanalysis data (from 2000 to 2014) is also provided\nin the [GPM RNL\
-    \ collection][JAXA_GPM_L3_GSMaP_v6_reanalysis].</p><p><b>Provider: <a href=\"\
-    https://sharaku.eorc.jaxa.jp/GSMaP/\">JAXA Earth Observation Research Center</a></b><br><p><b>Resolution</b><br>11132\
-    \ meters\n</p><p><b>Cadence</b><br>\n  1 hour\n</p><p><b>Bands</b><table class=\"\
-    eecat\"><tr><th scope=\"col\">Name</th><th scope=\"col\">Description</th></tr><tr><td>satelliteInfoFlag</td><td><p>Satellite/sensor\
-    \ used</p></td></tr><tr><td colspan=100>\n      Bitmask for satelliteInfoFlag\n\
-    <ul><li>\n          Bit 0: NOAA/CPC Globally Merged IR data\n<ul><li>0: No</li><li>1:\
-    \ Yes</li></ul></li><li>\n          Bit 1: TRMM/TMI\n<ul><li>0: No</li><li>1:\
-    \ Yes</li></ul></li><li>\n          Bit 2: GPM-Core/GMI\n<ul><li>0: No</li><li>1:\
-    \ Yes</li></ul></li><li>\n          Bit 3: Megha-Tropiques/MADRAS\n<ul><li>0:\
-    \ No</li><li>1: Yes</li></ul></li><li>\n          Bit 4: Megha-Tropiques/SAPHIR\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 5: ADEOS-II/AMSR\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 6: Aqua/AMSR-E\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 7: GCOM-W1/AMSR2\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 8: GCOM-W2/AMSR2\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 9: GCOM-W3/AMSR2\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 10: DMSP-F11/SSM/I\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 11: DMSP-F13/SSM/I\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 12: DMSP-F14/SSM/I\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 13: DMSP-F15/SSM/I\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 14: DMSP-F16/SSM/I\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 15: DMSP-F17/SSM/I\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 16: DMSP-F18/SSM/I\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 17: DMSP-F19/SSM/I\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 18: DMSP-F20/SSM/I\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 19: NOAA-15/AMSU-A/B\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 20: NOAA-16/AMSU-A/B\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 21: NOAA-17/AMSU-A/B\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 22: NOAA-18/AMSU-A/B\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 23: NOAA-19/AMSU-A/B\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 24: NPP/ATMS\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 25: JPSS-1/ATMS\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 26: MetOp-A/AMSU-A/MHS\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 27: MetOp-B/AMSU-A/MHS\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n          Bit 28: MetOp-C/AMSU-A/MHS\n\
-    <ul><li>0: No</li><li>1: Yes</li></ul></li></ul></td></tr><tr><td>hourlyPrecipRate</td><td><p>Snapshot\
-    \ of hourly precipitation rate</p></td></tr><tr><td>hourlyPrecipRateGC</td><td><p>Snapshot\
-    \ of hourly precipitation rate adjusted to rain gauge</p></td></tr><tr><td>observationTimeFlag</td><td><p>Relative\
-    \ time from the starting time of the file\nto the time of microwave radiometer\
-    \ (imager/sounder) observing.\nIf no observation exists within the hourly window,\
-    \ the time\nwill be the negative number of hours since the last observation.</p></td></tr><tr><td>gaugeQualityInfo</td><td><p>Existence\
-    \ of gauge adjustment when the status is\n&#39;provisional&#39;, 1 indicates adjusted\
-    \ and 0 is non-adjusted.\nWhen the status is &#39;permanent&#39;, the pixel value\
-    \ is the daily\naverage of number of gauges used for adjustment in the pixel.</p></td></tr></table><p><b>Image\
-    \ Properties</b><table class=\"eecat\"><tr><th scope=\"col\">Name</th><th scope=\"\
-    col\">Type</th><th scope=\"col\">Description</th></tr><tr><td>AlgorithmID</td><td>STRING</td><td><p>The\
-    \ algorithm that generated this product, e.g., 3GSMAPH</p></td></tr><tr><td>AlgorithmVersion</td><td>STRING</td><td><p>The\
-    \ version of the algorithm that generated this product</p></td></tr><tr><td>ProductVersion</td><td>STRING</td><td><p>The\
-    \ data version assigned by the processing system</p></td></tr><tr><td>GenerationDateTime</td><td>STRING</td><td><p>The\
-    \ date and time this granule was generated</p></td></tr><tr><td>StartGranuleDateTime</td><td>STRING</td><td><p>The\
-    \ start time defining this granule</p></td></tr><tr><td>StopGranuleDateTime</td><td>STRING</td><td><p>The\
-    \ stop time defining this granule</p></td></tr><tr><td>status</td><td>STRING</td><td><p>Permanent\
-    \ or provisional</p></td></tr></table><p><b>Terms of Use</b><br><p>Anyone wishing\
-    \ to publish any results using the data\nfrom the JAXA Global Rainfall Watch System\
-    \ should clearly acknowledge\nthe ownership of the data in the publication (for\
-    \ example, &#39; Global\nRainfall Map in Near-Real-Time (GSMaP_NRT) by JAXA Global\
-    \ Rainfall\nWatch&#39; was produced and distributed by the Earth Observation Research\n\
-    Center, Japan Aerospace Exploration Agency). If you have benefited\nfrom GSMaP\
-    \ rainfall products, please cite the major papers listed\nbelow. For additional\
-    \ information, please visit the <a href=\"https://global.jaxa.jp/policy.html\"\
-    >JAXA Site\nPolicy</a> and the <a href=\"https://sharaku.eorc.jaxa.jp/GSMaP/guide.html\"\
-    >Users Guide</a>.</p><p><b>Suggested citation(s)</b><ul><li><p>K. Okamoto, T.\
-    \ Iguchi, N. Takahashi, K. Iwanami and T. Ushio,\n2005: The global satellite mapping\
-    \ of precipitation (GSMaP) project,\n25th IGARSS Proceedings, pp. 3414-3416.</p></li><li><p>T.\
-    \ Kubota, S. Shige, H. Hashizume, K. Aonashi, N. Takahashi, S.\nSeto, M. Hirose,\
-    \ Y. N. Takayabu, K. Nakagawa, K. Iwanami, T. Ushio,\nM. Kachi, and K. Okamoto,\
-    \ 2007: Global Precipitation Map using\nSatelliteborne Microwave Radiometers by\
-    \ the GSMaP Project : Production\nand Validation, IEEE Trans. Geosci. Remote Sens.,\
-    \ Vol. 45, No.\n7, pp.2259-2275.</p></li><li><p>K. Aonashi, J. Awaka, M. Hirose,\
-    \ T. Kozu, T. Kubota, G. Liu, S.\nShige, S., Kida, S. Seto, N.Takahashi, and Y.\
-    \ N. Takayabu, 2009:\nGSMaP passive, microwave precipitation retrieval algorithm:\
-    \ Algorithm\ndescription and validation. J. Meteor. Soc. Japan, 87A, 119-136.</p></li><li><p>T.\
-    \ Ushio, T. Kubota, S. Shige, K. Okamoto, K. Aonashi, T. Inoue,\nN., Takahashi,\
-    \ T. Iguchi, M.Kachi, R. Oki, T. Morimoto, and Z.\nKawasaki, 2009: A Kalman filter\
-    \ approach to the Global Satellite\nMapping of Precipitation (GSMaP) from combined\
-    \ passive microwave\nand infrared radiometric data. J. Meteor. Soc. Japan, 87A,\
-    \ 137-151.</p></li><li><p>S. Shige, T. Yamamoto, T. Tsukiyama, S. Kida, H. Ashiwake,\
-    \ T.\nKubota, S. Seto, K. Aonashi and K. Okamoto, 2009: The GSMaP precipitation\n\
-    retrieval algorithm for microwave sounders. Part I: Over-ocean\nalgorithm. IEEE\
-    \ Trans. Geosci. Remote Sens, 47, 3084-3097.</p></li><li><p>M. Kachi, T. Kubota,\
-    \ T. Ushio, S. Shige, S. Kida, K. Aonashi,\nand K. Okamoto, 2011: Development\
-    \ and utilization of &#39;&#39;JAXA Global\nRainfall Watch&#39;&#39; system. IEEJ\
-    \ Transactions on Fundamentals and\nMaterials, 131, 729-737. (In Japanese).</p></li><li><p>T.\
-    \ Ushio, and M. Kachi, 2009: Kalman filtering application for\nthe Global Satellite\
-    \ Mapping of Precipitation (GSMaP). Chapter\nfor &#39;&#39;Satellite Rainfall\
-    \ Applications for Surface Hydrology&#39;&#39; (Editedy\nby Mekonnen Gebremichael\
-    \ and Faisal Hossain), Springer, ISBN978-9048129140,\n105-123.</p></li><li><p>S.\
-    \ Seto, N. Takahashi, T. Iguchi, 2005: Rain/no-rain classification\nmethods for\
-    \ microwave radiometer observations over land using statistical\ninformation for\
-    \ brightness temperatures under no-rain conditions.\nJ. Appl. Meteor., 44, 8,\
-    \ 1243-1259.</p></li><li><p>Y. N.Takayabu, 2006: Rain-yield per flash calculated\
-    \ from TRMM\nPR and LIS data and its relationship to the contribution of tall\n\
-    convective rain, Geophys. Res. Lett., 33, L18705, doi:10.1029/2006GL027531</p></li><li><p>T.\
-    \ Ushio, D. Katagami, K. Okamoto, and T. Inoue, 2007: On the\nuse of split window\
-    \ data in deriving the cloud motion vector for\nfilling the gap of passive microwave\
-    \ rainfall estimation, SOLA,\nVol. 3, 001-004, doi:10.2151/sola, February 2007-001.</p></li><li><p>N.\
-    \ Takahashi, and J. Awaka, 2007: Introduction of a melting layer\nmodel to a rain\
-    \ retrieval algorithm for microwave radiometers.\nProc. 25th IGARSS, 3404?3409.</p></li><li><p>S.\
-    \ Seto, T. Kubota, N. Takahashi, T. Iguchi, T. Oki, 2008: Advanced\nrain/no-rain\
-    \ classification methods for microwave radiometer observations\nover land, J.\
-    \ Appl. Meteo. Clim., 47, 11, 3016-3029.</p></li><li><p>T. Kozu, T. Iguchi, T.\
-    \ Kubota, N. Yoshida, S. Seto, J. Kwiatkowski,\nand Y. N. Takayabu, 2009: Feasibility\
-    \ of Raindrop Size Distribution\nParameter Estimation with TRMM Precipitation\
-    \ Radar. J. Meteor.\nSoc. Japan, 87A, 53-66.</p></li><li><p>T. Kubota, S. Shige,\
-    \ K. Aonashi, K. Okamoto, 2009: Development\nof nonuniform beamfilling correction\
-    \ method in rainfall retrievals\nfor passive microwave radiometers over ocean\
-    \ using TRMM observations.\nJ. Meteor. Soc. Japan, 87A, 153-164.</p></li><li><p>S.\
-    \ Kida, S. Shige, T. Kubota, K. Aonashi, and K. Okamoto, 2009:\nImprovement of\
-    \ rain/no-rain classification methods for microwave\nradiometer observations over\
-    \ ocean using the 37-GHz emission signature.\nJ. Meteor. Soc. Japan, 87A, 165-181.</p></li><li><p>S.\
-    \ Shige, T. Watanabe, H. Sasaki,T. Kubota, S. Kida, and K. Okamoto,\n2008: Validation\
-    \ of western and eastern Pacific rainfall estimates\nfrom the TRMM PR using a\
-    \ radiative transfer model, J. Geophys.\nRes., doi:10.1029/2007JD009002</p></li><li><p>S.\
-    \ Seto, T. Kubota, T. Iguchi, N. Takahashi, T. Oki, 2009: An\nevaluation of over-land\
-    \ rain rate estimates by the GSMaP and GPROF\nalgorithms;The role of lower-frequency\
-    \ channels. J. Meteor. Soc.\nJapan, 87A, 183-202.</p></li><li><p>T. Kubota, T.\
-    \ Ushio, S. Shige, S. Kida, M. Kachi, and K. Okamoto,\n2009: Verification of high\
-    \ resolution satellite-based rainfall\nestimates around Japan using gauge-calibrated\
-    \ ground radar dataset.\nJ. Meteor. Soc. Japan, 87A, 203-222.</p></li><li><p>S.\
-    \ Kida, T. Kubota, M. Kachi, S. Shige, and R. Oki, 2012: Development\nof precipitation\
-    \ retrieval algorithm over land for a satellite-borne\nmicrowave sounder. Proc.\
-    \ of IGARSS 2012, 342-345.</p></li><li><p>A. Taniguchi, S. Shige, M. K. Yamamoto,\
-    \ T. Mega, S. Kida, T. Kubota,\nM. Kachi, T. Ushio, and K. Aonashi, 2013: Improvement\
-    \ of high-resolution\nsatellite rainfall product for Typhoon Morakot (2009) over\
-    \ Taiwan.\nJ. Hydrometeor., 14, 1859-1871.</p></li><li><p>T. Kubota, S. Shige,\
-    \ M. Kachi, and K. Aonashi. 2011: Development\nof SSMIS rain retrieval algorithm\
-    \ in the GSMaP project. Proc 28th\nISTS, 2011-n-46.</p></li><li><p>T. Ushio, T.\
-    \ Tashima, T. Kubota, and M. Kachi, 2013: Gauge Adjusted\nGlobal Satellite Mapping\
-    \ of Precipitation (GSMaP_Gauge), Proc.\n29th ISTS, 2013-n-48.</p></li><li><p>S.\
-    \ Shige, M.K. Yamamoto, and A. Taniguchi, 2014. Improvement of\nTMI rain retrieval\
-    \ over the Indian Subcontinent. Geophys. Monogr.\nSer. (in print).</p></li><li><p>M.K.\
-    \ Yamamoto, and S. Shige, 2014: Implementation of an orographic/nonorographic\n\
-    rainfall classification scheme in the GSMaP algorithm for microwave\nradiometers.\
-    \ Atmos. Res. (in print).</p></li></ul><style>\n  table.eecat {\n  border: 1px\
-    \ solid black;\n  border-collapse: collapse;\n  font-size: 13px;\n  }\n  table.eecat\
-    \ td, tr, th {\n  text-align: left; vertical-align: top;\n  border: 1px solid\
-    \ gray; padding: 3px;\n  }\n  td.nobreak { white-space: nowrap; }\n</style>"
-  keywords:
-  - climate
-  - geophysical
-  - gpm
-  - hourly
-  - jaxa
-  - precipitation
-  - weather
-  period: 0
-  product_tags:
-  - precipitation
-  - geophysical
-  - weather
-  - climate
-  - hourly
-  provider: JAXA Earth Observation Research Center
-  provider_url: https://sharaku.eorc.jaxa.jp/GSMaP/
-  sample: https://mw1.google.com/ges/dd/images/GSMAP_sample.png
-  source_tags:
-  - gpm
-  - jaxa
-  system:is_global: 1
-  system:visualization_0_bands: hourlyPrecipRate
-  system:visualization_0_max: '30.0'
-  system:visualization_0_min: '0.0'
-  system:visualization_0_name: Precipitation
-  system:visualization_0_palette: 1621a2,ffffff,03ffff,13ff03,efff00,ffb103,ff2300
-  tags:
-  - climate
-  - geophysical
-  - gpm
-  - hourly
-  - jaxa
-  - precipitation
-  - weather
-  thumb: https://mw1.google.com/ges/dd/images/GSMAP_thumb.png
-  title: 'GSMaP Operational: Global Satellite Mapping of Precipitation'
-  type_name: ImageCollection
-  visualization_0_bands: hourlyPrecipRate
-  visualization_0_max: '30.0'
-  visualization_0_min: '0.0'
-  visualization_0_name: Precipitation
-  visualization_0_palette: 1621a2,ffffff,03ffff,13ff03,efff00,ffb103,ff2300
-type: ImageCollection
-version: 1740349786026174
+date_range:
+- 1393632000000
+- 1647907200000
+description: "<p>Global Satellite Mapping of Precipitation (GSMaP) provides\na global\
+  \ hourly rain rate with a 0.1 x 0.1 degree resolution. GSMaP\nis a product of the\
+  \ Global Precipitation Measurement (GPM) mission,\nwhich provides global precipitation\
+  \ observations at three hour\nintervals.  Values are estimated using multi-band\
+  \ passive microwave\nand infrared radiometers from the GPM Core Observatory satellite\n\
+  and with the assistance of a constellation of other satellites.  GPM&#39;s\nprecipitation\
+  \ rate retrieval algorithm is based on a radiative\ntransfer model. The gauge-adjusted\
+  \ rate is calculated based on\nthe optimization of the 24h accumulation of GSMaP\
+  \ hourly rain rate\nto daily precipitation by NOAA/CPC gauge measurement. This dataset\n\
+  is processed by GSMaP algorithm version 6 (product version 3).\nSee <a href=\"https://www.eorc.jaxa.jp/GPM/doc/algorithm/GSMaPforGPM_20140902_E.pdf\"\
+  >GSMaP Technical Documentation</a>\nfor more details.</p><p>This dataset contains\
+  \ provisional products GSMaP_NRT that are\nregularly replaced with updated versions\
+  \ when the GSMaP_MVK data\nbecome available.\nThe products are marked with a metadata\
+  \ property called &#39;&#39;status&#39;&#39;.\nWhen a product is initially made\
+  \ available, the property value\nis &#39;&#39;provisional&#39;&#39;. Once a provisional\
+  \ product has been updated\nwith the final version, this value is updated to &#39;&#39;permanent&#39;&#39;.</p><p>GSMaP\
+  \ for the reanalysis data (from 2000 to 2014) is also provided\nin the [GPM RNL\
+  \ collection][JAXA_GPM_L3_GSMaP_v6_reanalysis].</p><p><b>Provider: <a href=\"https://sharaku.eorc.jaxa.jp/GSMaP/\"\
+  >JAXA Earth Observation Research Center</a></b><br><p><b>Resolution</b><br>11132\
+  \ meters\n</p><p><b>Cadence</b><br>\n  1 hour\n</p><p><b>Bands</b><table class=\"\
+  eecat\"><tr><th scope=\"col\">Name</th><th scope=\"col\">Description</th></tr><tr><td>satelliteInfoFlag</td><td><p>Satellite/sensor\
+  \ used</p></td></tr><tr><td colspan=100>\n      Bitmask for satelliteInfoFlag\n\
+  <ul><li>\n          Bit 0: NOAA/CPC Globally Merged IR data\n<ul><li>0: No</li><li>1:\
+  \ Yes</li></ul></li><li>\n          Bit 1: TRMM/TMI\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 2: GPM-Core/GMI\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 3: Megha-Tropiques/MADRAS\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 4: Megha-Tropiques/SAPHIR\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 5: ADEOS-II/AMSR\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 6: Aqua/AMSR-E\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 7: GCOM-W1/AMSR2\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 8: GCOM-W2/AMSR2\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 9: GCOM-W3/AMSR2\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 10: DMSP-F11/SSM/I\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 11: DMSP-F13/SSM/I\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 12: DMSP-F14/SSM/I\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 13: DMSP-F15/SSM/I\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 14: DMSP-F16/SSM/I\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 15: DMSP-F17/SSM/I\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 16: DMSP-F18/SSM/I\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 17: DMSP-F19/SSM/I\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 18: DMSP-F20/SSM/I\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 19: NOAA-15/AMSU-A/B\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 20: NOAA-16/AMSU-A/B\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 21: NOAA-17/AMSU-A/B\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 22: NOAA-18/AMSU-A/B\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 23: NOAA-19/AMSU-A/B\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 24: NPP/ATMS\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n \
+  \         Bit 25: JPSS-1/ATMS\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 26: MetOp-A/AMSU-A/MHS\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 27: MetOp-B/AMSU-A/MHS\n<ul><li>0: No</li><li>1: Yes</li></ul></li><li>\n\
+  \          Bit 28: MetOp-C/AMSU-A/MHS\n<ul><li>0: No</li><li>1: Yes</li></ul></li></ul></td></tr><tr><td>hourlyPrecipRate</td><td><p>Snapshot\
+  \ of hourly precipitation rate</p></td></tr><tr><td>hourlyPrecipRateGC</td><td><p>Snapshot\
+  \ of hourly precipitation rate adjusted to rain gauge</p></td></tr><tr><td>observationTimeFlag</td><td><p>Relative\
+  \ time from the starting time of the file\nto the time of microwave radiometer (imager/sounder)\
+  \ observing.\nIf no observation exists within the hourly window, the time\nwill\
+  \ be the negative number of hours since the last observation.</p></td></tr><tr><td>gaugeQualityInfo</td><td><p>Existence\
+  \ of gauge adjustment when the status is\n&#39;provisional&#39;, 1 indicates adjusted\
+  \ and 0 is non-adjusted.\nWhen the status is &#39;permanent&#39;, the pixel value\
+  \ is the daily\naverage of number of gauges used for adjustment in the pixel.</p></td></tr></table><p><b>Image\
+  \ Properties</b><table class=\"eecat\"><tr><th scope=\"col\">Name</th><th scope=\"\
+  col\">Type</th><th scope=\"col\">Description</th></tr><tr><td>AlgorithmID</td><td>STRING</td><td><p>The\
+  \ algorithm that generated this product, e.g., 3GSMAPH</p></td></tr><tr><td>AlgorithmVersion</td><td>STRING</td><td><p>The\
+  \ version of the algorithm that generated this product</p></td></tr><tr><td>ProductVersion</td><td>STRING</td><td><p>The\
+  \ data version assigned by the processing system</p></td></tr><tr><td>GenerationDateTime</td><td>STRING</td><td><p>The\
+  \ date and time this granule was generated</p></td></tr><tr><td>StartGranuleDateTime</td><td>STRING</td><td><p>The\
+  \ start time defining this granule</p></td></tr><tr><td>StopGranuleDateTime</td><td>STRING</td><td><p>The\
+  \ stop time defining this granule</p></td></tr><tr><td>status</td><td>STRING</td><td><p>Permanent\
+  \ or provisional</p></td></tr></table><p><b>Terms of Use</b><br><p>Anyone wishing\
+  \ to publish any results using the data\nfrom the JAXA Global Rainfall Watch System\
+  \ should clearly acknowledge\nthe ownership of the data in the publication (for\
+  \ example, &#39; Global\nRainfall Map in Near-Real-Time (GSMaP_NRT) by JAXA Global\
+  \ Rainfall\nWatch&#39; was produced and distributed by the Earth Observation Research\n\
+  Center, Japan Aerospace Exploration Agency). If you have benefited\nfrom GSMaP rainfall\
+  \ products, please cite the major papers listed\nbelow. For additional information,\
+  \ please visit the <a href=\"https://global.jaxa.jp/policy.html\">JAXA Site\nPolicy</a>\
+  \ and the <a href=\"https://sharaku.eorc.jaxa.jp/GSMaP/guide.html\">Users Guide</a>.</p><p><b>Suggested\
+  \ citation(s)</b><ul><li><p>K. Okamoto, T. Iguchi, N. Takahashi, K. Iwanami and\
+  \ T. Ushio,\n2005: The global satellite mapping of precipitation (GSMaP) project,\n\
+  25th IGARSS Proceedings, pp. 3414-3416.</p></li><li><p>T. Kubota, S. Shige, H. Hashizume,\
+  \ K. Aonashi, N. Takahashi, S.\nSeto, M. Hirose, Y. N. Takayabu, K. Nakagawa, K.\
+  \ Iwanami, T. Ushio,\nM. Kachi, and K. Okamoto, 2007: Global Precipitation Map using\n\
+  Satelliteborne Microwave Radiometers by the GSMaP Project : Production\nand Validation,\
+  \ IEEE Trans. Geosci. Remote Sens., Vol. 45, No.\n7, pp.2259-2275.</p></li><li><p>K.\
+  \ Aonashi, J. Awaka, M. Hirose, T. Kozu, T. Kubota, G. Liu, S.\nShige, S., Kida,\
+  \ S. Seto, N.Takahashi, and Y. N. Takayabu, 2009:\nGSMaP passive, microwave precipitation\
+  \ retrieval algorithm: Algorithm\ndescription and validation. J. Meteor. Soc. Japan,\
+  \ 87A, 119-136.</p></li><li><p>T. Ushio, T. Kubota, S. Shige, K. Okamoto, K. Aonashi,\
+  \ T. Inoue,\nN., Takahashi, T. Iguchi, M.Kachi, R. Oki, T. Morimoto, and Z.\nKawasaki,\
+  \ 2009: A Kalman filter approach to the Global Satellite\nMapping of Precipitation\
+  \ (GSMaP) from combined passive microwave\nand infrared radiometric data. J. Meteor.\
+  \ Soc. Japan, 87A, 137-151.</p></li><li><p>S. Shige, T. Yamamoto, T. Tsukiyama,\
+  \ S. Kida, H. Ashiwake, T.\nKubota, S. Seto, K. Aonashi and K. Okamoto, 2009: The\
+  \ GSMaP precipitation\nretrieval algorithm for microwave sounders. Part I: Over-ocean\n\
+  algorithm. IEEE Trans. Geosci. Remote Sens, 47, 3084-3097.</p></li><li><p>M. Kachi,\
+  \ T. Kubota, T. Ushio, S. Shige, S. Kida, K. Aonashi,\nand K. Okamoto, 2011: Development\
+  \ and utilization of &#39;&#39;JAXA Global\nRainfall Watch&#39;&#39; system. IEEJ\
+  \ Transactions on Fundamentals and\nMaterials, 131, 729-737. (In Japanese).</p></li><li><p>T.\
+  \ Ushio, and M. Kachi, 2009: Kalman filtering application for\nthe Global Satellite\
+  \ Mapping of Precipitation (GSMaP). Chapter\nfor &#39;&#39;Satellite Rainfall Applications\
+  \ for Surface Hydrology&#39;&#39; (Editedy\nby Mekonnen Gebremichael and Faisal\
+  \ Hossain), Springer, ISBN978-9048129140,\n105-123.</p></li><li><p>S. Seto, N. Takahashi,\
+  \ T. Iguchi, 2005: Rain/no-rain classification\nmethods for microwave radiometer\
+  \ observations over land using statistical\ninformation for brightness temperatures\
+  \ under no-rain conditions.\nJ. Appl. Meteor., 44, 8, 1243-1259.</p></li><li><p>Y.\
+  \ N.Takayabu, 2006: Rain-yield per flash calculated from TRMM\nPR and LIS data and\
+  \ its relationship to the contribution of tall\nconvective rain, Geophys. Res. Lett.,\
+  \ 33, L18705, doi:10.1029/2006GL027531</p></li><li><p>T. Ushio, D. Katagami, K.\
+  \ Okamoto, and T. Inoue, 2007: On the\nuse of split window data in deriving the\
+  \ cloud motion vector for\nfilling the gap of passive microwave rainfall estimation,\
+  \ SOLA,\nVol. 3, 001-004, doi:10.2151/sola, February 2007-001.</p></li><li><p>N.\
+  \ Takahashi, and J. Awaka, 2007: Introduction of a melting layer\nmodel to a rain\
+  \ retrieval algorithm for microwave radiometers.\nProc. 25th IGARSS, 3404?3409.</p></li><li><p>S.\
+  \ Seto, T. Kubota, N. Takahashi, T. Iguchi, T. Oki, 2008: Advanced\nrain/no-rain\
+  \ classification methods for microwave radiometer observations\nover land, J. Appl.\
+  \ Meteo. Clim., 47, 11, 3016-3029.</p></li><li><p>T. Kozu, T. Iguchi, T. Kubota,\
+  \ N. Yoshida, S. Seto, J. Kwiatkowski,\nand Y. N. Takayabu, 2009: Feasibility of\
+  \ Raindrop Size Distribution\nParameter Estimation with TRMM Precipitation Radar.\
+  \ J. Meteor.\nSoc. Japan, 87A, 53-66.</p></li><li><p>T. Kubota, S. Shige, K. Aonashi,\
+  \ K. Okamoto, 2009: Development\nof nonuniform beamfilling correction method in\
+  \ rainfall retrievals\nfor passive microwave radiometers over ocean using TRMM observations.\n\
+  J. Meteor. Soc. Japan, 87A, 153-164.</p></li><li><p>S. Kida, S. Shige, T. Kubota,\
+  \ K. Aonashi, and K. Okamoto, 2009:\nImprovement of rain/no-rain classification\
+  \ methods for microwave\nradiometer observations over ocean using the 37-GHz emission\
+  \ signature.\nJ. Meteor. Soc. Japan, 87A, 165-181.</p></li><li><p>S. Shige, T. Watanabe,\
+  \ H. Sasaki,T. Kubota, S. Kida, and K. Okamoto,\n2008: Validation of western and\
+  \ eastern Pacific rainfall estimates\nfrom the TRMM PR using a radiative transfer\
+  \ model, J. Geophys.\nRes., doi:10.1029/2007JD009002</p></li><li><p>S. Seto, T.\
+  \ Kubota, T. Iguchi, N. Takahashi, T. Oki, 2009: An\nevaluation of over-land rain\
+  \ rate estimates by the GSMaP and GPROF\nalgorithms;The role of lower-frequency\
+  \ channels. J. Meteor. Soc.\nJapan, 87A, 183-202.</p></li><li><p>T. Kubota, T. Ushio,\
+  \ S. Shige, S. Kida, M. Kachi, and K. Okamoto,\n2009: Verification of high resolution\
+  \ satellite-based rainfall\nestimates around Japan using gauge-calibrated ground\
+  \ radar dataset.\nJ. Meteor. Soc. Japan, 87A, 203-222.</p></li><li><p>S. Kida, T.\
+  \ Kubota, M. Kachi, S. Shige, and R. Oki, 2012: Development\nof precipitation retrieval\
+  \ algorithm over land for a satellite-borne\nmicrowave sounder. Proc. of IGARSS\
+  \ 2012, 342-345.</p></li><li><p>A. Taniguchi, S. Shige, M. K. Yamamoto, T. Mega,\
+  \ S. Kida, T. Kubota,\nM. Kachi, T. Ushio, and K. Aonashi, 2013: Improvement of\
+  \ high-resolution\nsatellite rainfall product for Typhoon Morakot (2009) over Taiwan.\n\
+  J. Hydrometeor., 14, 1859-1871.</p></li><li><p>T. Kubota, S. Shige, M. Kachi, and\
+  \ K. Aonashi. 2011: Development\nof SSMIS rain retrieval algorithm in the GSMaP\
+  \ project. Proc 28th\nISTS, 2011-n-46.</p></li><li><p>T. Ushio, T. Tashima, T. Kubota,\
+  \ and M. Kachi, 2013: Gauge Adjusted\nGlobal Satellite Mapping of Precipitation\
+  \ (GSMaP_Gauge), Proc.\n29th ISTS, 2013-n-48.</p></li><li><p>S. Shige, M.K. Yamamoto,\
+  \ and A. Taniguchi, 2014. Improvement of\nTMI rain retrieval over the Indian Subcontinent.\
+  \ Geophys. Monogr.\nSer. (in print).</p></li><li><p>M.K. Yamamoto, and S. Shige,\
+  \ 2014: Implementation of an orographic/nonorographic\nrainfall classification scheme\
+  \ in the GSMaP algorithm for microwave\nradiometers. Atmos. Res. (in print).</p></li></ul><style>\n\
+  \  table.eecat {\n  border: 1px solid black;\n  border-collapse: collapse;\n  font-size:\
+  \ 13px;\n  }\n  table.eecat td, tr, th {\n  text-align: left; vertical-align: top;\n\
+  \  border: 1px solid gray; padding: 3px;\n  }\n  td.nobreak { white-space: nowrap;\
+  \ }\n</style>"
+keywords:
+- climate
+- geophysical
+- gpm
+- hourly
+- jaxa
+- precipitation
+- weather
+period: 0
+product_tags:
+- precipitation
+- geophysical
+- weather
+- climate
+- hourly
+provider: JAXA Earth Observation Research Center
+provider_url: https://sharaku.eorc.jaxa.jp/GSMaP/
+sample: https://mw1.google.com/ges/dd/images/GSMAP_sample.png
+source_tags:
+- gpm
+- jaxa
+tags:
+- climate
+- geophysical
+- gpm
+- hourly
+- jaxa
+- precipitation
+- weather
+thumb: https://mw1.google.com/ges/dd/images/GSMAP_thumb.png
+title: 'GSMaP Operational: Global Satellite Mapping of Precipitation'
+type_name: ImageCollection
+visualization_0_bands: hourlyPrecipRate
+visualization_0_max: '30.0'
+visualization_0_min: '0.0'
+visualization_0_name: Precipitation
+visualization_0_palette: 1621a2,ffffff,03ffff,13ff03,efff00,ffb103,ff2300
