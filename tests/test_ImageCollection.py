@@ -341,7 +341,7 @@ class TestReduceInterval:
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         reduced = ic.geetools.reduceInterval()
-        data_regression.check(reduced.getInfo())
+        data_regression.check(reduced.toDictionary().getInfo())
 
     def test_reduce_interval(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
         # get 3 month worth of data and group it with default parameters
