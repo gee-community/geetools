@@ -1119,7 +1119,7 @@ class ImageAccessor:
         """
         stac = self.getSTAC()
         error_msg = "DOI not found in the STAC"
-        return stac["sci:doi"] if "sci:doi" in stac else error_msg
+        return stac.get("sci:doi", error_msg)
 
     def getCitation(self) -> str:
         """Gets the citation of the image, if available.
@@ -1142,7 +1142,7 @@ class ImageAccessor:
         """
         stac = self.getSTAC()
         error_msg = "Citation not found in the STAC"
-        return stac["sci:citation"] if "sci:citation" in stac else error_msg
+        return stac.get("sci:citation", error_msg)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.Image:
         """Apply panchromatic sharpening to the Image.

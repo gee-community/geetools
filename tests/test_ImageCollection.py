@@ -114,7 +114,6 @@ class TestGetSTAC:
 class TestGetDOI:
     """Test the ``getDOI`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra does not accept C02 L08 collection yet.")
     def test_get_doi(self, s2_sr, data_regression):
         doi = s2_sr.geetools.getDOI()
         data_regression.check(doi)
@@ -123,7 +122,6 @@ class TestGetDOI:
 class TestGetCitation:
     """Test the ``getCitation`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_get_citation(self, s2_sr, data_regression):
         citation = s2_sr.geetools.getCitation()
         data_regression.check(citation)
