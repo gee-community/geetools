@@ -117,7 +117,7 @@ autoapi_options = [
     "special-members",
 ]
 autoapi_own_page_level = "method"
-autoapi_keep_files = False
+autoapi_keep_files = True
 
 # -- Options for intersphinx output --------------------------------------------
 # fmt: off
