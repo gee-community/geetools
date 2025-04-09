@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "geetools"
-version = "1.13.0"
+version = "1.14.0"
 description = "A collection of tools to work with Google Earth Engine Python API"
 keywords = [
   "python",
@@ -72,7 +72,7 @@ doc = [
   "pydata-sphinx-theme",
   "sphinx-copybutton",
   "sphinx-design",
-  "sphinx-autoapi==3.1.0a3",  # until v3.1 is released with the single page fix
+  "sphinx-autoapi",
   "ipykernel",
   "httplib2",
   "jupyter-sphinx",
@@ -127,7 +127,7 @@ branch = true
 [tool.commitizen]
 tag_format = "v$major.$minor.$patch$prerelease"
 update_changelog_on_bump = false
-version = "1.13.0"
+version = "1.14.0"
 version_files = [
     "pyproject.toml:version",
     "geetools/__init__.py:__version__",

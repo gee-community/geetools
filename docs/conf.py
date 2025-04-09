@@ -20,7 +20,7 @@ sys.path.append(str(Path(".").resolve()))
 project = "geetools"
 author = "Rodrigo E. Principe"
 copyright = f"2017-{datetime.now().year}, {author}"
-release = "1.13.0"
+release = "1.14.0"
 
 # -- General configuration -----------------------------------------------------
 extensions = [
@@ -117,7 +117,7 @@ autoapi_options = [
     "special-members",
 ]
 autoapi_own_page_level = "method"
-autoapi_keep_files = False
+autoapi_keep_files = True
 
 # -- Options for intersphinx output --------------------------------------------
 # fmt: off
