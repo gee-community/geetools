@@ -288,6 +288,7 @@ class TestRepeat:
 class TestmatchHistogram:
     """Test the ``histogramMatch`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def test_histogram_match(self, image_source, image_target, vatican_buffer, num_regression):
         bands = {"R": "R", "G": "G", "B": "B"}
         image = image_source.geetools.matchHistogram(image_target, bands)
@@ -405,6 +406,7 @@ class TestIndicexList:
 class TestSpectralIndices:
     """Test the ``spectralIndices`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def test_default_spectral_indices(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         image = s2_sr_vatican_2020.geetools.spectralIndices("all")
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
@@ -414,6 +416,7 @@ class TestSpectralIndices:
 class TestMaskClouds:
     """Test the ``maskClouds`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def test_mask_S2_clouds(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         image = s2_sr_vatican_2020.geetools.maskClouds()
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
@@ -424,6 +427,7 @@ class TestMaskClouds:
 class TestGetscaleParams:
     """Test the ``getScaleParams`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def test_get_scale_params(self, s2_sr_vatican_2020, data_regression):
         params = s2_sr_vatican_2020.geetools.getScaleParams()
         data_regression.check(params)
@@ -432,6 +436,7 @@ class TestGetscaleParams:
 class TestGetOffsetParams:
     """Test the ``getOffsetParams`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def get_offset_params(self, s2_sr_vatican_2020, data_regression):
         params = s2_sr_vatican_2020.geetools.getOffsetParams()
         data_regression.check(params)
@@ -440,6 +445,7 @@ class TestGetOffsetParams:
 class TestScaleAndOffset:
     """Test the ``scaleAndOffset`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def test_scale_and_offset(self, vatican_buffer, s2_sr_vatican_2020, num_regression):
         image = s2_sr_vatican_2020.geetools.scaleAndOffset()
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
@@ -449,6 +455,7 @@ class TestScaleAndOffset:
 class TestPreprocess:
     """Test the ``preprocess`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def test_preprocess(self, vatican_buffer, s2_sr_vatican_2020, num_regression):
         image = s2_sr_vatican_2020.geetools.preprocess()
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
@@ -501,9 +508,7 @@ class TestPanSharpen:
 class TestTasseledCap:
     """Test the tasseledCap method."""
 
-    @pytest.mark.xfail(
-        reason="This test is failing because the tasseledCap method is not implemented for this platform."
-    )
+    @pytest.mark.xfail(reason="ee_extra is not compatible with modern python anymore")
     def test_tasseled_cap(self, l8_sr_vatican_2020, num_regression):
         img = l8_sr_vatican_2020.geetools.tasseledCap()
         centroid = img.geometry().centroid().buffer(100)
@@ -659,7 +664,7 @@ class TestPlot:
 
     def test_plot_one_band(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
-        ndvi = s2_sr_vatican_2020.geetools.spectralIndices("NDVI")
+        ndvi = s2_sr_vatican_2020.normalizedDifference(["B8", "B4"]).rename("NDVI")
         ndvi.geetools.plot(["NDVI"], vatican.geometry(), ax)
 
         with BytesIO() as image_byte:
@@ -669,7 +674,7 @@ class TestPlot:
 
     def test_plot_one_band_cmap(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
-        ndvi = s2_sr_vatican_2020.geetools.spectralIndices("NDVI")
+        ndvi = s2_sr_vatican_2020.normalizedDifference(["B8", "B4"]).rename("NDVI")
         ndvi.geetools.plot(["NDVI"], vatican.geometry(), ax, cmap="RdYlGn")
 
         with BytesIO() as image_byte:
@@ -688,7 +693,7 @@ class TestPlot:
 
     def test_plot_with_crs(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
-        ndvi = s2_sr_vatican_2020.geetools.spectralIndices("NDVI")
+        ndvi = s2_sr_vatican_2020.normalizedDifference(["B8", "B4"]).rename("NDVI")
         ndvi.geetools.plot(["NDVI"], vatican.geometry(), ax, crs="EPSG:3857", scale=10)
 
         with BytesIO() as image_byte:

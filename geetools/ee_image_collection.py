@@ -7,13 +7,14 @@ from datetime import datetime as dt
 from typing import Any, Iterable
 
 import ee
-import ee_extra
-import ee_extra.Algorithms.core
-import ee_extra.ImageCollection.core
-import ee_extra.QA.clouds
-import ee_extra.QA.pipelines
-import ee_extra.Spectral.core
-import ee_extra.STAC.core
+
+# import ee_extra
+# import ee_extra.Algorithms.core
+# import ee_extra.ImageCollection.core
+# import ee_extra.QA.clouds
+# import ee_extra.QA.pipelines
+# import ee_extra.Spectral.core
+# import ee_extra.STAC.core
 import requests
 import xarray
 from ee import apifunction
@@ -88,18 +89,23 @@ class ImageCollectionAccessor:
                 )
 
         """
-        return ee_extra.QA.clouds.maskClouds(
-            self._obj,
-            method,
-            prob,
-            maskCirrus,
-            maskShadows,
-            scaledImage,
-            dark,
-            cloudDist,
-            buffer,
-            cdi,
+        raise NotImplementedError(
+            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
+            "all the latest version of Python due to use of deprecated pkg_resources. "
+            " We will try to fix this in the future, but for now please use the ee_extra package directly."
         )
+        # return ee_extra.QA.clouds.maskClouds(
+        #     self._obj,
+        #     method,
+        #     prob,
+        #     maskCirrus,
+        #     maskShadows,
+        #     scaledImage,
+        #     dark,
+        #     cloudDist,
+        #     buffer,
+        #     cdi,
+        # )
 
     def closest(
         self, date: ee.Date | str, tolerance: int = 1, unit: str = "month"
@@ -130,7 +136,12 @@ class ImageCollectionAccessor:
                 )
                 s2.size().getInfo()
         """
-        return ee_extra.ImageCollection.core.closest(self._obj, date, tolerance, unit)
+        raise NotImplementedError(
+            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
+            "all the latest version of Python due to use of deprecated pkg_resources. "
+            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        )
+        # return ee_extra.ImageCollection.core.closest(self._obj, date, tolerance, unit)
 
     def spectralIndices(
         self,
@@ -214,13 +225,16 @@ class ImageCollectionAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
-        # fmt: off
-        return ee_extra.Spectral.core.spectralIndices(
-            self._obj, index, G, C1, C2, L, cexp, nexp, alpha, slope, intercept, gamma, omega,
-            beta, k, fdelta, kernel, sigma, p, c, lambdaN, lambdaR, lambdaG, online,
-            drop=False,
+        raise NotImplementedError(
+            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
+            "all the latest version of Python due to use of deprecated pkg_resources. "
+            " We will try to fix this in the future, but for now please use the ee_extra package directly."
         )
-        # fmt: on
+        # return ee_extra.Spectral.core.spectralIndices(
+        #     self._obj, index, G, C1, C2, L, cexp, nexp, alpha, slope, intercept, gamma, omega,
+        #     beta, k, fdelta, kernel, sigma, p, c, lambdaN, lambdaR, lambdaG, online,
+        #     drop=False,
+        # )
 
     def getScaleParams(self) -> dict[str, float]:
         """Gets the scale parameters for each band of the image.
@@ -242,7 +256,12 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').geetools.getScaleParams()
         """
-        return ee_extra.STAC.core.getScaleParams(self._obj)
+        raise NotImplementedError(
+            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
+            "all the latest version of Python due to use of deprecated pkg_resources. "
+            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        )
+        # return ee_extra.STAC.core.getScaleParams(self._obj)
 
     def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
@@ -264,7 +283,12 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').geetools.getOffsetParams()
         """
-        return ee_extra.STAC.core.getOffsetParams(self._obj)
+        raise NotImplementedError(
+            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
+            "all the latest version of Python due to use of deprecated pkg_resources. "
+            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        )
+        # return ee_extra.STAC.core.getOffsetParams(self._obj)
 
     def scaleAndOffset(self) -> ee.ImageCollection:
         """Scales bands on an image according to their scale and offset parameters.
@@ -285,7 +309,12 @@ class ImageCollectionAccessor:
 
                 S2 = ee.ImageCollection('COPERNICUS/S2_SR').scaleAndOffset()
         """
-        return ee_extra.STAC.core.scaleAndOffset(self._obj)
+        raise NotImplementedError(
+            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
+            "all the latest version of Python due to use of deprecated pkg_resources. "
+            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        )
+        # return ee_extra.STAC.core.scaleAndOffset(self._obj)
 
     def preprocess(self, **kwargs) -> ee.ImageCollection:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image collection.
@@ -311,7 +340,12 @@ class ImageCollectionAccessor:
                 ee.Initialize()
                 S2 = ee.ImageCollection('COPERNICUS/S2_SR').preprocess()
         """
-        return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
+        raise NotImplementedError(
+            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
+            "all the latest version of Python due to use of deprecated pkg_resources. "
+            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        )
+        # return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
     def getSTAC(self) -> dict[str, Any]:
         """Gets the STAC of the image collection.
@@ -368,7 +402,12 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getDOI()
         """
-        return ee_extra.STAC.core.getDOI(self._obj)
+        raise NotImplementedError(
+            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
+            "all the latest version of Python due to use of deprecated pkg_resources. "
+            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        )
+        # return ee_extra.STAC.core.getDOI(self._obj)
 
     def getCitation(self) -> str:
         """Gets the citation of the image, if available.
@@ -389,7 +428,12 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getCitation()
         """
-        return ee_extra.STAC.core.getCitation(self._obj)
+        raise NotImplementedError(
+            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
+            "all the latest version of Python due to use of deprecated pkg_resources. "
+            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        )
+        # return ee_extra.STAC.core.getCitation(self._obj)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.ImageCollection:
         """Apply panchromatic sharpening to the :py:class:`ee.ImageCollection` images.
@@ -416,9 +460,14 @@ class ImageCollectionAccessor:
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
                 sharp = source.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        return ee_extra.Algorithms.core.panSharpen(
-            img=self._obj, method=method, qa=qa or None, prefix="geetools", **kwargs
+        raise NotImplementedError(
+            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
+            "all the latest version of Python due to use of deprecated pkg_resources. "
+            " We will try to fix this in the future, but for now please use the ee_extra package directly."
         )
+        # return ee_extra.Algorithms.core.panSharpen(
+        #     img=self._obj, method=method, qa=qa or None, prefix="geetools", **kwargs
+        # )
 
     def tasseledCap(self) -> ee.ImageCollection:
         """Calculates tasseled cap brightness, wetness, and greenness components for all images in the collection.
@@ -479,7 +528,12 @@ class ImageCollectionAccessor:
                 ic = ee.ImageCollection("LANDSAT/LT05/C01/T1")
                 ic = ic.geetools.tasseledCap()
         """
-        return ee_extra.Spectral.core.tasseledCap(self._obj)
+        raise NotImplementedError(
+            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
+            "all the latest version of Python due to use of deprecated pkg_resources. "
+            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        )
+        # return ee_extra.Spectral.core.tasseledCap(self._obj)
 
     def append(self, image: ee.Image) -> ee.ImageCollection:
         """Append an image to the existing image collection.
@@ -603,7 +657,7 @@ class ImageCollectionAccessor:
         s = ee.Image(zero).rename("integral").set("last", zero)
 
         # compute the approximation of the integral using the trapezoidal method
-        # each local interval is aproximated by the corresponding trapez and the
+        # each local interval is approximated by the corresponding trapez and the
         # sum is updated
         def computeIntegral(image, integral):
             image = ee.Image(image).select(band)
@@ -835,7 +889,7 @@ class ImageCollectionAccessor:
         filterCombination = apifunction.ApiFunction.call_(filter, ee.List(filterList))
 
         # apply this filter and remove the temporary property. Exclude parameter is additive so
-        # we do a blank multiplication to remove all the properties beforhand
+        # we do a blank multiplication to remove all the properties beforehand
         ic = ee.ImageCollection(self._obj.filter(filterCombination))
         ic = ic.map(
             lambda i: ee.Image(i.multiply(1).copyProperties(i, exclude=[bandNamesProperty]))

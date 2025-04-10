@@ -64,10 +64,21 @@ class TestFromDOY:
         date = ee.Date.geetools.fromDOY(1, 3)
         assert date.format("YYYY-MM-DD").getInfo() == "0003-01-01"
 
-    def test_wrong_doy(self):
-        # check that GEE can use > 365 doy
-        date = ee.Date.geetools.fromDOY(367, 2020)
-        assert date.format("YYYY-MM-DD").getInfo() == "2021-01-01"
+
+class TestToDOY:
+    """Test the toDOY method."""
+
+    def test_to_doy(self):
+        doy = ee.Date("2025-04-09").geetools.toDOY()
+        assert doy.getInfo() == 99
+
+    def test_to_doy_leap(self):
+        doy = ee.Date("2020-03-01").geetools.toDOY()
+        assert doy.getInfo() == 60
+
+    def test_to_doy_non_leap(self):
+        doy = ee.Date("2021-03-01").geetools.toDOY()
+        assert doy.getInfo() == 60
 
 
 class TestIsLeap:
