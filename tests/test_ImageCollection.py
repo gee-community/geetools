@@ -47,6 +47,7 @@ class TestMaskClouds:
 class TestClosest:
     """Test the ``closest`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_closest_s2_sr(self, s2_sr, data_regression):
         closest = s2_sr.geetools.closest("2021-10-01")
         data_regression.check(closest.size().getInfo())
@@ -55,6 +56,7 @@ class TestClosest:
 class TestSpectralIndices:
     """Test the ``spectralIndices`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_spectral_indices(self, s2_sr, num_regression):
         indices = s2_sr.geetools.spectralIndices(["NDVI", "NDWI"])
         num_regression.check(reduce(indices).getInfo())
@@ -63,6 +65,7 @@ class TestSpectralIndices:
 class TestGetScaleParams:
     """Test the ``getScaleParams`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_get_scale_params(self, s2_sr, data_regression):
         scale_params = s2_sr.geetools.getScaleParams()
         data_regression.check(scale_params)
@@ -71,6 +74,7 @@ class TestGetScaleParams:
 class TestGetOffsetParams:
     """Test the ``getOffsetParams`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_get_offset_params(self, s2_sr, data_regression):
         offset_params = s2_sr.geetools.getOffsetParams()
         data_regression.check(offset_params)
@@ -79,6 +83,7 @@ class TestGetOffsetParams:
 class TestScaleAndOffset:
     """Test the ``scaleAndOffset`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_scale_and_offset(self, s2_sr, num_regression):
         scaled = s2_sr.geetools.scaleAndOffset()
         num_regression.check(reduce(scaled).getInfo())
@@ -87,9 +92,7 @@ class TestScaleAndOffset:
 class TestPreprocess:
     """Test the ``preprocess`` method."""
 
-    @pytest.mark.xfail(
-        reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x."
-    )
+    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_preprocess(self, s2_sr, num_regression):
         preprocessed = s2_sr.geetools.preprocess()
         values = {k: np.nan if v is None else v for k, v in reduce(preprocessed).getInfo().items()}
@@ -111,6 +114,7 @@ class TestGetSTAC:
 class TestGetDOI:
     """Test the ``getDOI`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra does not accept C02 L08 collection yet.")
     def test_get_doi(self, s2_sr, data_regression):
         doi = s2_sr.geetools.getDOI()
         data_regression.check(doi)
@@ -119,6 +123,7 @@ class TestGetDOI:
 class TestGetCitation:
     """Test the ``getCitation`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_get_citation(self, s2_sr, data_regression):
         citation = s2_sr.geetools.getCitation()
         data_regression.check(citation)
@@ -136,6 +141,7 @@ class TestPanSharpen:
 class TestTasseledCap:
     """Test the ``tasseledCap`` method."""
 
+    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_tasseled_cap(self, l8_sr, num_regression):
         tc = l8_sr.geetools.tasseledCap()
         num_regression.check(reduce(tc).getInfo())
@@ -337,11 +343,12 @@ class TestGroupInterval:
 class TestReduceInterval:
     """Test the ``reduceInterval`` method."""
 
-    def test_reduce_interval_properties(self, jaxa_rainfall, data_regression):
+    def test_reduce_interval_properties(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         reduced = ic.geetools.reduceInterval()
-        data_regression.check(reduced.getInfo())
+        values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+        ee_dictionary_regression.check(values)
 
     def test_reduce_interval(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
         # get 3 month worth of data and group it with default parameters
