@@ -1,0 +1,444 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        list:
+          functionInvocationValue:
+            arguments:
+              collection:
+                valueReference: '1'
+              property:
+                valueReference: '9'
+            functionName: AggregateFeatureCollection.array
+        other:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_0_0
+                  body: '20'
+              dropNulls:
+                constantValue: false
+              list:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      valueReference: '1'
+                    property:
+                      valueReference: '10'
+                  functionName: AggregateFeatureCollection.array
+            functionName: List.map
+      functionName: List.zip
+  '1':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_1_0
+            body: '2'
+        collection:
+          functionInvocationValue:
+            arguments:
+              collection:
+                functionInvocationValue:
+                  arguments:
+                    baseAlgorithm:
+                      functionDefinitionValue:
+                        argumentNames:
+                        - _MAPPING_VAR_2_0
+                        body: '11'
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          first:
+                            valueReference: '13'
+                          function:
+                            functionDefinitionValue:
+                              argumentNames:
+                              - _MAPPING_VAR_3_0
+                              - _MAPPING_VAR_3_1
+                              body: '16'
+                          list:
+                            valueReference: '8'
+                        functionName: List.iterate
+                  functionName: Collection.map
+              key:
+                valueReference: '3'
+            functionName: Collection.limit
+      functionName: Collection.map
+  '10':
+    constantValue: system:time_start
+  '11':
+    functionInvocationValue:
+      arguments:
+        key:
+          valueReference: '3'
+        object:
+          argumentReference: _MAPPING_VAR_2_0
+        value:
+          functionInvocationValue:
+            arguments:
+              list:
+                functionInvocationValue:
+                  arguments:
+                    baseAlgorithm:
+                      functionDefinitionValue:
+                        argumentNames:
+                        - _MAPPING_VAR_0_0
+                        body: '12'
+                    dropNulls:
+                      constantValue: false
+                    list:
+                      valueReference: '4'
+                  functionName: List.map
+              separator:
+                constantValue: ''
+            functionName: List.join
+      functionName: Element.set
+  '12':
+    functionInvocationValue:
+      arguments:
+        object:
+          argumentReference: _MAPPING_VAR_2_0
+        property:
+          valueReference: '6'
+      functionName: Element.get
+  '13':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_0_0
+            body: '14'
+        collection:
+          functionInvocationValue:
+            arguments:
+              collection:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          baseAlgorithm:
+                            functionDefinitionValue:
+                              argumentNames:
+                              - _MAPPING_VAR_0_0
+                              body: '15'
+                          collection:
+                            functionInvocationValue:
+                              arguments:
+                                id:
+                                  constantValue: LANDSAT/LC08/C02/T1_RT_TOA
+                              functionName: ImageCollection.load
+                        functionName: Collection.map
+                    filter:
+                      functionInvocationValue:
+                        arguments:
+                          leftField:
+                            constantValue: .all
+                          rightValue:
+                            functionInvocationValue:
+                              arguments:
+                                geometry:
+                                  functionInvocationValue:
+                                    arguments:
+                                      collection:
+                                        functionInvocationValue:
+                                          arguments:
+                                            collection:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  collection:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        tableId:
+                                                          constantValue: FAO/GAUL/2015/level2
+                                                      functionName: Collection.loadTable
+                                                  filter:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        leftField:
+                                                          constantValue: ADM0_NAME
+                                                        rightValue:
+                                                          constantValue: Colombia
+                                                      functionName: Filter.equals
+                                                functionName: Collection.filter
+                                            filter:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  leftField:
+                                                    constantValue: ADM1_NAME
+                                                  rightValue:
+                                                    constantValue: Amazonas
+                                                functionName: Filter.equals
+                                          functionName: Collection.filter
+                                    functionName: Collection.geometry
+                              functionName: Feature
+                        functionName: Filter.intersects
+                  functionName: Collection.filter
+              filter:
+                functionInvocationValue:
+                  arguments:
+                    leftValue:
+                      functionInvocationValue:
+                        arguments:
+                          end:
+                            constantValue: '2021-12-01'
+                          start:
+                            constantValue: '2021-01-01'
+                        functionName: DateRange
+                    rightField:
+                      valueReference: '10'
+                  functionName: Filter.dateRangeContains
+            functionName: Collection.filter
+      functionName: Collection.map
+  '14':
+    functionInvocationValue:
+      arguments:
+        key:
+          valueReference: '9'
+        object:
+          argumentReference: _MAPPING_VAR_0_0
+        value:
+          functionInvocationValue:
+            arguments:
+              input:
+                functionInvocationValue:
+                  arguments:
+                    input:
+                      functionInvocationValue:
+                        arguments:
+                          object:
+                            argumentReference: _MAPPING_VAR_0_0
+                          property:
+                            valueReference: '9'
+                        functionName: Element.get
+                  functionName: Number.round
+            functionName: Number.toInt
+      functionName: Element.set
+  '15':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          constantValue:
+          - B1
+          - B2
+          - B3
+          - B4
+          - B5
+          - B6
+          - B7
+          - B8
+          - B9
+          - B10
+          - B11
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '16':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_2_0
+            body: '17'
+        collection:
+          argumentReference: _MAPPING_VAR_3_1
+      functionName: Collection.map
+  '17':
+    functionInvocationValue:
+      arguments:
+        key:
+          functionInvocationValue:
+            arguments:
+              string1:
+                valueReference: '18'
+              string2:
+                valueReference: '7'
+            functionName: String.cat
+        object:
+          argumentReference: _MAPPING_VAR_2_0
+        value:
+          functionInvocationValue:
+            arguments:
+              number:
+                functionInvocationValue:
+                  arguments:
+                    element:
+                      functionInvocationValue:
+                        arguments:
+                          object:
+                            argumentReference: _MAPPING_VAR_2_0
+                          property:
+                            valueReference: '18'
+                        functionName: Element.get
+                    list:
+                      functionInvocationValue:
+                        arguments:
+                          list:
+                            functionInvocationValue:
+                              arguments:
+                                collection:
+                                  functionInvocationValue:
+                                    arguments:
+                                      ascending:
+                                        functionInvocationValue:
+                                          arguments:
+                                            condition:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  defaultValue:
+                                                    constantValue: true
+                                                  dictionary:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        keys:
+                                                          functionInvocationValue:
+                                                            arguments:
+                                                              end:
+                                                                functionInvocationValue:
+                                                                  arguments:
+                                                                    list:
+                                                                      valueReference: '19'
+                                                                  functionName: List.size
+                                                              list:
+                                                                valueReference: '8'
+                                                              start:
+                                                                constantValue: 0
+                                                            functionName: List.slice
+                                                        values:
+                                                          valueReference: '19'
+                                                      functionName: Dictionary.fromLists
+                                                  key:
+                                                    valueReference: '18'
+                                                functionName: Dictionary.get
+                                            falseCase:
+                                              constantValue: false
+                                            trueCase:
+                                              constantValue: true
+                                          functionName: If
+                                      collection:
+                                        valueReference: '13'
+                                      key:
+                                        valueReference: '18'
+                                    functionName: Collection.limit
+                                property:
+                                  valueReference: '18'
+                              functionName: AggregateFeatureCollection.array
+                        functionName: List.distinct
+                  functionName: List.indexOf
+              pattern:
+                functionInvocationValue:
+                  arguments:
+                    string1:
+                      functionInvocationValue:
+                        arguments:
+                          string1:
+                            constantValue: '%0'
+                          string2:
+                            functionInvocationValue:
+                              arguments:
+                                number:
+                                  functionInvocationValue:
+                                    arguments:
+                                      string:
+                                        functionInvocationValue:
+                                          arguments:
+                                            number:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  input:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        collection:
+                                                          valueReference: '13'
+                                                      functionName: Collection.size
+                                                functionName: Number.toInt
+                                          functionName: Number.format
+                                    functionName: String.length
+                              functionName: Number.format
+                        functionName: String.cat
+                    string2:
+                      constantValue: d
+                  functionName: String.cat
+            functionName: Number.format
+      functionName: Element.set
+  '18':
+    functionInvocationValue:
+      arguments:
+        input:
+          argumentReference: _MAPPING_VAR_3_0
+      functionName: String
+  '19':
+    constantValue:
+    - true
+    - false
+  '2':
+    functionInvocationValue:
+      arguments:
+        destination:
+          argumentReference: _MAPPING_VAR_1_0
+        exclude:
+          functionInvocationValue:
+            arguments:
+              element:
+                valueReference: '3'
+              list:
+                valueReference: '4'
+            functionName: List.add
+        source:
+          argumentReference: _MAPPING_VAR_1_0
+      functionName: Image.copyProperties
+  '20':
+    functionInvocationValue:
+      arguments:
+        date:
+          functionInvocationValue:
+            arguments:
+              value:
+                argumentReference: _MAPPING_VAR_0_0
+            functionName: Date
+      functionName: Date.format
+  '3':
+    constantValue: _geetools_sort_many_
+  '4':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_0_0
+            body: '5'
+        dropNulls:
+          constantValue: false
+        list:
+          valueReference: '8'
+      functionName: List.map
+  '5':
+    functionInvocationValue:
+      arguments:
+        string1:
+          valueReference: '6'
+        string2:
+          valueReference: '7'
+      functionName: String.cat
+  '6':
+    functionInvocationValue:
+      arguments:
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: String
+  '7':
+    constantValue: _geetools_position
+  '8':
+    arrayValue:
+      values:
+      - valueReference: '9'
+      - valueReference: '10'
+  '9':
+    constantValue: CLOUD_COVER
