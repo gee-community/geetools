@@ -42,8 +42,18 @@ class StringAccessor:
         Replace the keys in the string using the values provided in the dictionary. Follow the same pattern: value format as Python string.format method.
 
         Numbers and Dates can be formatted using formatters:
-        for ee.Number use https://developers.google.com/earth-engine/apidocs/ee-number-format.
-        for ee.Date use https://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
+         - ee.Number
+           - formatters: https://developers.google.com/earth-engine/apidocs/ee-number-format.
+           - how to: %{formatter}
+           - example: "%.2f" (converts 3.1415 -> 3.14)
+         - ee.Date
+           - formatters: https://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
+           - how to: %t{formatter}
+           - example: "%tyyyy-MM-dd" (converts 1577836800000 -> 2020-01-01)
+           - Dates in the template can be
+             - ee.Date -> ee.Date('2020-01-01')
+             - ee.Number (milliseconds) -> 1577836800000
+             - ee.String -> "2020-01-01"
 
         Parameters:
             template: A dictionary with the values to replace.
