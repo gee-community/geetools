@@ -1249,14 +1249,31 @@ class ImageAccessor:
         bands: dict[str, str],
         geometry: ee.Geometry | None = None,
         maxBuckets: int = 256,
+        scale: int = 30,
+        maxPixels: int = 65536 * 4 - 1,
+        bestEffort: bool = True,
     ) -> ee.Image:
         """Adjust the image's histogram to match a target image.
+
+        This method performs histogram matching on individual bands independently.
+        While this adjusts the value distribution of each band to match the target,
+        it does not account for the relationships between the bands. As a result,
+        you might observe changes in the hue of the image after applying this function,
+        as the relative intensities of the different color bands are altered independently.
+
+        For histogram matching that preserves the hue of the image, consider using the
+        `matchHistogramHSV` method available in `geetools`.
+
+        From: https://medium.com/google-earth/histogram-matching-c7153c85066d
 
         Parameters:
             target: Image to match.
             bands: A dictionary of band names to match, with source bands as keys and target bands as values.
             geometry: The region to match histograms in that overlaps both images. If none is provided, the geometry of the source image will be used.
             maxBuckets: The maximum number of buckets to use when building histograms. Will be rounded to the nearest power of 2.
+            scale: the spatial resolution to compute the histograms.
+            maxPixels: The maximum number of pixels to compute the histogram.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
 
         Returns:
             The adjusted image containing the matched source bands.
@@ -1278,18 +1295,54 @@ class ImageAccessor:
                 }
                 matched = source.geetools.matchHistogram(target, bands)
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+
+        def lookup(sourceHist, targetHist):
+            """Create a lookup table to make sourceHist match targetHist."""
+            # Split the histograms by column and normalize the counts.
+            sourceValues = sourceHist.slice(1, 0, 1).project([0])
+            sourceCounts = sourceHist.slice(1, 1, 2).project([0])
+            sourceCounts = sourceCounts.divide(sourceCounts.get([-1]))  # divide each by the max
+            targetValues = targetHist.slice(1, 0, 1).project([0])
+            targetCounts = targetHist.slice(1, 1, 2).project([0])
+            targetCounts = targetCounts.divide(targetCounts.get([-1]))
+
+            # Find first position in target where targetCount >= srcCount[i], for each i.
+            lookup = sourceCounts.toList().map(
+                lambda n: targetValues.get(targetCounts.gte(n).argmax())
+            )
+            return ee.Dictionary({"x": sourceValues.toList(), "y": lookup})
+
+        bands = ee.Dictionary(bands)
+        geom = geometry or self._obj.geometry()
+        reducer = ee.Reducer.autoHistogram(maxBuckets=maxBuckets, cumulative=True)
+        args = dict(
+            reducer=reducer, geometry=geom, scale=scale, maxPixels=maxPixels, bestEffort=bestEffort
         )
-        # return ee_extra.Spectral.core.matchHistogram(
-        #     source=self._obj,
-        #     target=target,
-        #     bands=bands,
-        #     geometry=geometry,
-        #     maxBuckets=maxBuckets,
-        # )
+
+        # Only use pixels in target that have a value in source
+        # (inside the footprint and unmasked).
+        sourceObj = self._obj.reduceRegion(**args)
+        targetObj = target.updateMask(self._obj.mask()).reduceRegion(**args)
+
+        sourceBands = bands.keys()
+
+        def interpolate(sband):
+            """Interpolate bands."""
+            tband = ee.String(bands.get(sband))
+            lk = lookup(sourceObj.getArray(sband), targetObj.getArray(tband))
+            x = ee.List(lk.get("x"))
+            y = ee.List(lk.get("y"))
+            result = ee.Image(
+                ee.Algorithms.If(
+                    x.size().eq(1),
+                    self._obj.select([sband]).remap(x, y),
+                    self._obj.select([sband]).interpolate(x, y),
+                )
+            )
+            return result
+
+        images = sourceBands.map(interpolate)
+        return self.fromList(images)
 
     def maskClouds(
         self,
