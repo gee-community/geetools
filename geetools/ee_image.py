@@ -1312,7 +1312,7 @@ class ImageAccessor:
             )
             return ee.Dictionary({"x": sourceValues.toList(), "y": lookup})
 
-        bands = ee.Dictionary(bands)
+        bandsee = ee.Dictionary(bands)
         geom = geometry or self._obj.geometry()
         reducer = ee.Reducer.autoHistogram(maxBuckets=maxBuckets, cumulative=True)
         args = dict(
@@ -1324,11 +1324,11 @@ class ImageAccessor:
         sourceObj = self._obj.reduceRegion(**args)
         targetObj = target.updateMask(self._obj.mask()).reduceRegion(**args)
 
-        sourceBands = bands.keys()
+        sourceBands = bandsee.keys()
 
         def interpolate(sband):
             """Interpolate bands."""
-            tband = ee.String(bands.get(sband))
+            tband = ee.String(bandsee.get(sband))
             lk = lookup(sourceObj.getArray(sband), targetObj.getArray(tband))
             x = ee.List(lk.get("x"))
             y = ee.List(lk.get("y"))
