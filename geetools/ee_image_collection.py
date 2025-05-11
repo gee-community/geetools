@@ -1023,17 +1023,15 @@ class ImageCollectionAccessor:
         """
         sizeName = "__geetools_generated_size__"  # set generated properties name
 
-        # as everything is relyin on the "system:time_start" property
-        # we sort the image collection in the first place. In most collection it will change nothing
-        # so free of charge unless for plumbing
-        ic = self._obj.sort("system:time_start")
+        # create an ic variable to avoid calling self._obj multiple times
+        # and extract the property names to copy
+        ic = self._obj
         toCopy = ic.first().propertyNames()
 
         # transform the interval into a duration in milliseconds
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
         # I don't know if it should be properly imported here, let's see with user feedback
-        timeList = ic.aggregate_array("system:time_start")
-        start, end = timeList.get(0), timeList.get(-1)
+        start, end = ic.aggregate_min("system:time_start"), ic.aggregate_max("system:time_start")
         DateRangeList = ee.DateRange(start, end).geetools.split(duration, unit)
         imageCollectionList = DateRangeList.map(
             lambda dr: ic.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
