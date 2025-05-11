@@ -402,12 +402,9 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getDOI()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.STAC.core.getDOI(self._obj)
+        stac = self.getSTAC()
+        error_msg = "The DOI is not available for this collection. Please check the STAC for more information."
+        return stac.get("sci:doi", error_msg)
 
     def getCitation(self) -> str:
         """Gets the citation of the image, if available.
@@ -428,12 +425,9 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getCitation()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.STAC.core.getCitation(self._obj)
+        stac = self.getSTAC()
+        error_msg = "Citation not available for this collection. Please check the STAC for more information."
+        return stac.get("sci:citation", error_msg)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.ImageCollection:
         """Apply panchromatic sharpening to the :py:class:`ee.ImageCollection` images.
