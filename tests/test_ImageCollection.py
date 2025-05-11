@@ -489,6 +489,61 @@ class TestMedoid:
             num_regression.check(values)
 
 
+class TestSortMany:
+    """Test the ``sortMany`` method."""
+
+    @staticmethod
+    def adjust_cloud_cover(i):
+        """round cloud cover property."""
+        cc = ee.Number(i.get("CLOUD_COVER"))
+        return i.set("CLOUD_COVER", cc.round().toInt())
+
+    def test_sort_many_asc_asc(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2], [True, True])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_asc_desc(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2], [True, False])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_desc_desc(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2], [False, False])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_default(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_missing_asc(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2], [False])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+
 class TestPlotDatesByBands:
     """Test the ``plot_dates_by_bands`` method."""
 
