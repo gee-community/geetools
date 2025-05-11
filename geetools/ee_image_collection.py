@@ -1017,17 +1017,15 @@ class ImageCollectionAccessor:
         """
         sizeName = "__geetools_generated_size__"  # set generated properties name
 
-        # as everything is relyin on the "system:time_start" property
-        # we sort the image collection in the first place. In most collection it will change nothing
-        # so free of charge unless for plumbing
-        ic = self._obj.sort("system:time_start")
+        # create an ic variable to avoid calling self._obj multiple times
+        # and extract the property names to copy
+        ic = self._obj
         toCopy = ic.first().propertyNames()
 
         # transform the interval into a duration in milliseconds
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
         # I don't know if it should be properly imported here, let's see with user feedback
-        timeList = ic.aggregate_array("system:time_start")
-        start, end = timeList.get(0), timeList.get(-1)
+        start, end = ic.aggregate_min("system:time_start"), ic.aggregate_max("system:time_start")
         DateRangeList = ee.DateRange(start, end).geetools.split(duration, unit)
         imageCollectionList = DateRangeList.map(
             lambda dr: ic.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
@@ -1233,6 +1231,57 @@ class ImageCollectionAccessor:
         medoid = sumDistance.qualityMosaic(sumOfDistancesName)
 
         return ee.Image(medoid).select(bandNames)
+
+    def sortMany(
+        self, properties: ee.List | list, ascending: ee.List | list | None = None
+    ) -> ee.ImageCollection:
+        """Sort an ImageCollection using more than 1 property.
+
+        Args:
+            properties: the list of properties to sort by.
+            ascending: the list of order. If not passed all properties will be sorted ascending
+        """
+        properties = ee.List(properties)
+        ascending = ee.List(ascending or properties.map(lambda p: True))
+        order_dict = ee.Dictionary.fromLists(properties.slice(0, ascending.size()), ascending)
+        # position order of each prop will be converted to string using this format
+        length = self._obj.size().toInt().format().length()
+        format = ee.String("%0").cat(length.format()).cat("d")
+        # suffix for temporal properties
+        pos_suffix = ee.String("_geetools_position")
+
+        def compute_position(prop, cum):
+            """Add the order position of the property to each image."""
+            cum = ee.ImageCollection(cum)
+            order = ee.Algorithms.If(order_dict.get(prop, True), True, False)
+            sorted_values = self._obj.sort(prop, order).aggregate_array(prop).distinct()
+            position_name = ee.String(prop).cat(pos_suffix)
+
+            def add_position(img):
+                index = sorted_values.indexOf(img.get(prop))
+                return img.set(position_name, index.format(format))
+
+            return cum.map(add_position)
+
+        with_positions = ee.ImageCollection(properties.iterate(compute_position, self._obj))
+        # put temp properties in a list to further remove them
+        position_properties = properties.map(lambda p: ee.String(p).cat(pos_suffix))
+        final_order_property = "_geetools_sort_many_"
+
+        def compute_final_prop(img):
+            """Join order position string of each property into a single number."""
+            img = ee.Image(img)
+            # values = img.toDictionary(position_properties).values()  # this should work but doesn't
+            values = position_properties.map(lambda p: img.get(p))
+            return img.set(final_order_property, values.join(""))
+
+        with_order = with_positions.map(compute_final_prop)
+        # add final property to properties to remove
+        prop_to_remove = position_properties.add(final_order_property)
+        # sort using the final property and remove temp properties
+        sorted = with_order.sort(final_order_property)
+        sorted = sorted.map(lambda i: ee.Image(i.copyProperties(i, exclude=prop_to_remove)))
+        return sorted
 
     def datesByBands(
         self,
