@@ -77,10 +77,6 @@ class Asset(os.PathLike):
         """make the Asset object hashable."""
         return hash(self.as_posix())
 
-    def __getattr__(self, name):
-        """Return the attribute of the path object."""
-        return getattr(self, name)
-
     @classmethod
     def home(cls) -> Asset:
         """Return the root asset folder of the used cloud project.
