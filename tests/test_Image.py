@@ -285,43 +285,57 @@ class TestRepeat:
         return ee.Image(src).select(["B1", "B2", "B3"])
 
 
-class TestmatchHistogram:
+class TestMatchHistogram:
     """Test the ``histogramMatch`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
-    def test_histogram_match(self, image_source, image_target, vatican_buffer, num_regression):
-        bands = {"R": "R", "G": "G", "B": "B"}
+    def test_histogram_match(self, image_source, image_target, ee_image_regression):
+        """Test histogramMatch."""
+        bands = {"B8": "SR_B5", "B11": "SR_B6", "B4": "SR_B4"}
         image = image_source.geetools.matchHistogram(image_target, bands)
-        values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-        num_regression.check(values.getInfo())
+        # for viz
+        image_target = image_target.select(["SR_B5", "SR_B6", "SR_B4"], ["N", "S", "R"])
+        image = image.select(["B8", "B11", "B4"], ["N", "S", "R"])
+        ee_image_regression.check(
+            image_target.blend(image),
+            viz_params={"bands": ["N", "S", "R"], "min": 0, "max": 0.4},
+            scale=30,
+        )
 
     @pytest.fixture
     def dates(self):
         """The dates of my imagery."""
-        return "2023-06-01", "2023-06-30"
+        return "2023-01-01", "2024-01-01"
 
     @pytest.fixture
-    def image_source(self, vatican_buffer, dates):
+    def image_source(self, amazonas_centroid, dates):
         """image from the S2 copernicus program over vatican city."""
         return (
             ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
-            .filterBounds(vatican_buffer)
+            .filter(ee.Filter.lt("CLOUD_COVERAGE_ASSESSMENT", 5))
+            .filterBounds(amazonas_centroid)
             .filterDate(*dates)
             .first()
-            .select("B4", "B3", "B2")
-            .rename("R", "G", "B")
+            .select("B8", "B11", "B4")
+            .divide(10000)
+            .toFloat()
+            .clip(amazonas_centroid.buffer(10000))
         )
 
     @pytest.fixture
-    def image_target(self, vatican_buffer, dates):
+    def image_target(self, amazonas_centroid, dates):
         """image from the L8 Landsat program over vatican city."""
         return (
             ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
-            .filterBounds(vatican_buffer)
+            .filterBounds(amazonas_centroid)
+            .filter(ee.Filter.lte("CLOUD_COVER", 5))
             .filterDate(*dates)
             .first()
-            .select("SR_B4", "SR_B3", "SR_B2")
-            .rename("R", "G", "B")
+            .select("SR_B5", "SR_B6", "SR_B4")
+            .multiply(0.0000275)
+            .add(-0.2)
+            .toFloat()
+            # .divide(65455).multiply(256).toUint8()
+            .clip(amazonas_centroid.buffer(20000).bounds())
         )
 
 
