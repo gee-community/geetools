@@ -59,6 +59,42 @@ class TestAddId:
         return ee.FeatureCollection("FAO/GAUL/2015/level0").limit(10)
 
 
+class TestColumnNames:
+    """Test the ``columnNames`` method."""
+
+    def test_column_names(self, fc_instance, ee_list_regression):
+        columns = fc_instance.geetools.columnNames()
+        ee_list_regression.check(columns)
+
+    @pytest.fixture
+    def fc_instance(self):
+        geometry = ee.Geometry.Polygon(
+            [
+                [
+                    [-111.108203125, 38.72726135581648],
+                    [-111.108203125, 34.42385763998893],
+                    [-106.362109375, 34.42385763998893],
+                    [-106.362109375, 38.72726135581648],
+                ]
+            ]
+        )
+        image = ee.Image.random().clip(geometry)
+        fc = ee.FeatureCollection(
+            [
+                ee.Feature(
+                    ee.Geometry.Point([-101.1765625, 35.71859799956555]), {"system:index": "0"}
+                ),
+                ee.Feature(
+                    ee.Geometry.Point([-106.186328125, 41.41694364515647]), {"system:index": "1"}
+                ),
+                ee.Feature(
+                    ee.Geometry.Point([-108.471484375, 37.132906371577455]), {"system:index": "2"}
+                ),
+            ]
+        )
+        return image.reduceRegions(collection=fc, reducer=ee.Reducer.first(), scale=1000)
+
+
 class TestMergeGeometries:
     """Test the ``mergeGeometries`` method."""
 
