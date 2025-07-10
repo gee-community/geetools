@@ -20,9 +20,7 @@ def mosaicSameDay(collection, qualityBand=""):
 
 
 @deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.reduceInterval instead.")
-def reduceEqualInterval(
-    collection, interval=30, unit="day", reducer=None, start_date=None, end_date=None
-):
+def reduceEqualInterval(collection, interval=30, unit="day", reducer=None, start_date=None, end_date=None):
     """Reduce an ImageCollection into a new one that has one image per reduced interval."""
     return ee.ImageCollection(collection).geetools.reduceInterval(reducer, unit, interval)
 

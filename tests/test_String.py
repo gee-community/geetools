@@ -38,10 +38,7 @@ class TestFormat:
             "end": "2021-01-01",
         }
         formatted_string = string.geetools.format(params)
-        assert (
-            formatted_string.getInfo()
-            == "Hello developer, pi=3.14 start=2020-01-01 end=01 Jan 2021"
-        )
+        assert formatted_string.getInfo() == "Hello developer, pi=3.14 start=2020-01-01 end=01 Jan 2021"
 
     def test_format_missing(self):
         string = ee.String("{greeting} {missing}")

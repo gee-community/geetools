@@ -107,9 +107,7 @@ class ImageCollectionAccessor:
         #     cdi,
         # )
 
-    def closest(
-        self, date: ee.Date | str, tolerance: int = 1, unit: str = "month"
-    ) -> ee.ImageCollection:
+    def closest(self, date: ee.Date | str, tolerance: int = 1, unit: str = "month") -> ee.ImageCollection:
         """Gets the closest image (or set of images if the collection intersects a region that requires multiple scenes) to the specified date.
 
         Parameters:
@@ -403,7 +401,9 @@ class ImageCollectionAccessor:
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getDOI()
         """
         stac = self.getSTAC()
-        error_msg = "The DOI is not available for this collection. Please check the STAC for more information."
+        error_msg = (
+            "The DOI is not available for this collection. Please check the STAC for more information."
+        )
         return stac.get("sci:doi", error_msg)
 
     def getCitation(self) -> str:
@@ -885,9 +885,7 @@ class ImageCollectionAccessor:
         # apply this filter and remove the temporary property. Exclude parameter is additive so
         # we do a blank multiplication to remove all the properties beforehand
         ic = ee.ImageCollection(self._obj.filter(filterCombination))
-        ic = ic.map(
-            lambda i: ee.Image(i.multiply(1).copyProperties(i, exclude=[bandNamesProperty]))
-        )
+        ic = ic.map(lambda i: ee.Image(i.multiply(1).copyProperties(i, exclude=[bandNamesProperty])))
 
         return ee.ImageCollection(ic)
 
@@ -1040,9 +1038,7 @@ class ImageCollectionAccessor:
             return ee.ImageCollection(ic.copyProperties(ic, properties=toCopy))
 
         imageCollectionList = (
-            imageCollectionList.map(add_size)
-            .filter(ee.Filter.gt(sizeName, 0))
-            .map(delete_size_property)
+            imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0)).map(delete_size_property)
         )
 
         return ee.List(imageCollectionList)
@@ -1242,8 +1238,8 @@ class ImageCollectionAccessor:
             ascending: the list of order. If not passed all properties will be sorted ascending
         """
         properties = ee.List(properties)
-        ascending = ee.List(ascending or properties.map(lambda p: True))
-        order_dict = ee.Dictionary.fromLists(properties.slice(0, ascending.size()), ascending)
+        asc = ee.List(ascending or properties.map(lambda p: True))
+        order_dict = ee.Dictionary.fromLists(properties.slice(0, asc.size()), asc)
         # position order of each prop will be converted to string using this format
         length = self._obj.size().toInt().format().length()
         format = ee.String("%0").cat(length.format()).cat("d")
@@ -1546,9 +1542,7 @@ class ImageCollectionAccessor:
 
         # reduce every sub ImageCollection in the list into images (it's the temporal reduction)
         # and aggregate the result as a single ImageCollection
-        timeRed = (
-            getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
-        )
+        timeRed = getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
 
         def timeReduce(c: ee.ImageCollection) -> ee.image:
             c = ee.ImageCollection(c)
@@ -1561,9 +1555,7 @@ class ImageCollectionAccessor:
         # spatially reduce the generated imagecollection over the region for each band
         doyList = ic.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
         spatialRed = (
-            getattr(ee.Reducer, spatialReducer)()
-            if isinstance(spatialReducer, str)
-            else spatialReducer
+            getattr(ee.Reducer, spatialReducer)() if isinstance(spatialReducer, str) else spatialReducer
         )
 
         def spatialReduce(label: ee.String) -> ee.Dictionary:
@@ -1652,9 +1644,7 @@ class ImageCollectionAccessor:
 
         # reduce every sub ImageCollection in the list into images (it's the temporal reduction)
         # and aggregate the result as a single ImageCollection
-        timeRed = (
-            getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
-        )
+        timeRed = getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
 
         def timeReduce(c: ee.ImageCollection) -> ee.image:
             c = ee.ImageCollection(c)
@@ -1667,9 +1657,7 @@ class ImageCollectionAccessor:
         # reduce the data for each region
         doyList = ic.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
         spatialRed = (
-            getattr(ee.Reducer, spatialReducer)()
-            if isinstance(spatialReducer, str)
-            else spatialReducer
+            getattr(ee.Reducer, spatialReducer)() if isinstance(spatialReducer, str) else spatialReducer
         )
         image = ic.toBands().rename(doyList)
         reduced = image.reduceRegions(
@@ -2769,9 +2757,7 @@ class ImageCollectionAccessor:
             def splitId(loc_id: ee.String) -> ee.Feature:
                 loc_id = ee.String(loc_id)
                 loc_f = ee.Feature(f).select([loc_id.cat("_.*")])
-                oldNames = loc_f.propertyNames().filter(
-                    ee.Filter.stringStartsWith("item", "system:").Not()
-                )
+                oldNames = loc_f.propertyNames().filter(ee.Filter.stringStartsWith("item", "system:").Not())
                 newNames = oldNames.map(lambda n: ee.String(n).replace(loc_id.cat("_"), ""))
                 loc_f = ee.Feature(ee.Feature(loc_f).select(oldNames, newNames))
                 loc_f = ee.Feature(loc_f.copyProperties(f, properties=originalProps))

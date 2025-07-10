@@ -315,9 +315,7 @@ class TestPlot:
 
     def test_plot_with_boundaries(self, image_regression):
         fig, ax = plt.subplots()
-        self.hydroshed.geetools.plot(
-            ax=ax, property="UP_AREA", cmap="magma", boundaries=True, color="g"
-        )
+        self.hydroshed.geetools.plot(ax=ax, property="UP_AREA", cmap="magma", boundaries=True, color="g")
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
