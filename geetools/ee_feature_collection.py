@@ -222,6 +222,12 @@ class FeatureCollectionAccessor:
         union = self._obj.iterate(lambda f, g: f.geometry().union(g, maxError=maxError), first)
         return ee.Geometry(union).dissolve(maxError=maxError)
 
+    def columnNames(self) -> ee.List:
+        """Get the name of the columns (Feature's properties)."""
+        temp_property_name = "__geetools_properties__"
+        fc = self._obj.map(lambda feat: feat.set(temp_property_name, feat.propertyNames()))
+        return fc.aggregate_array(temp_property_name).flatten().distinct()
+
     def toPolygons(self) -> ee.FeatureCollection:
         """Drop any geometry that is not a Polygon or a multipolygon.
 
@@ -324,9 +330,9 @@ class FeatureCollectionAccessor:
         values = eeProps.map(lambda p: ee.Dictionary.fromLists(feats, self._obj.aggregate_array(p)))
 
         # get the label to use in the dictionary if requested
-        labels = ee.List(labels) if labels is not None else properties
+        eeLabels = eeProps if labels is None else ee.List(labels)
 
-        return ee.Dictionary.fromLists(labels, values)
+        return ee.Dictionary.fromLists(eeLabels, values)
 
     def byFeatures(
         self,
