@@ -330,9 +330,9 @@ class FeatureCollectionAccessor:
         values = eeProps.map(lambda p: ee.Dictionary.fromLists(feats, self._obj.aggregate_array(p)))
 
         # get the label to use in the dictionary if requested
-        labels = ee.List(labels) if labels is not None else properties
+        eeLabels = eeProps if labels is None else ee.List(labels)
 
-        return ee.Dictionary.fromLists(labels, values)
+        return ee.Dictionary.fromLists(eeLabels, values)
 
     def byFeatures(
         self,
