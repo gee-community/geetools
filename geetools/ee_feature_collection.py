@@ -127,9 +127,7 @@ class FeatureCollectionAccessor:
                 print(json.dumps(countries.getInfo(), indent=2))
         """
         uniqueIds = self._obj.aggregate_array(keyColumn)
-        selectors = (
-            ee.List(selectors) if selectors is not None else self._obj.first().propertyNames()
-        )
+        selectors = ee.List(selectors) if selectors is not None else self._obj.first().propertyNames()
         keyColumn = ee.String(keyColumn)
 
         features = self._obj.toList(self._obj.size())
@@ -137,9 +135,7 @@ class FeatureCollectionAccessor:
         keys = uniqueIds.map(lambda uid: ee.String(ee.Algorithms.String(uid)))
         return ee.Dictionary.fromLists(keys, values)
 
-    def addId(
-        self, name: str | ee.String = "id", start: int | ee.Number = 1
-    ) -> ee.FeatureCollection:
+    def addId(self, name: str | ee.String = "id", start: int | ee.Number = 1) -> ee.FeatureCollection:
         """Add a unique numeric identifier, starting from parameter ``start``.
 
         Args:
@@ -318,18 +314,14 @@ class FeatureCollectionAccessor:
         """
         # get all the id values, they must be string so we are forced to cast them manually
         # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
-        features = self._obj.aggregate_array(featureId)
+        feats = self._obj.aggregate_array(featureId)
         isString = lambda i: ee.Algorithms.ObjectType(i).compareTo("String").eq(0)  # noqa: E731
-        features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
+        feats = feats.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # retrieve properties for each feature
-        properties = (
-            ee.List(properties) if properties is not None else self._obj.first().propertyNames()
-        )
-        properties = properties.remove(featureId)
-        values = properties.map(
-            lambda p: ee.Dictionary.fromLists(features, self._obj.aggregate_array(p))
-        )
+        eeProps = self._obj.first().propertyNames() if properties is None else ee.List(properties)
+        eeProps = eeProps.remove(featureId)
+        values = eeProps.map(lambda p: ee.Dictionary.fromLists(feats, self._obj.aggregate_array(p)))
 
         # get the label to use in the dictionary if requested
         labels = ee.List(labels) if labels is not None else properties
@@ -459,11 +451,7 @@ class FeatureCollectionAccessor:
                     label.set_rotation(45)
         """
         # Get the features and properties
-        props = (
-            ee.List(properties)
-            if properties is not None
-            else self._obj.first().propertyNames().getInfo()
-        )
+        props = ee.List(properties) if properties is not None else self._obj.first().propertyNames().getInfo()
         props = props.remove(featureId)
 
         # get the data from server

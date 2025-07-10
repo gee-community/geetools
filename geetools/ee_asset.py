@@ -463,9 +463,7 @@ class Asset(os.PathLike):
         """
         # sanity check on variables
         if not (self.is_project() or self.is_folder() or self.is_image_collection()):
-            raise ValueError(
-                f"Asset {self.as_posix()} is not a container and cannot contain other assets."
-            )
+            raise ValueError(f"Asset {self.as_posix()} is not a container and cannot contain other assets.")
 
         # no need for recursion if recursive is false we directly return the result of th API call
         if recursive is False:

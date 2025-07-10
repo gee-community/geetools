@@ -117,9 +117,7 @@ class TestClipOnCollection:
         data_regression.check(clipped.first().bandNames().getInfo(), f"{name}_bands")
         data_regression.check(clipped.first().propertyNames().getInfo(), f"{name}_property")
 
-    def test_clip_on_collection_without_properties(
-        self, s2_sr_vatican_2020, fc_instance, data_regression
-    ):
+    def test_clip_on_collection_without_properties(self, s2_sr_vatican_2020, fc_instance, data_regression):
         clipped = s2_sr_vatican_2020.geetools.clipOnCollection(fc_instance, 0)
         name = "test_clip_on_collection_without_properties"
         data_regression.check(clipped.first().bandNames().getInfo(), f"{name}_bands")
@@ -497,9 +495,7 @@ class TestPanSharpen:
         reason="This test is failing because the panSharpen method is not implemented for this platform."
     )
     def test_pan_sharpen(self, l8_sr_vatican_2020, num_regression):
-        sharp = l8_sr_vatican_2020.geetools.panSharpen(
-            method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13
-        )
+        sharp = l8_sr_vatican_2020.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         centroid = sharp.geometry().centroid().buffer(100)
         values = sharp.reduceRegion(ee.Reducer.mean(), centroid, 1)
         num_regression.check(values.getInfo())
