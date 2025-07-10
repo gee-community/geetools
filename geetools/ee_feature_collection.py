@@ -225,7 +225,7 @@ class FeatureCollectionAccessor:
     def columnNames(self) -> ee.List:
         """Get the name of the columns (Feature's properties).
 
-        get an flatten list of all the columns names in the FeatureCollection including the one that
+        get a flatten list of all the columns names in the FeatureCollection including the ones that
         are not in all features.
 
         Returns:
