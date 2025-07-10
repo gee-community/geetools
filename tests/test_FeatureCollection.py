@@ -81,15 +81,9 @@ class TestColumnNames:
         image = ee.Image.random().clip(geometry)
         fc = ee.FeatureCollection(
             [
-                ee.Feature(
-                    ee.Geometry.Point([-101.1765625, 35.71859799956555]), {"system:index": "0"}
-                ),
-                ee.Feature(
-                    ee.Geometry.Point([-106.186328125, 41.41694364515647]), {"system:index": "1"}
-                ),
-                ee.Feature(
-                    ee.Geometry.Point([-108.471484375, 37.132906371577455]), {"system:index": "2"}
-                ),
+                ee.Feature(ee.Geometry.Point([-101.1765625, 35.71859799956555]), {"system:index": "0"}),
+                ee.Feature(ee.Geometry.Point([-106.186328125, 41.41694364515647]), {"system:index": "1"}),
+                ee.Feature(ee.Geometry.Point([-108.471484375, 37.132906371577455]), {"system:index": "2"}),
             ]
         )
         return image.reduceRegions(collection=fc, reducer=ee.Reducer.first(), scale=1000)
