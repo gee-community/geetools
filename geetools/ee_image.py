@@ -1,7 +1,7 @@
 """Toolbox for the :py:class:`ee.Image` class."""
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import ee
 
@@ -1246,7 +1246,7 @@ class ImageAccessor:
     def matchHistogram(
         self,
         target: ee.Image,
-        bands: Dict[str, str],
+        bands: dict[str, str],
         geometry: ee.Geometry | None = None,
         maxBuckets: int = 256,
         scale: int = 30,
