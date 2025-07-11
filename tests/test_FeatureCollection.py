@@ -68,12 +68,15 @@ class TestColumnNames:
 
     @pytest.fixture
     def fc_instance(self):
-        image = ee.Image.random()
+        image = ee.Image.random().clip(ee.Geometry.Rectangle([-1, -1, 1, 1]))
+        # Create a Feature
         fc = ee.FeatureCollection(
             [
-                ee.Feature(ee.Geometry.Point([0, 0]), {"system:index": "0"}),
-                ee.Feature(ee.Geometry.Point([0, 1]), {"system:index": "1"}),
-                ee.Feature(ee.Geometry.Point([1, 0]), {"system:index": "2"}),
+                # outside the image
+                ee.Feature(ee.Geometry.Point([2, 2]), {"system:index": "0"}),
+                # inside the image
+                ee.Feature(ee.Geometry.Point([0, 0.5]), {"system:index": "1"}),
+                ee.Feature(ee.Geometry.Point([0.5, 0]), {"system:index": "2"}),
             ]
         )
         return image.reduceRegions(collection=fc, reducer=ee.Reducer.first(), scale=1000)

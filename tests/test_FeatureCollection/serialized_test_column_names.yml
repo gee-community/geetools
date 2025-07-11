@@ -1,0 +1,124 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        list:
+          functionInvocationValue:
+            arguments:
+              list:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          baseAlgorithm:
+                            functionDefinitionValue:
+                              argumentNames:
+                              - _MAPPING_VAR_0_0
+                              body: '1'
+                          collection:
+                            functionInvocationValue:
+                              arguments:
+                                collection:
+                                  functionInvocationValue:
+                                    arguments:
+                                      features:
+                                        arrayValue:
+                                          values:
+                                          - functionInvocationValue:
+                                              arguments:
+                                                geometry:
+                                                  functionInvocationValue:
+                                                    arguments:
+                                                      coordinates:
+                                                        constantValue:
+                                                        - 2
+                                                        - 2
+                                                    functionName: GeometryConstructors.Point
+                                                metadata:
+                                                  constantValue:
+                                                    system:index: '0'
+                                              functionName: Feature
+                                          - functionInvocationValue:
+                                              arguments:
+                                                geometry:
+                                                  functionInvocationValue:
+                                                    arguments:
+                                                      coordinates:
+                                                        constantValue:
+                                                        - 0
+                                                        - 0.5
+                                                    functionName: GeometryConstructors.Point
+                                                metadata:
+                                                  constantValue:
+                                                    system:index: '1'
+                                              functionName: Feature
+                                          - functionInvocationValue:
+                                              arguments:
+                                                geometry:
+                                                  functionInvocationValue:
+                                                    arguments:
+                                                      coordinates:
+                                                        constantValue:
+                                                        - 0.5
+                                                        - 0
+                                                    functionName: GeometryConstructors.Point
+                                                metadata:
+                                                  constantValue:
+                                                    system:index: '2'
+                                              functionName: Feature
+                                    functionName: Collection
+                                image:
+                                  functionInvocationValue:
+                                    arguments:
+                                      geometry:
+                                        functionInvocationValue:
+                                          arguments:
+                                            coordinates:
+                                              constantValue:
+                                              - - - -1
+                                                  - 1
+                                                - - -1
+                                                  - -1
+                                                - - 1
+                                                  - -1
+                                                - - 1
+                                                  - 1
+                                            evenOdd:
+                                              constantValue: true
+                                          functionName: GeometryConstructors.Polygon
+                                      input:
+                                        functionInvocationValue:
+                                          arguments: {}
+                                          functionName: Image.random
+                                    functionName: Image.clip
+                                reducer:
+                                  functionInvocationValue:
+                                    arguments: {}
+                                    functionName: Reducer.first
+                                scale:
+                                  constantValue: 1000
+                              functionName: Image.reduceRegions
+                        functionName: Collection.map
+                    property:
+                      valueReference: '2'
+                  functionName: AggregateFeatureCollection.array
+            functionName: List.flatten
+      functionName: List.distinct
+  '1':
+    functionInvocationValue:
+      arguments:
+        key:
+          valueReference: '2'
+        object:
+          argumentReference: _MAPPING_VAR_0_0
+        value:
+          functionInvocationValue:
+            arguments:
+              element:
+                argumentReference: _MAPPING_VAR_0_0
+            functionName: Element.propertyNames
+      functionName: Element.set
+  '2':
+    constantValue: __geetools_properties__
