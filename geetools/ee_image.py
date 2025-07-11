@@ -1289,17 +1289,13 @@ class ImageAccessor:
             targetCounts = targetCounts.divide(targetCounts.get([-1]))
 
             # Find first position in target where targetCount >= srcCount[i], for each i.
-            lookup = sourceCounts.toList().map(
-                lambda n: targetValues.get(targetCounts.gte(n).argmax())
-            )
+            lookup = sourceCounts.toList().map(lambda n: targetValues.get(targetCounts.gte(n).argmax()))
             return ee.Dictionary({"x": sourceValues.toList(), "y": lookup})
 
         bandsee = ee.Dictionary(bands)
         geom = geometry or self._obj.geometry()
         reducer = ee.Reducer.autoHistogram(maxBuckets=maxBuckets, cumulative=True)
-        args = dict(
-            reducer=reducer, geometry=geom, scale=scale, maxPixels=maxPixels, bestEffort=bestEffort
-        )
+        args = dict(reducer=reducer, geometry=geom, scale=scale, maxPixels=maxPixels, bestEffort=bestEffort)
 
         # Only use pixels in target that have a value in source
         # (inside the footprint and unmasked).
