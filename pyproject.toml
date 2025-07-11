@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "geetools"
-version = "1.15.0"
+version = "1.16.0"
 description = "A collection of tools to work with Google Earth Engine Python API"
 keywords = [
   "python",
@@ -127,7 +127,7 @@ branch = true
 [tool.commitizen]
 tag_format = "v$major.$minor.$patch$prerelease"
 update_changelog_on_bump = false
-version = "1.15.0"
+version = "1.16.0"
 version_files = [
     "pyproject.toml:version",
     "geetools/__init__.py:__version__",
@@ -138,7 +138,7 @@ version_files = [
 skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb,**/*.yml"
 
 [tool.black]
-line-length = 100
+line-length = 110
 
 [tool.mypy]
 scripts_are_modules = true

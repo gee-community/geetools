@@ -59,6 +59,29 @@ class TestAddId:
         return ee.FeatureCollection("FAO/GAUL/2015/level0").limit(10)
 
 
+class TestColumnNames:
+    """Test the ``columnNames`` method."""
+
+    def test_column_names(self, fc_instance, ee_list_regression):
+        columns = fc_instance.geetools.columnNames()
+        ee_list_regression.check(columns)
+
+    @pytest.fixture
+    def fc_instance(self):
+        image = ee.Image.random().clip(ee.Geometry.Rectangle([-1, -1, 1, 1]))
+        # Create a Feature
+        fc = ee.FeatureCollection(
+            [
+                # outside the image
+                ee.Feature(ee.Geometry.Point([2, 2]), {"system:index": "0"}),
+                # inside the image
+                ee.Feature(ee.Geometry.Point([0, 0.5]), {"system:index": "1"}),
+                ee.Feature(ee.Geometry.Point([0.5, 0]), {"system:index": "2"}),
+            ]
+        )
+        return image.reduceRegions(collection=fc, reducer=ee.Reducer.first(), scale=1000)
+
+
 class TestMergeGeometries:
     """Test the ``mergeGeometries`` method."""
 
@@ -279,9 +302,7 @@ class TestPlot:
 
     def test_plot_with_boundaries(self, image_regression):
         fig, ax = plt.subplots()
-        self.hydroshed.geetools.plot(
-            ax=ax, property="UP_AREA", cmap="magma", boundaries=True, color="g"
-        )
+        self.hydroshed.geetools.plot(ax=ax, property="UP_AREA", cmap="magma", boundaries=True, color="g")
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)

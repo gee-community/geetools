@@ -19,11 +19,7 @@ def distanceToMask(
     normalize=False,
 ):
     """Compute the distance to the mask in meters."""
-    return (
-        ee.Image(image)
-        .geetools.distanceToMask(mask, radius=radius, band_name=band_name)
-        .select(band_name)
-    )
+    return ee.Image(image).geetools.distanceToMask(mask, radius=radius, band_name=band_name).select(band_name)
 
 
 @deprecated(version="1.5.0", reason="Use ee.Image.geetools.maskCover instead.")

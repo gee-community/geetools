@@ -38,9 +38,7 @@ class NumberAccessor:
         factor = ee.Number(10).pow(nbDecimals)
         return self._obj.multiply(factor).toInt().divide(factor)
 
-    def isClose(
-        self, other: int | float | ee.Number, tol: int | float | ee.Number = 1e-9
-    ) -> ee.Number:
+    def isClose(self, other: int | float | ee.Number, tol: int | float | ee.Number = 1e-9) -> ee.Number:
         """Check if a number is close to another number.
 
         Args:

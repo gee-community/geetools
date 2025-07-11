@@ -44,9 +44,7 @@ def compositeRegularIntervals(
 
 
 @deprecated(version="1.5.0", reason="Use ee.ImageCollection.geetools.reduceInterval instead")
-def compositeByMonth(
-    collection, composite_function=None, composite_args=None, composite_kwargs=None
-):
+def compositeByMonth(collection, composite_function=None, composite_args=None, composite_kwargs=None):
     """Make a composite at regular intervals parsing a composite."""
     return ee.ImageCollection(collection).geetools.reduceInterval(unit="month")
 

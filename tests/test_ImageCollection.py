@@ -36,9 +36,7 @@ def round_dict(d: dict = None, decimals: int = 2) -> dict:
 class TestMaskClouds:
     """Test the ``maskClouds`` method."""
 
-    @pytest.mark.xfail(
-        reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x."
-    )
+    @pytest.mark.xfail(reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x.")
     def test_mask_s2_sr(self, s2_sr, num_regression):
         masked = s2_sr.geetools.maskClouds(prob=75, buffer=300, cdi=-0.5)
         num_regression.check(reduce(masked).getInfo())
@@ -114,7 +112,6 @@ class TestGetSTAC:
 class TestGetDOI:
     """Test the ``getDOI`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra does not accept C02 L08 collection yet.")
     def test_get_doi(self, s2_sr, data_regression):
         doi = s2_sr.geetools.getDOI()
         data_regression.check(doi)
@@ -123,7 +120,6 @@ class TestGetDOI:
 class TestGetCitation:
     """Test the ``getCitation`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_get_citation(self, s2_sr, data_regression):
         citation = s2_sr.geetools.getCitation()
         data_regression.check(citation)
@@ -279,9 +275,7 @@ class TestAggregateArray:
         # reduce the number of properties beforehand to avoid the test to fail
         keys = s2_sr.first().propertyNames()
         keys = keys.filter(ee.Filter.stringStartsWith("item", "system:")).remove("system:version")
-        s2_sr_filtered = s2_sr.limit(3).map(
-            lambda i: ee.Image().addBands(i).copyProperties(i, keys)
-        )
+        s2_sr_filtered = s2_sr.limit(3).map(lambda i: ee.Image().addBands(i).copyProperties(i, keys))
         aggregated = s2_sr_filtered.geetools.aggregateArray()
         data_regression.check(aggregated.getInfo())
 
@@ -357,9 +351,7 @@ class TestReduceInterval:
         values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
         ee_dictionary_regression.check(values)
 
-    def test_reduce_interval_without_original_names(
-        self, jaxa_rainfall, amazonas, ee_dictionary_regression
-    ):
+    def test_reduce_interval_without_original_names(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         reduced = ic.geetools.reduceInterval(keep_original_names=False)
@@ -404,9 +396,7 @@ class TestReduceInterval:
         firstImg = ic.first()
         assert "system:id" in firstImg.propertyNames().getInfo()
 
-    def test_deprecated_reduce_equal_interval(
-        self, jaxa_rainfall, amazonas, ee_dictionary_regression
-    ):
+    def test_deprecated_reduce_equal_interval(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         with pytest.deprecated_call():
@@ -414,9 +404,7 @@ class TestReduceInterval:
             values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
             ee_dictionary_regression.check(values)
 
-    def test_deprecated_reduce_day_intervals(
-        self, jaxa_rainfall, amazonas, ee_dictionary_regression
-    ):
+    def test_deprecated_reduce_day_intervals(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
         # get 3 days worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
         with pytest.deprecated_call():
@@ -424,9 +412,7 @@ class TestReduceInterval:
             values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
             ee_dictionary_regression.check(values)
 
-    def test_deprecated_composite_regular_intervals(
-        self, jaxa_rainfall, amazonas, ee_dictionary_regression
-    ):
+    def test_deprecated_composite_regular_intervals(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
         # get 3 days worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
         with pytest.deprecated_call():
@@ -455,9 +441,7 @@ class TestClosestDate:
 
     def test_deprecated_fill_with_last(self, s2_sr, amazonas, num_regression):
         with pytest.deprecated_call():
-            filled = geetools.imagecollection.fillWithLast(
-                s2_sr.filterDate("2021-01-01", "2021-01-15")
-            )
+            filled = geetools.imagecollection.fillWithLast(s2_sr.filterDate("2021-01-01", "2021-01-15"))
             values = reduce(filled, amazonas, "mean").getInfo()
             values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)
@@ -487,6 +471,61 @@ class TestMedoid:
             values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
             values = {k: np.nan if v is None else v for k, v in values.items()}
             num_regression.check(values)
+
+
+class TestSortMany:
+    """Test the ``sortMany`` method."""
+
+    @staticmethod
+    def adjust_cloud_cover(i):
+        """round cloud cover property."""
+        cc = ee.Number(i.get("CLOUD_COVER"))
+        return i.set("CLOUD_COVER", cc.round().toInt())
+
+    def test_sort_many_asc_asc(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2], [True, True])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_asc_desc(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2], [True, False])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_desc_desc(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2], [False, False])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_default(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_missing_asc(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2], [False])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
 
 
 class TestPlotDatesByBands:

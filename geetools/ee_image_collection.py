@@ -107,9 +107,7 @@ class ImageCollectionAccessor:
         #     cdi,
         # )
 
-    def closest(
-        self, date: ee.Date | str, tolerance: int = 1, unit: str = "month"
-    ) -> ee.ImageCollection:
+    def closest(self, date: ee.Date | str, tolerance: int = 1, unit: str = "month") -> ee.ImageCollection:
         """Gets the closest image (or set of images if the collection intersects a region that requires multiple scenes) to the specified date.
 
         Parameters:
@@ -402,12 +400,11 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getDOI()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        stac = self.getSTAC()
+        error_msg = (
+            "The DOI is not available for this collection. Please check the STAC for more information."
         )
-        # return ee_extra.STAC.core.getDOI(self._obj)
+        return stac.get("sci:doi", error_msg)
 
     def getCitation(self) -> str:
         """Gets the citation of the image, if available.
@@ -428,12 +425,9 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getCitation()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.STAC.core.getCitation(self._obj)
+        stac = self.getSTAC()
+        error_msg = "Citation not available for this collection. Please check the STAC for more information."
+        return stac.get("sci:citation", error_msg)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.ImageCollection:
         """Apply panchromatic sharpening to the :py:class:`ee.ImageCollection` images.
@@ -891,9 +885,7 @@ class ImageCollectionAccessor:
         # apply this filter and remove the temporary property. Exclude parameter is additive so
         # we do a blank multiplication to remove all the properties beforehand
         ic = ee.ImageCollection(self._obj.filter(filterCombination))
-        ic = ic.map(
-            lambda i: ee.Image(i.multiply(1).copyProperties(i, exclude=[bandNamesProperty]))
-        )
+        ic = ic.map(lambda i: ee.Image(i.multiply(1).copyProperties(i, exclude=[bandNamesProperty])))
 
         return ee.ImageCollection(ic)
 
@@ -1023,17 +1015,15 @@ class ImageCollectionAccessor:
         """
         sizeName = "__geetools_generated_size__"  # set generated properties name
 
-        # as everything is relyin on the "system:time_start" property
-        # we sort the image collection in the first place. In most collection it will change nothing
-        # so free of charge unless for plumbing
-        ic = self._obj.sort("system:time_start")
+        # create an ic variable to avoid calling self._obj multiple times
+        # and extract the property names to copy
+        ic = self._obj
         toCopy = ic.first().propertyNames()
 
         # transform the interval into a duration in milliseconds
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
         # I don't know if it should be properly imported here, let's see with user feedback
-        timeList = ic.aggregate_array("system:time_start")
-        start, end = timeList.get(0), timeList.get(-1)
+        start, end = ic.aggregate_min("system:time_start"), ic.aggregate_max("system:time_start")
         DateRangeList = ee.DateRange(start, end).geetools.split(duration, unit)
         imageCollectionList = DateRangeList.map(
             lambda dr: ic.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
@@ -1048,9 +1038,7 @@ class ImageCollectionAccessor:
             return ee.ImageCollection(ic.copyProperties(ic, properties=toCopy))
 
         imageCollectionList = (
-            imageCollectionList.map(add_size)
-            .filter(ee.Filter.gt(sizeName, 0))
-            .map(delete_size_property)
+            imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0)).map(delete_size_property)
         )
 
         return ee.List(imageCollectionList)
@@ -1239,6 +1227,57 @@ class ImageCollectionAccessor:
         medoid = sumDistance.qualityMosaic(sumOfDistancesName)
 
         return ee.Image(medoid).select(bandNames)
+
+    def sortMany(
+        self, properties: ee.List | list, ascending: ee.List | list | None = None
+    ) -> ee.ImageCollection:
+        """Sort an ImageCollection using more than 1 property.
+
+        Args:
+            properties: the list of properties to sort by.
+            ascending: the list of order. If not passed all properties will be sorted ascending
+        """
+        properties = ee.List(properties)
+        asc = ee.List(ascending or properties.map(lambda p: True))
+        order_dict = ee.Dictionary.fromLists(properties.slice(0, asc.size()), asc)
+        # position order of each prop will be converted to string using this format
+        length = self._obj.size().toInt().format().length()
+        format = ee.String("%0").cat(length.format()).cat("d")
+        # suffix for temporal properties
+        pos_suffix = ee.String("_geetools_position")
+
+        def compute_position(prop, cum):
+            """Add the order position of the property to each image."""
+            cum = ee.ImageCollection(cum)
+            order = ee.Algorithms.If(order_dict.get(prop, True), True, False)
+            sorted_values = self._obj.sort(prop, order).aggregate_array(prop).distinct()
+            position_name = ee.String(prop).cat(pos_suffix)
+
+            def add_position(img):
+                index = sorted_values.indexOf(img.get(prop))
+                return img.set(position_name, index.format(format))
+
+            return cum.map(add_position)
+
+        with_positions = ee.ImageCollection(properties.iterate(compute_position, self._obj))
+        # put temp properties in a list to further remove them
+        position_properties = properties.map(lambda p: ee.String(p).cat(pos_suffix))
+        final_order_property = "_geetools_sort_many_"
+
+        def compute_final_prop(img):
+            """Join order position string of each property into a single number."""
+            img = ee.Image(img)
+            # values = img.toDictionary(position_properties).values()  # this should work but doesn't
+            values = position_properties.map(lambda p: img.get(p))
+            return img.set(final_order_property, values.join(""))
+
+        with_order = with_positions.map(compute_final_prop)
+        # add final property to properties to remove
+        prop_to_remove = position_properties.add(final_order_property)
+        # sort using the final property and remove temp properties
+        sorted = with_order.sort(final_order_property)
+        sorted = sorted.map(lambda i: ee.Image(i.copyProperties(i, exclude=prop_to_remove)))
+        return sorted
 
     def datesByBands(
         self,
@@ -1503,9 +1542,7 @@ class ImageCollectionAccessor:
 
         # reduce every sub ImageCollection in the list into images (it's the temporal reduction)
         # and aggregate the result as a single ImageCollection
-        timeRed = (
-            getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
-        )
+        timeRed = getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
 
         def timeReduce(c: ee.ImageCollection) -> ee.image:
             c = ee.ImageCollection(c)
@@ -1518,9 +1555,7 @@ class ImageCollectionAccessor:
         # spatially reduce the generated imagecollection over the region for each band
         doyList = ic.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
         spatialRed = (
-            getattr(ee.Reducer, spatialReducer)()
-            if isinstance(spatialReducer, str)
-            else spatialReducer
+            getattr(ee.Reducer, spatialReducer)() if isinstance(spatialReducer, str) else spatialReducer
         )
 
         def spatialReduce(label: ee.String) -> ee.Dictionary:
@@ -1609,9 +1644,7 @@ class ImageCollectionAccessor:
 
         # reduce every sub ImageCollection in the list into images (it's the temporal reduction)
         # and aggregate the result as a single ImageCollection
-        timeRed = (
-            getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
-        )
+        timeRed = getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
 
         def timeReduce(c: ee.ImageCollection) -> ee.image:
             c = ee.ImageCollection(c)
@@ -1624,9 +1657,7 @@ class ImageCollectionAccessor:
         # reduce the data for each region
         doyList = ic.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
         spatialRed = (
-            getattr(ee.Reducer, spatialReducer)()
-            if isinstance(spatialReducer, str)
-            else spatialReducer
+            getattr(ee.Reducer, spatialReducer)() if isinstance(spatialReducer, str) else spatialReducer
         )
         image = ic.toBands().rename(doyList)
         reduced = image.reduceRegions(
@@ -2726,9 +2757,7 @@ class ImageCollectionAccessor:
             def splitId(loc_id: ee.String) -> ee.Feature:
                 loc_id = ee.String(loc_id)
                 loc_f = ee.Feature(f).select([loc_id.cat("_.*")])
-                oldNames = loc_f.propertyNames().filter(
-                    ee.Filter.stringStartsWith("item", "system:").Not()
-                )
+                oldNames = loc_f.propertyNames().filter(ee.Filter.stringStartsWith("item", "system:").Not())
                 newNames = oldNames.map(lambda n: ee.String(n).replace(loc_id.cat("_"), ""))
                 loc_f = ee.Feature(ee.Feature(loc_f).select(oldNames, newNames))
                 loc_f = ee.Feature(loc_f.copyProperties(f, properties=originalProps))

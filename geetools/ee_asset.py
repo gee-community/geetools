@@ -77,10 +77,6 @@ class Asset(os.PathLike):
         """make the Asset object hashable."""
         return hash(self.as_posix())
 
-    def __getattr__(self, name):
-        """Return the attribute of the path object."""
-        return getattr(self, name)
-
     @classmethod
     def home(cls) -> Asset:
         """Return the root asset folder of the used cloud project.
@@ -467,9 +463,7 @@ class Asset(os.PathLike):
         """
         # sanity check on variables
         if not (self.is_project() or self.is_folder() or self.is_image_collection()):
-            raise ValueError(
-                f"Asset {self.as_posix()} is not a container and cannot contain other assets."
-            )
+            raise ValueError(f"Asset {self.as_posix()} is not a container and cannot contain other assets.")
 
         # no need for recursion if recursive is false we directly return the result of th API call
         if recursive is False:

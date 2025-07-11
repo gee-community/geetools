@@ -71,9 +71,7 @@ class ImageAccessor:
 
         return self._obj.addBands(dateBand)
 
-    def addSuffix(
-        self, suffix: str | ee.String, bands: list[str] | ee.List | None = None
-    ) -> ee.Image:
+    def addSuffix(self, suffix: str | ee.String, bands: list[str] | ee.List | None = None) -> ee.Image:
         """Add a suffix to the image selected band.
 
         Add a suffix to the selected band. If no band is specified, the suffix is added to all bands.
@@ -97,16 +95,12 @@ class ImageAccessor:
                 print(image.bandNames().getInfo())
         """
         suffix = ee.String(suffix)
-        bands = ee.List(bands) if bands is not None else self._obj.bandNames()
-        bandNames = bands.iterate(
-            lambda b, n: ee.List(n).replace(b, ee.String(b).cat(suffix)),
-            self._obj.bandNames(),
-        )
+        srcBands = self._obj.bandNames()
+        eeBands = srcBands if bands is None else ee.List(bands)
+        bandNames = eeBands.iterate(lambda b, n: ee.List(n).replace(b, ee.String(b).cat(suffix)), srcBands)
         return self._obj.rename(bandNames)
 
-    def addPrefix(
-        self, prefix: str | ee.String, bands: list[str] | ee.List | None = None
-    ) -> ee.Image:
+    def addPrefix(self, prefix: str | ee.String, bands: list[str] | ee.List | None = None) -> ee.Image:
         """Add a prefix to the image selected band.
 
         Add a prefix to the selected band. If no band is specified, the prefix is added to all bands.
@@ -130,11 +124,9 @@ class ImageAccessor:
                 print(image.bandNames().getInfo())
         """
         prefix = ee.String(prefix)
-        bands = ee.List(bands) if bands is not None else self._obj.bandNames()
-        bandNames = bands.iterate(
-            lambda b, n: ee.List(n).replace(b, prefix.cat(ee.String(b))),
-            self._obj.bandNames(),
-        )
+        srcBands = self._obj.bandNames()
+        eeBands = srcBands if bands is None else ee.List(bands)
+        bandNames = eeBands.iterate(lambda b, n: ee.List(n).replace(b, prefix.cat(ee.String(b))), srcBands)
         return self._obj.rename(bandNames)
 
     def rename(self, names: dict | ee.Dictionary) -> ee.Image:
@@ -162,9 +154,7 @@ class ImageAccessor:
                 print(image.bandNames().getInfo())
         """
         names = ee.Dictionary(names)
-        bands = names.keys().iterate(
-            lambda b, n: ee.List(n).replace(b, names.get(b)), self._obj.bandNames()
-        )
+        bands = names.keys().iterate(lambda b, n: ee.List(n).replace(b, names.get(b)), self._obj.bandNames())
         return self._obj.rename(bands)
 
     def remove(self, bands: list[str] | ee.List) -> ee.Image:
@@ -228,9 +218,7 @@ class ImageAccessor:
 
         doyList = ee.List.sequence(0, 365)
         remapList = doyList.map(
-            lambda d: ee.Number.parse(
-                ee.Date.fromYMD(year, 1, 1).advance(d, "day").format(dateFormat)
-            )
+            lambda d: ee.Number.parse(ee.Date.fromYMD(year, 1, 1).advance(d, "day").format(dateFormat))
         )
         return self._obj.remap(doyList, remapList, bandName=band).rename(band)
 
@@ -361,9 +349,7 @@ class ImageAccessor:
         index = ee.List.sequence(0, lat.size().subtract(2))
         squares = index.map(
             lambda i: (
-                ee.Geometry.Point([lon.get(i), lat.get(i)])
-                .buffer(size.divide(2))
-                .bounds(0.01, projection)
+                ee.Geometry.Point([lon.get(i), lat.get(i)]).buffer(size.divide(2)).bounds(0.01, projection)
             )
         )
 
@@ -402,9 +388,7 @@ class ImageAccessor:
 
         def fcClip(feat):
             image = self._obj.clip(feat.geometry())
-            return ee.Algorithms.If(
-                ee.Number(keepProperties).toInt(), image.copyProperties(feat), image
-            )
+            return ee.Algorithms.If(ee.Number(keepProperties).toInt(), image.copyProperties(feat), image)
 
         return ee.ImageCollection(fc.map(fcClip))
 
@@ -469,18 +453,18 @@ class ImageAccessor:
                 image = ee.Image.geetools.full([1, 2, 3], ['a', 'b', 'c'])
                 print(image.bandNames().getInfo())
         """
-        values = ee.List(values) if values is not None else ee.List([0])
-        names = ee.List(names) if names is not None else ee.List(["constant"])
+        eeValues = ee.List([0]) if values is None else ee.List(values)
+        eeNames = ee.List(["constant"]) if names is None else ee.List(names)
 
         # resize value to the same length as names
-        values = ee.List(
+        eeValues = ee.List(
             ee.Algorithms.If(
-                values.size().eq(1),
-                ee.List.repeat(ee.Number(values.get(0)), names.size()),
-                values,
+                eeValues.size().eq(1),
+                ee.List.repeat(ee.Number(eeValues.get(0)), eeNames.size()),
+                eeValues,
             )
         )
-        return ee.Image.constant(values).rename(names)
+        return ee.Image.constant(eeValues).rename(eeNames)
 
     def fullLike(
         self,
@@ -574,12 +558,12 @@ class ImageAccessor:
         if not isinstance(reducer, str):
             raise TypeError("reducer must be a Python string")
 
-        bands = ee.List(bands) if bands is not None else ee.List([])
+        eeBands = ee.List(bands) if bands is not None else ee.List([])
         name = ee.String(name)
-        bands = ee.Algorithms.If(bands.size().eq(0), self._obj.bandNames(), bands)
+        eeBands = ee.Algorithms.If(eeBands.size().eq(0), self._obj.bandNames(), eeBands)
         name = ee.Algorithms.If(name.equals(ee.String("")), reducer, name)
         red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
-        reduceImage = self._obj.select(ee.List(bands)).reduce(red).rename([name])
+        reduceImage = self._obj.select(ee.List(eeBands)).reduce(red).rename([name])
         return self._obj.addBands(reduceImage)
 
     def negativeClip(self, geometry: ee.Geometry | ee.Feature | ee.FeatureCollection) -> ee.Image:
@@ -827,9 +811,7 @@ class ImageAccessor:
         scale = self._obj.projection().nominalScale()
         pixelsLimit = offset.multiply(2).sqrt().divide(scale).max(ee.Number(2)).toInt()
         area = ee.Image.pixelArea().rename("area")
-        isletArea = (
-            self._obj.select(0).mask().toInt().connectedPixelCount(pixelsLimit).multiply(area)
-        )
+        isletArea = self._obj.select(0).mask().toInt().connectedPixelCount(pixelsLimit).multiply(area)
         return isletArea.lt(offset).rename("mask").selfMask()
 
     # -- ee-extra wrapper ------------------------------------------------------
@@ -1119,7 +1101,7 @@ class ImageAccessor:
         """
         stac = self.getSTAC()
         error_msg = "DOI not found in the STAC"
-        return stac["sci:doi"] if "sci:doi" in stac else error_msg
+        return stac.get("sci:doi", error_msg)
 
     def getCitation(self) -> str:
         """Gets the citation of the image, if available.
@@ -1142,7 +1124,7 @@ class ImageAccessor:
         """
         stac = self.getSTAC()
         error_msg = "Citation not found in the STAC"
-        return stac["sci:citation"] if "sci:citation" in stac else error_msg
+        return stac.get("sci:citation", error_msg)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.Image:
         """Apply panchromatic sharpening to the Image.
