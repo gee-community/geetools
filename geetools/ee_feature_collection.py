@@ -223,7 +223,30 @@ class FeatureCollectionAccessor:
         return ee.Geometry(union).dissolve(maxError=maxError)
 
     def columnNames(self) -> ee.List:
-        """Get the name of the columns (Feature's properties)."""
+        """Get the name of the columns (Feature's properties).
+
+        get a flatten list of all the columns names in the FeatureCollection including the ones that
+        are not in all features.
+
+        Returns:
+            A list of all the column names in the FeatureCollection.
+
+        Example:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                fc = ee.FeatureCollection([
+                    ee.Feature(ee.Geometry.Point([0, 0]), {"name": "A", "value": 1}),
+                    ee.Feature(ee.Geometry.Point([1, 1]), {"name": "B", "value": 2, "extra": "extra_value"})
+                ])
+
+                column_names = fc.geetools.columnNames()
+                column_names.getInfo()
+        """
         temp_property_name = "__geetools_properties__"
         fc = self._obj.map(lambda feat: feat.set(temp_property_name, feat.propertyNames()))
         return fc.aggregate_array(temp_property_name).flatten().distinct()
