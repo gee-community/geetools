@@ -775,12 +775,12 @@ class Asset(os.PathLike):
         """
         # time_start and time_end are only supporting the "str" format which is inconsistent with the API
         # return statement. To comply with a user expectation, we will do the conversions on our side.
-        def date_in_str(date: str | int | datetime | date) -> str:
-            if isinstance(date, (datetime, date)):
-                date = date.isoformat() + "Z"  # add the Z to indicate UTC time as EE don't read ISO
-            elif isinstance(date, int):
-                date = datetime.fromtimestamp(date / 1000).isoformat() + "Z"
-            return str(date)  # if any other format is used, we will simply return it as a string
+        def date_in_str(d: str | int | datetime | date) -> str:
+            if isinstance(d, (datetime, date)):
+                d = d.isoformat() + "Z"  # add the Z to indicate UTC time as EE don't read ISO
+            elif isinstance(d, int):
+                d = datetime.fromtimestamp(d / 1000).isoformat() + "Z"
+            return str(d)  # if any other format is used, we will simply return it as a string
 
         if "system:start_time" in kwargs:
             kwargs["system:time_start"] = date_in_str(kwargs.pop("start_time"))
