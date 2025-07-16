@@ -64,6 +64,12 @@ def amazonas() -> ee.FeatureCollection:
 
 
 @pytest.fixture
+def amazonas_centroid(amazonas) -> ee.Geometry:
+    """Return the centroid of the Amazonas state from Colombia."""
+    return ee.Feature(amazonas.first()).geometry().centroid()
+
+
+@pytest.fixture
 def s2_sr(amazonas) -> ee.ImageCollection:
     """Return a copernicus based collection.
 
