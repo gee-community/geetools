@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import re
+from datetime import date, datetime
 from pathlib import PurePosixPath
 
 import ee
@@ -752,6 +753,12 @@ class Asset(os.PathLike):
         Args:
             **kwargs: The properties to set key, value pairs. To name normal properties simply use the name as key. For system properties, prefix it with "system:". Note that only the "time_start" and "time_end" are editable.
 
+        Warning:
+            GEE is not accepting any data type for the ``time_start`` and ``time_end`` properties. TO simplify
+            usage this method will be accepting :py:class:`datetime.datetime`, :py:class:`datetime.date`,
+            :py:class:`int` (in milliseconds) and :py:class:`str` (in ISO format with a "Z" at the end).
+            If any other type is used, it will be converted to a string (and will most likely fail in GEE).
+
         Examples:
             .. code-block:: python
 
@@ -759,7 +766,27 @@ class Asset(os.PathLike):
                 start = dt.datetime(2021, 1, 1).timestamp() * 1000
                 asset = ee.Asset("projects/ee-geetools/assets/folder/image")
                 asset.setProperties(**{"description": "new_description", "system:time_start": start})
+
+            .. code-block:: python
+                # dates can also be set in ISO format
+                asset.setProperties(**{"description": "new_description", "system:time_start": "2021-01-01T00:00:00Z"})
+
+
         """
+        # time_start and time_end are only supporting the "str" format which is inconsistent with the API
+        # return statement. To comply with a user expectation, we will do the conversions on our side.
+        def date_in_str(d: str | int | datetime | date) -> str:
+            if isinstance(d, (datetime, date)):
+                d = d.isoformat() + "Z"  # add the Z to indicate UTC time as EE don't read ISO
+            elif isinstance(d, int):
+                d = datetime.fromtimestamp(d / 1000).isoformat() + "Z"
+            return str(d)  # if any other format is used, we will simply return it as a string
+
+        if "system:start_time" in kwargs:
+            kwargs["system:time_start"] = date_in_str(kwargs.pop("start_time"))
+        if "system:end_time" in kwargs:
+            kwargs["system:time_end"] = date_in_str(kwargs.pop("end_time"))
+
         # We need to retrieve the system properties.
         # They are named as in the server API and renamed inside this function.
         # The method raise error when we try to set something else that the authorized one.
@@ -767,7 +794,7 @@ class Asset(os.PathLike):
         system = {k: v for k, v in kwargs.items() if k.startswith("system:")}
         for key in system.keys():
             if key not in legit_keys:
-                raise ValueError(f"Property {key} is not a valid system property.")
+                raise ValueError(f"Property {key} is not a valid/editable system property.")
         system = {legit_keys[k]: v for k, v in system.items()}
 
         # Specifying an update mask of 'properties' results in full replacement,
