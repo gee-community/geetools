@@ -782,10 +782,10 @@ class Asset(os.PathLike):
                 d = datetime.fromtimestamp(int(d) / 1000).isoformat() + "Z"
             return str(d)  # if any other format is used, we will simply return it as a string
 
-        if "system:start_time" in kwargs:
-            kwargs["system:time_start"] = date_in_str(kwargs.pop("start_time"))
-        if "system:end_time" in kwargs:
-            kwargs["system:time_end"] = date_in_str(kwargs.pop("end_time"))
+        if "system:time_start" in kwargs:
+            kwargs["system:time_start"] = date_in_str(kwargs.pop("system:time_start"))
+        if "system:time_end" in kwargs:
+            kwargs["system:time_end"] = date_in_str(kwargs.pop("system:time_end"))
 
         # We need to retrieve the system properties.
         # They are named as in the server API and renamed inside this function.
