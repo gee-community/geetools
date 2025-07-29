@@ -12,12 +12,6 @@ from .accessors import geetools
 # it needs to be imported first as it's the mother class
 from .ee_computed_object import *
 
-# reproduce older structure of the lib (deprecated)
-# will be removed along the deprecation cycle
-from . import _deprecated_algorithms as algorithms
-from . import _deprecated_composite as composite
-from .tools import imagecollection
-
 # then we extend all the other classes
 from .ee_asset import Asset
 from .ee_date import DateAccessor
