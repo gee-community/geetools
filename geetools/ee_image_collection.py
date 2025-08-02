@@ -1233,51 +1233,26 @@ class ImageCollectionAccessor:
     ) -> ee.ImageCollection:
         """Sort an ImageCollection using more than 1 property.
 
+        The properties are set in the order of priority. The first property is the most important one,
+        in case of a tie, the second property is used to break the tie, and so on.
+
         Args:
             properties: the list of properties to sort by.
             ascending: the list of order. If not passed all properties will be sorted ascending
         """
-        properties = ee.List(properties)
-        asc = ee.List(ascending or properties.map(lambda p: True))
-        order_dict = ee.Dictionary.fromLists(properties.slice(0, asc.size()), asc)
-        # position order of each prop will be converted to string using this format
-        length = self._obj.size().toInt().format().length()
-        format = ee.String("%0").cat(length.format()).cat("d")
-        # suffix for temporal properties
-        pos_suffix = ee.String("_geetools_position")
+        # sanity checks
+        props = ee.List(properties)
+        asc = ee.List(ascending or props.map(lambda _: True))
+        if props.size().neq(asc.size()).getInfo():
+            raise ValueError("properties and ascending order must be the same size.")
 
-        def compute_position(prop, cum):
-            """Add the order position of the property to each image."""
-            cum = ee.ImageCollection(cum)
-            order = ee.Algorithms.If(order_dict.get(prop, True), True, False)
-            sorted_values = self._obj.sort(prop, order).aggregate_array(prop).distinct()
-            position_name = ee.String(prop).cat(pos_suffix)
+        # Compute the sort chain in reverse order so that the first key is the primary one and so on.
+        propertiesIndex = ee.List.sequence(0, props.size().subtract(1)).reverse()
+        ic = propertiesIndex.iterate(
+            lambda i, c: ee.ImageCollection(c).sort(props.get(i), asc.get(i)), self._obj
+        )
 
-            def add_position(img):
-                index = sorted_values.indexOf(img.get(prop))
-                return img.set(position_name, index.format(format))
-
-            return cum.map(add_position)
-
-        with_positions = ee.ImageCollection(properties.iterate(compute_position, self._obj))
-        # put temp properties in a list to further remove them
-        position_properties = properties.map(lambda p: ee.String(p).cat(pos_suffix))
-        final_order_property = "_geetools_sort_many_"
-
-        def compute_final_prop(img):
-            """Join order position string of each property into a single number."""
-            img = ee.Image(img)
-            # values = img.toDictionary(position_properties).values()  # this should work but doesn't
-            values = position_properties.map(lambda p: img.get(p))
-            return img.set(final_order_property, values.join(""))
-
-        with_order = with_positions.map(compute_final_prop)
-        # add final property to properties to remove
-        prop_to_remove = position_properties.add(final_order_property)
-        # sort using the final property and remove temp properties
-        sorted = with_order.sort(final_order_property)
-        sorted = sorted.map(lambda i: ee.Image(i.copyProperties(i, exclude=prop_to_remove)))
-        return sorted
+        return ee.ImageCollection(ic)
 
     def datesByBands(
         self,
