@@ -1236,6 +1236,9 @@ class ImageCollectionAccessor:
         The properties are set in the order of priority. The first property is the most important one,
         in case of a tie, the second property is used to break the tie, and so on.
 
+        Warning:
+            This method will raise an error if the 2 parameter are not the same size.
+
         Args:
             properties: the list of properties to sort by.
             ascending: the list of order. If not passed all properties will be sorted ascending
@@ -1243,8 +1246,6 @@ class ImageCollectionAccessor:
         # sanity checks
         props = ee.List(properties)
         asc = ee.List(ascending or props.map(lambda _: True))
-        if props.size().neq(asc.size()).getInfo():
-            raise ValueError("properties and ascending order must be the same size.")
 
         # Compute the sort chain in reverse order so that the first key is the primary one and so on.
         ic = self._obj
