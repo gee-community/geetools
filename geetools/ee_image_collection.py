@@ -1247,8 +1247,8 @@ class ImageCollectionAccessor:
             raise ValueError("properties and ascending order must be the same size.")
 
         # Compute the sort chain in reverse order so that the first key is the primary one and so on.
-        propertiesIndex = ee.List.sequence(0, props.size().subtract(1)).reverse()
         ic = self._obj
+        propertiesIndex = ee.List.sequence(0, props.size().subtract(1)).reverse()
         ic = propertiesIndex.iterate(lambda i, c: ee.ImageCollection(c).sort(props.get(i), asc.get(i)), ic)
 
         return ee.ImageCollection(ic)
