@@ -1242,6 +1242,28 @@ class ImageCollectionAccessor:
         Args:
             properties: the list of properties to sort by.
             ascending: the list of order. If not passed all properties will be sorted ascending
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                # order the 500 first images of the NOAA forecast by forecasted date. in case of tie,
+                # order by creation date. We limit to 500 to not exceed GEE computation limits²
+                ic = ee.ImageCollection("NOAA/GFS0P25").limit(500)
+                icSorted = ic.geetools.sortMany(["forecast_time", "creation_time"])
+
+                # print the sorted list of images with forecast and creation time properties for the 10 first
+                icSorted = icSorted.limit(10)
+                info = icSorted.toList(icSorted.size()).map(lambda x: ee.Dictionary({
+                    "forecast_time": ee.Date(ee.Image(x).get("forecast_time")).format(),
+                    "creation_time": ee.Date(ee.Image(x).get("creation_time")).format()
+                }))
+                for item in info.getInfo():
+                    print(f"Forecast Time: {item['forecast_time']}, Creation Time: {item['creation_time']}")
         """
         # sanity checks
         props = ee.List(properties)
