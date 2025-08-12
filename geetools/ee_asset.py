@@ -541,7 +541,7 @@ class Asset(os.PathLike):
         self.is_absolute(raised=True)
         return self.parts[1]
 
-    def move(self, new_asset: Asset, overwrite: bool = False) -> Asset:
+    def move(self, new_asset: os.PathLike, overwrite: bool = False) -> Asset:
         """Move the asset to a target destination.
 
         Move this asset (any type) to the given target, and return a new ``Asset`` instance
@@ -564,6 +564,7 @@ class Asset(os.PathLike):
                 asset.move(new_asset, overwrite=False)
         """
         # copy the assets
+        new_asset = new_asset if isinstance(new_asset, Asset) else ee.Asset(str(new_asset))
         self.copy(new_asset, overwrite=overwrite)
 
         # delete the original
@@ -648,7 +649,7 @@ class Asset(os.PathLike):
         self.exists(raised=True)
         return self.delete(recursive, dry_run)
 
-    def copy(self, new_asset: Asset, overwrite: bool = False) -> Asset:
+    def copy(self, new_asset: os.PathLike, overwrite: bool = False) -> Asset:
         """Copy the asset to a target destination.
 
         Copy this asset (any type) to the given target, and return a new ``Asset`` instance
@@ -671,6 +672,7 @@ class Asset(os.PathLike):
                 asset.copy(new_asset, overwrite=False)
         """
         # exit if the destination asset exist and overwrite is False
+        new_asset = new_asset if isinstance(new_asset, Asset) else ee.Asset(str(new_asset))
         if new_asset.exists() and overwrite is False:
             raise ValueError(f"Asset {new_asset.as_posix()} already exists.")
 
