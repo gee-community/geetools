@@ -418,7 +418,6 @@ class TestIndicexList:
 class TestSpectralIndices:
     """Test the ``spectralIndices`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def test_default_spectral_indices(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         image = s2_sr_vatican_2020.geetools.spectralIndices("all")
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
@@ -428,7 +427,6 @@ class TestSpectralIndices:
 class TestMaskClouds:
     """Test the ``maskClouds`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def test_mask_S2_clouds(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
         image = s2_sr_vatican_2020.geetools.maskClouds()
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
@@ -439,7 +437,6 @@ class TestMaskClouds:
 class TestGetscaleParams:
     """Test the ``getScaleParams`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def test_get_scale_params(self, s2_sr_vatican_2020, data_regression):
         params = s2_sr_vatican_2020.geetools.getScaleParams()
         data_regression.check(params)
@@ -448,7 +445,6 @@ class TestGetscaleParams:
 class TestGetOffsetParams:
     """Test the ``getOffsetParams`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def get_offset_params(self, s2_sr_vatican_2020, data_regression):
         params = s2_sr_vatican_2020.geetools.getOffsetParams()
         data_regression.check(params)
@@ -457,7 +453,6 @@ class TestGetOffsetParams:
 class TestScaleAndOffset:
     """Test the ``scaleAndOffset`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def test_scale_and_offset(self, vatican_buffer, s2_sr_vatican_2020, num_regression):
         image = s2_sr_vatican_2020.geetools.scaleAndOffset()
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
@@ -467,7 +462,6 @@ class TestScaleAndOffset:
 class TestPreprocess:
     """Test the ``preprocess`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra package is not compatible with modern python anymore")
     def test_preprocess(self, vatican_buffer, s2_sr_vatican_2020, num_regression):
         image = s2_sr_vatican_2020.geetools.preprocess()
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)

@@ -35,6 +35,7 @@ dependencies = [
     "yamlable",
     "matplotlib",
     "anyascii",
+    "ee-extra>=2025.7.2" # the first version compatible with Python 3.12
 ]
 
 [[project.authors]]
