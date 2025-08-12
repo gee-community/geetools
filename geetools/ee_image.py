@@ -1145,14 +1145,9 @@ class ImageAccessor:
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
                 sharp = source.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        return ee_extra.Algorithms.core.panSharpen(
+            img=self._obj, method=method, qa=qa, prefix="geetools", **kwargs
         )
-        # return ee_extra.Algorithms.core.panSharpen(
-        #     img=self._obj, method=method, qa=qa, prefix="geetools", **kwargs
-        # )
 
     def tasseledCap(self) -> ee.Image:
         """Calculates tasseled cap brightness, wetness, and greenness components.
@@ -1212,12 +1207,7 @@ class ImageAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 img = img.geetools.tasseledCap()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.Spectral.core.tasseledCap(self._obj)
+        return ee_extra.Spectral.core.tasseledCap(self._obj)
 
     def matchHistogram(
         self,
@@ -1362,23 +1352,18 @@ class ImageAccessor:
                     .geetools.maskClouds(prob = 75,buffer = 300,cdi = -0.5)
                 )
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        return ee_extra.QA.clouds.maskClouds(
+            self._obj,
+            method,
+            prob,
+            maskCirrus,
+            maskShadows,
+            scaledImage,
+            dark,
+            cloudDist,
+            buffer,
+            cdi,
         )
-        # return ee_extra.QA.clouds.maskClouds(
-        #     self._obj,
-        #     method,
-        #     prob,
-        #     maskCirrus,
-        #     maskShadows,
-        #     scaledImage,
-        #     dark,
-        #     cloudDist,
-        #     buffer,
-        #     cdi,
-        # )
 
     def removeProperties(self, properties: list[str] | ee.List) -> ee.Image:
         """Remove a list of properties from an image.
