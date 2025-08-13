@@ -72,12 +72,11 @@ class ExportAccessor:
             ee.data.createAsset({"type": "IMAGE_COLLECTION"}, aid.as_posix())
 
             # loop over the collection and export each image
-            nb_images = imagecollection.size().getInfo()
-            imageList = imagecollection.toList(nb_images)
+            system_indices = imagecollection.aggregate_array("system:index").getInfo()
             task_list = []
-            for i in range(nb_images):
+            for sys_idx in system_indices:
                 # extract image information
-                locImage = ee.Image(imageList.get(i))
+                locImage = imagecollection.filter(ee.Filter.eq(index_property, sys_idx)).first()
                 loc_id = locImage.get(index_property).getInfo()
 
                 # override the parameters related to the image itself
@@ -135,12 +134,11 @@ class ExportAccessor:
             fid = folder if folder else description
 
             # loop over the collection and export each image
-            nb_images = imagecollection.size().getInfo()
-            imageList = imagecollection.toList(nb_images)
+            system_indices = imagecollection.aggregate_array("system:index").getInfo()
             task_list = []
-            for i in range(nb_images):
+            for sys_idx in system_indices:
                 # extract image information
-                locImage = ee.Image(imageList.get(i))
+                locImage = imagecollection.filter(ee.Filter.eq(index_property, sys_idx)).first()
                 loc_id = locImage.get(index_property).getInfo()
 
                 # override the parameters related to the image itself
@@ -199,12 +197,11 @@ class ExportAccessor:
             fid = folder if folder else description
 
             # loop over the collection and export each image
-            nb_images = imagecollection.size().getInfo()
-            imageList = imagecollection.toList(nb_images)
+            system_indices = imagecollection.aggregate_array("system:index").getInfo()
             task_list = []
-            for i in range(nb_images):
+            for sys_idx in system_indices:
                 # extract image information
-                locImage = ee.Image(imageList.get(i))
+                locImage = imagecollection.filter(ee.Filter.eq(index_property, sys_idx)).first()
                 loc_id = locImage.get(index_property).getInfo()
 
                 # override the parameters related to the image itself
