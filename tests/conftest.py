@@ -13,6 +13,9 @@ S2_BAND_COMBO = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B
 L8_BAND_COMBO = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11"]
 """Landsat-8 band combination."""
 
+L8_SR_BAND_COMBO = ["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7", "ST_B10"]
+"""Landsat-8 Surface Reflectance band combination."""
+
 
 def pytest_configure() -> None:
     """Initialize earth engine according to the environment."""

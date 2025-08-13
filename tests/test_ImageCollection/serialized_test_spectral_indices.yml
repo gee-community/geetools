@@ -1,0 +1,2090 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          functionInvocationValue:
+            arguments:
+              distance:
+                constantValue: 100
+              geometry:
+                functionInvocationValue:
+                  arguments:
+                    geometry:
+                      functionInvocationValue:
+                        arguments:
+                          feature:
+                            valueReference: '1'
+                        functionName: Image.geometry
+                    maxError:
+                      functionInvocationValue:
+                        arguments:
+                          value:
+                            constantValue: 1
+                        functionName: ErrorMargin
+                  functionName: Geometry.centroid
+            functionName: Geometry.buffer
+        image:
+          valueReference: '1'
+        reducer:
+          functionInvocationValue:
+            arguments: {}
+            functionName: Reducer.mean
+        scale:
+          constantValue: 1
+      functionName: Image.reduceRegion
+  '1':
+    functionInvocationValue:
+      arguments:
+        collection:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_0_0
+                  body: '2'
+              collection:
+                functionInvocationValue:
+                  arguments:
+                    baseAlgorithm:
+                      functionDefinitionValue:
+                        argumentNames:
+                        - _MAPPING_VAR_0_0
+                        body: '96'
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          collection:
+                            functionInvocationValue:
+                              arguments:
+                                collection:
+                                  functionInvocationValue:
+                                    arguments:
+                                      baseAlgorithm:
+                                        functionDefinitionValue:
+                                          argumentNames:
+                                          - _MAPPING_VAR_0_0
+                                          body: '98'
+                                      collection:
+                                        functionInvocationValue:
+                                          arguments:
+                                            id:
+                                              constantValue: COPERNICUS/S2_SR_HARMONIZED
+                                          functionName: ImageCollection.load
+                                    functionName: Collection.map
+                                filter:
+                                  functionInvocationValue:
+                                    arguments:
+                                      leftField:
+                                        constantValue: .all
+                                      rightValue:
+                                        functionInvocationValue:
+                                          arguments:
+                                            geometry:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  collection:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        collection:
+                                                          functionInvocationValue:
+                                                            arguments:
+                                                              collection:
+                                                                functionInvocationValue:
+                                                                  arguments:
+                                                                    tableId:
+                                                                      constantValue: FAO/GAUL/2015/level2
+                                                                  functionName: Collection.loadTable
+                                                              filter:
+                                                                functionInvocationValue:
+                                                                  arguments:
+                                                                    leftField:
+                                                                      constantValue: ADM0_NAME
+                                                                    rightValue:
+                                                                      constantValue: Colombia
+                                                                  functionName: Filter.equals
+                                                            functionName: Collection.filter
+                                                        filter:
+                                                          functionInvocationValue:
+                                                            arguments:
+                                                              leftField:
+                                                                constantValue: ADM1_NAME
+                                                              rightValue:
+                                                                constantValue: Amazonas
+                                                            functionName: Filter.equals
+                                                      functionName: Collection.filter
+                                                functionName: Collection.geometry
+                                          functionName: Feature
+                                    functionName: Filter.intersects
+                              functionName: Collection.filter
+                          filter:
+                            functionInvocationValue:
+                              arguments:
+                                leftValue:
+                                  functionInvocationValue:
+                                    arguments:
+                                      end:
+                                        constantValue: '2021-12-01'
+                                      start:
+                                        constantValue: '2021-01-01'
+                                    functionName: DateRange
+                                rightField:
+                                  constantValue: system:time_start
+                              functionName: Filter.dateRangeContains
+                        functionName: Collection.filter
+                  functionName: Collection.map
+            functionName: Collection.map
+      functionName: Collection.first
+  '10':
+    constantValue: RE1
+  '11':
+    constantValue: RE2
+  '12':
+    constantValue: RE3
+  '13':
+    constantValue: N
+  '14':
+    constantValue: N2
+  '15':
+    constantValue: WV
+  '16':
+    constantValue: S1
+  '17':
+    constantValue: S2
+  '18':
+    constantValue: lambdaG
+  '19':
+    constantValue: lambdaR
+  '2':
+    functionInvocationValue:
+      arguments:
+        dstImg:
+          argumentReference: _MAPPING_VAR_0_0
+        srcImg:
+          functionInvocationValue:
+            arguments:
+              input:
+                functionInvocationValue:
+                  arguments:
+                    A:
+                      valueReference: '41'
+                    B:
+                      valueReference: '43'
+                    C1:
+                      valueReference: '45'
+                    C2:
+                      valueReference: '46'
+                    DEFAULT_EXPRESSION_IMAGE:
+                      argumentReference: _MAPPING_VAR_0_0
+                    G:
+                      valueReference: '47'
+                    L:
+                      valueReference: '49'
+                    N:
+                      valueReference: '50'
+                    N2:
+                      valueReference: '52'
+                    R:
+                      valueReference: '54'
+                    RE1:
+                      valueReference: '56'
+                    RE2:
+                      valueReference: '58'
+                    RE3:
+                      valueReference: '60'
+                    S1:
+                      valueReference: '62'
+                    S2:
+                      valueReference: '64'
+                    WV:
+                      valueReference: '66'
+                    alpha:
+                      valueReference: '68'
+                    beta:
+                      valueReference: '69'
+                    c:
+                      valueReference: '49'
+                    cexp:
+                      valueReference: '70'
+                    epsilon:
+                      valueReference: '49'
+                    fdelta:
+                      valueReference: '71'
+                    g:
+                      valueReference: '72'
+                    gamma:
+                      valueReference: '49'
+                    k:
+                      valueReference: '73'
+                    kBB:
+                      valueReference: '74'
+                    kBL:
+                      valueReference: '83'
+                    kBR:
+                      valueReference: '84'
+                    kGB:
+                      valueReference: '85'
+                    kGG:
+                      valueReference: '86'
+                    kGR:
+                      valueReference: '87'
+                    kLL:
+                      valueReference: '88'
+                    kNB:
+                      valueReference: '89'
+                    kNL:
+                      valueReference: '90'
+                    kNN:
+                      valueReference: '91'
+                    kNR:
+                      valueReference: '92'
+                    kRB:
+                      valueReference: '93'
+                    kRL:
+                      valueReference: '94'
+                    kRR:
+                      valueReference: '95'
+                    lambdaG:
+                      valueReference: '78'
+                    lambdaN:
+                      valueReference: '79'
+                    lambdaN2:
+                      valueReference: '79'
+                    lambdaR:
+                      valueReference: '80'
+                    lambdaS1:
+                      valueReference: '80'
+                    lambdaS2:
+                      valueReference: '78'
+                    nexp:
+                      valueReference: '81'
+                    omega:
+                      valueReference: '81'
+                    p:
+                      valueReference: '81'
+                    sla:
+                      valueReference: '49'
+                    slb:
+                      valueReference: '73'
+                  functionReference: '3'
+              names:
+                constantValue:
+                - NDWI
+            functionName: Image.rename
+      functionName: Image.addBands
+  '20':
+    constantValue: lambdaN
+  '21':
+    constantValue: lambdaN2
+  '22':
+    constantValue: lambdaS1
+  '23':
+    constantValue: lambdaS2
+  '24':
+    constantValue: g
+  '25':
+    constantValue: C1
+  '26':
+    constantValue: C2
+  '27':
+    constantValue: L
+  '28':
+    constantValue: cexp
+  '29':
+    constantValue: nexp
+  '3':
+    functionInvocationValue:
+      arguments:
+        argName:
+          valueReference: '4'
+        expression:
+          constantValue: (G - N) / (G + N)
+        vars:
+          valueReference: '5'
+      functionName: Image.parseExpression
+  '30':
+    constantValue: alpha
+  '31':
+    constantValue: sla
+  '32':
+    constantValue: slb
+  '33':
+    constantValue: gamma
+  '34':
+    constantValue: omega
+  '35':
+    constantValue: beta
+  '36':
+    constantValue: k
+  '37':
+    constantValue: fdelta
+  '38':
+    constantValue: epsilon
+  '39':
+    constantValue: p
+  '4':
+    constantValue: DEFAULT_EXPRESSION_IMAGE
+  '40':
+    constantValue: c
+  '41':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '42'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '42':
+    constantValue: B1
+  '43':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '44'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '44':
+    constantValue: B2
+  '45':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 6.0
+      functionName: Image.constant
+  '46':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 7.5
+      functionName: Image.constant
+  '47':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '48'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '48':
+    constantValue: B3
+  '49':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 1.0
+      functionName: Image.constant
+  '5':
+    arrayValue:
+      values:
+      - valueReference: '4'
+      - valueReference: '6'
+      - valueReference: '7'
+      - valueReference: '8'
+      - valueReference: '9'
+      - valueReference: '10'
+      - valueReference: '11'
+      - valueReference: '12'
+      - valueReference: '13'
+      - valueReference: '14'
+      - valueReference: '15'
+      - valueReference: '16'
+      - valueReference: '17'
+      - valueReference: '18'
+      - valueReference: '19'
+      - valueReference: '20'
+      - valueReference: '21'
+      - valueReference: '22'
+      - valueReference: '23'
+      - valueReference: '24'
+      - valueReference: '25'
+      - valueReference: '26'
+      - valueReference: '27'
+      - valueReference: '28'
+      - valueReference: '29'
+      - valueReference: '30'
+      - valueReference: '31'
+      - valueReference: '32'
+      - valueReference: '33'
+      - valueReference: '34'
+      - valueReference: '35'
+      - valueReference: '36'
+      - valueReference: '37'
+      - valueReference: '38'
+      - valueReference: '39'
+      - valueReference: '40'
+      - constantValue: kNN
+      - constantValue: kNR
+      - constantValue: kNB
+      - constantValue: kNL
+      - constantValue: kGG
+      - constantValue: kGR
+      - constantValue: kGB
+      - constantValue: kBB
+      - constantValue: kBR
+      - constantValue: kBL
+      - constantValue: kRR
+      - constantValue: kRB
+      - constantValue: kRL
+      - constantValue: kLL
+  '50':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '51'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '51':
+    constantValue: B8
+  '52':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '53'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '53':
+    constantValue: B8A
+  '54':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '55'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '55':
+    constantValue: B4
+  '56':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '57'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '57':
+    constantValue: B5
+  '58':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '59'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '59':
+    constantValue: B6
+  '6':
+    constantValue: A
+  '60':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '61'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '61':
+    constantValue: B7
+  '62':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '63'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '63':
+    constantValue: B11
+  '64':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '65'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '65':
+    constantValue: B12
+  '66':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '67'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '67':
+    constantValue: B9
+  '68':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 0.1
+      functionName: Image.constant
+  '69':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 0.05
+      functionName: Image.constant
+  '7':
+    constantValue: B
+  '70':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 1.16
+      functionName: Image.constant
+  '71':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 0.581
+      functionName: Image.constant
+  '72':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 2.5
+      functionName: Image.constant
+  '73':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 0.0
+      functionName: Image.constant
+  '74':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '43'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '43'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '43'
+              b:
+                valueReference: '43'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '75':
+    functionInvocationValue:
+      arguments:
+        argName:
+          valueReference: '4'
+        expression:
+          constantValue: exp((-1.0 * (a - b) ** 2.0)/(2.0 * sigma ** 2.0))
+        vars:
+          arrayValue:
+            values:
+            - valueReference: '4'
+            - valueReference: '6'
+            - valueReference: '7'
+            - valueReference: '8'
+            - valueReference: '9'
+            - valueReference: '10'
+            - valueReference: '11'
+            - valueReference: '12'
+            - valueReference: '13'
+            - valueReference: '14'
+            - valueReference: '15'
+            - valueReference: '16'
+            - valueReference: '17'
+            - valueReference: '18'
+            - valueReference: '19'
+            - valueReference: '20'
+            - valueReference: '21'
+            - valueReference: '22'
+            - valueReference: '23'
+            - valueReference: '24'
+            - valueReference: '25'
+            - valueReference: '26'
+            - valueReference: '27'
+            - valueReference: '28'
+            - valueReference: '29'
+            - valueReference: '30'
+            - valueReference: '31'
+            - valueReference: '32'
+            - valueReference: '33'
+            - valueReference: '34'
+            - valueReference: '35'
+            - valueReference: '36'
+            - valueReference: '37'
+            - valueReference: '38'
+            - valueReference: '39'
+            - valueReference: '40'
+            - valueReference: '76'
+            - valueReference: '77'
+            - constantValue: sigma
+      functionName: Image.parseExpression
+  '76':
+    constantValue: a
+  '77':
+    constantValue: b
+  '78':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 555.0
+      functionName: Image.constant
+  '79':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 858.5
+      functionName: Image.constant
+  '8':
+    constantValue: G
+  '80':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 645.0
+      functionName: Image.constant
+  '81':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 2.0
+      functionName: Image.constant
+  '82':
+    functionInvocationValue:
+      arguments:
+        argName:
+          valueReference: '4'
+        expression:
+          constantValue: 0.5 * (a + b)
+        vars:
+          arrayValue:
+            values:
+            - valueReference: '4'
+            - valueReference: '76'
+            - valueReference: '77'
+      functionName: Image.parseExpression
+  '83':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '43'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '49'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '43'
+              b:
+                valueReference: '49'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '84':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '43'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '54'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '43'
+              b:
+                valueReference: '54'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '85':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '47'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '43'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '47'
+              b:
+                valueReference: '43'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '86':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '47'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '47'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '47'
+              b:
+                valueReference: '47'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '87':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '47'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '54'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '47'
+              b:
+                valueReference: '54'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '88':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '49'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '49'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '49'
+              b:
+                valueReference: '49'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '89':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '50'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '43'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '50'
+              b:
+                valueReference: '43'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '9':
+    constantValue: R
+  '90':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '50'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '49'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '50'
+              b:
+                valueReference: '49'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '91':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '50'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '50'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '50'
+              b:
+                valueReference: '50'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '92':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '50'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '54'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '50'
+              b:
+                valueReference: '54'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '93':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '54'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '43'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '54'
+              b:
+                valueReference: '43'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '94':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '54'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '49'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '54'
+              b:
+                valueReference: '49'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '95':
+    functionInvocationValue:
+      arguments:
+        A:
+          valueReference: '41'
+        B:
+          valueReference: '43'
+        C1:
+          valueReference: '45'
+        C2:
+          valueReference: '46'
+        DEFAULT_EXPRESSION_IMAGE:
+          argumentReference: _MAPPING_VAR_0_0
+        G:
+          valueReference: '47'
+        L:
+          valueReference: '49'
+        N:
+          valueReference: '50'
+        N2:
+          valueReference: '52'
+        R:
+          valueReference: '54'
+        RE1:
+          valueReference: '56'
+        RE2:
+          valueReference: '58'
+        RE3:
+          valueReference: '60'
+        S1:
+          valueReference: '62'
+        S2:
+          valueReference: '64'
+        WV:
+          valueReference: '66'
+        a:
+          valueReference: '54'
+        alpha:
+          valueReference: '68'
+        b:
+          valueReference: '54'
+        beta:
+          valueReference: '69'
+        c:
+          valueReference: '49'
+        cexp:
+          valueReference: '70'
+        epsilon:
+          valueReference: '49'
+        fdelta:
+          valueReference: '71'
+        g:
+          valueReference: '72'
+        gamma:
+          valueReference: '49'
+        k:
+          valueReference: '73'
+        lambdaG:
+          valueReference: '78'
+        lambdaN:
+          valueReference: '79'
+        lambdaN2:
+          valueReference: '79'
+        lambdaR:
+          valueReference: '80'
+        lambdaS1:
+          valueReference: '80'
+        lambdaS2:
+          valueReference: '78'
+        nexp:
+          valueReference: '81'
+        omega:
+          valueReference: '81'
+        p:
+          valueReference: '81'
+        sigma:
+          functionInvocationValue:
+            arguments:
+              DEFAULT_EXPRESSION_IMAGE:
+                argumentReference: _MAPPING_VAR_0_0
+              a:
+                valueReference: '54'
+              b:
+                valueReference: '54'
+            functionReference: '82'
+        sla:
+          valueReference: '49'
+        slb:
+          valueReference: '73'
+      functionReference: '75'
+  '96':
+    functionInvocationValue:
+      arguments:
+        dstImg:
+          argumentReference: _MAPPING_VAR_0_0
+        srcImg:
+          functionInvocationValue:
+            arguments:
+              input:
+                functionInvocationValue:
+                  arguments:
+                    A:
+                      valueReference: '41'
+                    B:
+                      valueReference: '43'
+                    C1:
+                      valueReference: '45'
+                    C2:
+                      valueReference: '46'
+                    DEFAULT_EXPRESSION_IMAGE:
+                      argumentReference: _MAPPING_VAR_0_0
+                    G:
+                      valueReference: '47'
+                    L:
+                      valueReference: '49'
+                    N:
+                      valueReference: '50'
+                    N2:
+                      valueReference: '52'
+                    R:
+                      valueReference: '54'
+                    RE1:
+                      valueReference: '56'
+                    RE2:
+                      valueReference: '58'
+                    RE3:
+                      valueReference: '60'
+                    S1:
+                      valueReference: '62'
+                    S2:
+                      valueReference: '64'
+                    WV:
+                      valueReference: '66'
+                    alpha:
+                      valueReference: '68'
+                    beta:
+                      valueReference: '69'
+                    c:
+                      valueReference: '49'
+                    cexp:
+                      valueReference: '70'
+                    epsilon:
+                      valueReference: '49'
+                    fdelta:
+                      valueReference: '71'
+                    g:
+                      valueReference: '72'
+                    gamma:
+                      valueReference: '49'
+                    k:
+                      valueReference: '73'
+                    kBB:
+                      valueReference: '74'
+                    kBL:
+                      valueReference: '83'
+                    kBR:
+                      valueReference: '84'
+                    kGB:
+                      valueReference: '85'
+                    kGG:
+                      valueReference: '86'
+                    kGR:
+                      valueReference: '87'
+                    kLL:
+                      valueReference: '88'
+                    kNB:
+                      valueReference: '89'
+                    kNL:
+                      valueReference: '90'
+                    kNN:
+                      valueReference: '91'
+                    kNR:
+                      valueReference: '92'
+                    kRB:
+                      valueReference: '93'
+                    kRL:
+                      valueReference: '94'
+                    kRR:
+                      valueReference: '95'
+                    lambdaG:
+                      valueReference: '78'
+                    lambdaN:
+                      valueReference: '79'
+                    lambdaN2:
+                      valueReference: '79'
+                    lambdaR:
+                      valueReference: '80'
+                    lambdaS1:
+                      valueReference: '80'
+                    lambdaS2:
+                      valueReference: '78'
+                    nexp:
+                      valueReference: '81'
+                    omega:
+                      valueReference: '81'
+                    p:
+                      valueReference: '81'
+                    sla:
+                      valueReference: '49'
+                    slb:
+                      valueReference: '73'
+                  functionReference: '97'
+              names:
+                constantValue:
+                - NDVI
+            functionName: Image.rename
+      functionName: Image.addBands
+  '97':
+    functionInvocationValue:
+      arguments:
+        argName:
+          valueReference: '4'
+        expression:
+          constantValue: (N - R)/(N + R)
+        vars:
+          valueReference: '5'
+      functionName: Image.parseExpression
+  '98':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '42'
+            - valueReference: '44'
+            - valueReference: '48'
+            - valueReference: '55'
+            - valueReference: '57'
+            - valueReference: '59'
+            - valueReference: '61'
+            - valueReference: '51'
+            - valueReference: '53'
+            - valueReference: '67'
+            - valueReference: '63'
+            - valueReference: '65'
+            - constantValue: SCL
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select

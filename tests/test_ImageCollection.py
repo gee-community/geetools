@@ -9,8 +9,6 @@ import pytest
 from jsonschema import validate
 from matplotlib import pyplot as plt
 
-import geetools
-
 
 def reduce(
     collection: ee.ImageCollection, geometry: ee.Geometry | None = None, reducer: str = "first"
@@ -36,7 +34,6 @@ def round_dict(d: dict = None, decimals: int = 2) -> dict:
 class TestMaskClouds:
     """Test the ``maskClouds`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x.")
     def test_mask_s2_sr(self, s2_sr, num_regression):
         masked = s2_sr.geetools.maskClouds(prob=75, buffer=300, cdi=-0.5)
         num_regression.check(reduce(masked).getInfo())
@@ -45,7 +42,6 @@ class TestMaskClouds:
 class TestClosest:
     """Test the ``closest`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_closest_s2_sr(self, s2_sr, data_regression):
         closest = s2_sr.geetools.closest("2021-10-01")
         data_regression.check(closest.size().getInfo())
@@ -54,16 +50,14 @@ class TestClosest:
 class TestSpectralIndices:
     """Test the ``spectralIndices`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
-    def test_spectral_indices(self, s2_sr, num_regression):
+    def test_spectral_indices(self, s2_sr, ee_dictionary_regression):
         indices = s2_sr.geetools.spectralIndices(["NDVI", "NDWI"])
-        num_regression.check(reduce(indices).getInfo())
+        ee_dictionary_regression.check(reduce(indices))
 
 
 class TestGetScaleParams:
     """Test the ``getScaleParams`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_get_scale_params(self, s2_sr, data_regression):
         scale_params = s2_sr.geetools.getScaleParams()
         data_regression.check(scale_params)
@@ -72,7 +66,6 @@ class TestGetScaleParams:
 class TestGetOffsetParams:
     """Test the ``getOffsetParams`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_get_offset_params(self, s2_sr, data_regression):
         offset_params = s2_sr.geetools.getOffsetParams()
         data_regression.check(offset_params)
@@ -81,7 +74,6 @@ class TestGetOffsetParams:
 class TestScaleAndOffset:
     """Test the ``scaleAndOffset`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_scale_and_offset(self, s2_sr, num_regression):
         scaled = s2_sr.geetools.scaleAndOffset()
         num_regression.check(reduce(scaled).getInfo())
@@ -90,7 +82,6 @@ class TestScaleAndOffset:
 class TestPreprocess:
     """Test the ``preprocess`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_preprocess(self, s2_sr, num_regression):
         preprocessed = s2_sr.geetools.preprocess()
         values = {k: np.nan if v is None else v for k, v in reduce(preprocessed).getInfo().items()}
@@ -137,7 +128,6 @@ class TestPanSharpen:
 class TestTasseledCap:
     """Test the ``tasseledCap`` method."""
 
-    @pytest.mark.xfail(reason="ee_extra is not compatible with modern version of python.")
     def test_tasseled_cap(self, l8_sr, num_regression):
         tc = l8_sr.geetools.tasseledCap()
         num_regression.check(reduce(tc).getInfo())
@@ -317,22 +307,6 @@ class TestGroupInterval:
             imgCollection = ee.ImageCollection(grouped.get(i))
             assert imgCollection.size().getInfo() != 0
 
-    def test_deprecated_make_equal_interval(self, jaxa_rainfall):
-        # get 3 month worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
-        with pytest.deprecated_call():
-            grouped = geetools.imagecollection.makeEqualInterval(ic)
-            assert grouped.size().getInfo() == 3
-            assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 720
-
-    def test_deprecated_make_day_intervals(self, jaxa_rainfall):
-        # get 3 days worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
-        with pytest.deprecated_call():
-            grouped = geetools.imagecollection.makeDayIntervals(ic)
-            assert grouped.size().getInfo() == 3
-            assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 24
-
 
 class TestReduceInterval:
     """Test the ``reduceInterval`` method."""
@@ -396,38 +370,6 @@ class TestReduceInterval:
         firstImg = ic.first()
         assert "system:id" in firstImg.propertyNames().getInfo()
 
-    def test_deprecated_reduce_equal_interval(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
-        # get 3 month worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
-        with pytest.deprecated_call():
-            reduced = geetools.imagecollection.reduceEqualInterval(ic, reducer="mean")
-            values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
-            ee_dictionary_regression.check(values)
-
-    def test_deprecated_reduce_day_intervals(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
-        # get 3 days worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
-        with pytest.deprecated_call():
-            reduced = geetools.imagecollection.reduceDayIntervals(ic, reducer="mean")
-            values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
-            ee_dictionary_regression.check(values)
-
-    def test_deprecated_composite_regular_intervals(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
-        # get 3 days worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
-        with pytest.deprecated_call():
-            reduced = geetools.composite.compositeRegularIntervals(ic, unit="day")
-            values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
-            ee_dictionary_regression.check(values)
-
-    def test_deprecated_composite_by_month(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
-        # get 3 month worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-01")
-        with pytest.deprecated_call():
-            reduced = geetools.composite.compositeByMonth(ic)
-            values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
-            ee_dictionary_regression.check(values)
-
 
 class TestClosestDate:
     """Test the ``closestDate`` method."""
@@ -439,20 +381,6 @@ class TestClosestDate:
         values = {k: np.nan if v is None else v for k, v in values.items()}
         num_regression.check(values)
 
-    def test_deprecated_fill_with_last(self, s2_sr, amazonas, num_regression):
-        with pytest.deprecated_call():
-            filled = geetools.imagecollection.fillWithLast(s2_sr.filterDate("2021-01-01", "2021-01-15"))
-            values = reduce(filled, amazonas, "mean").getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
-
-    def test_deprecated_closest_date(self, s2_sr, amazonas, num_regression):
-        with pytest.deprecated_call():
-            filled = geetools.composite.closestDate(s2_sr.filterDate("2021-01-01", "2021-01-15"))
-            values = reduce(filled, amazonas, "mean").getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
-
 
 class TestMedoid:
     """Test the ``medoid`` method."""
@@ -463,14 +391,6 @@ class TestMedoid:
         values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
         values = {k: np.nan if v is None else v for k, v in values.items()}
         num_regression.check(values)
-
-    def test_deprecated_medoid(self, s2_sr, amazonas, num_regression):
-        with pytest.deprecated_call():
-            # we need less images as the test will fail otherwise
-            medoid = geetools.composite.medoid(s2_sr.filterDate("2021-01-01", "2021-01-05"))
-            values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
 
 
 class TestSortMany:
