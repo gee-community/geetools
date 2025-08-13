@@ -13,8 +13,6 @@ import pytest
 from jsonschema import validate
 from matplotlib import pyplot as plt
 
-import geetools
-
 
 class TestAddDate:
     """Test the ``addDate`` method."""
@@ -418,10 +416,10 @@ class TestIndicexList:
 class TestSpectralIndices:
     """Test the ``spectralIndices`` method."""
 
-    def test_default_spectral_indices(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
+    def test_default_spectral_indices(self, s2_sr_vatican_2020, vatican_buffer, ee_dictionary_regression):
         image = s2_sr_vatican_2020.geetools.spectralIndices("all")
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-        num_regression.check({k: np.nan if v is None else v for k, v in values.getInfo().items()})
+        ee_dictionary_regression.check(values)
 
 
 class TestMaskClouds:
@@ -512,7 +510,7 @@ class TestPanSharpen:
 class TestTasseledCap:
     """Test the tasseledCap method."""
 
-    @pytest.mark.xfail(reason="ee_extra is not compatible with modern python anymore")
+    @pytest.mark.xfail("The tasseledCap method is not implemented for this platform (yet).")
     def test_tasseled_cap(self, l8_sr_vatican_2020, num_regression):
         img = l8_sr_vatican_2020.geetools.tasseledCap()
         centroid = img.geometry().centroid().buffer(100)
@@ -539,15 +537,6 @@ class TestDistanceToMask:
         values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
         num_regression.check(values.getInfo())
 
-    def test_deprecated_distance_to_mask(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
-        centerBuffer = vatican_buffer.centroid().buffer(100)
-        BufferMask = ee.Image.constant(1).clip(centerBuffer)
-        mask = ee.Image.constant(0).where(BufferMask, 1)
-        with pytest.deprecated_call():
-            distance = geetools.algorithms.distanceToMask(s2_sr_vatican_2020, mask)
-            values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-            num_regression.check(values.getInfo())
-
 
 class TestDistance:
     """Test the ``distance`` method."""
@@ -557,13 +546,6 @@ class TestDistance:
         distance = self.image.geetools.distance(self.other)
         values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
         num_regression.check(values.getInfo())
-
-    def test_deprecated_euclidian_distance(self, vatican_buffer, num_regression):
-        # 2 images from june in vatican
-        with pytest.deprecated_call():
-            distance = geetools.algorithms.euclideanDistance(self.image, self.other)
-            values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-            num_regression.check(values.getInfo())
 
     @property
     def image(self):
@@ -610,11 +592,6 @@ class TestMaskCover:
         # ratio = ee.Number(feat.get('mask_cover'))
         # the last line should work, but it doesn't, I don't know why
         assert isclose(ratio, 0)
-
-    def test_deprecated_mask_cover(self):
-        with pytest.deprecated_call():
-            image = geetools.algorithms.maskCover(self.image)
-            assert isclose(image.get("mask_cover").getInfo(), 18.04, rel_tol=0.01)
 
     @property
     def image(self):

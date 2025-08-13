@@ -147,6 +147,7 @@ class ImageCollectionAccessor:
         beta: float | int = 0.05,
         k: float | int = 0.0,
         fdelta: float | int = 0.581,
+        epsilon: float | int = 1.0,
         kernel: str = "RBF",
         sigma: str = "0.5 * (a + b)",
         p: float | int = 2.0,
@@ -184,6 +185,7 @@ class ImageCollectionAccessor:
             beta: Calibration parameter used for NDSIns, default = 0.05
             k: Slope parameter by soil used for NIRvH2, default = 0.0
             fdelta: Adjustment factor used for SEVI, default = 0.581
+            epsilon: Adjustment constant used for EBI, default = 1.0
             kernel: Kernel used for kernel indices, default = 'RBF'
                 Available options:
                     - 'linear' : Linear Kernel.
@@ -213,30 +215,31 @@ class ImageCollectionAccessor:
                 image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
         return ee_extra.Spectral.core.spectralIndices(
-            self._obj,
-            index,
-            G,
-            C1,
-            C2,
-            L,
-            cexp,
-            nexp,
-            alpha,
-            slope,
-            intercept,
-            gamma,
-            omega,
-            beta,
-            k,
-            fdelta,
-            kernel,
-            sigma,
-            p,
-            c,
-            lambdaN,
-            lambdaR,
-            lambdaG,
-            online,
+            x=self._obj,
+            index=index,
+            G=G,
+            C1=C1,
+            C2=C2,
+            L=L,
+            cexp=cexp,
+            nexp=nexp,
+            alpha=alpha,
+            slope=slope,
+            intercept=intercept,
+            gamma=gamma,
+            omega=omega,
+            beta=beta,
+            k=k,
+            fdelta=fdelta,
+            epsilon=epsilon,
+            kernel=kernel,
+            sigma=sigma,
+            p=p,
+            c=c,
+            lambdaN=lambdaN,
+            lambdaR=lambdaR,
+            lambdaG=lambdaG,
+            online=online,
             drop=False,
         )
 
