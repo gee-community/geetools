@@ -354,3 +354,8 @@ class TestSetProperties:
         asset = ee.Asset(gee_test_folder) / "folder" / "image"
         asset.setProperties(foo="bar")
         assert ee.Image(asset.as_posix()).get("foo").getInfo() == "bar"
+
+    def test_set_properties_no_kwargs(self, gee_test_folder):
+        asset = ee.Asset(gee_test_folder) / "folder" / "image"
+        asset.setProperties()
+        assert asset.exists()

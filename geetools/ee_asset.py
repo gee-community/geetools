@@ -784,6 +784,11 @@ class Asset(os.PathLike):
                 d = datetime.fromtimestamp(int(d) / 1000).isoformat() + "Z"
             return str(d)  # if any other format is used, we will simply return it as a string
 
+        # early exit if kwargs is empty
+        if len(kwargs) == 0:
+            return self
+
+        # Convert the system properties to the correct format
         if "system:time_start" in kwargs:
             kwargs["system:time_start"] = date_in_str(kwargs.pop("system:time_start"))
         if "system:time_end" in kwargs:
