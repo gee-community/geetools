@@ -633,6 +633,64 @@ class TestMaskCover:
         return image.select(["B4", "B3", "B2"])
 
 
+class TestBitsToBands:
+    """Test the ``bitsToBands`` method."""
+
+    def test_bits_to_bands(self, l9_cloudy_image, ee_image_regression):
+        """Test ``bitsToBands``."""
+        aoi = ee.Geometry.Polygon(
+            [
+                [
+                    [-71.7044111602349, -42.808681632054565],
+                    [-71.7044111602349, -43.07107570728516],
+                    [-71.32950271296927, -43.07107570728516],
+                    [-71.32950271296927, -42.808681632054565],
+                ]
+            ]
+        )
+        bits = {"7": "Water", "8-9": {"1": "Low", "2": "Medium", "3": "High"}}
+        decoded = l9_cloudy_image.geetools.bitsToBands(bits, "QA_PIXEL")
+        ee_image_regression.check(decoded, scale=30, region=aoi)
+
+
+class TestBitsMask:
+    """Test the ``bitsMask`` methods (all and any)."""
+
+    def test_bits_mask_all(self, l9_cloudy_image, ee_image_regression):
+        aoi = ee.Geometry.Polygon(
+            [
+                [
+                    [-71.7044111602349, -42.808681632054565],
+                    [-71.7044111602349, -43.07107570728516],
+                    [-71.32950271296927, -43.07107570728516],
+                    [-71.32950271296927, -42.808681632054565],
+                ]
+            ]
+        )
+        bits = {"5": "Snow", "8-9": {"1": "Low", "2": "Medium", "3": "High"}}
+        # Detect mask confusion between snow and clouds (medium probability)
+        decoded = l9_cloudy_image.geetools.bitsMaskAll(bits, ["Snow", "Medium"], "QA_PIXEL")
+        viz = {"min": 0, "max": 1, "palette": ["blue", "red"]}
+        ee_image_regression.check(decoded, scale=30, viz_params=viz, region=aoi)
+
+    def test_bits_mask_any(self, l9_cloudy_image, ee_image_regression):
+        aoi = ee.Geometry.Polygon(
+            [
+                [
+                    [-71.7044111602349, -42.808681632054565],
+                    [-71.7044111602349, -43.07107570728516],
+                    [-71.32950271296927, -43.07107570728516],
+                    [-71.32950271296927, -42.808681632054565],
+                ]
+            ]
+        )
+        bits = {"5": "Snow", "8-9": {"1": "Low", "2": "Medium", "3": "High"}}
+        # Get a mask for masking out unneeded pixels
+        decoded = l9_cloudy_image.geetools.bitsMaskAny(bits, ["Snow", "High", "Medium"], "QA_PIXEL")
+        viz = {"min": 0, "max": 1, "palette": ["blue", "red"]}
+        ee_image_regression.check(decoded, scale=30, viz_params=viz, region=aoi)
+
+
 class TestClassToBands:
     """Test the ``classToBands`` method."""
 
