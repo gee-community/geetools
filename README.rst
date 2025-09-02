@@ -49,7 +49,7 @@ geetools
 Google Earth Engine tools
 -------------------------
 
-test
+test 2
 
 .. image:: https://raw.githubusercontent.com/gee-community/geetools/main/docs/_static/logo.svg
     :width: 20%
