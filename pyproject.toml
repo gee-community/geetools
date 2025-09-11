@@ -30,6 +30,7 @@ dependencies = [
     "requests",
     "pandas",
     "geopandas",
+    "rasterio",
     "deprecated",
     "xee>=0.0.11", # xee change dtype management
     "yamlable",
