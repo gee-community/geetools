@@ -116,5 +116,8 @@ class InitializeAccessor:
                 ee.Initialize.geetools.project_id()
         """
         if _project_id is None:
-            raise RuntimeError("The GEE account is not initialized")
+            raise RuntimeError(
+                "The GEE account is not initialized or was initialized outside of geetools."
+                " Please use from_user or from_service_account to get access to the project_id"
+            )
         return _project_id
