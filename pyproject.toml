@@ -36,6 +36,7 @@ dependencies = [
     "yamlable",
     "matplotlib",
     "anyascii",
+    "google-cloud-storage",
 ]
 
 [[project.authors]]

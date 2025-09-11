@@ -12,6 +12,7 @@ import ee.data
 import rasterio as rio
 import requests
 from google.auth.transport.requests import AuthorizedSession
+from google.cloud import storage
 
 from .accessors import _register_extention
 from .utils import format_description
@@ -576,12 +577,36 @@ class Asset(os.PathLike):
 
         return new_asset
 
-    def delete(self, recursive: bool = False, dry_run: bool | None = None) -> list:
+    def is_gcp_backed(self, raised: bool = False) -> bool:
+        """Return True if the asset is backed by a GCP file.
+
+        Args:
+            raised: If True, raise an exception if the asset is not GCP backed. Defaults to False.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.is_gcp_backed()
+        """
+        self.exists(raised=True)
+        properties = ee.data.getAsset(self.as_posix()).get("properties", {})
+        is_gcp = "gcp_backed" in properties
+        if is_gcp is False and raised is True:
+            raise ValueError(f"Asset {self.as_posix()} is not a GCP backed asset.")
+        return is_gcp
+
+    def delete(self, recursive: bool = False, dry_run: bool | None = None, delete_src: bool = False) -> list:
         """Remove the asset.
 
         This method will delete an asset (any type) asset and all its potential children. By default, it is not recursive and will raise an error if the container is not empty.
         By setting the recursive argument to True, the method will delete all the children and the container asset (including potential subfolders).
         To avoid deleting important assets by accident the method is set to dry_run by default.
+
+        Warning:
+            In the special case of a GCP backed asset (COG, TIF, SHP, etc)
+            the method will not delete the source file by default. To delete the source file
+            you need to set the ``delete_src`` argument to True. Be careful as this action is irreversible.
 
         Note:
             A container is an asset containing other assets, it can be a ``Folder`` or an ``ImageCollection``.
@@ -589,6 +614,7 @@ class Asset(os.PathLike):
         Args:
             recursive: If True, delete all the children and the container asset. Defaults to False.
             dry_run: If True, do not delete the asset simply pass them to the output list. Defaults to True.
+            delete_src: try to delete the src file used in case of a GCP backed asset. Defaults to False.
 
         Returns:
             The list of deleted assets.
@@ -603,6 +629,7 @@ class Asset(os.PathLike):
         # if we run a recursive rmdir the dry_run is set to True to avoid deleting too many things by accident
         # if we run a non-recursive rmdir the dry_run is set to False to delete the folder only
         dry_run = dry_run if dry_run is not None else recursive
+        delete_src = delete_src if dry_run is False else False
 
         # define a delete function to change the behaviour of the method depending of the mode
         # in dry mode, the function only store the assets to be destroyed as a dictionary.
@@ -630,7 +657,20 @@ class Asset(os.PathLike):
             # delete all items starting from the more nested ones
             assets_ordered = dict(sorted(assets_ordered.items(), reverse=True))
             for lvl in assets_ordered:
-                [delete(asset) for asset in assets_ordered[lvl]]
+                [delete(asset, delete_src=delete_src) for asset in assets_ordered[lvl]]
+
+        # if required delete the src file in case of a GCP backed asset
+        if self.is_gcp_backed() and delete_src is True:
+            properties = ee.data.getAsset(self.as_posix()).get("properties", {})
+            gcp_uri = properties.get("gcp_uri", "")
+            try:
+                client = storage.Client()
+                bucket_name, blob_name = gcp_uri.replace("gs://", "").split("/", 1)
+                bucket = client.get_bucket(bucket_name)
+                blob = bucket.blob(blob_name)
+                blob.delete()
+            except Exception as e:
+                print(f"Failed to delete GCS source file {gcp_uri}: {e}")
 
         # delete the initial folder/asset
         delete(self)
