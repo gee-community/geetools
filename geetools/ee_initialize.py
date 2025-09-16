@@ -43,28 +43,17 @@ class InitializeAccessor:
         # gather global variable to be modified
         global _project_id
 
+        # Using the saved credentials initialize the EE API
+        ee.Initialize(ee.Initialize.geetools.get_credentials(name))
+
         # set the user profile information
         name = f"credentials{name}"
         credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
         credential_folder = Path(credential_pathname).parent
         credential_path = credential_folder / name
 
-        # check if the user exists
-        if not credential_path.exists():
-            msg = "Please register this user first by using geetools.User.create first"
-            raise ee.EEException(msg)
-
-        # Set the credential object and Init GEE API
-        tokens = json.loads((credential_path / name).read_text())
-        credentials = Credentials(
-            None,
-            refresh_token=tokens["refresh_token"],
-            token_uri=ee.oauth.TOKEN_URI,
-            client_id=tokens["client_id"],
-            client_secret=tokens["client_secret"],
-            scopes=ee.oauth.SCOPES,
-        )
-        ee.Initialize(credentials)
+        # read the tokens a second time to extract the project_id
+        tokens = json.loads((credential_path).read_text())
 
         # save the project_id in a dedicated global variable as it's not saved
         # from GEE side
@@ -121,3 +110,49 @@ class InitializeAccessor:
                 " Please use from_user or from_service_account to get access to the project_id"
             )
         return _project_id
+
+    @staticmethod
+    def get_credentials(name="default") -> Credentials:
+        """Get the credentials of a specific user to use for other Google API.
+
+        Return the credential oAuth object necessary to authenticate to other Python Google APIs.
+        The scope of the registered API will entirely depend on the setting passed by the user at authentication time.
+
+        Args:
+            name: The name of the user as saved when created. use default if not set
+
+        Returns:
+            The Google Credentials object of the connected profile.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+                from google.cloud.storage.client import Client
+
+                credentials = ee.Initialize.geetools.get_credentials("<name of the saved user>")
+
+                service = build('drive', 'v3', credentials=credentials)
+                client = Client(credentials=credentials, project=ee.Initialize.geetools.project_id())
+        """
+        name = f"credentials{name}"
+        credential_pathname = ee.oauth.get_credentials_path()
+        credential_folder = Path(credential_pathname).parent
+        credential_path = credential_folder / name
+
+        # check if the user exists
+        if not credential_path.exists():
+            msg = "Please register this user first by using ee.Authenticate.geetools.new_user method first"
+            raise ee.EEException(msg)
+
+        # Set the credential object and Init GEE API
+        tokens = json.loads((credential_path).read_text())
+        credentials = Credentials(
+            None,
+            refresh_token=tokens["refresh_token"],
+            token_uri=ee.oauth.TOKEN_URI,
+            client_id=tokens["client_id"],
+            client_secret=tokens["client_secret"],
+            scopes=ee.oauth.SCOPES,
+        )
+        return credentials

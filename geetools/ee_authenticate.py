@@ -17,7 +17,7 @@ class AuthenticateAccessor:
     """Create an accessor for the :py:func:`ee.Authenticate` function."""
 
     @staticmethod
-    def new_user(name: str = "", credential_pathname: str | os.PathLike = ""):
+    def new_user(name: str = "default", credential_pathname: str | os.PathLike = ""):
         """Authenticate the user and save the credentials in a specific folder.
 
         Equivalent to :py:func:`ee.Authenticate` but where the registered user will not be the default one (the one you get when running :py:func:`ee.Initialize`).
@@ -56,7 +56,7 @@ class AuthenticateAccessor:
                 move(Path(dir) / default.name, default)
 
     @staticmethod
-    def delete_user(name: str = "", credential_pathname: str | os.PathLike = ""):
+    def delete_user(name: str = "default", credential_pathname: str | os.PathLike = ""):
         """Delete a user credential file.
 
         Args:
@@ -77,8 +77,11 @@ class AuthenticateAccessor:
         name = f"credentials{name}"
         credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
         credential_path = Path(credential_pathname).parent
-        with suppress(FileNotFoundError):
+
+        try:
             (credential_path / name).unlink()
+        except FileNotFoundError:
+            raise FileNotFoundError(f"The user {name} does not exist")
 
     @staticmethod
     def list_user(credential_pathname: str | os.PathLike = "") -> list[str]:
@@ -103,10 +106,10 @@ class AuthenticateAccessor:
         credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
         credential_path = Path(credential_pathname).parent
         files = [f for f in credential_path.glob("credentials*") if f.is_file()]
-        return [f.name.replace("credentials", "") or "default" for f in files]
+        return [f.name.replace("credentials", "") for f in files]
 
     @staticmethod
-    def rename_user(new: str, old: str = "", credential_pathname: str | os.PathLike = ""):
+    def rename_user(new: str, old: str = "default", credential_pathname: str | os.PathLike = ""):
         """Rename a user without changing the credentials.
 
         Args:
@@ -129,5 +132,10 @@ class AuthenticateAccessor:
         new = f"credentials{new}"
         credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
         credential_path = Path(credential_pathname).parent
-        with suppress(FileNotFoundError):
+
+        try:
             (credential_path / old).rename(credential_path / new)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"The user {old} does not exist")
+        except FileExistsError:
+            raise FileExistsError(f"The user {new} already exists")
