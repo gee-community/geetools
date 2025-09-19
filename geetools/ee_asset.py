@@ -1,6 +1,7 @@
 """An Asset management class mimicking the ``pathlib.Path`` class behaviour."""
 from __future__ import annotations
 
+import json
 import os
 import re
 from datetime import date, datetime
@@ -8,6 +9,10 @@ from pathlib import PurePosixPath
 
 import ee
 import ee.data
+import rasterio as rio
+import requests
+from google.auth.transport.requests import AuthorizedSession
+from google.cloud import storage
 
 from .accessors import _register_extention
 from .utils import format_description
@@ -572,12 +577,36 @@ class Asset(os.PathLike):
 
         return new_asset
 
-    def delete(self, recursive: bool = False, dry_run: bool | None = None) -> list:
+    def is_gcp_backed(self, raised: bool = False) -> bool:
+        """Return True if the asset is backed by a GCP file.
+
+        Args:
+            raised: If True, raise an exception if the asset is not GCP backed. Defaults to False.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.is_gcp_backed()
+        """
+        self.exists(raised=True)
+        properties = ee.data.getAsset(self.as_posix()).get("properties", {})
+        is_gcp = "gcp_backed" in properties
+        if is_gcp is False and raised is True:
+            raise ValueError(f"Asset {self.as_posix()} is not a GCP backed asset.")
+        return is_gcp
+
+    def delete(self, recursive: bool = False, dry_run: bool | None = None, delete_src: bool = False) -> list:
         """Remove the asset.
 
         This method will delete an asset (any type) asset and all its potential children. By default, it is not recursive and will raise an error if the container is not empty.
         By setting the recursive argument to True, the method will delete all the children and the container asset (including potential subfolders).
         To avoid deleting important assets by accident the method is set to dry_run by default.
+
+        Warning:
+            In the special case of a GCP backed asset (COG, TIF, SHP, etc)
+            the method will not delete the source file by default. To delete the source file
+            you need to set the ``delete_src`` argument to True. Be careful as this action is irreversible.
 
         Note:
             A container is an asset containing other assets, it can be a ``Folder`` or an ``ImageCollection``.
@@ -585,6 +614,7 @@ class Asset(os.PathLike):
         Args:
             recursive: If True, delete all the children and the container asset. Defaults to False.
             dry_run: If True, do not delete the asset simply pass them to the output list. Defaults to True.
+            delete_src: try to delete the src file used in case of a GCP backed asset. Defaults to False.
 
         Returns:
             The list of deleted assets.
@@ -599,6 +629,7 @@ class Asset(os.PathLike):
         # if we run a recursive rmdir the dry_run is set to True to avoid deleting too many things by accident
         # if we run a non-recursive rmdir the dry_run is set to False to delete the folder only
         dry_run = dry_run if dry_run is not None else recursive
+        delete_src = delete_src if dry_run is False else False
 
         # define a delete function to change the behaviour of the method depending of the mode
         # in dry mode, the function only store the assets to be destroyed as a dictionary.
@@ -626,7 +657,20 @@ class Asset(os.PathLike):
             # delete all items starting from the more nested ones
             assets_ordered = dict(sorted(assets_ordered.items(), reverse=True))
             for lvl in assets_ordered:
-                [delete(asset) for asset in assets_ordered[lvl]]
+                [delete(asset, delete_src=delete_src) for asset in assets_ordered[lvl]]
+
+        # if required delete the src file in case of a GCP backed asset
+        if self.is_gcp_backed() and delete_src is True:
+            properties = ee.data.getAsset(self.as_posix()).get("properties", {})
+            gcp_uri = properties.get("gcp_uri", "")
+            try:
+                client = storage.Client()
+                bucket_name, blob_name = gcp_uri.replace("gs://", "").split("/", 1)
+                bucket = client.get_bucket(bucket_name)
+                blob = bucket.blob(blob_name)
+                blob.delete()
+            except Exception as e:
+                print(f"Failed to delete GCS source file {gcp_uri}: {e}")
 
         # delete the initial folder/asset
         delete(self)
@@ -816,5 +860,90 @@ class Asset(os.PathLike):
             asset={**system, "properties": props},
             update_mask=list(system.keys()) + update_mask,
         )
+
+        return self
+
+    def register_cog_asset(
+        self,
+        uri: str,
+        bands: list | None = None,
+        properties: dict | None = None,
+        start_time: str | datetime | date | None = None,
+        end_time: str | datetime | date | None = None,
+        overwrite: bool = False,
+    ) -> Asset:
+        """Register a Cloud Optimized GeoTIFF (COG) as an Earth Engine Image asset.
+
+        Args:
+            uri: The URI of the COG file. Supported schemes are "gs://".
+            bands: A list of band names to assign to the image. If None, the band names from the COG will be used. Defaults to None.
+            properties: A dictionary of properties to set on the image asset. Defaults to None.
+            start_time: The start time of the image asset. Can be a string in ISO format, a datetime or a date object. Defaults to None.
+            end_time: The end time of the image asset. Can be a string in ISO format, a datetime or a date object. Defaults to None.
+            overwrite: If True, overwrite the destination asset if it exists. Defaults to False.
+
+        Returns:
+            The new Image asset instance.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder/image")
+                asset.register_cog_asset("gs://bucket/path/to/cog.tif", bands=["B1", "B2"], overwrite=True)
+        """
+        # exit if the destination asset exist and overwrite is False
+        if self.exists():
+            if overwrite is False:
+                raise ValueError(f"Asset {self.as_posix()} already exists.")
+            else:
+                self.delete()
+
+        # Start an incomplete manifest request
+        request = {
+            "imageManifest": {
+                "name": self.as_posix(),
+                "tilesets": [{"id": "0", "sources": [{"uris": [uri]}]}],
+            },
+        }
+
+        # Define the band information based on the content of the file and/or the
+        # provided band names
+        with rio.open(uri) as src:
+            bands = bands or src.descriptions or [f"b{i}" for i in range(1, src.count + 1)]
+            count = src.count
+
+        if len(bands) != count:
+            raise ValueError(
+                f"Number of bands in COG ({count}) does not match the number of band names provided ({len(bands)})."
+            )
+        request["imageManifest"]["bands"] = [
+            {"id": b, "tilesetId": "0", "tilesetBandIndex": i} for i, b in enumerate(bands)
+        ]
+
+        # add time properties if they are set
+        if start_time is not None:
+            start_time = start_time if isinstance(start_time, str) else start_time.isoformat() + "Z"
+            request["imageManifest"]["startTime"] = start_time
+
+        if end_time is not None:
+            end_time = end_time if isinstance(end_time, str) else end_time.isoformat() + "Z"
+            request["imageManifest"]["endTime"] = end_time
+
+        # set the properties of the file and add 2 specific one: the uri and a tag indicating
+        # That the file is COG backed
+        properties = properties or {}
+        properties = {"gcp_backed": "COG", "gcp_uri": uri, **properties}
+        request["imageManifest"]["properties"] = properties
+
+        # register the COG as an Image asset
+        project = ee.Initialize.geetools.project_id()
+        creds = ee.data.get_persistent_credentials()
+        session = AuthorizedSession(creds.with_quota_project(project))
+        url = f"https://earthengine.googleapis.com/v1alpha/projects/{project}/image:importExternal"
+        response = session.post(url=url, data=json.dumps(request))
+
+        # raise an error if something went wrong
+        if response.status_code != requests.codes.ok:
+            raise ValueError(f"Error registering COG asset: {response.content}")
 
         return self
