@@ -6,15 +6,11 @@ import os
 from pathlib import Path
 
 import ee
-import httplib2
 from deprecated.sphinx import deprecated
 from ee._state import get_state
 from google.oauth2.credentials import Credentials
 
 from .accessors import register_function_accessor
-
-_project_id: str | None = None
-"The project Id used by the current user."
 
 
 @register_function_accessor(ee.Initialize, "geetools")
@@ -42,9 +38,6 @@ class InitializeAccessor:
 
                 ee.Initialize.from_user("<name of the saved user>")
         """
-        # gather global variable to be modified
-        global _project_id
-
         # set the user profile information
         name = f"credentials{name}"
         credential_pathname = credential_pathname or ee.oauth.get_credentials_path()
@@ -59,10 +52,6 @@ class InitializeAccessor:
         # Set the credential object
         tokens = json.loads(credential_path.read_text())
 
-        # save the project_id in a dedicated global variable as it's not saved
-        # from GEE side.
-        _project_id = project or tokens["project_id"]
-
         # Init GEE API
         credentials = Credentials(
             None,
@@ -72,7 +61,8 @@ class InitializeAccessor:
             client_secret=tokens["client_secret"],
             scopes=ee.oauth.SCOPES,
         )
-        ee.Initialize(credentials, project=_project_id)
+        project = project or tokens["project_id"]
+        ee.Initialize(credentials, project=project)
 
     @staticmethod
     def from_service_account(private_key: str):
@@ -93,14 +83,10 @@ class InitializeAccessor:
 
                 ee.Initialize.from_service_account(private_key)
         """
-        # gather global variable to be modified
-        global _project_id
-
         # connect to GEE using a ServiceAccountCredential object
         ee_user = json.loads(private_key)["client_email"]
         credentials = ee.ServiceAccountCredentials(ee_user, key_data=private_key)
-        _project_id = credentials.project_id
-        ee.Initialize(credentials=credentials, project=_project_id, http_transport=httplib2.Http())
+        ee.Initialize(credentials=credentials, project=credentials.project_id)
 
     @deprecated(version="1.18.0", reason="Use the state object from vanilla earth engine instead.")
     @staticmethod
