@@ -57,10 +57,10 @@ class InitializeAccessor:
             raise ee.EEException(msg)
 
         # Set the credential object
-        tokens = json.loads((credential_path / name).read_text())
+        tokens = json.loads(credential_path.read_text())
 
         # save the project_id in a dedicated global variable as it's not saved
-        # from GEE side
+        # from GEE side.
         _project_id = project or tokens["project_id"]
 
         # Init GEE API
