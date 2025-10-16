@@ -93,8 +93,8 @@ class InitializeAccessor:
         credentials = ee.ServiceAccountCredentials(ee_user, key_data=private_key)
         ee.Initialize(credentials=credentials, project=credentials.project_id)
 
-    @deprecated(version="1.18.0", reason="Use the state object from vanilla earth engine instead.")
     @staticmethod
+    @deprecated(version="1.18.0", reason="Use the state object from vanilla earth engine instead.")
     def project_id() -> str:
         """Get the project_id of the current account.
 
