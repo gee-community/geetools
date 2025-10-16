@@ -8,6 +8,7 @@ from pathlib import PurePosixPath
 
 import ee
 import ee.data
+from ee._state import get_state
 
 from .accessors import _register_extention
 from .utils import format_description
@@ -24,7 +25,7 @@ class Asset(os.PathLike):
             An asset cannot be an absolute path like in a normal filesystem and thus any trailing "/" will be removed.
         """
         if len(args) == 0:
-            self._path = f"projects/{ee.data._cloud_api_user_project}/assets/"
+            self._path = f"projects/{get_state().cloud_api_user_project}/assets/"
         else:
             self._path = args[0]._path if isinstance(args[0], Asset) else PurePosixPath(*args)
             project_assets = PurePosixPath(str(self._path)[1:])
@@ -90,7 +91,7 @@ class Asset(os.PathLike):
 
                 ee.Asset.home()
         """
-        return cls(f"projects/{ee.data._cloud_api_user_project}/assets/")
+        return cls(f"projects/{get_state().cloud_api_user_project}/assets/")
 
     def as_posix(self) -> str:
         """Return the asset id as a posix path.
@@ -162,7 +163,7 @@ class Asset(os.PathLike):
             return True
         else:
             if raised is True:
-                user_project = ee.data._cloud_api_user_project
+                user_project = get_state().cloud_api_user_project
                 msg = f"Asset {self.as_posix()} is not in the same project as the user ({user_project})"
                 raise ValueError(msg)
             else:

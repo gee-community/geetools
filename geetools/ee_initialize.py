@@ -52,16 +52,21 @@ class InitializeAccessor:
         # Set the credential object
         tokens = json.loads(credential_path.read_text())
 
-        # Init GEE API
-        credentials = Credentials(
-            None,
-            refresh_token=tokens["refresh_token"],
-            token_uri=ee.oauth.TOKEN_URI,
-            client_id=tokens["client_id"],
-            client_secret=tokens["client_secret"],
-            scopes=ee.oauth.SCOPES,
-        )
-        project = project or tokens["project_id"]
+        # init the credential object and identify if the saved json is a service account or a user account
+        if "gserviceaccount" in tokens.get("client_email", ""):
+            ee_user = tokens["client_email"]
+            credentials = ee.ServiceAccountCredentials(ee_user, key_data=json.dumps(tokens))
+            project = credentials.project_id
+        else:
+            credentials = Credentials(
+                None,
+                refresh_token=tokens["refresh_token"],
+                token_uri=ee.oauth.TOKEN_URI,
+                client_id=tokens["client_id"],
+                client_secret=tokens["client_secret"],
+                scopes=ee.oauth.SCOPES,
+            )
+
         ee.Initialize(credentials, project=project)
 
     @staticmethod
