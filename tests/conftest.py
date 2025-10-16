@@ -3,9 +3,12 @@
 import string
 
 import ee
+import matplotlib
 import pytest
 import pytest_gee
 import requests
+
+matplotlib.use("Agg")  # Use a non-interactive backend for matplotlib
 
 S2_BAND_COMBO = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B11", "B12", "SCL"]
 """Sentinel-2 band combination."""
