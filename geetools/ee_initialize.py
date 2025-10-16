@@ -7,6 +7,8 @@ from pathlib import Path
 
 import ee
 import httplib2
+from deprecated.sphinx import deprecated
+from ee._state import get_state
 from google.oauth2.credentials import Credentials
 
 from .accessors import register_function_accessor
@@ -54,8 +56,14 @@ class InitializeAccessor:
             msg = "Please register this user first by using geetools.User.create first"
             raise ee.EEException(msg)
 
-        # Set the credential object and Init GEE API
+        # Set the credential object
         tokens = json.loads((credential_path / name).read_text())
+
+        # save the project_id in a dedicated global variable as it's not saved
+        # from GEE side
+        _project_id = project or tokens["project_id"]
+
+        # Init GEE API
         credentials = Credentials(
             None,
             refresh_token=tokens["refresh_token"],
@@ -64,11 +72,7 @@ class InitializeAccessor:
             client_secret=tokens["client_secret"],
             scopes=ee.oauth.SCOPES,
         )
-        ee.Initialize(credentials)
-
-        # save the project_id in a dedicated global variable as it's not saved
-        # from GEE side
-        _project_id = project or tokens["project_id"]
+        ee.Initialize(credentials, project=_project_id)
 
     @staticmethod
     def from_service_account(private_key: str):
@@ -98,15 +102,13 @@ class InitializeAccessor:
         _project_id = credentials.project_id
         ee.Initialize(credentials=credentials, project=_project_id, http_transport=httplib2.Http())
 
+    @deprecated(version="1.18.0", reason="Use the state object from vanilla earth engine instead.")
     @staticmethod
     def project_id() -> str:
         """Get the project_id of the current account.
 
         Returns:
-            The project_id of the connected profile
-
-        Raises:
-            RuntimeError: If the account is not initialized.
+            The project_id of the connected profile.
 
         Examples:
             .. code-block::
@@ -115,6 +117,4 @@ class InitializeAccessor:
 
                 ee.Initialize.geetools.project_id()
         """
-        if _project_id is None:
-            raise RuntimeError("The GEE account is not initialized")
-        return _project_id
+        return get_state().cloud_api_user_project
