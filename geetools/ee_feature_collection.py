@@ -715,7 +715,6 @@ class FeatureCollectionAccessor:
     def fromGeoInterface(
         cls,
         data: dict | GeoInterface,
-        drop_z: bool = False,
         crs: str = "EPSG:4326",
     ) -> ee.FeatureCollection:
         """Create a :py:class:`ee.FeatureCollection` from a geo interface.
@@ -730,7 +729,6 @@ class FeatureCollectionAccessor:
         Parameters:
             data: The geo_interface to create the :py:class:`ee.FeatureCollection` from.
             crs: The CRS of the input data. Defaults to "EPSG:4326".
-            drop_z: Whether to drop the Z dimension from the geometries. Defaults to False.
 
         Returns:
             The created :py:class:`ee.FeatureCollection` from the geo_interface.
@@ -762,10 +760,10 @@ class FeatureCollectionAccessor:
         elif not isinstance(data, dict):
             raise ValueError("The data must be a geo_interface or a dictionary")
 
-        if drop_z:
-            gdf = gpd.GeoDataFrame.from_features(data["features"], crs=crs)
-            gdf.geometry = shapely.force_2d(gdf.geometry.values)
-            data = gdf.__geo_interface__
+        # ensure the geometries are 2D
+        gdf = gpd.GeoDataFrame.from_features(data["features"], crs=crs)
+        gdf.geometry = shapely.force_2d(gdf.geometry.values)
+        data = gdf.__geo_interface__
 
         # create the feature collection
         return ee.FeatureCollection(data)
