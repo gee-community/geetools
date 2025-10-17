@@ -332,9 +332,7 @@ class TestFromGeoInterface:
             ee.FeatureCollection.geetools.fromGeoInterface("toto")
 
     def test_from_geo_interface_z(self, gdfZ, ee_feature_collection_regression):
-        with pytest.raises(ee.ee_exception.EEException):
-            ee.FeatureCollection.geetools.fromGeoInterface(gdfZ)
-        fc = ee.FeatureCollection.geetools.fromGeoInterface(gdfZ, drop_z=True)
+        fc = ee.FeatureCollection.geetools.fromGeoInterface(gdfZ)
         ee_feature_collection_regression.check(fc, prescision=4)
 
     @pytest.fixture
