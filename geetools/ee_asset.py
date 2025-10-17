@@ -8,6 +8,7 @@ from pathlib import PurePosixPath
 
 import ee
 import ee.data
+from ee._state import get_state
 
 from .accessors import _register_extention
 from .utils import format_description
@@ -24,7 +25,7 @@ class Asset(os.PathLike):
             An asset cannot be an absolute path like in a normal filesystem and thus any trailing "/" will be removed.
         """
         if len(args) == 0:
-            self._path = f"projects/{ee.data._cloud_api_user_project}/assets/"
+            self._path = f"projects/{get_state().cloud_api_user_project}/assets/"
         else:
             self._path = args[0]._path if isinstance(args[0], Asset) else PurePosixPath(*args)
             project_assets = PurePosixPath(str(self._path)[1:])
@@ -90,7 +91,7 @@ class Asset(os.PathLike):
 
                 ee.Asset.home()
         """
-        return cls(f"projects/{ee.data._cloud_api_user_project}/assets/")
+        return cls(f"projects/{get_state().cloud_api_user_project}/assets/")
 
     def as_posix(self) -> str:
         """Return the asset id as a posix path.
@@ -162,7 +163,7 @@ class Asset(os.PathLike):
             return True
         else:
             if raised is True:
-                user_project = ee.data._cloud_api_user_project
+                user_project = get_state().cloud_api_user_project
                 msg = f"Asset {self.as_posix()} is not in the same project as the user ({user_project})"
                 raise ValueError(msg)
             else:
@@ -541,7 +542,7 @@ class Asset(os.PathLike):
         self.is_absolute(raised=True)
         return self.parts[1]
 
-    def move(self, new_asset: Asset, overwrite: bool = False) -> Asset:
+    def move(self, new_asset: os.PathLike, overwrite: bool = False) -> Asset:
         """Move the asset to a target destination.
 
         Move this asset (any type) to the given target, and return a new ``Asset`` instance
@@ -564,6 +565,7 @@ class Asset(os.PathLike):
                 asset.move(new_asset, overwrite=False)
         """
         # copy the assets
+        new_asset = new_asset if isinstance(new_asset, Asset) else ee.Asset(str(new_asset))
         self.copy(new_asset, overwrite=overwrite)
 
         # delete the original
@@ -648,7 +650,7 @@ class Asset(os.PathLike):
         self.exists(raised=True)
         return self.delete(recursive, dry_run)
 
-    def copy(self, new_asset: Asset, overwrite: bool = False) -> Asset:
+    def copy(self, new_asset: os.PathLike, overwrite: bool = False) -> Asset:
         """Copy the asset to a target destination.
 
         Copy this asset (any type) to the given target, and return a new ``Asset`` instance
@@ -671,6 +673,7 @@ class Asset(os.PathLike):
                 asset.copy(new_asset, overwrite=False)
         """
         # exit if the destination asset exist and overwrite is False
+        new_asset = new_asset if isinstance(new_asset, Asset) else ee.Asset(str(new_asset))
         if new_asset.exists() and overwrite is False:
             raise ValueError(f"Asset {new_asset.as_posix()} already exists.")
 
