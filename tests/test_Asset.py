@@ -1,6 +1,5 @@
 """Test cases for the Asset class."""
 import os
-from unittest.mock import patch
 
 import ee
 import pytest
@@ -13,7 +12,6 @@ EARTHENGINE_PROJECT = os.environ.get("EARTHENGINE_PROJECT")
 class TestConstructors:
     """Test the constructors of the Asset class."""
 
-    @patch("ee.data._cloud_api_user_project", EARTHENGINE_PROJECT)
     def test_home(self):
         asset = ee.Asset.home()
         assert asset == f"projects/{EARTHENGINE_PROJECT}/assets"
@@ -101,14 +99,12 @@ class TestOperations:
         with pytest.raises(ValueError):
             ee.Asset("projects/bar").is_absolute(raised=True)
 
-    @patch("ee.data._cloud_api_user_project", EARTHENGINE_PROJECT)
     def test_is_user_project(self):
         assert ee.Asset(f"projects/{EARTHENGINE_PROJECT}/assets/foo").is_user_project() is True
         assert ee.Asset("projects/foo").is_user_project() is False
         with pytest.raises(ValueError):
             ee.Asset("projects/foo").is_user_project(raised=True)
 
-    @patch("ee.data._cloud_api_user_project", EARTHENGINE_PROJECT)
     def test_expanduser(self):
         asset = ee.Asset("~/foo").expanduser()
         assert asset == f"projects/{EARTHENGINE_PROJECT}/assets/foo"
