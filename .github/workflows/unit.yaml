@@ -54,7 +54,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         # dropping 3.12 for now because of https://github.com/r-earthengine/ee_extra/issues/56
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         include:
           - os: macos-latest # macos test
             python-version: "3.12"
