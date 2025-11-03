@@ -331,6 +331,10 @@ class TestFromGeoInterface:
         with pytest.raises(ValueError):
             ee.FeatureCollection.geetools.fromGeoInterface("toto")
 
+    def test_from_geo_interface_z(self, gdfZ, ee_feature_collection_regression):
+        fc = ee.FeatureCollection.geetools.fromGeoInterface(gdfZ)
+        ee_feature_collection_regression.check(fc, prescision=4)
+
     @pytest.fixture
     def gdf(self):
         data = {
@@ -340,6 +344,20 @@ class TestFromGeoInterface:
                     "type": "Feature",
                     "properties": {"name": "Coors Field"},
                     "geometry": {"type": "Point", "coordinates": [-104.99404, 39.75621]},
+                }
+            ],
+        }
+        return gpd.GeoDataFrame.from_features(data["features"])
+
+    @pytest.fixture
+    def gdfZ(self):
+        data = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Coors Field"},
+                    "geometry": {"type": "Point", "coordinates": [-104.99404, 39.75621, 1000]},
                 }
             ],
         }

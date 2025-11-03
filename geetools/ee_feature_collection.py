@@ -5,6 +5,7 @@ from typing import Protocol
 
 import ee
 import geopandas as gpd
+import shapely
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
@@ -711,7 +712,11 @@ class FeatureCollectionAccessor:
             gdf.plot(column=property, ax=ax, cmap=cmap)
 
     @classmethod
-    def fromGeoInterface(cls, data: dict | GeoInterface) -> ee.FeatureCollection:
+    def fromGeoInterface(
+        cls,
+        data: dict | GeoInterface,
+        crs: str = "EPSG:4326",
+    ) -> ee.FeatureCollection:
         """Create a :py:class:`ee.FeatureCollection` from a geo interface.
 
         The ``geo_interface`` is a protocol representing a vector collection as a python GeoJSON-like dictionary structure.
@@ -723,7 +728,7 @@ class FeatureCollectionAccessor:
 
         Parameters:
             data: The geo_interface to create the :py:class:`ee.FeatureCollection` from.
-            crs: The CRS to use for the FeatureCollection. Default to ``EPSG:4326``.
+            crs: The CRS of the input data. Defaults to "EPSG:4326".
 
         Returns:
             The created :py:class:`ee.FeatureCollection` from the geo_interface.
@@ -754,6 +759,11 @@ class FeatureCollectionAccessor:
             data = data.__geo_interface__
         elif not isinstance(data, dict):
             raise ValueError("The data must be a geo_interface or a dictionary")
+
+        # ensure the geometries are 2D
+        gdf = gpd.GeoDataFrame.from_features(data["features"], crs=crs)
+        gdf.geometry = shapely.force_2d(gdf.geometry.values)
+        data = gdf.__geo_interface__
 
         # create the feature collection
         return ee.FeatureCollection(data)

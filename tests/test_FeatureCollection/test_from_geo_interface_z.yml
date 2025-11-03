@@ -1,0 +1,11 @@
+features:
+- geometry:
+    coordinates:
+    - -104.994
+    - 39.7562
+    type: Point
+  id: '0'
+  properties:
+    name: Coors Field
+  type: Feature
+type: FeatureCollection
