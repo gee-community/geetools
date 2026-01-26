@@ -22,7 +22,7 @@ from pyproj import CRS, Transformer
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
-from .utils import format_class_info, plot_data
+from .utils import area_units_to_m2, format_class_info, plot_data
 
 
 @register_class_accessor(ee.Image, "geetools")
@@ -2305,3 +2305,31 @@ class ImageAccessor:
         ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
 
         return ax
+
+    @classmethod
+    def pixelArea(cls, area_unit: str = "m2", rename_to_units: bool = False) -> ee.Image:
+        """Extend the :py:method:`ee.Image.pixelArea` method by setting the unit of the output.
+
+        Args:
+            area_unit: the unit of the output area. can be one of "m2", "ha", "kha", "km2" or "acres".
+            rename_to_units: if ``True``, the output image will be renamed to the given unit.
+
+        Returns:
+            the area ``ee.Image`` using the given unit.
+
+        Examples:
+            .. code-block:: python
+
+                import ee, LDCGEETools
+
+                hectares = ee.Image.pixelArea("ha").rename("ha")
+                acres = ee.Image.pixelArea("acres").rename("acres")
+                total = hectares.addBands(acres)
+
+                buffer = ee.Geometry.Point(0,0).buffer(100)
+                values = total.reduceRegion(ee.Reducer.mean(), buffer, 1)
+                values.getInfo()
+        """
+        name = area_unit if rename_to_units is True else "area"
+        divisor = area_units_to_m2(area_unit)
+        return ee.Image.pixelArea().divide(divisor).rename(name)

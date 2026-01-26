@@ -946,3 +946,34 @@ class TestPlotHist:
     @property
     def region(self):
         return ee.Geometry.Rectangle([-112.60, 40.60, -111.18, 41.22])
+
+
+class TestPixelArea:
+    """Test the ``pixelArea`` method."""
+
+    def test_pixel_area_default(self):
+        surface = ee.Image.pixelArea().reduceRegion(ee.Reducer.mean(), self.buffer, 1)
+        ldcSurface = ee.Image.geetools.pixelArea().reduceRegion(ee.Reducer.mean(), self.buffer, 1)
+        isClose = ee.Number(surface.get("area")).subtract(ldcSurface.get("area")).abs().lte(1e-6)
+        assert isClose.getInfo() is True
+
+    def test_pixel_area(self, ee_dictionary_regression):
+        hectares = ee.Image.geetools.pixelArea("ha")
+        total = ee.Image.geetools.pixelArea("acres").addBands(hectares)
+        dict = total.reduceRegion(ee.Reducer.mean(), self.buffer, 1)
+        ee_dictionary_regression.check(dict)
+
+    def test_pixel_area_rename(self, ee_dictionary_regression):
+        hectares = ee.Image.geetools.pixelArea("ha", True)
+        acres = ee.Image.geetools.pixelArea("acres", True)
+        total = hectares.addBands(acres)
+        dict = total.reduceRegion(ee.Reducer.mean(), self.buffer, 1)
+        ee_dictionary_regression.check(dict)
+
+    def test_pixel_area_error(self):
+        with pytest.raises(ValueError):
+            ee.Image.geetools.pixelArea("not_a_unit")
+
+    @property
+    def buffer(self) -> ee.Geometry:
+        return ee.Geometry.Point(0, 0).buffer(100)
