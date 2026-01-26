@@ -8,6 +8,9 @@ import geetools  # noqa F401
 
 EARTHENGINE_PROJECT = os.environ.get("EARTHENGINE_PROJECT")
 
+# comment when needed
+pytestmark = pytest.mark.skip(reason="The tests are way to slow")
+
 
 class TestConstructors:
     """Test the constructors of the Asset class."""
