@@ -6,6 +6,7 @@ import io
 import ee
 import numpy as np
 import pytest
+from ee.ee_exception import EEException
 from jsonschema import validate
 from matplotlib import pyplot as plt
 
@@ -518,14 +519,12 @@ class TestSortMany:
         result = process.aggregate_array(prop1).zip(dates)
         ee_list_regression.check(result)
 
-    def test_sort_many_missing_asc(self, l8_toa, ee_list_regression):
+    def test_sort_many_missing_asc(self, l8_toa):
         l8_toa = l8_toa.map(self.adjust_cloud_cover)
         prop1 = "CLOUD_COVER"
         prop2 = "system:time_start"
-        process = l8_toa.geetools.sortMany([prop1, prop2], [False])
-        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
-        result = process.aggregate_array(prop1).zip(dates)
-        ee_list_regression.check(result)
+        with pytest.raises(EEException):
+            l8_toa.geetools.sortMany([prop1, prop2], [True]).getInfo()
 
 
 class TestPlotDatesByBands:
