@@ -2318,12 +2318,15 @@ class ImageAccessor:
             the area ``ee.Image`` using the given unit.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee, LDCGEETools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                hectares = ee.Image.pixelArea("ha").rename("ha")
-                acres = ee.Image.pixelArea("acres").rename("acres")
+                initialize_documentation()
+
+                hectares = ee.Image.geetools.pixelArea("ha").rename("ha")
+                acres = ee.Image.geetools.pixelArea("acres").rename("acres")
                 total = hectares.addBands(acres)
 
                 buffer = ee.Geometry.Point(0,0).buffer(100)
