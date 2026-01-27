@@ -796,3 +796,39 @@ class FeatureCollectionAccessor:
         # sort by area and remove the property from the output
         properties = fc.first().propertyNames().remove(name)
         return fc.sort(name, ascending).map(lambda feat: feat.select(properties))
+
+    def filterGeometryType(self, type_: str | ee.String) -> ee.FeatureCollection:
+        """Filter the collection by geometry type.
+
+        Only keep in the Final featureCollection the Feature with the specified geometry type.
+        Can be combined with ``breakGeometries`` to filter out multi geometries.
+
+        Args:
+            type_: The geometry type to filter on. Must be one of the `GEE compatible types <https://developers.google.com/earth-engine/guides/geometries>`__
+
+        Returns:
+            The filtered collection
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                geoms = [ee.Geometry.Point([0, 0]), ee.Geometry.Point([0, 0]).buffer(1)]
+                fc = ee.FeatureCollection([ee.Feature(g, {"test": "test"}) for g in geoms])
+                fc = fc.ldc.breakGeometries().ldc.filterGeometryType("Point")
+                fc.aggregate_array("test").getInfo()
+        """
+        # extract the properties of the features before filtering
+        # and create an extra column with the geometry type
+        type_, name = ee.String(type_), "__geetools_type__"
+        properties = self._obj.first().propertyNames()
+        fc = self._obj.map(lambda feat: feat.set(name, feat.geometry().type()))
+
+        # filter the collection and remove the extra column
+        fc = fc.filter(ee.Filter.eq(name, type_)).select(properties)
+
+        return ee.FeatureCollection(fc)

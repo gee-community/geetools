@@ -363,11 +363,22 @@ class TestFromGeoInterface:
         }
         return gpd.GeoDataFrame.from_features(data["features"])
 
-    class TestAreaSort:
-        """Test the ``areaSort`` method."""
 
-        def test_area_sort(self, ee_list_regression):
-            fc = ee.FeatureCollection("FAO/GAUL/2015/level0").limit(5)
-            fc = fc.geetools.areaSort()
-            property = fc.aggregate_array("ADM0_NAME")
-            ee_list_regression.check(property)
+class TestAreaSort:
+    """Test the ``areaSort`` method."""
+
+    def test_area_sort(self, ee_list_regression):
+        fc = ee.FeatureCollection("FAO/GAUL/2015/level0").limit(5)
+        fc = fc.geetools.areaSort()
+        property = fc.aggregate_array("ADM0_NAME")
+        ee_list_regression.check(property)
+
+
+class TestFilterGeometryType:
+    """Test the ``filterGeometryType`` method."""
+
+    def test_filter_geometry_type(self, ee_feature_collection_regression):
+        geometries = [ee.Geometry.Point([0, 0]), ee.Geometry.Point([0, 0]).buffer(1)]
+        fc = ee.FeatureCollection([ee.Feature(g, {"test": "test"}) for g in geometries])
+        fc = fc.geetools.filterGeometryType("Point")
+        ee_feature_collection_regression.check(fc)
