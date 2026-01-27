@@ -796,3 +796,73 @@ class FeatureCollectionAccessor:
         # sort by area and remove the property from the output
         properties = fc.first().propertyNames().remove(name)
         return fc.sort(name, ascending).map(lambda feat: feat.select(properties))
+
+    def filterGeometryType(self, type_: str | ee.String) -> ee.FeatureCollection:
+        """Filter the collection by geometry type.
+
+        Only keep in the Final featureCollection the Feature with the specified geometry type.
+        Can be combined with ``breakGeometries`` to filter out multi geometries.
+
+        Args:
+            type_: The geometry type to filter on. Must be one of the `GEE compatible types <https://developers.google.com/earth-engine/guides/geometries>`__
+
+        Returns:
+            The filtered collection
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                geoms = [ee.Geometry.Point([0, 0]), ee.Geometry.Point([0, 0]).buffer(1)]
+                fc = ee.FeatureCollection([ee.Feature(g, {"test": "test"}) for g in geoms])
+                fc = fc.geetools.breakGeometries().geetools.filterGeometryType("Point")
+                fc.aggregate_array("test").getInfo()
+        """
+        # extract the properties of the features before filtering
+        # and create an extra column with the geometry type
+        type_, name = ee.String(type_), "__geetools_type__"
+        properties = self._obj.first().propertyNames()
+        fc = self._obj.map(lambda feat: feat.set(name, feat.geometry().type()))
+
+        # filter the collection and remove the extra column
+        fc = fc.filter(ee.Filter.eq(name, type_)).select(properties)
+
+        return ee.FeatureCollection(fc)
+
+    def breakGeometries(self) -> ee.FeatureCollection:
+        """Break every feature using geometries into it's constituents.
+
+        Each Geometry that is using a multi parts geometry type will be duplicated
+        into multiple features with each one carrying one of the constituent of the multiPolygon.
+
+        Returns:
+            ee.FeatureCollection: The collection with the broken down geometries
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                multipoint = ee.Geometry.MultiPoint([ee.Geometry.Point([0, 0]), ee.Geometry.Point([1, 0])])
+                fc = ee.FeatureCollection([ee.Feature(multipoint, {"test": "test"})])
+                fc = fc.geetools.breakGeometries()
+                fc.aggregate_array("test").getInfo()
+        """
+        # helper function to break the geometry of a feature
+        def split(feat):
+            feat = ee.Feature(feat)
+            geometries = feat.geometry().geometries()
+            return geometries.map(lambda g: ee.Feature(ee.Geometry(g), feat.toDictionary()))
+
+        # apply the function to the collection and flatten the list as each feature
+        # can have multiple geometries (thus list of list) and we want a single list
+        list = self._obj.toList(self._obj.size()).map(split).flatten()
+
+        return ee.FeatureCollection(list)
