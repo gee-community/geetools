@@ -797,7 +797,7 @@ class FeatureCollectionAccessor:
         properties = fc.first().propertyNames().remove(name)
         return fc.sort(name, ascending).map(lambda feat: feat.select(properties))
 
-    def split(self, parts: int = 1) -> ee.List:
+    def split(self, parts: int | ee.Number = 1) -> ee.List:
         """Split a feature collection in multiple parts.
 
         Args:
@@ -827,8 +827,8 @@ class FeatureCollectionAccessor:
         properties = self._obj.first().propertyNames()
 
         # build the sequence of steps to split the collection
-        parts = ee.Number(parts).toInt()
-        steps = ee.List.sequence(0, 1, count=parts.add(1))
+        parts = ee.Number(parts)
+        steps = ee.List.sequence(0, 1, count=parts.add(1).toInt())
         stepsIndex = ee.List.sequence(0, steps.size().subtract(2))
 
         # split the collection and drop the random temp column
