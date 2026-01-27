@@ -371,3 +371,14 @@ class TestFromGeoInterface:
             fc = fc.geetools.areaSort()
             property = fc.aggregate_array("ADM0_NAME")
             ee_list_regression.check(property)
+
+
+class TestSplit:
+    """Test the ``split`` method."""
+
+    def test_split(self, ee_dictionary_regression):
+        asset = "FAO/GAUL/2015/level0"
+        fc = ee.FeatureCollection(asset).limit(10)
+        fc = ee.FeatureCollection(fc.geetools.split(3).get(0))
+        dict = fc.geetools.toDictionary()
+        ee_dictionary_regression.check(dict)

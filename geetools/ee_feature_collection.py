@@ -796,3 +796,48 @@ class FeatureCollectionAccessor:
         # sort by area and remove the property from the output
         properties = fc.first().propertyNames().remove(name)
         return fc.sort(name, ascending).map(lambda feat: feat.select(properties))
+
+    def split(self, parts: int | ee.Number = 1) -> ee.List:
+        """Split a feature collection in multiple parts.
+
+        Args:
+            parts: The number of parts to split the collection in
+
+        Returns:
+            A list of ee.FeatureCollection
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
+                fc.geetools.split(2).get(1).size().getInfo()
+        """
+        # if parts == 1, then we simply return the initial collection in a list (for consistency)
+        # in order to avoid extra computation from GEE side
+        if parts == 1:
+            return ee.List([self._obj])
+
+        # extract the properties of the ee.FeatureCollection object before building
+        # the random column
+        properties = self._obj.first().propertyNames()
+
+        # build the sequence of steps to split the collection
+        parts = ee.Number(parts)
+        steps = ee.List.sequence(0, 1, count=parts.add(1).toInt())
+        stepsIndex = ee.List.sequence(0, steps.size().subtract(2))
+
+        # split the collection and drop the random temp column
+        prop = ee.String("__geetools_split_prop__")
+        fc = self._obj.randomColumn(prop)
+
+        def split(i):
+            i, j = ee.Number(i), ee.Number(i).add(1)
+            col = fc.filter(ee.Filter.rangeContains(prop, steps.get(i), steps.get(j)))
+            return ee.FeatureCollection(col).select(properties)
+
+        return ee.List(stepsIndex.map(split))
