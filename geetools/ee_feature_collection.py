@@ -819,7 +819,7 @@ class FeatureCollectionAccessor:
 
                 geoms = [ee.Geometry.Point([0, 0]), ee.Geometry.Point([0, 0]).buffer(1)]
                 fc = ee.FeatureCollection([ee.Feature(g, {"test": "test"}) for g in geoms])
-                fc = fc.ldc.breakGeometries().ldc.filterGeometryType("Point")
+                fc = fc.geetools.breakGeometries().geetools.filterGeometryType("Point")
                 fc.aggregate_array("test").getInfo()
         """
         # extract the properties of the features before filtering
