@@ -217,7 +217,7 @@ coords:
     attrs: {}
     dims:
     - time
-    dtype: datetime64[ns]
+    dtype: datetime64[ms]
     shape:
     - 2449
 data_vars:

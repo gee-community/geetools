@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import io
+import sys
 
 import ee
 import numpy as np
@@ -206,6 +207,7 @@ class TestOutliers:
 class TestToXarray:
     """Test the ``toXarray`` method."""
 
+    @pytest.mark.skipif(sys.version_info < (3, 11), reason="dtype changes in python 3.11 onwards.")
     def test_to_xarray(self, s2_sr, data_regression):
         ds = s2_sr.geetools.to_xarray()
 
