@@ -955,7 +955,7 @@ class TestPixelArea:
         surface = ee.Image.pixelArea().reduceRegion(ee.Reducer.mean(), self.buffer, 1)
         ldcSurface = ee.Image.geetools.pixelArea().reduceRegion(ee.Reducer.mean(), self.buffer, 1)
         isClose = ee.Number(surface.get("area")).subtract(ldcSurface.get("area")).abs().lte(1e-6)
-        assert isClose.getInfo() is True
+        assert bool(isClose.getInfo()) is True
 
     def test_pixel_area(self, ee_dictionary_regression):
         hectares = ee.Image.geetools.pixelArea("ha")
