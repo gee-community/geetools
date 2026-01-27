@@ -382,3 +382,18 @@ class TestFilterGeometryType:
         fc = ee.FeatureCollection([ee.Feature(g, {"test": "test"}) for g in geometries])
         fc = fc.geetools.filterGeometryType("Point")
         ee_feature_collection_regression.check(fc)
+
+
+class TestBreakGeometries:
+    """Test the ``breakGeometries`` method."""
+
+    def test_break_geometries(self, fc, ee_feature_collection_regression):
+        fc = fc.geetools.breakGeometries()
+        ee_feature_collection_regression.check(fc)
+
+    @pytest.fixture
+    def fc(self):
+        point0 = ee.Geometry.Point([0, 0])
+        point1 = ee.Geometry.Point([1, 0])
+        multipoint = ee.Geometry.MultiPoint([point0, point1])
+        return ee.FeatureCollection([ee.Feature(multipoint, {"test": "test"})])

@@ -1,0 +1,100 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        features:
+          functionInvocationValue:
+            arguments:
+              list:
+                functionInvocationValue:
+                  arguments:
+                    baseAlgorithm:
+                      functionDefinitionValue:
+                        argumentNames:
+                        - _MAPPING_VAR_1_0
+                        body: '1'
+                    dropNulls:
+                      constantValue: false
+                    list:
+                      functionInvocationValue:
+                        arguments:
+                          collection:
+                            valueReference: '3'
+                          count:
+                            functionInvocationValue:
+                              arguments:
+                                collection:
+                                  valueReference: '3'
+                              functionName: Collection.size
+                        functionName: Collection.toList
+                  functionName: List.map
+            functionName: List.flatten
+      functionName: Collection
+  '1':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_0_0
+            body: '2'
+        dropNulls:
+          constantValue: false
+        list:
+          functionInvocationValue:
+            arguments:
+              geometry:
+                functionInvocationValue:
+                  arguments:
+                    feature:
+                      argumentReference: _MAPPING_VAR_1_0
+                  functionName: Feature.geometry
+            functionName: Geometry.geometries
+      functionName: List.map
+  '2':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          argumentReference: _MAPPING_VAR_0_0
+        metadata:
+          functionInvocationValue:
+            arguments:
+              element:
+                argumentReference: _MAPPING_VAR_1_0
+            functionName: Element.toDictionary
+      functionName: Feature
+  '3':
+    functionInvocationValue:
+      arguments:
+        features:
+          arrayValue:
+            values:
+            - functionInvocationValue:
+                arguments:
+                  geometry:
+                    functionInvocationValue:
+                      arguments:
+                        coordinates:
+                          arrayValue:
+                            values:
+                            - functionInvocationValue:
+                                arguments:
+                                  coordinates:
+                                    constantValue:
+                                    - 0
+                                    - 0
+                                functionName: GeometryConstructors.Point
+                            - functionInvocationValue:
+                                arguments:
+                                  coordinates:
+                                    constantValue:
+                                    - 1
+                                    - 0
+                                functionName: GeometryConstructors.Point
+                      functionName: GeometryConstructors.MultiPoint
+                  metadata:
+                    constantValue:
+                      test: test
+                functionName: Feature
+      functionName: Collection
