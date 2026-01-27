@@ -767,3 +767,32 @@ class FeatureCollectionAccessor:
 
         # create the feature collection
         return ee.FeatureCollection(data)
+
+    def areaSort(self, ascending: bool = True) -> ee.FeatureCollection:
+        """Sort the features in the collection by area.
+
+        Args:
+            ascending: Whether to sort in ascending order.
+
+        Returns:
+            The sorted collection.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level0").limit(5)
+                fc = fc.geetools.areaSort()
+                fc.aggregate_array("ADM0_NAME").getInfo()
+        """
+        # generate an area property
+        name = "__geetools_area__"
+        fc = self._obj.map(lambda feat: feat.set(name, feat.geometry().area(1)))
+
+        # sort by area and remove the property from the output
+        properties = fc.first().propertyNames().remove(name)
+        return fc.sort(name, ascending).map(lambda feat: feat.select(properties))
