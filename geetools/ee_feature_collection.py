@@ -815,7 +815,7 @@ class FeatureCollectionAccessor:
                 initialize_documentation()
 
                 fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
-                fc.ldc.split(2).get(1).size().getInfo()
+                fc.geetools.split(2).get(1).size().getInfo()
         """
         # if parts == 1, then we simply return the initial collection in a list (for consistency)
         # in order to avoid extra computation from GEE side
