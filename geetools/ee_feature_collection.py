@@ -778,9 +778,12 @@ class FeatureCollectionAccessor:
             The sorted collection.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
 
                 fc = ee.FeatureCollection("FAO/GAUL/2015/level0").limit(5)
                 fc = fc.geetools.areaSort()
