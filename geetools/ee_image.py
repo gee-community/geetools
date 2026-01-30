@@ -4,13 +4,12 @@ from __future__ import annotations
 from typing import Any, Optional
 
 import ee
-
-# import ee_extra
-# import ee_extra.Algorithms.core
-# import ee_extra.QA.clouds
-# import ee_extra.QA.pipelines
-# import ee_extra.Spectral.core
-# import ee_extra.STAC.core
+import ee_extra
+import ee_extra.Algorithms.core
+import ee_extra.QA.clouds
+import ee_extra.QA.pipelines
+import ee_extra.Spectral.core
+import ee_extra.STAC.core
 import geopandas as gpd
 import numpy as np
 import requests
@@ -854,6 +853,7 @@ class ImageAccessor:
         beta: float | int = 0.05,
         k: float | int = 0.0,
         fdelta: float | int = 0.581,
+        epsilon: float | int = 1.0,
         kernel: str = "RBF",
         sigma: str = "0.5 * (a + b)",
         p: float | int = 2.0,
@@ -891,6 +891,7 @@ class ImageAccessor:
             beta: Calibration parameter used for NDSIns, default = 0.05
             k: Slope parameter by soil used for NIRvH2, default = 0.0
             fdelta: Adjustment factor used for SEVI, default = 0.581
+            epsilon: Adjustment constant used for EBI, default to 1.0
             kernel: Kernel used for kernel indices, default = 'RBF'
                 Available options:
                     - 'linear' : Linear Kernel.
@@ -919,16 +920,34 @@ class ImageAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        return ee_extra.Spectral.core.spectralIndices(
+            x=self._obj,
+            index=index,
+            G=G,
+            C1=C1,
+            C2=C2,
+            L=L,
+            cexp=cexp,
+            nexp=nexp,
+            alpha=alpha,
+            slope=slope,
+            intercept=intercept,
+            gamma=gamma,
+            omega=omega,
+            beta=beta,
+            k=k,
+            fdelta=fdelta,
+            epsilon=epsilon,
+            kernel=kernel,
+            sigma=sigma,
+            p=p,
+            c=c,
+            lambdaN=lambdaN,
+            lambdaR=lambdaR,
+            lambdaG=lambdaG,
+            online=online,
+            drop=False,
         )
-        # return ee_extra.Spectral.core.spectralIndices(
-        #     self._obj, index, G, C1, C2, L, cexp, nexp, alpha, slope, intercept, gamma, omega,
-        #     beta, k, fdelta, kernel, sigma, p, c, lambdaN, lambdaR, lambdaG, online,
-        #     drop=False,
-        # )
 
     def getScaleParams(self) -> dict[str, float]:
         """Gets the scale parameters for each band of the image.
@@ -950,12 +969,7 @@ class ImageAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getScaleParams()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.STAC.core.getScaleParams(self._obj)
+        return ee_extra.STAC.core.getScaleParams(self._obj)
 
     def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
@@ -977,12 +991,7 @@ class ImageAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getOffsetParams()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.STAC.core.getOffsetParams(self._obj)
+        return ee_extra.STAC.core.getOffsetParams(self._obj)
 
     def scaleAndOffset(self) -> ee.Image:
         """Scales bands on an image according to their scale and offset parameters.
@@ -1003,12 +1012,7 @@ class ImageAccessor:
 
                 S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().geetools.scaleAndOffset()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.STAC.core.scaleAndOffset(self._obj)
+        return ee_extra.STAC.core.scaleAndOffset(self._obj)
 
     def preprocess(self, **kwargs) -> ee.Image:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image.
@@ -1037,12 +1041,7 @@ class ImageAccessor:
                     .geetools.preprocess()
                 )
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
+        return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
 
     def getSTAC(self) -> dict[str, Any]:
         """Gets the STAC of the image.
@@ -1099,9 +1098,8 @@ class ImageAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().geetools.getDOI()
         """
-        stac = self.getSTAC()
         error_msg = "DOI not found in the STAC"
-        return stac.get("sci:doi", error_msg)
+        return self.getSTAC().get("sci:doi", error_msg)
 
     def getCitation(self) -> str:
         """Gets the citation of the image, if available.
@@ -1122,9 +1120,8 @@ class ImageAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().geetools.getCitation()
         """
-        stac = self.getSTAC()
         error_msg = "Citation not found in the STAC"
-        return stac.get("sci:citation", error_msg)
+        return self.getSTAC().get("sci:citation", error_msg)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.Image:
         """Apply panchromatic sharpening to the Image.
@@ -1151,14 +1148,9 @@ class ImageAccessor:
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
                 sharp = source.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        return ee_extra.Algorithms.core.panSharpen(
+            img=self._obj, method=method, qa=qa, prefix="geetools", **kwargs
         )
-        # return ee_extra.Algorithms.core.panSharpen(
-        #     img=self._obj, method=method, qa=qa, prefix="geetools", **kwargs
-        # )
 
     def tasseledCap(self) -> ee.Image:
         """Calculates tasseled cap brightness, wetness, and greenness components.
@@ -1218,12 +1210,7 @@ class ImageAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 img = img.geetools.tasseledCap()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.Spectral.core.tasseledCap(self._obj)
+        return ee_extra.Spectral.core.tasseledCap(self._obj)
 
     def matchHistogram(
         self,
@@ -1368,23 +1355,18 @@ class ImageAccessor:
                     .geetools.maskClouds(prob = 75,buffer = 300,cdi = -0.5)
                 )
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        return ee_extra.QA.clouds.maskClouds(
+            self._obj,
+            method,
+            prob,
+            maskCirrus,
+            maskShadows,
+            scaledImage,
+            dark,
+            cloudDist,
+            buffer,
+            cdi,
         )
-        # return ee_extra.QA.clouds.maskClouds(
-        #     self._obj,
-        #     method,
-        #     prob,
-        #     maskCirrus,
-        #     maskShadows,
-        #     scaledImage,
-        #     dark,
-        #     cloudDist,
-        #     buffer,
-        #     cdi,
-        # )
 
     def removeProperties(self, properties: list[str] | ee.List) -> ee.Image:
         """Remove a list of properties from an image.
