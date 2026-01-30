@@ -122,7 +122,14 @@ def s2_sr_vatican_2020():
 @pytest.fixture
 def l8_sr_vatican_2020():
     """A single image from 2020 on top of vatican city from L8 SR collection."""
-    src = "LANDSAT/LC08/C02/T1/LC08_191031_20130711"
+    src = "LANDSAT/LC08/C02/T1_L2/LC08_191031_20200104"
+    return ee.Image(src).select(L8_SR_BAND_COMBO)
+
+
+@pytest.fixture
+def l8_toa_vatican_2020():
+    """A single image from 2020 on top of vatican city from L8 TOA collection."""
+    src = "LANDSAT/LC08/C02/T1_TOA/LC08_191031_20200104"
     return ee.Image(src).select(L8_BAND_COMBO)
 
 

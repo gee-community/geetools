@@ -13,6 +13,8 @@ import pytest
 from jsonschema import validate
 from matplotlib import pyplot as plt
 
+import geetools  # noqa: F401
+
 
 class TestAddDate:
     """Test the ``addDate`` method."""
@@ -497,11 +499,8 @@ class TestGetCitation:
 class TestPanSharpen:
     """Test the panSharpen method."""
 
-    @pytest.mark.xfail(
-        reason="This test is failing because the panSharpen method is not implemented for this platform."
-    )
-    def test_pan_sharpen(self, l8_sr_vatican_2020, num_regression):
-        sharp = l8_sr_vatican_2020.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
+    def test_pan_sharpen(self, l8_toa_vatican_2020, num_regression):
+        sharp = l8_toa_vatican_2020.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         centroid = sharp.geometry().centroid().buffer(100)
         values = sharp.reduceRegion(ee.Reducer.mean(), centroid, 1)
         num_regression.check(values.getInfo())
@@ -510,7 +509,6 @@ class TestPanSharpen:
 class TestTasseledCap:
     """Test the tasseledCap method."""
 
-    @pytest.mark.xfail("The tasseledCap method is not implemented for this platform (yet).")
     def test_tasseled_cap(self, l8_sr_vatican_2020, num_regression):
         img = l8_sr_vatican_2020.geetools.tasseledCap()
         centroid = img.geometry().centroid().buffer(100)
