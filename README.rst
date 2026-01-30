@@ -83,7 +83,7 @@ This small example wrapping of the excellent ``ee_extra`` package functionalitie
    import pygaul # another gee-community package to access FAO GAUl 2015 dataset
 
    # we assume you are already authenticated to GEE
-   ee.Initialize.geetools.from_account("toto") # yes we also support multi users
+   ee.Initialize.geetools.from_user() # yes we also support multi users
 
    amazonas = pygaul.Items(name="Amazonas").centroid()
 
