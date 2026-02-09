@@ -1024,6 +1024,7 @@ class ImageCollectionAccessor:
         unit: str = "month",
         duration: int = 1,
         keep_original_names: bool = True,
+        count_images_per_interval: bool = False,
     ) -> ee.ImageCollection:
         """Reduce the images included in the same duration interval using the provided reducer.
 
@@ -1037,6 +1038,7 @@ class ImageCollectionAccessor:
             unit: The unit of time to split the collection. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
             duration: The duration of each split.
             keep_original_names: Whether to keep the original band names or not. This is a workaround to preserve older behaviour, it should disappear in the future.
+            count_images_per_interval: Whether to add the property `n_images_per_interval` with the number of images used for the reduction in each interval.
 
         Returns:
             A new :py:class:`ee.ImageCollection` with the reduced images.
@@ -1060,6 +1062,15 @@ class ImageCollectionAccessor:
         # create a list of image collections to be reduced
         # Every subcollection is sorted in case one use the "first" reducer
         imageCollectionList = self.groupInterval(unit, duration)
+
+        # add the number of images per interval as a property if requested
+        if count_images_per_interval:
+            def add_count(ic):
+                ic = ee.ImageCollection(ic)
+                count = ic.size()
+                return ic.set("n_images_per_interval", count)
+
+            imageCollectionList = imageCollectionList.map(add_count)
 
         # create a reducer from user parameters
         red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
