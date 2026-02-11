@@ -957,7 +957,7 @@ class ImageCollectionAccessor:
         values = keys.map(lambda p: self._obj.aggregate_array(p))
         return ee.Dictionary.fromLists(keys, values)
 
-    def groupInterval(self, unit: str = "month", duration: int = 1) -> ee.List:
+    def groupInterval(self, unit: str = "month", duration: int = 1, count_images_per_interval: bool = False) -> ee.List:
         """Transform the :py:class:`ee.ImageCollection` into a list of smaller collection of the specified duration.
 
         For example using unit as "month" and duration as 1, the :py:class:`ee.ImageCollection` will be transformed
@@ -968,6 +968,7 @@ class ImageCollectionAccessor:
         Args:
             unit: The unit of time to split the collection. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
             duration: The duration of each split.
+            count_images_per_interval: Whether to add the property `n_images_per_interval` with the number of images used for the reduction in each interval.
 
         Returns:
             A list of :py:class:`ee.ImageCollection` grouped by interval
@@ -988,7 +989,7 @@ class ImageCollectionAccessor:
                 split = collection.geetools.groupInterval("month", 1)
                 print(split.getInfo())
         """
-        sizeName = "__geetools_generated_size__"  # set generated properties name
+        sizeName = "n_images_per_interval"  # set generated properties name
 
         # create an ic variable to avoid calling self._obj multiple times
         # and extract the property names to copy
@@ -1011,10 +1012,11 @@ class ImageCollectionAccessor:
         def delete_size_property(ic):
             ic = ee.ImageCollection(ic)
             return ee.ImageCollection(ic.copyProperties(ic, properties=toCopy))
+        
+        imageCollectionList = imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0))
 
-        imageCollectionList = (
-            imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0)).map(delete_size_property)
-        )
+        if not count_images_per_interval:
+            imageCollectionList = imageCollectionList.map(delete_size_property)
 
         return ee.List(imageCollectionList)
 
@@ -1061,16 +1063,7 @@ class ImageCollectionAccessor:
         """
         # create a list of image collections to be reduced
         # Every subcollection is sorted in case one use the "first" reducer
-        imageCollectionList = self.groupInterval(unit, duration)
-
-        # add the number of images per interval as a property if requested
-        if count_images_per_interval:
-            def add_count(ic):
-                ic = ee.ImageCollection(ic)
-                count = ic.size()
-                return ic.set("n_images_per_interval", count)
-
-            imageCollectionList = imageCollectionList.map(add_count)
+        imageCollectionList = self.groupInterval(unit, duration, count_images_per_interval)
 
         # create a reducer from user parameters
         red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
