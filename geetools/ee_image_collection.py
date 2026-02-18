@@ -968,7 +968,7 @@ class ImageCollectionAccessor:
         Args:
             unit: The unit of time to split the collection. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
             duration: The duration of each split.
-            count_images_per_interval: Whether to add the property `n_images_per_interval` with the number of images used for the reduction in each interval.
+            count_images_per_interval: Whether to keep the property `__geetools_generated_size__` with the number of images used for the reduction in each interval.
 
         Returns:
             A list of :py:class:`ee.ImageCollection` grouped by interval
@@ -989,12 +989,16 @@ class ImageCollectionAccessor:
                 split = collection.geetools.groupInterval("month", 1)
                 print(split.getInfo())
         """
-        sizeName = "n_images_per_interval"  # set generated properties name
+        sizeName = "__geetools_generated_size__"  # set generated properties name
 
         # create an ic variable to avoid calling self._obj multiple times
         # and extract the property names to copy
         ic = self._obj
         toCopy = ic.first().propertyNames()
+
+        # Removing sizeName prop acoording to count_images_per_interval flag
+        if not count_images_per_interval:
+            toCopy = toCopy.filter(ee.Filter.neq("item", sizeName))
 
         # transform the interval into a duration in milliseconds
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
@@ -1013,10 +1017,9 @@ class ImageCollectionAccessor:
             ic = ee.ImageCollection(ic)
             return ee.ImageCollection(ic.copyProperties(ic, properties=toCopy))
         
-        imageCollectionList = imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0))
-
-        if not count_images_per_interval:
-            imageCollectionList = imageCollectionList.map(delete_size_property)
+        imageCollectionList = (
+            imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0)).map(delete_size_property)
+        )
 
         return ee.List(imageCollectionList)
 
@@ -1040,7 +1043,7 @@ class ImageCollectionAccessor:
             unit: The unit of time to split the collection. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
             duration: The duration of each split.
             keep_original_names: Whether to keep the original band names or not. This is a workaround to preserve older behaviour, it should disappear in the future.
-            count_images_per_interval: Whether to add the property `n_images_per_interval` with the number of images used for the reduction in each interval.
+            count_images_per_interval: Whether to keep the property `__geetools_generated_size__` with the number of images used for the reduction in each interval.
 
         Returns:
             A new :py:class:`ee.ImageCollection` with the reduced images.
