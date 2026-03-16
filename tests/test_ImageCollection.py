@@ -10,6 +10,7 @@ import pytest
 from ee.ee_exception import EEException
 from jsonschema import validate
 from matplotlib import pyplot as plt
+
 import geetools as geetools
 
 

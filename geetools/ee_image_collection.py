@@ -957,9 +957,7 @@ class ImageCollectionAccessor:
         values = keys.map(lambda p: self._obj.aggregate_array(p))
         return ee.Dictionary.fromLists(keys, values)
 
-    def groupInterval(
-        self, unit: str = "month", duration: int = 1
-    ) -> ee.List:
+    def groupInterval(self, unit: str = "month", duration: int = 1) -> ee.List:
         """Transform the :py:class:`ee.ImageCollection` into a list of smaller collection of the specified duration.
 
         For example using unit as "month" and duration as 1, the :py:class:`ee.ImageCollection` will be transformed
@@ -1006,9 +1004,7 @@ class ImageCollectionAccessor:
             ic = ee.ImageCollection(ic)
             return ic.set({sizeName: ic.size()})
 
-        imageCollectionList = (
-            imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0))
-        )
+        imageCollectionList = imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0))
 
         return ee.List(imageCollectionList)
 
@@ -1055,7 +1051,7 @@ class ImageCollectionAccessor:
         """
         # Default property name that keeps the number of images used for the reduction in each interval
         sizeName = "__geetools_generated_size__"
-        
+
         # create a list of image collections to be reduced
         # Every subcollection is sorted in case one use the "first" reducer
         imageCollectionList = self.groupInterval(unit, duration)
@@ -1097,7 +1093,9 @@ class ImageCollectionAccessor:
         reducedImagesList = imageCollectionList.map(reduce)
 
         if not count_images_per_interval:
-            reducedImagesList = reducedImagesList.map(lambda i: ee.Image(i).copyProperties(i, exclude=[sizeName]))
+            reducedImagesList = reducedImagesList.map(
+                lambda i: ee.Image(i).copyProperties(i, exclude=[sizeName])
+            )
 
         # set back the original properties
         propertyNames = self._obj.propertyNames()
