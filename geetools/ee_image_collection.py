@@ -957,7 +957,9 @@ class ImageCollectionAccessor:
         values = keys.map(lambda p: self._obj.aggregate_array(p))
         return ee.Dictionary.fromLists(keys, values)
 
-    def groupInterval(self, unit: str = "month", duration: int = 1, count_images_per_interval: bool = False) -> ee.List:
+    def groupInterval(
+        self, unit: str = "month", duration: int = 1, count_images_per_interval: bool = False
+    ) -> ee.List:
         """Transform the :py:class:`ee.ImageCollection` into a list of smaller collection of the specified duration.
 
         For example using unit as "month" and duration as 1, the :py:class:`ee.ImageCollection` will be transformed
@@ -1016,7 +1018,7 @@ class ImageCollectionAccessor:
         def delete_size_property(ic):
             ic = ee.ImageCollection(ic)
             return ee.ImageCollection(ic.copyProperties(ic, properties=toCopy))
-        
+
         imageCollectionList = (
             imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0)).map(delete_size_property)
         )

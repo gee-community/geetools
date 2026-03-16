@@ -384,7 +384,7 @@ class TestReduceInterval:
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-02")
         reduced = ic.geetools.reduceInterval("mean", duration=1, unit="day", count_images_per_interval=True)
         firstImg = reduced.first()
-        assert firstImg.get('n_images_per_interval').getInfo() == 24
+        assert firstImg.get("n_images_per_interval").getInfo() == 24
 
     def test_reduce_interval_with_count_images_per_interval_empty_days(self, s2_sr):
         ic = s2_sr.filterDate("2021-01-01", "2021-01-07")
