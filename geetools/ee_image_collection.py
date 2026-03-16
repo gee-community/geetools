@@ -989,11 +989,7 @@ class ImageCollectionAccessor:
                 print(split.getInfo())
         """
         sizeName = "__geetools_generated_size__"  # set generated properties name
-
-        # create an ic variable to avoid calling self._obj multiple times
-        # and extract the property names to copy
         ic = self._obj
-        toCopy = ic.first().propertyNames()
 
         # transform the interval into a duration in milliseconds
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
@@ -1008,13 +1004,7 @@ class ImageCollectionAccessor:
             ic = ee.ImageCollection(ic)
             return ic.set({sizeName: ic.size()})
 
-        def delete_size_property(ic):
-            ic = ee.ImageCollection(ic)
-            return ee.ImageCollection(ic.copyProperties(ic, properties=toCopy))
-
-        imageCollectionList = (
-            imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0)).map(delete_size_property)
-        )
+        imageCollectionList = imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0))
 
         return ee.List(imageCollectionList)
 
@@ -1024,6 +1014,7 @@ class ImageCollectionAccessor:
         unit: str = "month",
         duration: int = 1,
         keep_original_names: bool = True,
+        count_images_per_interval: bool = False,
     ) -> ee.ImageCollection:
         """Reduce the images included in the same duration interval using the provided reducer.
 
@@ -1037,6 +1028,7 @@ class ImageCollectionAccessor:
             unit: The unit of time to split the collection. Available units: ``year``, ``month``, ``week``, ``day``, ``hour``, ``minute`` or ``second``.
             duration: The duration of each split.
             keep_original_names: Whether to keep the original band names or not. This is a workaround to preserve older behaviour, it should disappear in the future.
+            count_images_per_interval: Whether to keep the property `__geetools_generated_size__` with the number of images used for the reduction in each interval.
 
         Returns:
             A new :py:class:`ee.ImageCollection` with the reduced images.
@@ -1057,6 +1049,9 @@ class ImageCollectionAccessor:
                 reduced = collection.geetools.reduceInterval("mean", "month", 1)
                 print(reduced.getInfo())
         """
+        # Default property name that keeps the number of images used for the reduction in each interval
+        sizeName = "__geetools_generated_size__"
+
         # create a list of image collections to be reduced
         # Every subcollection is sorted in case one use the "first" reducer
         imageCollectionList = self.groupInterval(unit, duration)
@@ -1089,12 +1084,18 @@ class ImageCollectionAccessor:
             ic = ee.ImageCollection(ic)
             start = ic.aggregate_min("system:time_start")
             end = ic.aggregate_max("system:time_end")
+            count = ic.get(sizeName)
             firstImg = ic.first()
             propertyNames = firstImg.propertyNames()
             image = ic.reduce(red).rename(bandNames).copyProperties(firstImg, propertyNames)
-            return image.set("system:time_start", start, "system:time_end", end)
+            return image.set("system:time_start", start, "system:time_end", end, sizeName, count)
 
         reducedImagesList = imageCollectionList.map(reduce)
+
+        if not count_images_per_interval:
+            reducedImagesList = reducedImagesList.map(
+                lambda i: ee.Image(i).copyProperties(i, exclude=[sizeName])
+            )
 
         # set back the original properties
         propertyNames = self._obj.propertyNames()
