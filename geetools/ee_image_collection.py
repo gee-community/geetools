@@ -998,7 +998,7 @@ class ImageCollectionAccessor:
         ic = self._obj
         toCopy = ic.first().propertyNames()
 
-        # Removing sizeName prop acoording to count_images_per_interval flag
+        # Removing sizeName prop according to count_images_per_interval flag
         if not count_images_per_interval:
             toCopy = toCopy.filter(ee.Filter.neq("item", sizeName))
 
