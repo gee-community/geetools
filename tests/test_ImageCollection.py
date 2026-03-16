@@ -10,6 +10,7 @@ import pytest
 from ee.ee_exception import EEException
 from jsonschema import validate
 from matplotlib import pyplot as plt
+import geetools as geetools
 
 
 def reduce(
@@ -373,24 +374,31 @@ class TestReduceInterval:
         firstImg = ic.first()
         assert "system:id" in firstImg.propertyNames().getInfo()
 
+    def test_reduce_interval_without_count_images_per_interval(self, jaxa_rainfall):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-02")
+        reduced = ic.geetools.reduceInterval("mean", duration=1, unit="day", count_images_per_interval=False)
+        firstImg = reduced.first()
+        assert "__geetools_generated_size__" not in firstImg.propertyNames().getInfo()
+
     def test_reduce_interval_with_count_images_per_interval(self, jaxa_rainfall):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-02")
         reduced = ic.geetools.reduceInterval("mean", duration=1, unit="day", count_images_per_interval=True)
         firstImg = reduced.first()
-        assert "n_images_per_interval" in firstImg.propertyNames().getInfo()
+        assert "__geetools_generated_size__" in firstImg.propertyNames().getInfo()
 
     def test_reduce_interval_with_count_images_per_interval_count(self, jaxa_rainfall):
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-02")
         reduced = ic.geetools.reduceInterval("mean", duration=1, unit="day", count_images_per_interval=True)
         firstImg = reduced.first()
-        assert firstImg.get("n_images_per_interval").getInfo() == 24
+        assert firstImg.get("__geetools_generated_size__").getInfo() == 24
 
     def test_reduce_interval_with_count_images_per_interval_empty_days(self, s2_sr):
         ic = s2_sr.filterDate("2021-01-01", "2021-01-07")
         reduced = ic.geetools.reduceInterval("mean", duration=1, unit="day", count_images_per_interval=True)
-        count_images_per_interval = reduced.aggregate_array("n_images_per_interval").getInfo()
-        assert count_images_per_interval == [0, 1, 0]
+        count_images_per_interval = reduced.aggregate_array("__geetools_generated_size__").getInfo()
+        assert count_images_per_interval == [17, 8, 11]
 
 
 class TestClosestDate:
