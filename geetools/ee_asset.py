@@ -387,6 +387,20 @@ class Asset(os.PathLike):
         """
         return self.is_type("FOLDER", raised)
 
+    def is_container(self, raised: bool = True) -> bool:
+        """Return ``True`` if the asset is a container object. 
+
+        Args:
+            raised: If True, raise an exception if the asset is not a folder. Defaults to False.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder")
+                asset.is_container()
+        """
+        return asset.is_project(raised) or asset.is_folder(raised) or asset.is_image_collection(raised)
+
     @property
     def type(self) -> str:
         """Return the asset type.
