@@ -153,11 +153,16 @@ def spectralIndices(
     # Parse index input
     indices_to_compute = _get_indices_to_compute(index)
 
+    # Get dataset_id and band mapping ONCE, outside any mapped function
+    if isinstance(img, ee.imagecollection.ImageCollection):
+        collection_id = ee.String(img.get("system:id")).getInfo()
+        bands = _get_band_mapping(img.first(), collection_id)
+    else:
+        image_id = ee.String(img.get("system:id")).getInfo()
+        bands = _get_band_mapping(img, image_id)
+
     def compute_indices(test_img: ee.Image) -> ee.Image:
         """Compute spectral indices for a single image."""
-        dataset_id = ee.String(test_img.get("system:id")).getInfo()
-        bands = _get_band_mapping(test_img, dataset_id)
-
         result = test_img
         for idx_name in indices_to_compute:
             if idx_name not in SPECTRAL_INDICES:
@@ -195,10 +200,9 @@ def spectralIndices(
                     continue
 
         if drop:
-            # Keep only the original bands plus indices
+            # Keep only the original bands plus indices — server-side, no getInfo()
             index_names = [idx for idx in indices_to_compute if idx in SPECTRAL_INDICES]
-            all_bands = list(test_img.bandNames().getInfo()) + index_names
-            result = result.select(all_bands)
+            result = result.select(test_img.bandNames().cat(ee.List(index_names)))
 
         return result
 
