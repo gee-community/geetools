@@ -1079,7 +1079,27 @@ class ImageAccessor:
                     .geetools.preprocess()
                 )
         """
-        return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
+        # Set default parameters for maskClouds
+        mask_clouds_defaults = {
+            "method": "cloud_prob",
+            "prob": 60,
+            "maskCirrus": True,
+            "maskShadows": True,
+            "scaledImage": False,
+            "dark": 0.15,
+            "cloudDist": 1000,
+            "buffer": 250,
+            "cdi": None,
+        }
+
+        # Merge provided kwargs with defaults (kwargs take precedence)
+        mask_clouds_params = {**mask_clouds_defaults, **kwargs}
+
+        # Apply maskClouds then scaleAndOffset
+        masked = self.maskClouds(**mask_clouds_params)
+        preprocessed = masked.geetools.scaleAndOffset()
+
+        return preprocessed
 
     def getSTAC(self) -> dict[str, Any]:
         """Gets the STAC of the image.
