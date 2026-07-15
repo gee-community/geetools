@@ -23,6 +23,7 @@ from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
 from .ee_extra_clouds import maskClouds as mask_clouds_impl
+from .ee_extra_pansharpen import panSharpen as pan_sharpen_impl
 from .ee_extra_utils import _get_platform_STAC, _get_tc_coefficients, _load_JSON
 from .utils import area_units_to_m2, format_class_info, plot_data
 
@@ -1207,9 +1208,7 @@ class ImageAccessor:
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
                 sharp = source.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        return ee_extra.Algorithms.core.panSharpen(
-            img=self._obj, method=method, qa=qa, prefix="geetools", **kwargs
-        )
+        return pan_sharpen_impl(img=self._obj, method=method, qa=qa, **kwargs)
 
     def tasseledCap(self) -> ee.Image:
         """Calculates tasseled cap brightness, wetness, and greenness components.
