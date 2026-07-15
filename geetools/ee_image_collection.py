@@ -7,13 +7,6 @@ from datetime import datetime as dt
 from typing import Any, Iterable
 
 import ee
-import ee_extra
-import ee_extra.Algorithms.core
-import ee_extra.ImageCollection.core
-import ee_extra.QA.clouds
-import ee_extra.QA.pipelines
-import ee_extra.Spectral.core
-import ee_extra.STAC.core
 import requests
 import xarray
 from ee import apifunction
@@ -24,6 +17,7 @@ from xee.ext import REQUEST_BYTE_LIMIT
 from .accessors import register_class_accessor
 from .ee_extra_clouds import maskClouds as mask_clouds_impl
 from .ee_extra_pansharpen import panSharpen as pan_sharpen_impl
+from .ee_extra_spectralindices import spectralIndices as spectral_indices_impl
 from .ee_extra_temporal import closest as closest_impl
 from .ee_extra_utils import _load_JSON
 from .utils import plot_data
@@ -218,8 +212,8 @@ class ImageCollectionAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
-        return ee_extra.Spectral.core.spectralIndices(
-            x=self._obj,
+        return spectral_indices_impl(
+            img=self._obj,
             index=index,
             G=G,
             C1=C1,
@@ -244,7 +238,6 @@ class ImageCollectionAccessor:
             lambdaR=lambdaR,
             lambdaG=lambdaG,
             online=online,
-            drop=False,
         )
 
     def getScaleParams(self) -> dict[str, float]:
