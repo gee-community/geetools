@@ -19,7 +19,7 @@ from .ee_extra_clouds import maskClouds as mask_clouds_impl
 from .ee_extra_pansharpen import panSharpen as pan_sharpen_impl
 from .ee_extra_spectralindices import spectralIndices as spectral_indices_impl
 from .ee_extra_temporal import closest as closest_impl
-from .ee_extra_utils import _load_JSON
+from .ee_extra_utils import _get_scale_offset_params
 from .utils import plot_data
 
 PY_DATE_FORMAT = "%Y-%m-%dT%H-%M-%S"
@@ -260,8 +260,13 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').geetools.getScaleParams()
         """
-        dataset_id = ee.String(self._obj.first().get("system:id")).getInfo()
-        return _load_JSON("ee-catalog-scale.json").get(dataset_id, {})
+        try:
+            dataset_id = ee.String(self._obj.first().get("system:id")).getInfo()
+            scale_params, _ = _get_scale_offset_params(dataset_id)
+            return scale_params
+        except Exception as e:
+            warnings.warn(f"Failed to get scale parameters: {e}")
+            return {}
 
     def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
@@ -283,8 +288,13 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').geetools.getOffsetParams()
         """
-        dataset_id = ee.String(self._obj.first().get("system:id")).getInfo()
-        return _load_JSON("ee-catalog-offset.json").get(dataset_id, {})
+        try:
+            dataset_id = ee.String(self._obj.first().get("system:id")).getInfo()
+            _, offset_params = _get_scale_offset_params(dataset_id)
+            return offset_params
+        except Exception as e:
+            warnings.warn(f"Failed to get offset parameters: {e}")
+            return {}
 
     def scaleAndOffset(self) -> ee.ImageCollection:
         """Scales bands on an image according to their scale and offset parameters.

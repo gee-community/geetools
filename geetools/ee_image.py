@@ -19,7 +19,11 @@ from .accessors import register_class_accessor
 from .ee_extra_clouds import maskClouds as mask_clouds_impl
 from .ee_extra_pansharpen import panSharpen as pan_sharpen_impl
 from .ee_extra_spectralindices import spectralIndices as spectral_indices_impl
-from .ee_extra_utils import _get_platform_STAC, _get_tc_coefficients, _load_JSON
+from .ee_extra_utils import (
+    _get_platform_STAC,
+    _get_scale_offset_params,
+    _get_tc_coefficients,
+)
 from .utils import area_units_to_m2, format_class_info, plot_data
 
 
@@ -967,15 +971,13 @@ class ImageAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getScaleParams()
         """
-        platform_dict = _get_platform_STAC(self._obj)
-        scale_dict = _load_JSON("ee-catalog-scale.json")
-        platforms = list(scale_dict.keys())
-
-        if platform_dict["platform"] not in platforms:
-            warnings.warn("This platform is not supported for getting scale parameters.")
-            return None
-        else:
-            return scale_dict[platform_dict["platform"]]
+        try:
+            dataset_id = ee.String(self._obj.get("system:id")).getInfo()
+            scale_params, _ = _get_scale_offset_params(dataset_id)
+            return scale_params
+        except Exception as e:
+            warnings.warn(f"Failed to get scale parameters: {e}")
+            return {}
 
     def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
@@ -997,15 +999,13 @@ class ImageAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getOffsetParams()
         """
-        platform_dict = _get_platform_STAC(self._obj)
-        offset_dict = _load_JSON("ee-catalog-offset.json")
-        platforms = list(offset_dict.keys())
-
-        if platform_dict["platform"] not in platforms:
-            warnings.warn("This platform is not supported for getting offset parameters.")
-            return None
-        else:
-            return offset_dict[platform_dict["platform"]]
+        try:
+            dataset_id = ee.String(self._obj.get("system:id")).getInfo()
+            _, offset_params = _get_scale_offset_params(dataset_id)
+            return offset_params
+        except Exception as e:
+            warnings.warn(f"Failed to get offset parameters: {e}")
+            return {}
 
     def scaleAndOffset(self) -> ee.Image:
         """Scales bands on an image according to their scale and offset parameters.
