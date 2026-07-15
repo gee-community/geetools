@@ -19,7 +19,6 @@ from .constants import EE_CATALOG_SCALE_OFFSET_URL
 from .ee_extra_clouds import maskClouds as mask_clouds_impl
 from .ee_extra_pansharpen import panSharpen as pan_sharpen_impl
 from .ee_extra_spectralindices import spectralIndices as spectral_indices_impl
-from .ee_extra_temporal import closest as closest_impl
 from .utils import plot_data
 
 PY_DATE_FORMAT = "%Y-%m-%dT%H-%M-%S"
@@ -126,7 +125,30 @@ class ImageCollectionAccessor:
                 )
                 s2.size().getInfo()
         """
-        return closest_impl(self._obj, date, tolerance, unit)
+        if isinstance(date, str):
+            date = ee.Date(date)
+
+        unit_to_days = {
+            "year": 365,
+            "month": 30,
+            "week": 7,
+            "day": 1,
+            "hour": 1 / 24,
+            "minute": 1 / (24 * 60),
+            "second": 1 / (24 * 3600),
+        }
+        tolerance_days = tolerance * unit_to_days.get(unit, 30)
+
+        filtered = self._obj.filterDate(
+            date.advance(-tolerance_days, "day"),
+            date.advance(tolerance_days, "day"),
+        )
+
+        with_diff = filtered.map(
+            lambda img: img.set("date_diff", ee.Image(img).date().difference(date, "day").abs())
+        )
+        min_diff = with_diff.reduceColumns(ee.Reducer.min(), ["date_diff"]).get("min")
+        return with_diff.filter(ee.Filter.eq("date_diff", min_diff))
 
     def spectralIndices(
         self,

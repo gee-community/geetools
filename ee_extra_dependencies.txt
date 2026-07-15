@@ -12,20 +12,14 @@ DETAILED BREAKDOWN BY FILE
 
 File: ee_image.py
   Functions with ee_extra dependencies (8):
-    - getOffsetParams
-    - getScaleParams
     - maskClouds
     - panSharpen
     - preprocess
-    - scaleAndOffset
     - spectralIndices
     - tasseledCap
 
   ee_extra Method Calls:
     - ee_extra.Spectral.core.spectralIndices
-    - ee_extra.STAC.core.getScaleParams
-    - ee_extra.STAC.core.getOffsetParams
-    - ee_extra.STAC.core.scaleAndOffset
     - ee_extra.QA.pipelines.preprocess
     - ee_extra.Algorithms.core.panSharpen
     - ee_extra.Spectral.core.tasseledCap
@@ -35,12 +29,9 @@ File: ee_image.py
 File: ee_image_collection.py
   Functions with ee_extra dependencies (9):
     - closest
-    - getOffsetParams
-    - getScaleParams
     - maskClouds
     - panSharpen
     - preprocess
-    - scaleAndOffset
     - spectralIndices
     - tasseledCap
 
@@ -48,9 +39,6 @@ File: ee_image_collection.py
     - ee_extra.QA.clouds.maskClouds
     - ee_extra.ImageCollection.core.closest
     - ee_extra.Spectral.core.spectralIndices
-    - ee_extra.STAC.core.getScaleParams
-    - ee_extra.STAC.core.getOffsetParams
-    - ee_extra.STAC.core.scaleAndOffset
     - ee_extra.QA.pipelines.preprocess
     - ee_extra.Algorithms.core.panSharpen
     - ee_extra.Spectral.core.tasseledCap
