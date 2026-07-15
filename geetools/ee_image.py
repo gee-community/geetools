@@ -861,7 +861,7 @@ class ImageAccessor:
         lambdaN: float | int = 858.5,
         lambdaR: float | int = 645.0,
         lambdaG: float | int = 555.0,
-        online: float | int = False,
+        online: bool = False,
     ) -> ee.Image:
         """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
 

@@ -57,7 +57,7 @@ class EEExtraDependencyAnalyzer(ast.NodeVisitor):
                     return ".".join(parts)
             elif isinstance(node.func, ast.Name):
                 return node.func.id
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         return None
 

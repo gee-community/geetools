@@ -54,7 +54,7 @@ def panSharpen(
     if method not in valid_methods:
         raise ValueError(f"Method '{method}' not supported. Use one of {valid_methods}.")
 
-    def get_platform_bands(test_img: ee.Image) -> Dict[str, List[str]]:
+    def get_platform_bands(test_img: ee.Image) -> Dict[str, Any]:
         """Get correct platform bands for sharpening."""
         dataset_id = ee.String(test_img.get("system:id")).getInfo()
         if dataset_id not in PLATFORM_BANDS:
