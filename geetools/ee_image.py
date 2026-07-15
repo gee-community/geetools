@@ -1030,7 +1030,27 @@ class ImageAccessor:
 
                 S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().geetools.scaleAndOffset()
         """
-        return ee_extra.STAC.core.scaleAndOffset(self._obj)
+        scale_params = self.getScaleParams()
+        offset_params = self.getOffsetParams()
+
+        if scale_params is None or offset_params is None:
+            warnings.warn("This platform is not supported for scaling and offsetting.")
+            return self._obj
+
+        scale_image = ee.Dictionary(scale_params).toImage()
+        offset_image = ee.Dictionary(offset_params).toImage()
+
+        def apply_scale_offset(img):
+            """Apply scale and offset transformation to image."""
+            bands = img.bandNames()
+            scale_list = scale_image.bandNames()
+            bands = bands.filter(ee.Filter.inList("item", scale_list))
+            selected_scale = scale_image.select(bands)
+            selected_offset = offset_image.select(bands)
+            scaled = img.select(bands).multiply(selected_scale).add(selected_offset)
+            return ee.Image(scaled.copyProperties(img, img.propertyNames()))
+
+        return apply_scale_offset(self._obj)
 
     def preprocess(self, **kwargs) -> ee.Image:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image.
