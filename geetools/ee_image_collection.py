@@ -23,7 +23,9 @@ from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
 from .ee_extra_clouds import maskClouds as mask_clouds_impl
+from .ee_extra_pansharpen import panSharpen as pan_sharpen_impl
 from .ee_extra_temporal import closest as closest_impl
+from .ee_extra_utils import _load_JSON
 from .utils import plot_data
 
 PY_DATE_FORMAT = "%Y-%m-%dT%H-%M-%S"
@@ -265,7 +267,8 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').geetools.getScaleParams()
         """
-        return ee_extra.STAC.core.getScaleParams(self._obj)
+        dataset_id = ee.String(self._obj.first().get("system:id")).getInfo()
+        return _load_JSON("ee-catalog-scale.json").get(dataset_id, {})
 
     def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
@@ -287,7 +290,8 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').geetools.getOffsetParams()
         """
-        return ee_extra.STAC.core.getOffsetParams(self._obj)
+        dataset_id = ee.String(self._obj.first().get("system:id")).getInfo()
+        return _load_JSON("ee-catalog-offset.json").get(dataset_id, {})
 
     def scaleAndOffset(self) -> ee.ImageCollection:
         """Scales bands on an image according to their scale and offset parameters.
@@ -308,7 +312,7 @@ class ImageCollectionAccessor:
 
                 S2 = ee.ImageCollection('COPERNICUS/S2_SR').scaleAndOffset()
         """
-        return ee_extra.STAC.core.scaleAndOffset(self._obj)
+        return self._obj.map(lambda img: ee.Image(img).geetools.scaleAndOffset())
 
     def preprocess(self, **kwargs) -> ee.ImageCollection:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image collection.
@@ -334,7 +338,7 @@ class ImageCollectionAccessor:
                 ee.Initialize()
                 S2 = ee.ImageCollection('COPERNICUS/S2_SR').preprocess()
         """
-        return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
+        return self._obj.map(lambda img: ee.Image(img).geetools.preprocess(**kwargs))
 
     def getSTAC(self) -> dict[str, Any]:
         """Gets the STAC of the image collection.
@@ -441,9 +445,7 @@ class ImageCollectionAccessor:
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
                 sharp = source.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        return ee_extra.Algorithms.core.panSharpen(
-            img=self._obj, method=method, qa=qa or None, prefix="geetools", **kwargs
-        )
+        return self._obj.map(lambda img: pan_sharpen_impl(img, method=method, qa=qa or None, **kwargs))
 
     def tasseledCap(self) -> ee.ImageCollection:
         """Calculates tasseled cap brightness, wetness, and greenness components for all images in the collection.
@@ -504,7 +506,7 @@ class ImageCollectionAccessor:
                 ic = ee.ImageCollection("LANDSAT/LT05/C01/T1")
                 ic = ic.geetools.tasseledCap()
         """
-        return ee_extra.Spectral.core.tasseledCap(self._obj)
+        return self._obj.map(lambda img: ee.Image(img).geetools.tasseledCap())
 
     def append(self, image: ee.Image) -> ee.ImageCollection:
         """Append an image to the existing image collection.
