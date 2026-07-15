@@ -15,11 +15,11 @@ from xarray import Dataset
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
+from .constants import EE_CATALOG_SCALE_OFFSET_URL
 from .ee_extra_clouds import maskClouds as mask_clouds_impl
 from .ee_extra_pansharpen import panSharpen as pan_sharpen_impl
 from .ee_extra_spectralindices import spectralIndices as spectral_indices_impl
 from .ee_extra_temporal import closest as closest_impl
-from .ee_extra_utils import _get_scale_offset_params
 from .utils import plot_data
 
 PY_DATE_FORMAT = "%Y-%m-%dT%H-%M-%S"
@@ -260,13 +260,10 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').geetools.getScaleParams()
         """
-        try:
-            dataset_id = ee.String(self._obj.first().get("system:id")).getInfo()
-            scale_params, _ = _get_scale_offset_params(dataset_id)
-            return scale_params
-        except Exception as e:
-            warnings.warn(f"Failed to get scale parameters: {e}")
-            return {}
+        response = requests.get(EE_CATALOG_SCALE_OFFSET_URL, timeout=10)
+        response.raise_for_status()
+        bands = response.json().get(ee.String(self._obj.get("system:id")).getInfo(), {})
+        return {band: data["scale"] for band, data in bands.items()}
 
     def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
@@ -288,13 +285,10 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').geetools.getOffsetParams()
         """
-        try:
-            dataset_id = ee.String(self._obj.first().get("system:id")).getInfo()
-            _, offset_params = _get_scale_offset_params(dataset_id)
-            return offset_params
-        except Exception as e:
-            warnings.warn(f"Failed to get offset parameters: {e}")
-            return {}
+        response = requests.get(EE_CATALOG_SCALE_OFFSET_URL, timeout=10)
+        response.raise_for_status()
+        bands = response.json().get(ee.String(self._obj.get("system:id")).getInfo(), {})
+        return {band: data["offset"] for band, data in bands.items()}
 
     def scaleAndOffset(self) -> ee.ImageCollection:
         """Scales bands on an image according to their scale and offset parameters.

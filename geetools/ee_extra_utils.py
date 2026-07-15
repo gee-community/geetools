@@ -5,12 +5,8 @@ from pathlib import Path
 from typing import Any, Union
 
 import ee
-import requests
 
 from .ee_extra_tasseled_cap import PLATFORM_COEFFICIENTS
-
-# Cache for fetched catalog data
-_CATALOG_CACHE: dict[str, dict] = {}
 
 
 def _load_JSON(filename: str = "ee-catalog-ids.json") -> Any:
@@ -32,57 +28,6 @@ def _load_JSON(filename: str = "ee-catalog-ids.json") -> Any:
         raise FileNotFoundError(f"Data file not found: {json_file}")
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON in {json_file}: {e}")
-
-
-def _get_catalog_data() -> dict[str, Any]:
-    """Fetch scale/offset catalog from GitHub.
-
-    Downloads the scale and offset parameters for all datasets from the
-    ee-catalog-scale-offset-params repository.
-
-    Returns:
-        Dictionary with dataset IDs as keys and scale/offset parameters as values
-
-    Raises:
-        requests.RequestException: If unable to fetch from GitHub
-    """
-    if "catalog" in _CATALOG_CACHE:
-        return _CATALOG_CACHE["catalog"]
-
-    url = "https://raw.githubusercontent.com/davemlz/ee-catalog-scale-offset-params/main/list/ee-catalog-scale-offset-parameters.json"
-
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        _CATALOG_CACHE["catalog"] = data
-        return data
-    except requests.RequestException as e:
-        raise requests.RequestException(
-            f"Failed to fetch catalog from GitHub: {e}. " "Ensure you have an active internet connection."
-        )
-
-
-def _get_scale_offset_params(dataset_id: str) -> tuple[dict, dict]:
-    """Get scale and offset parameters for a dataset.
-
-    Args:
-        dataset_id: Earth Engine dataset ID (e.g., 'COPERNICUS/S2_SR')
-
-    Returns:
-        Tuple of (scale_params, offset_params) dictionaries
-    """
-    catalog = _get_catalog_data()
-
-    # Look up the dataset in the catalog
-    if dataset_id not in catalog:
-        return {}, {}
-
-    dataset_info = catalog[dataset_id]
-    scale_params = dataset_info.get("scale_params", {})
-    offset_params = dataset_info.get("offset_params", {})
-
-    return scale_params, offset_params
 
 
 def _get_platform_STAC(x: Union[ee.Image, ee.ImageCollection]) -> dict:
