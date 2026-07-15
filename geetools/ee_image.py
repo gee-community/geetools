@@ -22,6 +22,7 @@ from pyproj import CRS, Transformer
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
+from .ee_extra_clouds import maskClouds as mask_clouds_impl
 from .ee_extra_utils import _get_platform_STAC, _get_tc_coefficients, _load_JSON
 from .utils import area_units_to_m2, format_class_info, plot_data
 
@@ -1438,7 +1439,7 @@ class ImageAccessor:
                     .geetools.maskClouds(prob = 75,buffer = 300,cdi = -0.5)
                 )
         """
-        return ee_extra.QA.clouds.maskClouds(
+        return mask_clouds_impl(
             self._obj,
             method,
             prob,
