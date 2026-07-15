@@ -20,7 +20,7 @@ from .constants import EE_CATALOG_SCALE_OFFSET_URL
 from .ee_extra_clouds import maskClouds as mask_clouds_impl
 from .ee_extra_pansharpen import panSharpen as pan_sharpen_impl
 from .ee_extra_spectralindices import spectralIndices as spectral_indices_impl
-from .ee_extra_utils import _get_platform_STAC, _get_tc_coefficients
+from .ee_extra_tasseled_cap import PLATFORM_COEFFICIENTS
 from .utils import area_units_to_m2, format_class_info, plot_data
 
 
@@ -1254,8 +1254,14 @@ class ImageAccessor:
                 img = img.geetools.tasseledCap()
         """
         # Get platform-specific coefficients
-        platform_dict = _get_platform_STAC(self._obj)
-        coeffs = _get_tc_coefficients(platform_dict["platform"])
+        asset_id = ee.String(self._obj.get("system:id")).getInfo()
+        platform = ee.Asset(asset_id).parent.as_posix()
+        if platform not in PLATFORM_COEFFICIENTS:
+            raise Exception(
+                f"Sorry, satellite platform {platform} not supported for tasseled "
+                f"cap transformation! Use one of {list(PLATFORM_COEFFICIENTS.keys())}"
+            )
+        coeffs = PLATFORM_COEFFICIENTS[platform]
 
         def calculate_and_add_components(img):
             """Calculate tasseled cap components and add as new bands."""

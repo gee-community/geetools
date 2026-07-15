@@ -5,8 +5,6 @@ from typing import Optional, Union
 
 import ee
 
-from .ee_extra_utils import _get_platform_STAC
-
 
 def maskClouds(
     x: Union[ee.Image, ee.ImageCollection],
@@ -41,8 +39,8 @@ def maskClouds(
     if method not in valid_methods:
         raise Exception(f"'{method}' is not a valid method. Use one of {valid_methods}.")
 
-    platform_dict = _get_platform_STAC(x)
-    platform = platform_dict["platform"]
+    asset_id = ee.String((x.first() if isinstance(x, ee.ImageCollection) else x).get("system:id")).getInfo()
+    platform = ee.Asset(asset_id).parent.as_posix()
 
     # Sentinel-2/3 cloud masking
     if "COPERNICUS/S2" in platform or "COPERNICUS/S3" in platform:
