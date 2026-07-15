@@ -22,6 +22,8 @@ from xarray import Dataset
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
+from .ee_extra_clouds import maskClouds as mask_clouds_impl
+from .ee_extra_temporal import closest as closest_impl
 from .utils import plot_data
 
 PY_DATE_FORMAT = "%Y-%m-%dT%H-%M-%S"
@@ -88,7 +90,7 @@ class ImageCollectionAccessor:
                 )
 
         """
-        return ee_extra.QA.clouds.maskClouds(
+        return mask_clouds_impl(
             self._obj,
             method,
             prob,
@@ -128,7 +130,7 @@ class ImageCollectionAccessor:
                 )
                 s2.size().getInfo()
         """
-        return ee_extra.ImageCollection.core.closest(self._obj, date, tolerance, unit)
+        return closest_impl(self._obj, date, tolerance, unit)
 
     def spectralIndices(
         self,
