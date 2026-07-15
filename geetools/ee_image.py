@@ -22,7 +22,7 @@ from pyproj import CRS, Transformer
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
-from .ee_extra_utils import _get_platform_STAC, _load_JSON
+from .ee_extra_utils import _get_platform_STAC, _get_tc_coefficients, _load_JSON
 from .utils import area_units_to_m2, format_class_info, plot_data
 
 
@@ -1247,7 +1247,7 @@ class ImageAccessor:
                 reflectance. International journal of remote sensing, 23(8), pp.1741-1748.
             .. [4] Crist, E.P., Laurin, R. and Cicone, R.C., 1986, September. Vegetation and
                 soils information contained in transformed Thematic Mapper data. In
-                Proceedings of IGARSS`86 symposium (pp. 1465-1470). Paris: European Space
+                Proceedings of IGARSS'86 symposium (pp. 1465-1470). Paris: European Space
                 Agency Publications Division.
             .. [5] Crist, E.P. and Cicone, R.C., 1984. A physically-based transformation of
                 Thematic Mapper data---The TM Tasseled Cap. IEEE Transactions on Geoscience
@@ -1268,7 +1268,32 @@ class ImageAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 img = img.geetools.tasseledCap()
         """
-        return ee_extra.Spectral.core.tasseledCap(self._obj)
+        # Get platform-specific coefficients
+        platform_dict = _get_platform_STAC(self._obj)
+        coeffs = _get_tc_coefficients(platform_dict["platform"])
+
+        def calculate_and_add_components(img):
+            """Calculate tasseled cap components and add as new bands."""
+            # Select the required bands
+            img = img.select(coeffs["bands"])
+
+            # Calculate components: multiply each band by coefficients, then sum
+            components = []
+            for comp in ["TCB", "TCG", "TCW"]:
+                component = img.multiply(ee.Image(coeffs[comp])).reduce(ee.Reducer.sum()).rename(comp)
+                components.append(component)
+
+            return img.addBands(components)
+
+        # Apply to image or image collection
+        if isinstance(self._obj, ee.imagecollection.ImageCollection):
+            result = self._obj.map(calculate_and_add_components)
+        elif isinstance(self._obj, ee.image.Image):
+            result = calculate_and_add_components(self._obj)
+        else:
+            raise TypeError("Input must be ee.Image or ee.ImageCollection")
+
+        return result
 
     def matchHistogram(
         self,

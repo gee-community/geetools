@@ -6,6 +6,8 @@ from typing import Any, Union
 
 import ee
 
+from .ee_extra_tasseled_cap import PLATFORM_COEFFICIENTS
+
 
 def _load_JSON(filename: str = "ee-catalog-ids.json") -> Any:
     """Load JSON file from geetools data directory.
@@ -63,3 +65,26 @@ def _get_platform_STAC(x: Union[ee.Image, ee.ImageCollection]) -> dict:
             return {"platform": dataset_id or "unknown"}
 
     return {"platform": dataset_id or "unknown"}
+
+
+def _get_tc_coefficients(platform: str) -> dict:
+    """Get platform-specific tasseled cap transformation coefficients.
+
+    Args:
+        platform: Platform name retrieved from STAC
+
+    Returns:
+        Dictionary with band names and transformation coefficients for
+        brightness (TCB), greenness (TCG), and wetness (TCW)
+
+    Raises:
+        Exception: If platform has no supported coefficients
+    """
+    if platform not in PLATFORM_COEFFICIENTS:
+        available = list(PLATFORM_COEFFICIENTS.keys())
+        raise Exception(
+            f"Sorry, satellite platform {platform} not supported for tasseled "
+            f"cap transformation! Use one of {available}"
+        )
+
+    return PLATFORM_COEFFICIENTS[platform]
