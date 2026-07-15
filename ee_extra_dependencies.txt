@@ -1,0 +1,71 @@
+================================================================================
+EE_EXTRA DEPENDENCIES IN GEETOOLS
+================================================================================
+Analysis Date: 2026-07-15
+Total files with ee_extra dependencies: 2
+Total unique functions with ee_extra dependencies: 9
+
+================================================================================
+DETAILED BREAKDOWN BY FILE
+================================================================================
+
+
+File: ee_image.py
+  Functions with ee_extra dependencies (8):
+    - getOffsetParams
+    - getScaleParams
+    - maskClouds
+    - panSharpen
+    - preprocess
+    - scaleAndOffset
+    - spectralIndices
+    - tasseledCap
+
+  ee_extra Method Calls:
+    - ee_extra.Spectral.core.spectralIndices
+    - ee_extra.STAC.core.getScaleParams
+    - ee_extra.STAC.core.getOffsetParams
+    - ee_extra.STAC.core.scaleAndOffset
+    - ee_extra.QA.pipelines.preprocess
+    - ee_extra.Algorithms.core.panSharpen
+    - ee_extra.Spectral.core.tasseledCap
+    - ee_extra.QA.clouds.maskClouds
+
+
+File: ee_image_collection.py
+  Functions with ee_extra dependencies (9):
+    - closest
+    - getOffsetParams
+    - getScaleParams
+    - maskClouds
+    - panSharpen
+    - preprocess
+    - scaleAndOffset
+    - spectralIndices
+    - tasseledCap
+
+  ee_extra Method Calls:
+    - ee_extra.QA.clouds.maskClouds
+    - ee_extra.ImageCollection.core.closest
+    - ee_extra.Spectral.core.spectralIndices
+    - ee_extra.STAC.core.getScaleParams
+    - ee_extra.STAC.core.getOffsetParams
+    - ee_extra.STAC.core.scaleAndOffset
+    - ee_extra.QA.pipelines.preprocess
+    - ee_extra.Algorithms.core.panSharpen
+    - ee_extra.Spectral.core.tasseledCap
+
+
+================================================================================
+SUMMARY: ALL FUNCTIONS WITH EE_EXTRA DEPENDENCIES
+================================================================================
+
+closest (in ee_image_collection.py)
+getOffsetParams (in ee_image.py)
+getScaleParams (in ee_image.py)
+maskClouds (in ee_image.py)
+panSharpen (in ee_image.py)
+preprocess (in ee_image.py)
+scaleAndOffset (in ee_image.py)
+spectralIndices (in ee_image.py)
+tasseledCap (in ee_image.py)

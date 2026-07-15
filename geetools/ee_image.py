@@ -1,6 +1,7 @@
 """Toolbox for the :py:class:`ee.Image` class."""
 from __future__ import annotations
 
+import warnings
 from typing import Any, Optional
 
 import ee
@@ -21,6 +22,7 @@ from pyproj import CRS, Transformer
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
+from .ee_extra_utils import _get_platform_STAC, _load_JSON
 from .utils import area_units_to_m2, format_class_info, plot_data
 
 
@@ -969,7 +971,15 @@ class ImageAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getScaleParams()
         """
-        return ee_extra.STAC.core.getScaleParams(self._obj)
+        platform_dict = _get_platform_STAC(self._obj)
+        scale_dict = _load_JSON("ee-catalog-scale.json")
+        platforms = list(scale_dict.keys())
+
+        if platform_dict["platform"] not in platforms:
+            warnings.warn("This platform is not supported for getting scale parameters.")
+            return None
+        else:
+            return scale_dict[platform_dict["platform"]]
 
     def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
@@ -991,7 +1001,15 @@ class ImageAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getOffsetParams()
         """
-        return ee_extra.STAC.core.getOffsetParams(self._obj)
+        platform_dict = _get_platform_STAC(self._obj)
+        offset_dict = _load_JSON("ee-catalog-offset.json")
+        platforms = list(offset_dict.keys())
+
+        if platform_dict["platform"] not in platforms:
+            warnings.warn("This platform is not supported for getting offset parameters.")
+            return None
+        else:
+            return offset_dict[platform_dict["platform"]]
 
     def scaleAndOffset(self) -> ee.Image:
         """Scales bands on an image according to their scale and offset parameters.
