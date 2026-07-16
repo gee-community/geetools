@@ -30,11 +30,10 @@ dependencies = [
     "pandas",
     "geopandas",
     "deprecated",
-    "xee>=0.0.11", # xee change dtype management
+    "xee>=0.1.0", # xee change API prototype for geometry setting
     "yamlable",
     "matplotlib",
     "anyascii",
-    "ee-extra>=2025.7.2" # the first version compatible with Python 3.12
 ]
 
 [[project.authors]]
