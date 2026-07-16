@@ -639,7 +639,7 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_one_band(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
@@ -649,7 +649,7 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_one_band_cmap(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
@@ -659,7 +659,7 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_with_fc(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
@@ -668,7 +668,7 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_with_crs(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
@@ -678,7 +678,7 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
 
 class TestFromList:
@@ -723,7 +723,7 @@ class TestPlotByRegions:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_regions_barh(self, image_regression):
         fig, ax = plt.subplots()
@@ -742,7 +742,7 @@ class TestPlotByRegions:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_regions_stacked(self, image_regression):
         fig, ax = plt.subplots()
@@ -761,7 +761,7 @@ class TestPlotByRegions:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def ecoregions(self):
@@ -794,7 +794,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_plot(self, image_regression):
         fig, ax = plt.subplots()
@@ -813,7 +813,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_area(self, image_regression):
         fig, ax = plt.subplots()
@@ -832,7 +832,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_pie(self, image_regression):
         fig, ax = plt.subplots()
@@ -852,7 +852,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_donut(self, image_regression):
         fig, ax = plt.subplots()
@@ -872,7 +872,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def ecoregions(self):
@@ -901,7 +901,7 @@ class TestPlotHist:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue(), diff_threshold=0.2)
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def image(self):

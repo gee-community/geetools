@@ -1,15 +1,10 @@
 """Toolbox for the :py:class:`ee.Image` class."""
 from __future__ import annotations
 
+import warnings
 from typing import Any, Optional
 
 import ee
-import ee_extra
-import ee_extra.Algorithms.core
-import ee_extra.QA.clouds
-import ee_extra.QA.pipelines
-import ee_extra.Spectral.core
-import ee_extra.STAC.core
 import geopandas as gpd
 import numpy as np
 import requests
@@ -17,10 +12,15 @@ import xarray
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.colors import to_rgba
-from pyproj import CRS, Transformer
+from pyproj import CRS
+from shapely import geometry as sg
+from xee import helpers
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
+from .constants import EE_CATALOG_SCALE_OFFSET_URL
+from .extra import clouds, pan_sharpen, spectral_indices
+from .extra.tasseled_cap import PLATFORM_COEFFICIENTS
 from .utils import area_units_to_m2, format_class_info, plot_data
 
 
@@ -861,7 +861,7 @@ class ImageAccessor:
         lambdaN: float | int = 858.5,
         lambdaR: float | int = 645.0,
         lambdaG: float | int = 555.0,
-        online: float | int = False,
+        online: bool = False,
     ) -> ee.Image:
         """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
 
@@ -920,8 +920,8 @@ class ImageAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
-        return ee_extra.Spectral.core.spectralIndices(
-            x=self._obj,
+        return spectral_indices.spectralIndices(
+            src=self._obj,
             index=index,
             G=G,
             C1=C1,
@@ -946,7 +946,6 @@ class ImageAccessor:
             lambdaR=lambdaR,
             lambdaG=lambdaG,
             online=online,
-            drop=False,
         )
 
     def getScaleParams(self) -> dict[str, float]:
@@ -969,7 +968,10 @@ class ImageAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getScaleParams()
         """
-        return ee_extra.STAC.core.getScaleParams(self._obj)
+        response = requests.get(EE_CATALOG_SCALE_OFFSET_URL, timeout=10)
+        response.raise_for_status()
+        bands = response.json().get(ee.Asset(self._obj.get("system:id").getInfo()).parent, {})
+        return {band: data["scale"] for band, data in bands.items()}
 
     def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
@@ -991,7 +993,10 @@ class ImageAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getOffsetParams()
         """
-        return ee_extra.STAC.core.getOffsetParams(self._obj)
+        response = requests.get(EE_CATALOG_SCALE_OFFSET_URL, timeout=10)
+        response.raise_for_status()
+        bands = response.json().get(ee.Asset(self._obj.get("system:id").getInfo()).parent, {})
+        return {band: data["offset"] for band, data in bands.items()}
 
     def scaleAndOffset(self) -> ee.Image:
         """Scales bands on an image according to their scale and offset parameters.
@@ -1012,7 +1017,27 @@ class ImageAccessor:
 
                 S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().geetools.scaleAndOffset()
         """
-        return ee_extra.STAC.core.scaleAndOffset(self._obj)
+        scale_params = self.getScaleParams()
+        offset_params = self.getOffsetParams()
+
+        if scale_params is None or offset_params is None:
+            warnings.warn("This platform is not supported for scaling and offsetting.")
+            return self._obj
+
+        scale_image = ee.Dictionary(scale_params).toImage()
+        offset_image = ee.Dictionary(offset_params).toImage()
+
+        def apply_scale_offset(img):
+            """Apply scale and offset transformation to image."""
+            bands = img.bandNames()
+            scale_list = scale_image.bandNames()
+            bands = bands.filter(ee.Filter.inList("item", scale_list))
+            selected_scale = scale_image.select(bands)
+            selected_offset = offset_image.select(bands)
+            scaled = img.select(bands).multiply(selected_scale).add(selected_offset)
+            return ee.Image(scaled.copyProperties(img, img.propertyNames()))
+
+        return apply_scale_offset(self._obj)
 
     def preprocess(self, **kwargs) -> ee.Image:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image.
@@ -1041,7 +1066,27 @@ class ImageAccessor:
                     .geetools.preprocess()
                 )
         """
-        return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
+        # Set default parameters for maskClouds
+        mask_clouds_defaults = {
+            "method": "cloud_prob",
+            "prob": 60,
+            "maskCirrus": True,
+            "maskShadows": True,
+            "scaledImage": False,
+            "dark": 0.15,
+            "cloudDist": 1000,
+            "buffer": 250,
+            "cdi": None,
+        }
+
+        # Merge provided kwargs with defaults (kwargs take precedence)
+        mask_clouds_params = {**mask_clouds_defaults, **kwargs}
+
+        # Apply maskClouds then scaleAndOffset
+        masked = self.maskClouds(**mask_clouds_params)
+        preprocessed = masked.geetools.scaleAndOffset()
+
+        return preprocessed
 
     def getSTAC(self) -> dict[str, Any]:
         """Gets the STAC of the image.
@@ -1148,9 +1193,7 @@ class ImageAccessor:
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
                 sharp = source.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        return ee_extra.Algorithms.core.panSharpen(
-            img=self._obj, method=method, qa=qa, prefix="geetools", **kwargs
-        )
+        return pan_sharpen.panSharpen(src=self._obj, method=method, qa=qa, **kwargs)
 
     def tasseledCap(self) -> ee.Image:
         """Calculates tasseled cap brightness, wetness, and greenness components.
@@ -1189,7 +1232,7 @@ class ImageAccessor:
                 reflectance. International journal of remote sensing, 23(8), pp.1741-1748.
             .. [4] Crist, E.P., Laurin, R. and Cicone, R.C., 1986, September. Vegetation and
                 soils information contained in transformed Thematic Mapper data. In
-                Proceedings of IGARSS`86 symposium (pp. 1465-1470). Paris: European Space
+                Proceedings of IGARSS'86 symposium (pp. 1465-1470). Paris: European Space
                 Agency Publications Division.
             .. [5] Crist, E.P. and Cicone, R.C., 1984. A physically-based transformation of
                 Thematic Mapper data---The TM Tasseled Cap. IEEE Transactions on Geoscience
@@ -1210,7 +1253,38 @@ class ImageAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 img = img.geetools.tasseledCap()
         """
-        return ee_extra.Spectral.core.tasseledCap(self._obj)
+        # Get platform-specific coefficients
+        asset_id = ee.String(self._obj.get("system:id")).getInfo()
+        platform = ee.Asset(asset_id).parent.as_posix()
+        if platform not in PLATFORM_COEFFICIENTS:
+            raise Exception(
+                f"Sorry, satellite platform {platform} not supported for tasseled "
+                f"cap transformation! Use one of {list(PLATFORM_COEFFICIENTS.keys())}"
+            )
+        coeffs = PLATFORM_COEFFICIENTS[platform]
+
+        def calculate_and_add_components(img):
+            """Calculate tasseled cap components and add as new bands."""
+            # Select the required bands
+            img = img.select(coeffs["bands"])
+
+            # Calculate components: multiply each band by coefficients, then sum
+            components = []
+            for comp in ["TCB", "TCG", "TCW"]:
+                component = img.multiply(ee.Image(coeffs[comp])).reduce(ee.Reducer.sum()).rename(comp)
+                components.append(component)
+
+            return img.addBands(components)
+
+        # Apply to image or image collection
+        if isinstance(self._obj, ee.imagecollection.ImageCollection):
+            result = self._obj.map(calculate_and_add_components)
+        elif isinstance(self._obj, ee.image.Image):
+            result = calculate_and_add_components(self._obj)
+        else:
+            raise TypeError("Input must be ee.Image or ee.ImageCollection")
+
+        return result
 
     def matchHistogram(
         self,
@@ -1355,7 +1429,7 @@ class ImageAccessor:
                     .geetools.maskClouds(prob = 75,buffer = 300,cdi = -0.5)
                 )
         """
-        return ee_extra.QA.clouds.maskClouds(
+        return clouds.maskClouds(
             self._obj,
             method,
             prob,
@@ -1641,28 +1715,34 @@ class ImageAccessor:
         if ax is None:
             fig, ax = plt.subplots()
 
+        # generate the grid params
+        grid_params = helpers.fit_geometry(
+            geometry=sg.shape(region.bounds().getInfo()),
+            grid_crs=crs,
+            grid_scale=(scale, -scale),
+        )
+
         # extract the image as a xarray dataset
         ds = xarray.open_dataset(
             ee.ImageCollection([self._obj]),
             engine="ee",
-            crs=crs,
-            scale=scale,
-            geometry=region.bounds(),
             request_byte_limit=REQUEST_BYTE_LIMIT,
+            **grid_params,
         )
 
         # extract all the bands as dataarrays objects
-        # x and y coordinates need to be transposed to match imshow requirements
-        bands_da = [ds[b][0, :, :].transpose() for b in bands]
+        bands_da = [ds[b][0, :, :] for b in bands]
 
-        # compute the extend of the image so the unit displayed for x and y are matching the required crs
-        proj = Transformer.from_crs(CRS("EPSG:4326"), CRS(crs), always_xy=True)
-        region_bounds = region.bounds().coordinates().get(0).getInfo()
-        min_x, min_y = proj.transform(*region_bounds[0])
-        max_x, max_y = proj.transform(*region_bounds[2])
+        # derive the extent directly from the affine transform in grid_params
+        # crs_transform = (a, b, c, d, e, f) where c=x_origin, f=y_origin
+        a, b, c, d, e, f = grid_params["crs_transform"]
+        x_shape, y_shape = grid_params["shape_2d"]
+        x_min, y_max = c, f
+        x_max = c + a * x_shape
+        y_min = f + e * y_shape  # e is negative (north-up)
 
         # set the parameters that will be use for single and multi-band display
-        params = dict(extent=[min_x, max_x, min_y, max_y], origin="lower")
+        params = dict(extent=[x_min, x_max, y_min, y_max], origin="upper")
 
         # For single band image, we use the data array directly as source image
         # for multi band image, we need to stack the dataarrays to create a RGB image
@@ -1686,7 +1766,7 @@ class ImageAccessor:
         # region (the mean of the y range of bounding box) so that a long/lat square appears square in the
         # middle of the plot. This implies an Equirectangular projection.
         if CRS(crs).is_geographic:
-            y_coord = np.mean([min_y, max_y])
+            y_coord = (y_min + y_max) / 2
             ax.set_aspect(1 / np.cos(y_coord * np.pi / 180))
         else:
             ax.set_aspect("auto")

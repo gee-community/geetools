@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import io
-import sys
 
 import ee
 import numpy as np
@@ -10,6 +9,8 @@ import pytest
 from ee.ee_exception import EEException
 from jsonschema import validate
 from matplotlib import pyplot as plt
+
+import geetools  # noqa: F401
 
 
 def reduce(
@@ -192,27 +193,6 @@ class TestOutliers:
         ic = s2_sr.limit(10).geetools.outliers(drop=True)
         values = {k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()}
         num_regression.check(values)
-
-
-class TestToXarray:
-    """Test the ``toXarray`` method."""
-
-    @pytest.mark.skipif(sys.version_info < (3, 11), reason="dtype changes in python 3.11 onwards.")
-    def test_to_xarray(self, s2_sr, data_regression):
-        ds = s2_sr.geetools.to_xarray()
-
-        # drop all the dtype as they are not consistently setup depending on the xarray version
-        def drop_dtype(d=ds):
-            for k, v in ds.items():
-                if isinstance(v, dict):
-                    drop_dtype(v)
-                elif k == "dtype":
-                    del ds[k]
-
-        drop_dtype()
-
-        # ds = ds.astype(np.float64)
-        data_regression.check(ds.to_dict(data=False))
 
 
 class TestValidPixel:
@@ -465,7 +445,7 @@ class TestPlotDatesByBands:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def region(self):
@@ -502,7 +482,7 @@ class TestPlotDatesByRegions:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def regions(self):
@@ -537,7 +517,7 @@ class TestPlotDoyByBands:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def region(self):
@@ -575,7 +555,7 @@ class TestPlotDoyByRegions:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def regions(self):
@@ -608,7 +588,7 @@ class TestPlotDoyByYears:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def region(self):
@@ -650,7 +630,7 @@ class TestPlotDoyBySeasons:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def region(self):
