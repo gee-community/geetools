@@ -12,7 +12,9 @@ import xarray
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.colors import to_rgba
-from pyproj import CRS, Transformer
+from pyproj import CRS
+from shapely import geometry as sg
+from xee import helpers
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
@@ -921,7 +923,7 @@ class ImageAccessor:
                 image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
         return spectral_indices_impl(
-            img=self._obj,
+            src=self._obj,
             index=index,
             G=G,
             C1=C1,
@@ -1193,7 +1195,7 @@ class ImageAccessor:
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
                 sharp = source.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        return pan_sharpen_impl(img=self._obj, method=method, qa=qa, **kwargs)
+        return pan_sharpen_impl(src=self._obj, method=method, qa=qa, **kwargs)
 
     def tasseledCap(self) -> ee.Image:
         """Calculates tasseled cap brightness, wetness, and greenness components.
@@ -1715,28 +1717,34 @@ class ImageAccessor:
         if ax is None:
             fig, ax = plt.subplots()
 
+        # generate the grid params
+        grid_params = helpers.fit_geometry(
+            geometry=sg.shape(region.bounds().getInfo()),
+            grid_crs=crs,
+            grid_scale=(scale, -scale),
+        )
+
         # extract the image as a xarray dataset
         ds = xarray.open_dataset(
             ee.ImageCollection([self._obj]),
             engine="ee",
-            crs=crs,
-            scale=scale,
-            geometry=region.bounds(),
             request_byte_limit=REQUEST_BYTE_LIMIT,
+            **grid_params,
         )
 
         # extract all the bands as dataarrays objects
-        # x and y coordinates need to be transposed to match imshow requirements
-        bands_da = [ds[b][0, :, :].transpose() for b in bands]
+        bands_da = [ds[b][0, :, :] for b in bands]
 
-        # compute the extend of the image so the unit displayed for x and y are matching the required crs
-        proj = Transformer.from_crs(CRS("EPSG:4326"), CRS(crs), always_xy=True)
-        region_bounds = region.bounds().coordinates().get(0).getInfo()
-        min_x, min_y = proj.transform(*region_bounds[0])
-        max_x, max_y = proj.transform(*region_bounds[2])
+        # derive the extent directly from the affine transform in grid_params
+        # crs_transform = (a, b, c, d, e, f) where c=x_origin, f=y_origin
+        a, b, c, d, e, f = grid_params["crs_transform"]
+        x_shape, y_shape = grid_params["shape_2d"]
+        x_min, y_max = c, f
+        x_max = c + a * x_shape
+        y_min = f + e * y_shape  # e is negative (north-up)
 
         # set the parameters that will be use for single and multi-band display
-        params = dict(extent=[min_x, max_x, min_y, max_y], origin="lower")
+        params = dict(extent=[x_min, x_max, y_min, y_max], origin="upper")
 
         # For single band image, we use the data array directly as source image
         # for multi band image, we need to stack the dataarrays to create a RGB image
@@ -1760,7 +1768,7 @@ class ImageAccessor:
         # region (the mean of the y range of bounding box) so that a long/lat square appears square in the
         # middle of the plot. This implies an Equirectangular projection.
         if CRS(crs).is_geographic:
-            y_coord = np.mean([min_y, max_y])
+            y_coord = (y_min + y_max) / 2
             ax.set_aspect(1 / np.cos(y_coord * np.pi / 180))
         else:
             ax.set_aspect("auto")

@@ -1,0 +1,557 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          functionInvocationValue:
+            arguments:
+              distance:
+                constantValue: 100
+              geometry:
+                functionInvocationValue:
+                  arguments:
+                    coordinates:
+                      constantValue:
+                      - 12.4534
+                      - 41.9033
+                  functionName: GeometryConstructors.Point
+            functionName: Geometry.buffer
+        image:
+          functionInvocationValue:
+            arguments:
+              dstImg:
+                functionInvocationValue:
+                  arguments:
+                    dstImg:
+                      functionInvocationValue:
+                        arguments:
+                          dstImg:
+                            functionInvocationValue:
+                              arguments:
+                                dstImg:
+                                  functionInvocationValue:
+                                    arguments:
+                                      dstImg:
+                                        functionInvocationValue:
+                                          arguments:
+                                            dstImg:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  dstImg:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        dstImg:
+                                                          functionInvocationValue:
+                                                            arguments:
+                                                              dstImg:
+                                                                functionInvocationValue:
+                                                                  arguments:
+                                                                    dstImg:
+                                                                      functionInvocationValue:
+                                                                        arguments:
+                                                                          dstImg:
+                                                                            functionInvocationValue:
+                                                                              arguments:
+                                                                                dstImg:
+                                                                                  functionInvocationValue:
+                                                                                    arguments:
+                                                                                      dstImg:
+                                                                                        functionInvocationValue:
+                                                                                          arguments:
+                                                                                            dstImg:
+                                                                                              valueReference: '1'
+                                                                                            srcImg:
+                                                                                              functionInvocationValue:
+                                                                                                arguments:
+                                                                                                  input:
+                                                                                                    functionInvocationValue:
+                                                                                                      arguments:
+                                                                                                        image1:
+                                                                                                          valueReference: '8'
+                                                                                                        image2:
+                                                                                                          valueReference: '11'
+                                                                                                      functionName: Image.divide
+                                                                                                  names:
+                                                                                                    arrayValue:
+                                                                                                      values:
+                                                                                                      - valueReference: '12'
+                                                                                                functionName: Image.rename
+                                                                                          functionName: Image.addBands
+                                                                                      srcImg:
+                                                                                        functionInvocationValue:
+                                                                                          arguments:
+                                                                                            input:
+                                                                                              functionInvocationValue:
+                                                                                                arguments:
+                                                                                                  image1:
+                                                                                                    functionInvocationValue:
+                                                                                                      arguments:
+                                                                                                        image1:
+                                                                                                          valueReference: '8'
+                                                                                                        image2:
+                                                                                                          valueReference: '13'
+                                                                                                      functionName: Image.divide
+                                                                                                  image2:
+                                                                                                    functionInvocationValue:
+                                                                                                      arguments:
+                                                                                                        value:
+                                                                                                          constantValue: 2.5
+                                                                                                      functionName: Image.constant
+                                                                                                functionName: Image.multiply
+                                                                                            names:
+                                                                                              constantValue:
+                                                                                              - EVI
+                                                                                          functionName: Image.rename
+                                                                                    functionName: Image.addBands
+                                                                                srcImg:
+                                                                                  functionInvocationValue:
+                                                                                    arguments:
+                                                                                      input:
+                                                                                        functionInvocationValue:
+                                                                                          arguments:
+                                                                                            image1:
+                                                                                              functionInvocationValue:
+                                                                                                arguments:
+                                                                                                  image1:
+                                                                                                    valueReference: '8'
+                                                                                                  image2:
+                                                                                                    functionInvocationValue:
+                                                                                                      arguments:
+                                                                                                        image1:
+                                                                                                          valueReference: '11'
+                                                                                                        image2:
+                                                                                                          valueReference: '14'
+                                                                                                      functionName: Image.add
+                                                                                                functionName: Image.divide
+                                                                                            image2:
+                                                                                              functionInvocationValue:
+                                                                                                arguments:
+                                                                                                  value:
+                                                                                                    constantValue: 2.0
+                                                                                                functionName: Image.constant
+                                                                                          functionName: Image.multiply
+                                                                                      names:
+                                                                                        constantValue:
+                                                                                        - SAVI
+                                                                                    functionName: Image.rename
+                                                                              functionName: Image.addBands
+                                                                          srcImg:
+                                                                            functionInvocationValue:
+                                                                              arguments:
+                                                                                input:
+                                                                                  valueReference: '15'
+                                                                                names:
+                                                                                  constantValue:
+                                                                                  - NDII
+                                                                              functionName: Image.rename
+                                                                        functionName: Image.addBands
+                                                                    srcImg:
+                                                                      functionInvocationValue:
+                                                                        arguments:
+                                                                          input:
+                                                                            valueReference: '15'
+                                                                          names:
+                                                                            constantValue:
+                                                                            - NDMI
+                                                                        functionName: Image.rename
+                                                                  functionName: Image.addBands
+                                                              srcImg:
+                                                                functionInvocationValue:
+                                                                  arguments:
+                                                                    input:
+                                                                      valueReference: '17'
+                                                                    names:
+                                                                      constantValue:
+                                                                      - NDSI
+                                                                  functionName: Image.rename
+                                                            functionName: Image.addBands
+                                                        srcImg:
+                                                          functionInvocationValue:
+                                                            arguments:
+                                                              input:
+                                                                valueReference: '19'
+                                                              names:
+                                                                constantValue:
+                                                                - NDTI
+                                                            functionName: Image.rename
+                                                      functionName: Image.addBands
+                                                  srcImg:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        input:
+                                                          functionInvocationValue:
+                                                            arguments:
+                                                              image1:
+                                                                functionInvocationValue:
+                                                                  arguments:
+                                                                    image1:
+                                                                      valueReference: '9'
+                                                                    image2:
+                                                                      valueReference: '20'
+                                                                  functionName: Image.subtract
+                                                              image2:
+                                                                functionInvocationValue:
+                                                                  arguments:
+                                                                    image1:
+                                                                      valueReference: '9'
+                                                                    image2:
+                                                                      valueReference: '20'
+                                                                  functionName: Image.add
+                                                            functionName: Image.divide
+                                                        names:
+                                                          constantValue:
+                                                          - NBR
+                                                      functionName: Image.rename
+                                                functionName: Image.addBands
+                                            srcImg:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  input:
+                                                    valueReference: '19'
+                                                  names:
+                                                    constantValue:
+                                                    - NBR2
+                                                functionName: Image.rename
+                                          functionName: Image.addBands
+                                      srcImg:
+                                        functionInvocationValue:
+                                          arguments:
+                                            input:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  image1:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        image1:
+                                                          valueReference: '18'
+                                                        image2:
+                                                          valueReference: '9'
+                                                      functionName: Image.subtract
+                                                  image2:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        image1:
+                                                          valueReference: '18'
+                                                        image2:
+                                                          valueReference: '9'
+                                                      functionName: Image.add
+                                                functionName: Image.divide
+                                            names:
+                                              constantValue:
+                                              - NDWI
+                                          functionName: Image.rename
+                                    functionName: Image.addBands
+                                srcImg:
+                                  functionInvocationValue:
+                                    arguments:
+                                      input:
+                                        valueReference: '17'
+                                      names:
+                                        constantValue:
+                                        - MNDWI
+                                    functionName: Image.rename
+                              functionName: Image.addBands
+                          srcImg:
+                            functionInvocationValue:
+                              arguments:
+                                input:
+                                  functionInvocationValue:
+                                    arguments:
+                                      image1:
+                                        functionInvocationValue:
+                                          arguments:
+                                            image1:
+                                              valueReference: '16'
+                                            image2:
+                                              valueReference: '9'
+                                          functionName: Image.subtract
+                                      image2:
+                                        functionInvocationValue:
+                                          arguments:
+                                            image1:
+                                              valueReference: '16'
+                                            image2:
+                                              valueReference: '9'
+                                          functionName: Image.add
+                                    functionName: Image.divide
+                                names:
+                                  constantValue:
+                                  - NDBI
+                              functionName: Image.rename
+                        functionName: Image.addBands
+                    srcImg:
+                      functionInvocationValue:
+                        arguments:
+                          input:
+                            functionInvocationValue:
+                              arguments:
+                                image1:
+                                  valueReference: '16'
+                                image2:
+                                  valueReference: '9'
+                              functionName: Image.divide
+                          names:
+                            constantValue:
+                            - MSI
+                        functionName: Image.rename
+                  functionName: Image.addBands
+              srcImg:
+                functionInvocationValue:
+                  arguments:
+                    input:
+                      functionInvocationValue:
+                        arguments:
+                          image1:
+                            functionInvocationValue:
+                              arguments:
+                                image1:
+                                  valueReference: '9'
+                                image2:
+                                  valueReference: '18'
+                              functionName: Image.subtract
+                          image2:
+                            functionInvocationValue:
+                              arguments:
+                                image1:
+                                  valueReference: '9'
+                                image2:
+                                  valueReference: '18'
+                              functionName: Image.add
+                        functionName: Image.divide
+                    names:
+                      constantValue:
+                      - GNDVI
+                  functionName: Image.rename
+            functionName: Image.addBands
+        reducer:
+          functionInvocationValue:
+            arguments: {}
+            functionName: Reducer.mean
+        scale:
+          constantValue: 10
+      functionName: Image.reduceRegion
+  '1':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - constantValue: B1
+            - valueReference: '2'
+            - valueReference: '3'
+            - valueReference: '4'
+            - constantValue: B5
+            - constantValue: B6
+            - constantValue: B7
+            - valueReference: '5'
+            - constantValue: B8A
+            - constantValue: B9
+            - valueReference: '6'
+            - valueReference: '7'
+            - constantValue: SCL
+        input:
+          functionInvocationValue:
+            arguments:
+              id:
+                constantValue: COPERNICUS/S2_SR_HARMONIZED/20200101T100319_20200101T100321_T32TQM
+            functionName: Image.load
+      functionName: Image.select
+  '10':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '4'
+        input:
+          valueReference: '1'
+      functionName: Image.select
+  '11':
+    functionInvocationValue:
+      arguments:
+        image1:
+          valueReference: '9'
+        image2:
+          valueReference: '10'
+      functionName: Image.add
+  '12':
+    constantValue: NDVI
+  '13':
+    functionInvocationValue:
+      arguments:
+        image1:
+          functionInvocationValue:
+            arguments:
+              image1:
+                functionInvocationValue:
+                  arguments:
+                    image1:
+                      valueReference: '9'
+                    image2:
+                      functionInvocationValue:
+                        arguments:
+                          image1:
+                            valueReference: '10'
+                          image2:
+                            functionInvocationValue:
+                              arguments:
+                                value:
+                                  constantValue: 6
+                              functionName: Image.constant
+                        functionName: Image.multiply
+                  functionName: Image.add
+              image2:
+                functionInvocationValue:
+                  arguments:
+                    image1:
+                      functionInvocationValue:
+                        arguments:
+                          bandSelectors:
+                            arrayValue:
+                              values:
+                              - valueReference: '2'
+                          input:
+                            valueReference: '1'
+                        functionName: Image.select
+                    image2:
+                      functionInvocationValue:
+                        arguments:
+                          value:
+                            constantValue: 7.5
+                        functionName: Image.constant
+                  functionName: Image.multiply
+            functionName: Image.subtract
+        image2:
+          functionInvocationValue:
+            arguments:
+              value:
+                constantValue: 1
+            functionName: Image.constant
+      functionName: Image.add
+  '14':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 1.0
+      functionName: Image.constant
+  '15':
+    functionInvocationValue:
+      arguments:
+        image1:
+          functionInvocationValue:
+            arguments:
+              image1:
+                valueReference: '9'
+              image2:
+                valueReference: '16'
+            functionName: Image.subtract
+        image2:
+          functionInvocationValue:
+            arguments:
+              image1:
+                valueReference: '9'
+              image2:
+                valueReference: '16'
+            functionName: Image.add
+      functionName: Image.divide
+  '16':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '6'
+        input:
+          valueReference: '1'
+      functionName: Image.select
+  '17':
+    functionInvocationValue:
+      arguments:
+        image1:
+          functionInvocationValue:
+            arguments:
+              image1:
+                valueReference: '18'
+              image2:
+                valueReference: '16'
+            functionName: Image.subtract
+        image2:
+          functionInvocationValue:
+            arguments:
+              image1:
+                valueReference: '18'
+              image2:
+                valueReference: '16'
+            functionName: Image.add
+      functionName: Image.divide
+  '18':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '3'
+        input:
+          valueReference: '1'
+      functionName: Image.select
+  '19':
+    functionInvocationValue:
+      arguments:
+        image1:
+          functionInvocationValue:
+            arguments:
+              image1:
+                valueReference: '16'
+              image2:
+                valueReference: '20'
+            functionName: Image.subtract
+        image2:
+          functionInvocationValue:
+            arguments:
+              image1:
+                valueReference: '16'
+              image2:
+                valueReference: '20'
+            functionName: Image.add
+      functionName: Image.divide
+  '2':
+    constantValue: B2
+  '20':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '7'
+        input:
+          valueReference: '1'
+      functionName: Image.select
+  '3':
+    constantValue: B3
+  '4':
+    constantValue: B4
+  '5':
+    constantValue: B8
+  '6':
+    constantValue: B11
+  '7':
+    constantValue: B12
+  '8':
+    functionInvocationValue:
+      arguments:
+        image1:
+          valueReference: '9'
+        image2:
+          valueReference: '10'
+      functionName: Image.subtract
+  '9':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '5'
+        input:
+          valueReference: '1'
+      functionName: Image.select

@@ -1,11 +1,8 @@
 """Spectral indices calculations for Earth Engine images."""
 
-from typing import Any, Dict, List, TypeVar, Union
+from typing import Any, Dict, List, Union
 
 import ee
-
-ImageCollectionLike = TypeVar("ImageCollectionLike")
-ImageLike = TypeVar("ImageLike", ee.Image, ee.ImageCollection)
 
 # Common spectral indices definitions
 SPECTRAL_INDICES = {
@@ -38,30 +35,9 @@ SPECTRAL_INDICES = {
 
 # Platform-specific band mappings
 BAND_MAPPING = {
-    "LANDSAT/LC08": {
-        "BLUE": "B2",
-        "GREEN": "B3",
-        "RED": "B4",
-        "NIR": "B5",
-        "SWIR1": "B6",
-        "SWIR2": "B7",
-    },
-    "LANDSAT/LC09": {
-        "BLUE": "B2",
-        "GREEN": "B3",
-        "RED": "B4",
-        "NIR": "B5",
-        "SWIR1": "B6",
-        "SWIR2": "B7",
-    },
-    "COPERNICUS/S2": {
-        "BLUE": "B2",
-        "GREEN": "B3",
-        "RED": "B4",
-        "NIR": "B8",
-        "SWIR1": "B11",
-        "SWIR2": "B12",
-    },
+    "LANDSAT/LC08": {"BLUE": "B2", "GREEN": "B3", "RED": "B4", "NIR": "B5", "SWIR1": "B6", "SWIR2": "B7"},
+    "LANDSAT/LC09": {"BLUE": "B2", "GREEN": "B3", "RED": "B4", "NIR": "B5", "SWIR1": "B6", "SWIR2": "B7"},
+    "COPERNICUS/S2": {"BLUE": "B2", "GREEN": "B3", "RED": "B4", "NIR": "B8", "SWIR1": "B11", "SWIR2": "B12"},
     "COPERNICUS/S2_SR": {
         "BLUE": "B2",
         "GREEN": "B3",
@@ -74,16 +50,7 @@ BAND_MAPPING = {
 
 # Index categories
 CATEGORIES = {
-    "vegetation": [
-        "NDVI",
-        "EVI",
-        "SAVI",
-        "NDII",
-        "NDMI",
-        "GNDVI",
-        "MSI",
-        "NDTI",
-    ],
+    "vegetation": ["NDVI", "EVI", "SAVI", "NDII", "NDMI", "GNDVI", "MSI", "NDTI"],
     "burn": ["NBR", "NBR2"],
     "water": ["NDWI", "MNDWI"],
     "snow": ["NDSI"],
@@ -93,7 +60,7 @@ CATEGORIES = {
 
 
 def spectralIndices(
-    img: ImageLike,
+    src: Union[ee.Image, ee.ImageCollection],
     index: Union[str, List[str]] = "NDVI",
     G: float = 2.5,
     C1: float = 6.0,
@@ -120,175 +87,106 @@ def spectralIndices(
     online: bool = False,
     drop: bool = False,
     **kwargs: Any,
-) -> ImageLike:
-    """Compute spectral indices for an image or image collection.
-
-    Computes one or more spectral indices from the Awesome List of Spectral Indices.
-    Indices are added as new bands to the image.
-
-    Parameters:
-        img: Image or ImageCollection to compute indices on.
-        index: Index name or list of index names to compute. Can also be a category:
-               'vegetation', 'burn', 'water', 'snow', 'urban', or 'all'.
-        G: Gain factor for EVI. Default: 2.5
-        C1: Coefficient 1 for EVI. Default: 6.0
-        C2: Coefficient 2 for EVI. Default: 7.5
-        L: Canopy background adjustment for SAVI. Default: 1.0
-        drop: Whether to drop all bands except the new indices. Default: False
-        **kwargs: Additional keyword arguments (unused, for API compatibility)
-
-    Returns:
-        Image or ImageCollection with computed spectral indices as new bands.
-
-    Examples:
-        >>> import ee
-        >>> import geetools
-        >>> ee.Initialize()
-        >>> img = ee.Image('COPERNICUS/S2/20190828T151811_20190828T151809_T18GYT')
-        >>> with_indices = geetools.ee_extra_spectralindices.spectralIndices(
-        ...     img,
-        ...     index=['NDVI', 'EVI', 'NBR']
-        ... )
-    """
-    # Parse index input
+) -> Union[ee.Image, ee.ImageCollection]:
+    """Compute spectral indices for an image or image collection."""
     indices_to_compute = _get_indices_to_compute(index)
 
-    # Get dataset_id and band mapping ONCE, outside any mapped function
-    if isinstance(img, ee.imagecollection.ImageCollection):
-        collection_id = ee.String(img.get("system:id")).getInfo()
-        bands = _get_band_mapping(img.first(), collection_id)
-    else:
-        image_id = ee.String(img.get("system:id")).getInfo()
-        bands = _get_band_mapping(img, image_id)
+    is_image = isinstance(src, ee.image.Image)
+    ref = src if is_image else src.first()
+    dataset_id = ee.String(ref.get("system:id")).getInfo()
+    band_map = _get_band_mapping(dataset_id)
 
-    def compute_indices(test_img: ee.Image) -> ee.Image:
-        """Compute spectral indices for a single image."""
-        result = test_img
+    def compute_indices(img: ee.Image) -> ee.Image:
+        result = img
         for idx_name in indices_to_compute:
             if idx_name not in SPECTRAL_INDICES:
                 continue
-
-            idx_def = SPECTRAL_INDICES[idx_name]
-            formula = idx_def["formula"]
-
-            # Substitute band names with actual bands
-            band_expr = formula
-            for band_name, actual_band in bands.items():
-                # Create band reference
-                band_ref = f"(B('{actual_band}'))"
-                band_expr = band_expr.replace(band_name, band_ref)
-
-            # Add coefficient substitutions for special indices
-            band_expr = band_expr.replace("L", str(L))
-            band_expr = band_expr.replace("G", str(G))
-            band_expr = band_expr.replace("C1", str(C1))
-            band_expr = band_expr.replace("C2", str(C2))
-
-            # Evaluate expression
             try:
-                index_band = test_img.expression(
-                    band_expr, {band: test_img.select(bands[band.strip("B()'")]) for band in bands}
-                )
-                index_band = index_band.rename(idx_name)
-                result = result.addBands(index_band)
+                result = result.addBands(_compute_index_simple(img, idx_name, band_map, L))
             except Exception:
-                # Fallback: try simple band math for basic formulas
-                try:
-                    index_band = _compute_index_simple(test_img, idx_name, bands)
-                    result = result.addBands(index_band)
-                except Exception:
-                    continue
-
+                continue
         if drop:
-            # Keep only the original bands plus indices — server-side, no getInfo()
             index_names = [idx for idx in indices_to_compute if idx in SPECTRAL_INDICES]
-            result = result.select(test_img.bandNames().cat(ee.List(index_names)))
-
+            result = result.select(img.bandNames().cat(ee.List(index_names)))
         return result
 
-    if isinstance(img, ee.image.Image):
-        return compute_indices(img)
-    elif isinstance(img, ee.imagecollection.ImageCollection):
-        return img.map(compute_indices)
-    else:
-        raise TypeError("Input must be ee.Image or ee.ImageCollection")
+    if is_image:
+        return compute_indices(src)
+    return src.map(compute_indices)
 
 
 def _get_indices_to_compute(index: Union[str, List[str]]) -> List[str]:
     """Parse index input and return list of indices to compute."""
-    if isinstance(index, str):
-        if index in CATEGORIES:
-            return CATEGORIES[index]
-        elif index in SPECTRAL_INDICES:
-            return [index]
-        else:
-            return ["NDVI"]
-    elif isinstance(index, list):
+    if isinstance(index, list):
         return index
-    else:
-        return ["NDVI"]
+    return CATEGORIES.get(index, [index] if index in SPECTRAL_INDICES else ["NDVI"])
 
 
-def _get_band_mapping(img: ee.Image, dataset_id: str) -> Dict[str, str]:
-    """Get band names for the image based on dataset ID."""
-    # Try to find matching dataset
+def _get_band_mapping(dataset_id: str) -> Dict[str, str]:
+    """Get band names for the dataset based on dataset ID."""
     for key, mapping in BAND_MAPPING.items():
         if key in dataset_id:
             return mapping
-
-    # Default mapping (generic)
-    return {
-        "BLUE": "B2",
-        "GREEN": "B3",
-        "RED": "B4",
-        "NIR": "B8",
-        "SWIR1": "B11",
-        "SWIR2": "B12",
-    }
+    return {"BLUE": "B2", "GREEN": "B3", "RED": "B4", "NIR": "B8", "SWIR1": "B11", "SWIR2": "B12"}
 
 
-def _compute_index_simple(img: ee.Image, index_name: str, bands: Dict[str, str]) -> ee.Image:
-    """Compute index using simple band math."""
+def _compute_index_simple(img: ee.Image, index_name: str, bands: Dict[str, str], L: float = 1.0) -> ee.Image:
+    """Compute index using band math."""
     if index_name == "NDVI":
-        nir = img.select(bands["NIR"])
-        red = img.select(bands["RED"])
+        nir, red = img.select(bands["NIR"]), img.select(bands["RED"])
         return nir.subtract(red).divide(nir.add(red)).rename("NDVI")
 
     elif index_name == "EVI":
-        nir = img.select(bands["NIR"])
-        red = img.select(bands["RED"])
-        blue = img.select(bands["BLUE"])
+        nir, red, blue = img.select(bands["NIR"]), img.select(bands["RED"]), img.select(bands["BLUE"])
         return (
             nir.subtract(red)
-            .divide(nir.multiply(6).add(red).multiply(6).add(blue.multiply(7.5)).add(1))
+            .divide(nir.add(red.multiply(6)).subtract(blue.multiply(7.5)).add(1))
             .multiply(2.5)
             .rename("EVI")
         )
 
-    elif index_name == "NDMI" or index_name == "NDII":
-        nir = img.select(bands["NIR"])
-        swir1 = img.select(bands["SWIR1"])
+    elif index_name == "SAVI":
+        nir, red = img.select(bands["NIR"]), img.select(bands["RED"])
+        return nir.subtract(red).divide(nir.add(red).add(L)).multiply(1 + L).rename("SAVI")
+
+    elif index_name in ("NDMI", "NDII"):
+        nir, swir1 = img.select(bands["NIR"]), img.select(bands["SWIR1"])
         return nir.subtract(swir1).divide(nir.add(swir1)).rename(index_name)
 
     elif index_name == "NBR":
-        nir = img.select(bands["NIR"])
-        swir2 = img.select(bands["SWIR2"])
+        nir, swir2 = img.select(bands["NIR"]), img.select(bands["SWIR2"])
         return nir.subtract(swir2).divide(nir.add(swir2)).rename("NBR")
 
+    elif index_name == "NBR2":
+        swir1, swir2 = img.select(bands["SWIR1"]), img.select(bands["SWIR2"])
+        return swir1.subtract(swir2).divide(swir1.add(swir2)).rename("NBR2")
+
     elif index_name == "NDWI":
-        green = img.select(bands["GREEN"])
-        nir = img.select(bands["NIR"])
+        green, nir = img.select(bands["GREEN"]), img.select(bands["NIR"])
         return green.subtract(nir).divide(green.add(nir)).rename("NDWI")
 
     elif index_name == "MNDWI":
-        green = img.select(bands["GREEN"])
-        swir1 = img.select(bands["SWIR1"])
+        green, swir1 = img.select(bands["GREEN"]), img.select(bands["SWIR1"])
         return green.subtract(swir1).divide(green.add(swir1)).rename("MNDWI")
 
     elif index_name == "NDBI":
-        swir1 = img.select(bands["SWIR1"])
-        nir = img.select(bands["NIR"])
+        swir1, nir = img.select(bands["SWIR1"]), img.select(bands["NIR"])
         return swir1.subtract(nir).divide(swir1.add(nir)).rename("NDBI")
 
+    elif index_name == "NDSI":
+        green, swir1 = img.select(bands["GREEN"]), img.select(bands["SWIR1"])
+        return green.subtract(swir1).divide(green.add(swir1)).rename("NDSI")
+
+    elif index_name == "NDTI":
+        swir1, swir2 = img.select(bands["SWIR1"]), img.select(bands["SWIR2"])
+        return swir1.subtract(swir2).divide(swir1.add(swir2)).rename("NDTI")
+
+    elif index_name == "GNDVI":
+        nir, green = img.select(bands["NIR"]), img.select(bands["GREEN"])
+        return nir.subtract(green).divide(nir.add(green)).rename("GNDVI")
+
+    elif index_name == "MSI":
+        return img.select(bands["SWIR1"]).divide(img.select(bands["NIR"])).rename("MSI")
+
     else:
-        raise ValueError(f"Index {index_name} not supported in simple computation")
+        raise ValueError(f"Index {index_name} not supported")

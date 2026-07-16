@@ -233,7 +233,7 @@ class ImageCollectionAccessor:
                 image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
         return spectral_indices_impl(
-            img=self._obj,
+            src=self._obj,
             index=index,
             G=G,
             C1=C1,

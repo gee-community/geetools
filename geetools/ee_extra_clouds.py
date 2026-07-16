@@ -7,7 +7,7 @@ import ee
 
 
 def maskClouds(
-    x: Union[ee.Image, ee.ImageCollection],
+    src: Union[ee.Image, ee.ImageCollection],
     method: str = "cloud_prob",
     prob: Union[int, float] = 60,
     maskCirrus: bool = True,
@@ -21,7 +21,7 @@ def maskClouds(
     """Mask clouds and shadows in an image or image collection.
 
     Args:
-        x: Image or Image Collection to mask
+        src: Image or ImageCollection to mask
         method: Method used to mask clouds ('cloud_prob', 'cloud_score+', or 'qa')
         prob: Cloud probability threshold (0-100)
         maskCirrus: Whether to mask cirrus clouds
@@ -39,67 +39,52 @@ def maskClouds(
     if method not in valid_methods:
         raise Exception(f"'{method}' is not a valid method. Use one of {valid_methods}.")
 
-    asset_id = ee.String((x.first() if isinstance(x, ee.ImageCollection) else x).get("system:id")).getInfo()
+    is_image = isinstance(src, ee.image.Image)
+    col = ee.ImageCollection([src]) if is_image else src
+
+    asset_id = ee.String((src if is_image else src.first()).get("system:id")).getInfo()
     platform = ee.Asset(asset_id).parent.as_posix()
 
-    # Sentinel-2/3 cloud masking
     if "COPERNICUS/S2" in platform or "COPERNICUS/S3" in platform:
-        return _mask_s2_s3(
-            x, method, prob, maskCirrus, maskShadows, scaledImage, dark, cloudDist, buffer, cdi
+        result = _mask_s2_s3(
+            col, method, prob, maskCirrus, maskShadows, scaledImage, dark, cloudDist, buffer, cdi
         )
-    # Landsat cloud masking
     elif "LANDSAT" in platform:
-        return _mask_landsat(x, platform, maskShadows, maskCirrus)
-    # MODIS cloud masking
+        result = _mask_landsat(col, platform, maskShadows, maskCirrus)
     elif "MODIS" in platform:
-        return _mask_modis(x, platform, maskShadows, maskCirrus)
+        result = _mask_modis(col, platform, maskShadows, maskCirrus)
     else:
         warnings.warn("This platform is not supported for cloud masking.")
-        return x
+        return src
+
+    return result.first() if is_image else result
 
 
-def _mask_s2_s3(x, method, prob, maskCirrus, maskShadows, scaledImage, dark, cloudDist, buffer, cdi):
+def _mask_s2_s3(col, method, prob, maskCirrus, maskShadows, scaledImage, dark, cloudDist, buffer, cdi):
     """Mask clouds for Sentinel-2 and Sentinel-3."""
 
-    def cloud_prob(img):
-        """Mask using cloud probability."""
+    def cloud_prob_mask(img):
         clouds = ee.Image(img.get("cloud_mask")).select("probability")
-        is_cloud = clouds.gte(prob).rename("CLOUD_MASK")
-        return img.addBands(is_cloud)
+        return img.addBands(clouds.gte(prob).rename("CLOUD_MASK"))
 
-    def cloud_score_plus(img):
-        """Mask using cloud score+."""
-        clouds = img.select("cs_cdf")
-        is_cloud = clouds.lte(1 - (prob / 100)).rename("CLOUD_MASK")
-        return img.addBands(is_cloud)
+    def cloud_score_plus_mask(img):
+        return img.addBands(img.select("cs_cdf").lte(1 - (prob / 100)).rename("CLOUD_MASK"))
 
     def qa_mask(img):
-        """Mask using QA band."""
         qa = img.select("QA60")
-        cloud_bit_mask = 1 << 10
-        is_cloud = qa.bitwiseAnd(cloud_bit_mask).eq(0)
+        is_cloud = qa.bitwiseAnd(1 << 10).eq(0)
         if maskCirrus:
-            cirrus_bit_mask = 1 << 11
-            is_cloud = is_cloud.And(qa.bitwiseAnd(cirrus_bit_mask).eq(0))
-        is_cloud = is_cloud.Not().rename("CLOUD_MASK")
-        return img.addBands(is_cloud)
+            is_cloud = is_cloud.And(qa.bitwiseAnd(1 << 11).eq(0))
+        return img.addBands(is_cloud.Not().rename("CLOUD_MASK"))
 
     def cdi_mask(img):
-        """Mask using Cloud Displacement Index."""
         idx = img.get("system:index")
         s2_toa = ee.ImageCollection("COPERNICUS/S2").filter(ee.Filter.eq("system:index", idx)).first()
-        cdi_img = ee.Algorithms.Sentinel2.CDI(s2_toa)
-        is_cloud = cdi_img.lt(cdi).rename("CLOUD_MASK_CDI")
-        return img.addBands(is_cloud)
+        return img.addBands(ee.Algorithms.Sentinel2.CDI(s2_toa).lt(cdi).rename("CLOUD_MASK_CDI"))
 
     def get_shadows(img):
-        """Detect cloud shadows."""
         not_water = img.select("SCL").neq(6)
-        if not scaledImage:
-            dark_pixels = img.select("B8").lt(dark * 1e4).multiply(not_water)
-        else:
-            dark_pixels = img.select("B8").lt(dark).multiply(not_water)
-
+        dark_pixels = img.select("B8").lt(dark * 1e4 if not scaledImage else dark).multiply(not_water)
         shadow_azimuth = ee.Number(90).subtract(ee.Number(img.get("MEAN_SOLAR_AZIMUTH_ANGLE")))
         cloud_projection = img.select("CLOUD_MASK").directionalDistanceTransform(
             shadow_azimuth, cloudDist / 10
@@ -107,80 +92,52 @@ def _mask_s2_s3(x, method, prob, maskCirrus, maskShadows, scaledImage, dark, clo
         cloud_projection = (
             cloud_projection.reproject(crs=img.select(0).projection(), scale=10).select("distance").mask()
         )
-        is_shadow = cloud_projection.multiply(dark_pixels).rename("SHADOW_MASK")
-        return img.addBands(is_shadow)
+        return img.addBands(cloud_projection.multiply(dark_pixels).rename("SHADOW_MASK"))
 
     def clean_dilate(img):
-        """Dilate cloud and shadow masks."""
         is_cloud_shadow = img.select("CLOUD_MASK")
         if cdi is not None:
             is_cloud_shadow = is_cloud_shadow.And(img.select("CLOUD_MASK_CDI"))
         if maskShadows:
             is_cloud_shadow = is_cloud_shadow.add(img.select("SHADOW_MASK")).gt(0)
-        is_cloud_shadow = (
+        return img.addBands(
             is_cloud_shadow.focal_min(20, units="meters")
             .focal_max(buffer * 2 / 10, units="meters")
             .rename("CLOUD_SHADOW_MASK")
         )
-        return img.addBands(is_cloud_shadow)
 
     def apply_mask(img):
-        """Apply cloud/shadow mask."""
         return img.updateMask(img.select("CLOUD_SHADOW_MASK").Not())
 
-    # Apply masking based on method
-    if isinstance(x, ee.image.Image):
-        if method == "cloud_prob":
-            s2_clouds = ee.ImageCollection("COPERNICUS/S2_CLOUD_PROBABILITY")
-            filt = ee.Filter.equals(leftField="system:index", rightField="system:index")
-            s2_with_mask = ee.Join.saveFirst("cloud_mask").apply(ee.ImageCollection(x), s2_clouds, filt)
-            masked = ee.ImageCollection(s2_with_mask).map(cloud_prob).first()
-        elif method == "cloud_score+":
-            qa_band = "cs_cdf"
-            s2_clouds = ee.ImageCollection("GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED").select(qa_band)
-            s2_with_mask = ee.ImageCollection(x).linkCollection(s2_clouds, [qa_band])
-            masked = ee.ImageCollection(s2_with_mask).map(cloud_score_plus).first()
-        elif method == "qa":
-            masked = qa_mask(x)
+    if method == "cloud_prob":
+        s2_clouds = ee.ImageCollection("COPERNICUS/S2_CLOUD_PROBABILITY")
+        filt = ee.Filter.equals(leftField="system:index", rightField="system:index")
+        col = ee.ImageCollection(ee.Join.saveFirst("cloud_mask").apply(col, s2_clouds, filt)).map(
+            cloud_prob_mask
+        )
+    elif method == "cloud_score+":
+        qa_band = "cs_cdf"
+        s2_clouds = ee.ImageCollection("GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED").select(qa_band)
+        col = col.linkCollection(s2_clouds, [qa_band]).map(cloud_score_plus_mask)
+    elif method == "qa":
+        col = col.map(qa_mask)
 
-        if cdi is not None:
-            masked = cdi_mask(masked)
-        if maskShadows:
-            masked = get_shadows(masked)
-        masked = apply_mask(clean_dilate(masked))
-    else:
-        if method == "cloud_prob":
-            s2_clouds = ee.ImageCollection("COPERNICUS/S2_CLOUD_PROBABILITY")
-            filt = ee.Filter.equals(leftField="system:index", rightField="system:index")
-            s2_with_mask = ee.Join.saveFirst("cloud_mask").apply(x, s2_clouds, filt)
-            masked = ee.ImageCollection(s2_with_mask).map(cloud_prob)
-        elif method == "cloud_score+":
-            qa_band = "cs_cdf"
-            s2_clouds = ee.ImageCollection("GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED").select(qa_band)
-            s2_with_mask = x.linkCollection(s2_clouds, [qa_band])
-            masked = ee.ImageCollection(s2_with_mask).map(cloud_score_plus)
-        elif method == "qa":
-            masked = x.map(qa_mask)
+    if cdi is not None:
+        col = col.map(cdi_mask)
+    if maskShadows:
+        col = col.map(get_shadows)
 
-        if cdi is not None:
-            masked = masked.map(cdi_mask)
-        if maskShadows:
-            masked = masked.map(get_shadows)
-        masked = masked.map(clean_dilate).map(apply_mask)
-
-    return masked
+    return col.map(clean_dilate).map(apply_mask)
 
 
-def _mask_landsat(x, platform, maskShadows, maskCirrus):
+def _mask_landsat(col, platform, maskShadows, maskCirrus):
     """Mask clouds for Landsat products."""
-    # Determine which Landsat version and collection
     is_c2 = "C02" in platform or "C2" in platform
     is_l8_l9 = "LC08" in platform or "LC09" in platform
     is_l7 = "LE07" in platform
     is_l45 = "LT04" in platform or "LT05" in platform
 
     def mask_l8_l9_c2(img):
-        """Mask Landsat 8/9 Collection 2."""
         qa = img.select("QA_PIXEL")
         not_cloud = qa.bitwiseAnd(1 << 3).eq(0)
         if maskShadows:
@@ -190,7 +147,6 @@ def _mask_landsat(x, platform, maskShadows, maskCirrus):
         return img.updateMask(not_cloud)
 
     def mask_l457_c2(img):
-        """Mask Landsat 4/5/7 Collection 2."""
         qa = img.select("QA_PIXEL")
         not_cloud = qa.bitwiseAnd(1 << 3).eq(0)
         if maskShadows:
@@ -198,50 +154,35 @@ def _mask_landsat(x, platform, maskShadows, maskCirrus):
         return img.updateMask(not_cloud)
 
     def mask_l8_c1(img):
-        """Mask Landsat 8 Collection 1."""
         qa = img.select("pixel_qa")
-        clouds_bit_mask = 1 << 5
-        mask = qa.bitwiseAnd(clouds_bit_mask).eq(0)
+        not_cloud = qa.bitwiseAnd(1 << 5).eq(0)
         if maskShadows:
-            cloud_shadow_bit_mask = 1 << 3
-            mask = mask.And(qa.bitwiseAnd(cloud_shadow_bit_mask).eq(0))
-        return img.updateMask(mask)
+            not_cloud = not_cloud.And(qa.bitwiseAnd(1 << 3).eq(0))
+        return img.updateMask(not_cloud)
 
     def mask_l457_c1(img):
-        """Mask Landsat 4/5/7 Collection 1."""
         qa = img.select("pixel_qa")
         cloud = qa.bitwiseAnd(1 << 5).And(qa.bitwiseAnd(1 << 7))
         if maskShadows:
             cloud = cloud.Or(qa.bitwiseAnd(1 << 3))
-        mask2 = img.mask().reduce(ee.Reducer.min())
-        return img.updateMask(cloud.Not()).updateMask(mask2)
+        return img.updateMask(cloud.Not()).updateMask(img.mask().reduce(ee.Reducer.min()))
 
-    if isinstance(x, ee.image.Image):
-        if is_c2 and (is_l8_l9 or is_l7):
-            return mask_l8_l9_c2(x) if is_l8_l9 else mask_l457_c2(x)
-        elif is_c2 and is_l45:
-            return mask_l457_c2(x)
-        elif is_l8_l9:
-            return mask_l8_c1(x)
-        else:
-            return mask_l457_c1(x)
+    if is_c2 and (is_l8_l9 or is_l7):
+        mask_func = mask_l8_l9_c2 if is_l8_l9 else mask_l457_c2
+    elif is_c2 and is_l45:
+        mask_func = mask_l457_c2
+    elif is_l8_l9:
+        mask_func = mask_l8_c1
     else:
-        if is_c2 and (is_l8_l9 or is_l7):
-            mask_func = mask_l8_l9_c2 if is_l8_l9 else mask_l457_c2
-        elif is_c2 and is_l45:
-            mask_func = mask_l457_c2
-        elif is_l8_l9:
-            mask_func = mask_l8_c1
-        else:
-            mask_func = mask_l457_c1
-        return x.map(mask_func)
+        mask_func = mask_l457_c1
+
+    return col.map(mask_func)
 
 
-def _mask_modis(x, platform, maskShadows, maskCirrus):
+def _mask_modis(col, platform, maskShadows, maskCirrus):
     """Mask clouds for MODIS products."""
 
     def mask_mod09ga(img):
-        """Mask MOD09GA."""
         qa = img.select("state_1km")
         not_cloud = qa.bitwiseAnd(1 << 0).eq(0)
         if maskShadows:
@@ -251,7 +192,6 @@ def _mask_modis(x, platform, maskShadows, maskCirrus):
         return img.updateMask(not_cloud)
 
     def mask_mod09q1(img):
-        """Mask MOD09Q1."""
         qa = img.select("State")
         not_cloud = qa.bitwiseAnd(1 << 0).eq(0)
         if maskShadows:
@@ -261,41 +201,26 @@ def _mask_modis(x, platform, maskShadows, maskCirrus):
         return img.updateMask(not_cloud)
 
     def mask_mod13(img):
-        """Mask MOD13."""
-        qa = img.select("SummaryQA")
-        not_cloud = qa.eq(0)
-        return img.updateMask(not_cloud)
+        return img.updateMask(img.select("SummaryQA").eq(0))
 
-    def mask_mod17_mod16(img):
-        """Mask MOD17A2H and MOD16A2."""
-        if "MOD17" in platform:
-            qa = img.select("Psn_QC")
-        else:
-            qa = img.select("ET_QC")
-        not_cloud = qa.bitwiseAnd(1 << 3).eq(0)
-        return img.updateMask(not_cloud)
+    def mask_mod17(img):
+        return img.updateMask(img.select("Psn_QC").bitwiseAnd(1 << 3).eq(0))
 
-    if isinstance(x, ee.image.Image):
-        if "MOD09GA" in platform or "MYD09GA" in platform:
-            return mask_mod09ga(x)
-        elif "MOD09Q1" in platform or "MYD09Q1" in platform or "MOD09A1" in platform or "MYD09A1" in platform:
-            return mask_mod09q1(x)
-        elif "MOD13" in platform or "MYD13" in platform:
-            return mask_mod13(x)
-        elif "MOD17" in platform or "MYD17" in platform or "MOD16" in platform or "MYD16" in platform:
-            return mask_mod17_mod16(x)
-        else:
-            warnings.warn("This MODIS platform is not supported for cloud masking.")
-            return x
+    def mask_mod16(img):
+        return img.updateMask(img.select("ET_QC").bitwiseAnd(1 << 3).eq(0))
+
+    if "MOD09GA" in platform or "MYD09GA" in platform:
+        mask_func = mask_mod09ga
+    elif any(p in platform for p in ["MOD09Q1", "MYD09Q1", "MOD09A1", "MYD09A1"]):
+        mask_func = mask_mod09q1
+    elif "MOD13" in platform or "MYD13" in platform:
+        mask_func = mask_mod13
+    elif "MOD17" in platform or "MYD17" in platform:
+        mask_func = mask_mod17
+    elif "MOD16" in platform or "MYD16" in platform:
+        mask_func = mask_mod16
     else:
-        if "MOD09GA" in platform or "MYD09GA" in platform:
-            return x.map(mask_mod09ga)
-        elif "MOD09Q1" in platform or "MYD09Q1" in platform or "MOD09A1" in platform or "MYD09A1" in platform:
-            return x.map(mask_mod09q1)
-        elif "MOD13" in platform or "MYD13" in platform:
-            return x.map(mask_mod13)
-        elif "MOD17" in platform or "MYD17" in platform or "MOD16" in platform or "MYD16" in platform:
-            return x.map(mask_mod17_mod16)
-        else:
-            warnings.warn("This MODIS platform is not supported for cloud masking.")
-            return x
+        warnings.warn("This MODIS platform is not supported for cloud masking.")
+        return col
+
+    return col.map(mask_func)
