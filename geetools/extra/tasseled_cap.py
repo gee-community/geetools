@@ -141,7 +141,7 @@ MODIS_NBAR = {
 }
 
 # Platform to coefficients mapping
-PLATFORM_COEFFICIENTS = {
+PLATFORM_COEFFICIENTS: dict = {
     # Sentinel-2
     "COPERNICUS/S2": SENTINEL2_1C,
     "COPERNICUS/S2_HARMONIZED": SENTINEL2_1C,
