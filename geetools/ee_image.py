@@ -19,10 +19,8 @@ from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
 from .constants import EE_CATALOG_SCALE_OFFSET_URL
-from .ee_extra_clouds import maskClouds as mask_clouds_impl
-from .ee_extra_pansharpen import panSharpen as pan_sharpen_impl
-from .ee_extra_spectralindices import spectralIndices as spectral_indices_impl
-from .ee_extra_tasseled_cap import PLATFORM_COEFFICIENTS
+from .extra import clouds, pan_sharpen, spectral_indices
+from .extra.tasseled_cap import PLATFORM_COEFFICIENTS
 from .utils import area_units_to_m2, format_class_info, plot_data
 
 
@@ -922,7 +920,7 @@ class ImageAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
-        return spectral_indices_impl(
+        return spectral_indices.spectralIndices(
             src=self._obj,
             index=index,
             G=G,
@@ -1195,7 +1193,7 @@ class ImageAccessor:
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
                 sharp = source.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        return pan_sharpen_impl(src=self._obj, method=method, qa=qa, **kwargs)
+        return pan_sharpen.panSharpen(src=self._obj, method=method, qa=qa, **kwargs)
 
     def tasseledCap(self) -> ee.Image:
         """Calculates tasseled cap brightness, wetness, and greenness components.
@@ -1431,7 +1429,7 @@ class ImageAccessor:
                     .geetools.maskClouds(prob = 75,buffer = 300,cdi = -0.5)
                 )
         """
-        return mask_clouds_impl(
+        return clouds.maskClouds(
             self._obj,
             method,
             prob,

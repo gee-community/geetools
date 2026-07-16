@@ -13,10 +13,8 @@ from matplotlib.axes import Axes
 
 from .accessors import register_class_accessor
 from .constants import EE_CATALOG_SCALE_OFFSET_URL
-from .ee_extra_clouds import maskClouds as mask_clouds_impl
-from .ee_extra_pansharpen import panSharpen as pan_sharpen_impl
-from .ee_extra_spectralindices import spectralIndices as spectral_indices_impl
-from .ee_extra_tasseled_cap import PLATFORM_COEFFICIENTS
+from .extra import clouds, pan_sharpen, spectral_indices
+from .extra.tasseled_cap import PLATFORM_COEFFICIENTS
 from .utils import plot_data
 
 PY_DATE_FORMAT = "%Y-%m-%dT%H-%M-%S"
@@ -83,7 +81,7 @@ class ImageCollectionAccessor:
                 )
 
         """
-        return mask_clouds_impl(
+        return clouds.maskClouds(
             self._obj,
             method,
             prob,
@@ -232,7 +230,7 @@ class ImageCollectionAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
-        return spectral_indices_impl(
+        return spectral_indices.spectralIndices(
             src=self._obj,
             index=index,
             G=G,
@@ -368,7 +366,7 @@ class ImageCollectionAccessor:
                 ee.Initialize()
                 S2 = ee.ImageCollection('COPERNICUS/S2_SR').preprocess()
         """
-        masked = mask_clouds_impl(
+        masked = clouds.maskClouds(
             self._obj,
             **{
                 "method": kwargs.get("method", "cloud_prob"),
@@ -489,7 +487,7 @@ class ImageCollectionAccessor:
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
                 sharp = source.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        return self._obj.map(lambda img: pan_sharpen_impl(img, method=method, qa=qa or None, **kwargs))
+        return self._obj.map(lambda img: pan_sharpen.panSharpen(img, method=method, qa=qa or None, **kwargs))
 
     def tasseledCap(self) -> ee.ImageCollection:
         """Calculates tasseled cap brightness, wetness, and greenness components for all images in the collection.
