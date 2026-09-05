@@ -1700,6 +1700,7 @@ class ImageAccessor:
             crs: The coordinate reference system of the image. By default, we will use ``"EPSG:4326"``
             scale: The scale of the image.
             color: The color of the overlaid feature collection. Default is ``k`` (black).
+            discrete: Whether to use a discrete colormap for single band images. Default is ``False``.
 
         Examples:
             .. code-block:: python
@@ -1754,7 +1755,8 @@ class ImageAccessor:
             data = bands_da[0]
             if not discrete:
                 ax.imshow(data, cmap=cmap, **params)
-
+            # if discrete is True, we need to create a colormap manually
+            # and use the unique values in the data as labels
             else:
                 labels = np.unique(data).astype(int)
                 data_idx = np.zeros_like(data, dtype=int)
