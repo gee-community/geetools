@@ -92,12 +92,20 @@ class Profiler:
             else desc,  # Description can have multiple words
         }
 
+        # The default splitting splits the description and only takes
+        # the first word so we need to join the trailing words dropped by the zip.
+        fix_description = False
+        if headers[-1] == "Description":
+            fix_description = True
         # Process each line of data after the header
         for line in lines[1:]:
             # Split the line by spaces, considering multiple spaces as a separator
             # Handle missing values denoted by "-"
             parts = line.split()
             part_result = dict(zip(headers, parts))
+
+            if fix_description:
+                part_result["Description"] = " ".join(parts[len(headers) - 1 :])
             # Populate the dictionary with values for each column
             for head in headers:
                 result[head].append(process[head](part_result[head]))
