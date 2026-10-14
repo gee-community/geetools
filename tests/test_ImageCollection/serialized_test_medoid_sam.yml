@@ -28,12 +28,12 @@ values:
                             functionDefinitionValue:
                               argumentNames:
                               - _MAPPING_VAR_1_0
-                              body: '5'
+                              body: '3'
                           collection:
                             valueReference: '2'
                         functionName: Collection.map
                     qualityBand:
-                      valueReference: '8'
+                      valueReference: '6'
                   functionName: ImageCollection.qualityMosaic
             functionName: Image.select
         scale:
@@ -42,12 +42,12 @@ values:
   '1':
     functionInvocationValue:
       arguments:
+        distance:
+          constantValue: 1000
         geometry:
           functionInvocationValue:
             arguments:
-              distance:
-                constantValue: 1000
-              geometry:
+              feature:
                 functionInvocationValue:
                   arguments:
                     collection:
@@ -68,46 +68,10 @@ values:
                                   constantValue: Holy See
                               functionName: Filter.equals
                         functionName: Collection.filter
-                  functionName: Collection.geometry
-            functionName: Geometry.buffer
-      functionName: Geometry.bounds
+                  functionName: Collection.first
+            functionName: Feature.geometry
+      functionName: Geometry.buffer
   '2':
-    functionInvocationValue:
-      arguments:
-        collection1:
-          functionInvocationValue:
-            arguments:
-              collection:
-                valueReference: '3'
-              filter:
-                functionInvocationValue:
-                  arguments:
-                    filter:
-                      functionInvocationValue:
-                        arguments:
-                          leftField:
-                            valueReference: '4'
-                          rightValue:
-                            constantValue: 10
-                        functionName: Filter.greaterThan
-                  functionName: Filter.not
-            functionName: Collection.filter
-        collection2:
-          functionInvocationValue:
-            arguments:
-              collection:
-                valueReference: '3'
-              filter:
-                functionInvocationValue:
-                  arguments:
-                    leftField:
-                      valueReference: '4'
-                    rightValue:
-                      constantValue: 85
-                  functionName: Filter.greaterThan
-            functionName: Collection.filter
-      functionName: ImageCollection.merge
-  '3':
     functionInvocationValue:
       arguments:
         collection:
@@ -116,9 +80,25 @@ values:
               collection:
                 functionInvocationValue:
                   arguments:
-                    id:
-                      constantValue: COPERNICUS/S2_SR_HARMONIZED
-                  functionName: ImageCollection.load
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          id:
+                            constantValue: COPERNICUS/S2_SR_HARMONIZED
+                        functionName: ImageCollection.load
+                    filter:
+                      functionInvocationValue:
+                        arguments:
+                          leftField:
+                            constantValue: .all
+                          rightValue:
+                            functionInvocationValue:
+                              arguments:
+                                geometry:
+                                  valueReference: '1'
+                              functionName: Feature
+                        functionName: Filter.intersects
+                  functionName: Collection.filter
               filter:
                 functionInvocationValue:
                   arguments:
@@ -126,9 +106,9 @@ values:
                       functionInvocationValue:
                         arguments:
                           end:
-                            constantValue: '2021-10-01'
+                            constantValue: '2021-03-15'
                           start:
-                            constantValue: '2021-09-01'
+                            constantValue: '2021-01-01'
                         functionName: DateRange
                     rightField:
                       constantValue: system:time_start
@@ -138,18 +118,12 @@ values:
           functionInvocationValue:
             arguments:
               leftField:
-                constantValue: .all
+                constantValue: CLOUD_COVERAGE_ASSESSMENT
               rightValue:
-                functionInvocationValue:
-                  arguments:
-                    geometry:
-                      valueReference: '1'
-                  functionName: Feature
-            functionName: Filter.intersects
+                constantValue: 20
+            functionName: Filter.lessThan
       functionName: Collection.filter
-  '4':
-    constantValue: CLOUD_COVERAGE_ASSESSMENT
-  '5':
+  '3':
     functionInvocationValue:
       arguments:
         dstImg:
@@ -167,7 +141,7 @@ values:
                             functionDefinitionValue:
                               argumentNames:
                               - _MAPPING_VAR_0_0
-                              body: '6'
+                              body: '4'
                           collection:
                             valueReference: '2'
                         functionName: Collection.map
@@ -179,10 +153,10 @@ values:
               names:
                 arrayValue:
                   values:
-                  - valueReference: '8'
+                  - valueReference: '6'
             functionName: Image.rename
       functionName: Image.addBands
-  '6':
+  '4':
     functionInvocationValue:
       arguments:
         image1:
@@ -192,7 +166,7 @@ values:
                 functionInvocationValue:
                   arguments:
                     bandSelectors:
-                      valueReference: '7'
+                      valueReference: '5'
                     input:
                       argumentReference: _MAPPING_VAR_1_0
                   functionName: Image.select
@@ -200,7 +174,7 @@ values:
                 functionInvocationValue:
                   arguments:
                     bandSelectors:
-                      valueReference: '7'
+                      valueReference: '5'
                     input:
                       argumentReference: _MAPPING_VAR_0_0
                   functionName: Image.select
@@ -214,13 +188,19 @@ values:
                 constantValue: -1
             functionName: Image.constant
       functionName: Image.multiply
-  '7':
+  '5':
     constantValue:
+    - B1
     - B2
     - B3
     - B4
+    - B5
+    - B6
+    - B7
     - B8
+    - B8A
+    - B9
     - B11
     - B12
-  '8':
-    constantValue: geetools_medoid_band
+  '6':
+    constantValue: geetools_sum_of_distances
