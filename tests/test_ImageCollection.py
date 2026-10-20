@@ -368,12 +368,35 @@ class TestClosestDate:
 class TestMedoid:
     """Test the ``medoid`` method."""
 
-    def test_medoid(self, s2_sr, amazonas, num_regression):
-        # we need less images as the test will fail otherwise
-        medoid = s2_sr.filterDate("2021-01-01", "2021-01-05").geetools.medoid()
-        values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
-        values = {k: np.nan if v is None else v for k, v in values.items()}
-        num_regression.check(values)
+    def test_medoid_sam(self, vatican, ee_image_regression):
+        roi = ee.Feature(vatican.first()).geometry().buffer(1000)
+        col = (
+            ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .filterBounds(roi)
+            .filterDate("2021-01-01", "2021-03-15")
+            .filter(ee.Filter.lt("CLOUD_COVERAGE_ASSESSMENT", 20))
+        )
+        medoid = col.geetools.medoid(
+            metric="sam", bands=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B11", "B12"]
+        )
+        ee_image_regression.check(
+            medoid, region=roi, viz_params={"bands": ["B4", "B3", "B2"], "min": 0, "max": 3000}, scale=10
+        )
+
+    def test_medoid_sed(self, vatican, ee_image_regression):
+        roi = ee.Feature(vatican.first()).geometry().buffer(1000)
+        col = (
+            ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .filterBounds(roi)
+            .filterDate("2021-01-01", "2021-03-15")
+            .filter(ee.Filter.lt("CLOUD_COVERAGE_ASSESSMENT", 20))
+        )
+        medoid = col.geetools.medoid(
+            metric="sed", bands=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B11", "B12"]
+        )
+        ee_image_regression.check(
+            medoid, region=roi, viz_params={"bands": ["B4", "B3", "B2"], "min": 0, "max": 3000}, scale=10
+        )
 
 
 class TestSortMany:
