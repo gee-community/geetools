@@ -1,0 +1,206 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          valueReference: '1'
+        input:
+          functionInvocationValue:
+            arguments:
+              bandSelectors:
+                functionInvocationValue:
+                  arguments:
+                    image:
+                      functionInvocationValue:
+                        arguments:
+                          collection:
+                            valueReference: '2'
+                        functionName: Collection.first
+                  functionName: Image.bandNames
+              input:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          baseAlgorithm:
+                            functionDefinitionValue:
+                              argumentNames:
+                              - _MAPPING_VAR_1_0
+                              body: '3'
+                          collection:
+                            valueReference: '2'
+                        functionName: Collection.map
+                    qualityBand:
+                      valueReference: '6'
+                  functionName: ImageCollection.qualityMosaic
+            functionName: Image.select
+        scale:
+          constantValue: 10
+      functionName: Image.clipToBoundsAndScale
+  '1':
+    functionInvocationValue:
+      arguments:
+        distance:
+          constantValue: 1000
+        geometry:
+          functionInvocationValue:
+            arguments:
+              feature:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          collection:
+                            functionInvocationValue:
+                              arguments:
+                                tableId:
+                                  constantValue: FAO/GAUL/2015/level0
+                              functionName: Collection.loadTable
+                          filter:
+                            functionInvocationValue:
+                              arguments:
+                                leftField:
+                                  constantValue: ADM0_NAME
+                                rightValue:
+                                  constantValue: Holy See
+                              functionName: Filter.equals
+                        functionName: Collection.filter
+                  functionName: Collection.first
+            functionName: Feature.geometry
+      functionName: Geometry.buffer
+  '2':
+    functionInvocationValue:
+      arguments:
+        collection:
+          functionInvocationValue:
+            arguments:
+              collection:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          id:
+                            constantValue: COPERNICUS/S2_SR_HARMONIZED
+                        functionName: ImageCollection.load
+                    filter:
+                      functionInvocationValue:
+                        arguments:
+                          leftField:
+                            constantValue: .all
+                          rightValue:
+                            functionInvocationValue:
+                              arguments:
+                                geometry:
+                                  valueReference: '1'
+                              functionName: Feature
+                        functionName: Filter.intersects
+                  functionName: Collection.filter
+              filter:
+                functionInvocationValue:
+                  arguments:
+                    leftValue:
+                      functionInvocationValue:
+                        arguments:
+                          end:
+                            constantValue: '2021-03-15'
+                          start:
+                            constantValue: '2021-01-01'
+                        functionName: DateRange
+                    rightField:
+                      constantValue: system:time_start
+                  functionName: Filter.dateRangeContains
+            functionName: Collection.filter
+        filter:
+          functionInvocationValue:
+            arguments:
+              leftField:
+                constantValue: CLOUD_COVERAGE_ASSESSMENT
+              rightValue:
+                constantValue: 20
+            functionName: Filter.lessThan
+      functionName: Collection.filter
+  '3':
+    functionInvocationValue:
+      arguments:
+        dstImg:
+          argumentReference: _MAPPING_VAR_1_0
+        srcImg:
+          functionInvocationValue:
+            arguments:
+              input:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          baseAlgorithm:
+                            functionDefinitionValue:
+                              argumentNames:
+                              - _MAPPING_VAR_0_0
+                              body: '4'
+                          collection:
+                            valueReference: '2'
+                        functionName: Collection.map
+                    reducer:
+                      functionInvocationValue:
+                        arguments: {}
+                        functionName: Reducer.sum
+                  functionName: ImageCollection.reduce
+              names:
+                arrayValue:
+                  values:
+                  - valueReference: '6'
+            functionName: Image.rename
+      functionName: Image.addBands
+  '4':
+    functionInvocationValue:
+      arguments:
+        image1:
+          functionInvocationValue:
+            arguments:
+              image1:
+                functionInvocationValue:
+                  arguments:
+                    bandSelectors:
+                      valueReference: '5'
+                    input:
+                      argumentReference: _MAPPING_VAR_1_0
+                  functionName: Image.select
+              image2:
+                functionInvocationValue:
+                  arguments:
+                    bandSelectors:
+                      valueReference: '5'
+                    input:
+                      argumentReference: _MAPPING_VAR_0_0
+                  functionName: Image.select
+              metric:
+                constantValue: sed
+            functionName: Image.spectralDistance
+        image2:
+          functionInvocationValue:
+            arguments:
+              value:
+                constantValue: -1
+            functionName: Image.constant
+      functionName: Image.multiply
+  '5':
+    constantValue:
+    - B1
+    - B2
+    - B3
+    - B4
+    - B5
+    - B6
+    - B7
+    - B8
+    - B8A
+    - B9
+    - B11
+    - B12
+  '6':
+    constantValue: geetools_sum_of_distances

@@ -1136,11 +1136,22 @@ class ImageCollectionAccessor:
 
         return ee.ImageCollection(imageList)
 
-    def medoid(self) -> ee.Image:
+    def medoid(self, bands: list | None = None, metric: str = "sam") -> ee.Image:
         """Compute the medoid of the :py:class:`ee.ImageCollection`.
 
         The medoid is the image that has the smallest sum of distances to all other images in the collection.
-        The distance is computed using the Euclidean distance between the pixels of the images.
+        The distance is computed pixelwise using the selected spectral distance metric.
+        No band normalization is applied internally, so the result depends on the scale of the
+        selected bands. In practice, this means inputs should already be on a meaningful and
+        comparable scale, for example reflectance bands after applying scale and offset factors.
+
+        Args:
+            bands: The list of bands to consider when computing the medoid. Defaults to None, which uses all bands.
+            metric: The spectral distance metric to use. One of ``"sam"`` (spectral angle mapper),
+                ``"sid"`` (spectral information divergence), ``"sed"`` (squared Euclidean distance),
+                or ``"emd"`` (earth movers distance). Defaults to ``"sam"``. ``"sam"`` is often a
+                good default for spectral composites because it emphasizes spectral shape over magnitude,
+                while magnitude-based metrics such as ``"sed"`` are more sensitive to band scaling.
 
         Returns:
             An Image that is the medoid of the :py:class:`ee.ImageCollection`.
@@ -1162,42 +1173,32 @@ class ImageCollectionAccessor:
                 print(medoid.getInfo())
         """
         # create a random name for the sum of distances band to avoid conflicts
-        sumOfDistancesName = uuid.uuid4().hex
+        sumOfDistancesName = "geetools_sum_of_distances"
 
         # discover bandname from the first image of the collection
-        bandNames = self._obj.first().bandNames()
+        originalBandNames = self._obj.first().bandNames()
+        bandNames = ee.List(bands or originalBandNames)
 
-        # normalize the band used to compute the distance
-        # first extract the min and max value of each band pixelwizse along the stac and then
-        # normalize the pixel values.
-        minMax = self._obj.reduce(ee.Reducer.minMax())
-
-        def normalizeBands(image):
-            def normalizeBand(bandName):
-                band = image.select([bandName])
-                bandMin = minMax.select(ee.String(bandName).cat("_min"))
-                bandMax = minMax.select(ee.String(bandName).cat("_max"))
-                return band.subtract(bandMin).divide(bandMax.subtract(bandMin))
-
-            return ee.ImageCollection(bandNames.map(normalizeBand)).toBands().rename(bandNames)
-
-        normalized = self._obj.map(normalizeBands)
+        collection = self._obj
 
         # compute the distance between each image and all the others
         def computeSumDistance(image):
             def computeDistance(other):
-                return image.subtract(other).pow(2).reduce(ee.Reducer.sum()).sqrt()
+                other = other.select(bandNames)
+                distance = image.select(bandNames).spectralDistance(other, metric=metric)
+                # multiply by -1 to invert the distance so that smaller distances become larger values for quality mosaic
+                return distance.multiply(-1)
 
-            sumDistances = normalized.map(computeDistance).reduce(ee.Reducer.sum())
+            sumDistances = collection.map(computeDistance).reduce(ee.Reducer.sum())
             return image.addBands(sumDistances.rename(sumOfDistancesName))
 
-        sumDistance = normalized.map(computeSumDistance)
+        sumDistance = collection.map(computeSumDistance)
 
         # use the computed sum of distances as a sorting band for a quality mossaic
         # to get the image with the smallest sum of distances
         medoid = sumDistance.qualityMosaic(sumOfDistancesName)
 
-        return ee.Image(medoid).select(bandNames)
+        return ee.Image(medoid).select(originalBandNames)
 
     def sortMany(
         self, properties: ee.List | list, ascending: ee.List | list | None = None
