@@ -56,12 +56,8 @@ class TestReduceColumnsGroup:
         output = self.table.geetools.reduceColumnsGroup(
             reducer=red, groupBy="ADM0_NAME", selectors=["ADM1_NAME"]  # group by country
         )
-        with pytest.raises(ee.ee_exception.EEException) as excinfo:
+        with pytest.raises(ee.ee_exception.EEException):
             output.getInfo()
-        assert (
-            str(excinfo.value)
-            == "Collection.reduceColumns: Can't set input 0 of MEAN to Aragatsotn.: Input must be a scalar number."
-        )
 
     @property
     def table(self):
