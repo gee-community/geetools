@@ -33,6 +33,39 @@ class TestToImage:
         return ee.Geometry.Point([12.453386, 41.903282]).buffer(1)
 
 
+class TestReduceColumnsGroup:
+    """Test the ``reduceColumnsGroup`` method."""
+
+    def test_reduce_columns_group(self, data_regression):
+        red = ee.Reducer.mean().combine(ee.Reducer.sum(), sharedInputs=True)
+        output = self.table.geetools.reduceColumnsGroup(
+            reducer=red, groupBy="ADM0_NAME", selectors=["Shape_Area"]  # group by country
+        )
+        data_regression.check(output.getInfo())
+
+    def test_reduce_columns_group_custom_output(self, data_regression):
+        red = ee.Reducer.mean().combine(ee.Reducer.sum(), sharedInputs=True)
+        red = red.setOutputs(["average_km2", "sum_km2"])
+        output = self.table.geetools.reduceColumnsGroup(
+            reducer=red, groupBy="ADM0_NAME", selectors=["Shape_Area"]  # group by country
+        )
+        data_regression.check(output.getInfo())
+
+    def test_reduce_columns_group_fail_column_type(self):
+        red = ee.Reducer.mean()
+        output = self.table.geetools.reduceColumnsGroup(
+            reducer=red, groupBy="ADM0_NAME", selectors=["ADM1_NAME"]  # group by country
+        )
+        with pytest.raises(ee.ee_exception.EEException):
+            output.getInfo()
+
+    @property
+    def table(self):
+        return ee.FeatureCollection("FAO/GAUL/2015/level1").filter(
+            ee.Filter.stringStartsWith(leftField="ADM0_NAME", rightValue="Ar")
+        )
+
+
 class TestToDictionary:
     """Test the ``toDictionary`` method."""
 
