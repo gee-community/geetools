@@ -74,7 +74,7 @@ jobs:
         if: ${{ matrix.python-version == '3.13' }}
         shell: bash
         run: nox -s dead-fixtures
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ matrix.python-version == '3.13' }}
         with:
           name: coverage
