@@ -1,0 +1,96 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        collection:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_1_0
+                  body: '1'
+              collection:
+                functionInvocationValue:
+                  arguments:
+                    ascending:
+                      constantValue: true
+                    collection:
+                      valueReference: '3'
+                    key:
+                      valueReference: '2'
+                  functionName: Collection.limit
+            functionName: Collection.map
+        property:
+          constantValue: ADM0_NAME
+      functionName: AggregateFeatureCollection.array
+  '1':
+    functionInvocationValue:
+      arguments:
+        input:
+          argumentReference: _MAPPING_VAR_1_0
+        propertySelectors:
+          functionInvocationValue:
+            arguments:
+              element:
+                valueReference: '2'
+              list:
+                functionInvocationValue:
+                  arguments:
+                    element:
+                      functionInvocationValue:
+                        arguments:
+                          collection:
+                            valueReference: '3'
+                        functionName: Collection.first
+                  functionName: Element.propertyNames
+            functionName: List.remove
+      functionName: Feature.select
+  '2':
+    constantValue: __geetools_area__
+  '3':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_0_0
+            body: '4'
+        collection:
+          functionInvocationValue:
+            arguments:
+              collection:
+                functionInvocationValue:
+                  arguments:
+                    tableId:
+                      constantValue: FAO/GAUL/2015/level0
+                  functionName: Collection.loadTable
+              limit:
+                constantValue: 5
+            functionName: Collection.limit
+      functionName: Collection.map
+  '4':
+    functionInvocationValue:
+      arguments:
+        key:
+          valueReference: '2'
+        object:
+          argumentReference: _MAPPING_VAR_0_0
+        value:
+          functionInvocationValue:
+            arguments:
+              geometry:
+                functionInvocationValue:
+                  arguments:
+                    feature:
+                      argumentReference: _MAPPING_VAR_0_0
+                  functionName: Feature.geometry
+              maxError:
+                functionInvocationValue:
+                  arguments:
+                    value:
+                      constantValue: 1
+                  functionName: ErrorMargin
+            functionName: Geometry.area
+      functionName: Element.set

@@ -1,4 +1,4 @@
-"""Extra methods for the ``ee.Array`` class."""
+"""Extra methods for the :py:class:`ee.Array` class."""
 from __future__ import annotations
 
 import ee
@@ -8,20 +8,19 @@ from .accessors import register_class_accessor
 
 @register_class_accessor(ee.Array, "geetools")
 class ArrayAccessor:
-    """Toolbox for the ``ee.Array`` class."""
+    """Toolbox for the :py:class:`ee.Array` class."""
 
     def __init__(self, obj: ee.Array):
         """Initialize the Array class."""
         self._obj = obj
 
-    # -- alternative constructor -----------------------------------------------
     def full(
         self,
         width: float | int | ee.Number,
         height: float | int | ee.Number,
         value: float | int | ee.Number,
     ) -> ee.Array:
-        """Create an array with the given dimensions, initialized to the given value.
+        """Create an :py:class:`ee.Array` with the given dimensions, initialized to the given value.
 
         Parameters:
             width: The width of the array.
@@ -32,19 +31,19 @@ class ArrayAccessor:
             An array with the given dimensions, initialized to the given value.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
-                arr = ee.Array.geetools.full(3, 3, 1)
-                arr.getInfo()
+                array = ee.Array.geetools.full(3, 3, 1)
+                array.getInfo()
         """
         width, height = ee.Number(width).toInt(), ee.Number(height).toInt()
         return ee.Array(ee.List.repeat(ee.List.repeat(value, width), height))
 
-    # -- data maniputlation ----------------------------------------------------
     def set(
         self,
         x: int | ee.Number,
@@ -62,14 +61,16 @@ class ArrayAccessor:
             The array with the cell set to the given value.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
-                arr = ee.Array.geetools.full(3, 3, 1)
-                arr.geetools.set(1, 1, 0).getInfo()
+                array = ee.Array.geetools.full(3, 3, 1)
+                array = array.geetools.set(1, 1, 0)
+                array.getInfo()
         """
         xPos, yPos = ee.Number(x).toInt(), ee.Number(y).toInt()
         row = ee.List(self._obj.toList().get(yPos)).set(xPos, ee.Number(value))

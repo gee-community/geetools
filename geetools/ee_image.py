@@ -1,11 +1,10 @@
-"""Toolbox for the ``ee.Image`` class."""
+"""Toolbox for the :py:class:`ee.Image` class."""
 from __future__ import annotations
 
-from typing import Optional
+import warnings
+from typing import Any, Optional
 
 import ee
-import ee_extra
-import ee_extra.Algorithms.core
 import geopandas as gpd
 import numpy as np
 import requests
@@ -13,16 +12,21 @@ import xarray
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.colors import to_rgba
-from pyproj import CRS, Transformer
+from pyproj import CRS
+from shapely import geometry as sg
+from xee import helpers
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
-from .utils import plot_data
+from .constants import EE_CATALOG_SCALE_OFFSET_URL
+from .extra import clouds, pan_sharpen, spectral_indices
+from .extra.tasseled_cap import PLATFORM_COEFFICIENTS
+from .utils import area_units_to_m2, format_bits_info, format_class_info, plot_data
 
 
 @register_class_accessor(ee.Image, "geetools")
 class ImageAccessor:
-    """Toolbox for the ``ee.Image`` class."""
+    """Toolbox for the :py:class:`ee.Image` class."""
 
     def __init__(self, obj: ee.Image):
         """Initialize the Image class."""
@@ -32,7 +36,7 @@ class ImageAccessor:
     def addDate(self, format: str | ee.String = "") -> ee.Image:
         """Add a band with the date of the image in the provided format.
 
-        If no format is provided, the date is stored as a Timestamp in millisecond in a band "date". If format band is provided, the date is store in a int8 band with the date in the provided format. This format needs to be a string that can be converted to a number.
+        If no format is provided, the date is stored as a Timestamp in millisecond in a band "date". If format band is provided, the date is store in an int8 band with the date in the provided format. This format needs to be a string that can be converted to a number.
         If not an error will be thrown.
 
         Args:
@@ -66,7 +70,7 @@ class ImageAccessor:
 
         return self._obj.addBands(dateBand)
 
-    def addSuffix(self, suffix: str | ee.String, bands: list | ee.List = []) -> ee.Image:
+    def addSuffix(self, suffix: str | ee.String, bands: list[str] | ee.List | None = None) -> ee.Image:
         """Add a suffix to the image selected band.
 
         Add a suffix to the selected band. If no band is specified, the suffix is added to all bands.
@@ -90,14 +94,12 @@ class ImageAccessor:
                 print(image.bandNames().getInfo())
         """
         suffix = ee.String(suffix)
-        bands = self._obj.bandNames() if bands == [] else ee.List(bands)
-        bandNames = bands.iterate(
-            lambda b, n: ee.List(n).replace(b, ee.String(b).cat(suffix)),
-            self._obj.bandNames(),
-        )
+        srcBands = self._obj.bandNames()
+        eeBands = srcBands if bands is None else ee.List(bands)
+        bandNames = eeBands.iterate(lambda b, n: ee.List(n).replace(b, ee.String(b).cat(suffix)), srcBands)
         return self._obj.rename(bandNames)
 
-    def addPrefix(self, prefix: str | ee.String, bands: list | ee.List = []):
+    def addPrefix(self, prefix: str | ee.String, bands: list[str] | ee.List | None = None) -> ee.Image:
         """Add a prefix to the image selected band.
 
         Add a prefix to the selected band. If no band is specified, the prefix is added to all bands.
@@ -121,17 +123,15 @@ class ImageAccessor:
                 print(image.bandNames().getInfo())
         """
         prefix = ee.String(prefix)
-        bands = self._obj.bandNames() if bands == [] else ee.List(bands)
-        bandNames = bands.iterate(
-            lambda b, n: ee.List(n).replace(b, prefix.cat(ee.String(b))),
-            self._obj.bandNames(),
-        )
+        srcBands = self._obj.bandNames()
+        eeBands = srcBands if bands is None else ee.List(bands)
+        bandNames = eeBands.iterate(lambda b, n: ee.List(n).replace(b, prefix.cat(ee.String(b))), srcBands)
         return self._obj.rename(bandNames)
 
     def rename(self, names: dict | ee.Dictionary) -> ee.Image:
         """Rename the bands of the image based on a dictionary.
 
-        It's the same function as the one from GEE but it takes a dictionary as input.
+        It's the same function as the one from GEE, but it takes a dictionary as input.
         Keys are the old names and values are the new names.
 
         Parameters:
@@ -153,12 +153,10 @@ class ImageAccessor:
                 print(image.bandNames().getInfo())
         """
         names = ee.Dictionary(names)
-        bands = names.keys().iterate(
-            lambda b, n: ee.List(n).replace(b, names.get(b)), self._obj.bandNames()
-        )
+        bands = names.keys().iterate(lambda b, n: ee.List(n).replace(b, names.get(b)), self._obj.bandNames())
         return self._obj.rename(bands)
 
-    def remove(self, bands: list | ee.List) -> ee.Image:
+    def remove(self, bands: list[str] | ee.List) -> ee.Image:
         """Remove bands from the image.
 
         Parameters:
@@ -184,7 +182,7 @@ class ImageAccessor:
 
     def doyToDate(
         self,
-        year,
+        year: int | float | ee.Number,
         dateFormat: str | ee.String = "yyyyMMdd",
         band: str | ee.String = "",
     ) -> ee.Image:
@@ -219,15 +217,13 @@ class ImageAccessor:
 
         doyList = ee.List.sequence(0, 365)
         remapList = doyList.map(
-            lambda d: ee.Number.parse(
-                ee.Date.fromYMD(year, 1, 1).advance(d, "day").format(dateFormat)
-            )
+            lambda d: ee.Number.parse(ee.Date.fromYMD(year, 1, 1).advance(d, "day").format(dateFormat))
         )
         return self._obj.remap(doyList, remapList, bandName=band).rename(band)
 
     # -- the rest --------------------------------------------------------------
 
-    def getValues(self, point: ee.Geometry.Point, scale: int | ee.Number = 0) -> ee.Dictionary:
+    def getValues(self, point: ee.Geometry, scale: int | ee.Number = 0) -> ee.Dictionary:
         """Get the value of the image at the given point using specified geometry.
 
         The result is presented as a dictionary where the keys are the bands name and the value the mean value of the band at the given point.
@@ -275,7 +271,7 @@ class ImageAccessor:
         scales = bandNames.map(lambda b: self._obj.select(ee.String(b)).projection().nominalScale())
         return ee.Number(scales.sort().get(0))
 
-    def merge(self, images: list | ee.List) -> ee.Image:
+    def merge(self, images: list[ee.Image] | ee.List) -> ee.Image:
         """Merge images into a single image.
 
         Parameters:
@@ -309,7 +305,9 @@ class ImageAccessor:
     ) -> ee.FeatureCollection:
         """Convert an image to a grid of polygons.
 
-        Based on the size given by the user, the tool will build a grid of size*pixelSize x size * pixelSize cells. Each cell will be a polygon. Note that for images that have multiple scale depending on the band, we will use the first one or the one stated in the parameters.
+        Based on the size given by the user, the tool will build a grid of size*pixelSize x size * pixelSize cells.
+        Each cell will be a polygon. Note that for images that have multiple scale depending on the band,
+        we will use the first one or the one stated in the parameters.
 
         Parameters:
             size: The size of the grid. It will be size * pixelSize x size * pixelSize cells.
@@ -317,10 +315,10 @@ class ImageAccessor:
             geometry: The geometry to use as reference for the grid. If None, the image footprint will be used.
 
         Returns:
-            The grid as a FeatureCollection.
+            The grid as a :py:class:`FeatureCollection`.
 
         Note:
-            The method has a known bug when the projection of the image is different than 3857. As we use a buffer, the grid cells can slightly overlap. Feel free to open a Issue and contribute if you feel it needs improvements.
+            The method has a known bug when the projection of the image is different from 3857. As we use a buffer, the grid cells can slightly overlap. Feel free to open an Issue and contribute if you feel it needs improvements.
 
         Examples:
             .. code-block:: python
@@ -350,9 +348,7 @@ class ImageAccessor:
         index = ee.List.sequence(0, lat.size().subtract(2))
         squares = index.map(
             lambda i: (
-                ee.Geometry.Point([lon.get(i), lat.get(i)])
-                .buffer(size.divide(2))
-                .bounds(0.01, projection)
+                ee.Geometry.Point([lon.get(i), lat.get(i)]).buffer(size.divide(2)).bounds(0.01, projection)
             )
         )
 
@@ -364,16 +360,16 @@ class ImageAccessor:
     def clipOnCollection(
         self, fc: ee.FeatureCollection, keepProperties: int | ee.Number = 1
     ) -> ee.ImageCollection:
-        """Clip an image to a FeatureCollection.
+        """Clip an image to a :py:class:`ee.FeatureCollection`.
 
-        The image will be clipped to every single features of the featureCollection as one independent image.
+        The image will be clipped to every single features of the ``featureCollection`` as one independent image.
 
         Parameters:
-            fc: The featureCollection to clip to.
-            keepProperties: If True, the properties of the featureCollection will be added to the clipped image.
+            fc: The :py:class:`ee.FeatureCollection` to clip to.
+            keepProperties: If True, the properties of the :py:class:`ee.FeatureCollection` will be added to the clipped image.
 
         Returns:
-            The clipped imageCollection.
+            The clipped :py:class:`ee.ImageCollection`.
 
         Examples:
             .. code-block:: python
@@ -391,9 +387,7 @@ class ImageAccessor:
 
         def fcClip(feat):
             image = self._obj.clip(feat.geometry())
-            return ee.Algorithms.If(
-                ee.Number(keepProperties).toInt(), image.copyProperties(feat), image
-            )
+            return ee.Algorithms.If(ee.Number(keepProperties).toInt(), image.copyProperties(feat), image)
 
         return ee.ImageCollection(fc.map(fcClip))
 
@@ -405,7 +399,7 @@ class ImageAccessor:
     ) -> ee.Image:
         """Make a buffer around every masked pixel of the Image.
 
-        The buffer will be made using the specified radius, kernelType and units and will mask surrounfing pixels.
+        The buffer will be made using the specified radius, kernelType and units and will mask surrounding pixels.
 
         Parameters:
             radius: The radius of the buffer.
@@ -436,14 +430,14 @@ class ImageAccessor:
     @classmethod
     def full(
         self,
-        values: list | ee.List = [0],
-        names: list | ee.List = ["constant"],
+        values: list[float | int] | ee.List | None = None,
+        names: list[str] | ee.List | None = None,
     ) -> ee.Image:
         """Create an image with the given values and names.
 
         Parameters:
-            values: The values to initialize the image with. If one value is given, it will be used for all bands.
-            names: The names of the bands. By default it uses the earthen engine default value, "constant".
+            values: The values to initialize the image width. If one value is given, it will be used for all bands.
+            names: The names of the bands. By default, it uses the earthen engine default value, ``constant``.
 
         Returns:
             An image with the given values and names.
@@ -458,17 +452,18 @@ class ImageAccessor:
                 image = ee.Image.geetools.full([1, 2, 3], ['a', 'b', 'c'])
                 print(image.bandNames().getInfo())
         """
-        values, names = ee.List(values), ee.List(names)
+        eeValues = ee.List([0]) if values is None else ee.List(values)
+        eeNames = ee.List(["constant"]) if names is None else ee.List(names)
 
         # resize value to the same length as names
-        values = ee.List(
+        eeValues = ee.List(
             ee.Algorithms.If(
-                values.size().eq(1),
-                ee.List.repeat(ee.Number(values.get(0)), names.size()),
-                values,
+                eeValues.size().eq(1),
+                ee.List.repeat(ee.Number(eeValues.get(0)), eeNames.size()),
+                eeValues,
             )
         )
-        return ee.Image.constant(values).rename(names)
+        return ee.Image.constant(eeValues).rename(eeNames)
 
     def fullLike(
         self,
@@ -480,10 +475,10 @@ class ImageAccessor:
         """Create an image with the same band names, projection and scale as the original image.
 
         The projection is computed on the first band, make sure all bands have the same.
-        The procduced image can also copy the properties of the original image and keep the mask.
+        The produced image can also copy the properties of the original image and keep the mask.
 
         Parameters:
-            fillValue: The value to fill the image with.
+            fillValue: The value to fill the image width.
             copyProperties: If True, the properties of the original image will be copied to the new one.
             keepMask: If True, the mask of the original image will be copied to the new one.
             keepFootprint: If True, the footprint of the original image will be used to clip the new image.
@@ -534,7 +529,7 @@ class ImageAccessor:
     def reduceBands(
         self,
         reducer: str | ee.Reducer,
-        bands: list | ee.List = [],
+        bands: list[str] | ee.List | None = None,
         name: str | ee.String = "",
     ) -> ee.Image:
         """Reduce the image using the selected reducer and adding the result as a band using the selected name.
@@ -562,11 +557,12 @@ class ImageAccessor:
         if not isinstance(reducer, str):
             raise TypeError("reducer must be a Python string")
 
-        bands, name = ee.List(bands), ee.String(name)
-        bands = ee.Algorithms.If(bands.size().eq(0), self._obj.bandNames(), bands)
+        eeBands = ee.List(bands) if bands is not None else ee.List([])
+        name = ee.String(name)
+        eeBands = ee.Algorithms.If(eeBands.size().eq(0), self._obj.bandNames(), eeBands)
         name = ee.Algorithms.If(name.equals(ee.String("")), reducer, name)
         red = getattr(ee.Reducer, reducer)() if isinstance(reducer, str) else reducer
-        reduceImage = self._obj.select(ee.List(bands)).reduce(red).rename([name])
+        reduceImage = self._obj.select(ee.List(eeBands)).reduce(red).rename([name])
         return self._obj.addBands(reduceImage)
 
     def negativeClip(self, geometry: ee.Geometry | ee.Feature | ee.FeatureCollection) -> ee.Image:
@@ -603,11 +599,11 @@ class ImageAccessor:
     ) -> ee.String:
         """Create a string from using the given pattern and using the image properties.
 
-        The ``system_date`` property is special cased to fit the dateFormat parameter.
+        The ``system_date`` property is special cased to fit the ``dateFormat`` parameter.
 
         Args:
             string: The pattern to use for the string
-            dateFormat: The date format to use for the system_date property
+            dateFormat: The date format to use for the ``system_date`` property
 
         Returns:
             The string corresponding to the image
@@ -638,10 +634,14 @@ class ImageAccessor:
         return patternList.iterate(replaceProperties, string)
 
     def gauss(self, band: str | ee.String = "") -> ee.Image:
-        """Apply a gaussian filter to the image.
+        r"""Apply a gaussian filter to the image.
 
-        We apply the following function to the image: "exp(((val-mean)**2)/(-2*(std**2)))"
-        where val is the value of the pixel, mean is the mean of the image, std is the standard deviation of the image.
+        We apply the following function to the image:
+
+        .. math::
+            \exp\left(\frac{(\text{val}-\text{mean})^2}{-2 \cdot (\text{std}^2)}\right)
+
+        where :math:`\text{val}` is the value of the pixel, :math:`\text{mean}` is the mean of the image, :math:`\text{std}` is the standard deviation of the image.
 
         See the `Gaussian filter <https://en.wikipedia.org/wiki/Gaussian_function>`_ Wikipedia page for more information.
 
@@ -649,7 +649,7 @@ class ImageAccessor:
             band: The band to apply the gaussian filter to. If empty, the first one is selected.
 
         Returns:
-            The image with the gaussian filter applied.An single band image with the gaussian filter applied.
+            The image with the gaussian filter applied. A single band image with the gaussian filter applied.
 
         Examples:
             .. code-block:: python
@@ -678,7 +678,7 @@ class ImageAccessor:
             },
         ).rename(band.cat("_gauss"))
 
-    def repeat(self, band, repeats: int | ee.Number) -> ee.image:
+    def repeat(self, band: str | ee.String, repeats: int | ee.Number) -> ee.Image:
         """Repeat a band of the image.
 
         Args:
@@ -744,10 +744,14 @@ class ImageAccessor:
 
         return ee.ImageCollection(bands.map(remove)).toBands().rename(bands)
 
-    def interpolateBands(self, src: list | ee.List, to: list | ee.List) -> ee.Image:
-        """Interpolate bands from the "src" value range to the "to" value range.
+    def interpolateBands(
+        self,
+        src: list[float | int | ee.Number] | ee.List,
+        to: list[float | int | ee.Number] | ee.List,
+    ) -> ee.Image:
+        """Interpolate bands from the ``src`` value range to the ``to`` value range.
 
-        The Interpolation is performed linearly using the "extrapolate" option of the "interpolate" method.
+        The Interpolation is performed linearly using the ``extrapolate`` option of the :py:meth:`ee.Image.interpolate` method.
 
         Args:
             src: The source value range
@@ -782,13 +786,13 @@ class ImageAccessor:
     def isletMask(self, offset: float | int | ee.Number) -> ee.Image:
         """Compute the islet mask from an image.
 
-        An islet is a set of non-masked pixels connected together by their edges of very small surface. The user define the offset of the island size and we compute the max number of pixels to improve computation speed. The inpt Image needs to be a single band binary image.
+        An islet is a set of non-masked pixels connected together by their edges of very small surface. The user define the offset of the islet size, and we compute the max number of pixels to improve computation speed. The input Image needs to be a single band binary image.
 
         Args:
-            offset: The limit of the islet size in square metters
+            offset: The limit of the islet size in square meters.
 
         Returns:
-            The island mask
+            The islet mask.
 
         Examples:
             .. code-block:: python
@@ -799,20 +803,19 @@ class ImageAccessor:
 
                 image = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED").first()
                 mask = image.select('SCL').eq(4)
-                mask = mask.geetools.islandMask(100)
+                mask = mask.geetools.isletMask(100)
                 print(mask.bandNames().getInfo())
         """
         offset = ee.Number(offset)
         scale = self._obj.projection().nominalScale()
         pixelsLimit = offset.multiply(2).sqrt().divide(scale).max(ee.Number(2)).toInt()
         area = ee.Image.pixelArea().rename("area")
-        isletArea = (
-            self._obj.select(0).mask().toInt().connectedPixelCount(pixelsLimit).multiply(area)
-        )
+        isletArea = self._obj.select(0).mask().toInt().connectedPixelCount(pixelsLimit).multiply(area)
         return isletArea.lt(offset).rename("mask").selfMask()
 
     # -- ee-extra wrapper ------------------------------------------------------
-    def index_list(cls) -> dict:
+    @staticmethod
+    def index_list() -> dict[str, dict]:
         """Return the list of indices implemented in this module.
 
         Returns:
@@ -823,16 +826,19 @@ class ImageAccessor:
 
                 import ee, geetools
 
-                ind = ee.Image.geetools.indices()["BAIS2"]
+                ind = ee.Image.geetools.index_list()["BAIS2"]
                 print(ind["long_name"])
                 print(ind["formula"])
                 print(ind["reference"])
         """
-        return ee_extra.Spectral.core.indices()
+        url = "https://raw.githubusercontent.com/awesome-spectral-indices/awesome-spectral-indices/main/output/spectral-indices-dict.json"
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()["SpectralIndices"]
 
     def spectralIndices(
         self,
-        index: str = "NDVI",
+        index: str | list[str] = "NDVI",
         G: float | int = 2.5,
         C1: float | int = 6.0,
         C2: float | int = 7.5,
@@ -847,6 +853,7 @@ class ImageAccessor:
         beta: float | int = 0.05,
         k: float | int = 0.0,
         fdelta: float | int = 0.581,
+        epsilon: float | int = 1.0,
         kernel: str = "RBF",
         sigma: str = "0.5 * (a + b)",
         p: float | int = 2.0,
@@ -854,7 +861,7 @@ class ImageAccessor:
         lambdaN: float | int = 858.5,
         lambdaR: float | int = 645.0,
         lambdaG: float | int = 555.0,
-        online: float | int = False,
+        online: bool = False,
     ) -> ee.Image:
         """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
 
@@ -880,10 +887,11 @@ class ImageAccessor:
             slope: Soil line slope, default = 1.0
             intercept: Soil line intercept, default = 0.0
             gamma: Weighting coefficient used for ARVI, default = 1.0
-            omega: Weighting coefficient  used for MBWI, default = 2.0
+            omega: Weighting coefficient used for MBWI, default = 2.0
             beta: Calibration parameter used for NDSIns, default = 0.05
             k: Slope parameter by soil used for NIRvH2, default = 0.0
             fdelta: Adjustment factor used for SEVI, default = 0.581
+            epsilon: Adjustment constant used for EBI, default to 1.0
             kernel: Kernel used for kernel indices, default = 'RBF'
                 Available options:
                     - 'linear' : Linear Kernel.
@@ -900,6 +908,9 @@ class ImageAccessor:
         Returns:
             Image with the computed spectral index, or indices, as new bands.
 
+        See Also:
+            - :docstring:`ee.Image.geetools.scaleAndOffset`
+
         Examples:
             .. code-block:: python
 
@@ -907,22 +918,45 @@ class ImageAccessor:
 
                 ee.Initialize()
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                image = image.specralIndices(["NDVI", "NDFI"])
+                image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
-        # fmt: off
-        return ee_extra.Spectral.core.spectralIndices(
-            self._obj, index, G, C1, C2, L, cexp, nexp, alpha, slope, intercept, gamma, omega,
-            beta, k, fdelta, kernel, sigma, p, c, lambdaN, lambdaR, lambdaG, online,
-            drop=False,
+        return spectral_indices.spectralIndices(
+            src=self._obj,
+            index=index,
+            G=G,
+            C1=C1,
+            C2=C2,
+            L=L,
+            cexp=cexp,
+            nexp=nexp,
+            alpha=alpha,
+            slope=slope,
+            intercept=intercept,
+            gamma=gamma,
+            omega=omega,
+            beta=beta,
+            k=k,
+            fdelta=fdelta,
+            epsilon=epsilon,
+            kernel=kernel,
+            sigma=sigma,
+            p=p,
+            c=c,
+            lambdaN=lambdaN,
+            lambdaR=lambdaR,
+            lambdaG=lambdaG,
+            online=online,
         )
-        # fmt: on
 
-    def getScaleParams(self) -> dict:
+    def getScaleParams(self) -> dict[str, float]:
         """Gets the scale parameters for each band of the image.
 
         Returns:
             Dictionary with the scale parameters for each band.
 
+        See Also:
+            - :docstring:`ee.Image.geetools.getOffsetParams`
+            - :docstring:`ee.Image.geetools.scaleAndOffset`
 
         Examples:
             .. code-block:: python
@@ -934,31 +968,45 @@ class ImageAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getScaleParams()
         """
-        return ee_extra.STAC.core.getScaleParams(self._obj)
+        response = requests.get(EE_CATALOG_SCALE_OFFSET_URL, timeout=10)
+        response.raise_for_status()
+        bands = response.json().get(ee.Asset(self._obj.get("system:id").getInfo()).parent, {})
+        return {band: data["scale"] for band, data in bands.items()}
 
-    def getOffsetParams(self) -> dict:
+    def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
 
         Returns:
             Dictionary with the offset parameters for each band.
 
+        See Also:
+            - :docstring:`ee.Image.geetools.getScaleParams`
+            - :docstring:`ee.Image.geetools.scaleAndOffset`
+
         Examples:
             .. code-block:: python
 
-            import ee
-            import geetools
+                import ee
+                import geetools
 
-            ee.Initialize()
+                ee.Initialize()
 
-            ee.ImageCollection('MODIS/006/MOD11A2').first().getOffsetParams()
+                ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getOffsetParams()
         """
-        return ee_extra.STAC.core.getOffsetParams(self._obj)
+        response = requests.get(EE_CATALOG_SCALE_OFFSET_URL, timeout=10)
+        response.raise_for_status()
+        bands = response.json().get(ee.Asset(self._obj.get("system:id").getInfo()).parent, {})
+        return {band: data["offset"] for band, data in bands.items()}
 
     def scaleAndOffset(self) -> ee.Image:
         """Scales bands on an image according to their scale and offset parameters.
 
         Returns:
             Scaled image.
+
+        See Also:
+            - :docstring:`ee.Image.geetools.getScaleParams`
+            - :docstring:`ee.Image.geetools.getOffsetParams`
 
         Examples:
             .. code-block:: python
@@ -967,45 +1015,94 @@ class ImageAccessor:
 
                 ee.Initialize()
 
-                S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().scaleAndOffset()
+                S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().geetools.scaleAndOffset()
         """
-        return ee_extra.STAC.core.scaleAndOffset(self._obj)
+        scale_params = self.getScaleParams()
+        offset_params = self.getOffsetParams()
+
+        if scale_params is None or offset_params is None:
+            warnings.warn("This platform is not supported for scaling and offsetting.")
+            return self._obj
+
+        scale_image = ee.Dictionary(scale_params).toImage()
+        offset_image = ee.Dictionary(offset_params).toImage()
+
+        def apply_scale_offset(img):
+            """Apply scale and offset transformation to image."""
+            bands = img.bandNames()
+            scale_list = scale_image.bandNames()
+            bands = bands.filter(ee.Filter.inList("item", scale_list))
+            selected_scale = scale_image.select(bands)
+            selected_offset = offset_image.select(bands)
+            scaled = img.select(bands).multiply(selected_scale).add(selected_offset)
+            return ee.Image(scaled.copyProperties(img, img.propertyNames()))
+
+        return apply_scale_offset(self._obj)
 
     def preprocess(self, **kwargs) -> ee.Image:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image.
 
         Parameters:
-            **kwargs: Keywords arguments for ``maskClouds`` method.
+            **kwargs: Keywords arguments for :py:meth:`ee.Image.geetools.maskClouds <geetools.ee_image.ImageAccessor.maskClouds>` method.
 
         Returns:
             Pre-processed image.
 
+        See Also:
+            - :docstring:`ee.Image.geetools.getScaleParams`
+            - :docstring:`ee.Image.geetools.getOffsetParams`
+            - :docstring:`ee.Image.geetools.scaleAndOffset`
+            - :docstring:`ee.Image.geetools.maskClouds`
+
         Examples:
             .. code-block:: python
 
-            import ee
-            import geetools
+                import ee
+                import geetools
 
-            ee.Initialize()
-            S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().preprocess()
+                ee.Initialize()
+                S2 = (
+                    ee.ImageCollection('COPERNICUS/S2_SR').first()
+                    .geetools.preprocess()
+                )
         """
-        return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
+        # Set default parameters for maskClouds
+        mask_clouds_defaults = {
+            "method": "cloud_prob",
+            "prob": 60,
+            "maskCirrus": True,
+            "maskShadows": True,
+            "scaledImage": False,
+            "dark": 0.15,
+            "cloudDist": 1000,
+            "buffer": 250,
+            "cdi": None,
+        }
 
-    def getSTAC(self) -> dict:
+        # Merge provided kwargs with defaults (kwargs take precedence)
+        mask_clouds_params = {**mask_clouds_defaults, **kwargs}
+
+        # Apply maskClouds then scaleAndOffset
+        masked = self.maskClouds(**mask_clouds_params)
+        preprocessed = masked.geetools.scaleAndOffset()
+
+        return preprocessed
+
+    def getSTAC(self) -> dict[str, Any]:
         """Gets the STAC of the image.
 
         Returns:
             STAC of the image.
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
-            import ee
-            import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
 
-            ee.Initialize()
+                initialize_documentation()
 
-            ee.ImageCollection('COPERNICUS/S2_SR').first().getSTAC()
+                ee.ImageCollection('COPERNICUS/S2_SR').first().geetools.getSTAC()
         """
         # extract the Asset id from the imagecollection
         assetId = self._obj.get("system:id").getInfo()
@@ -1031,37 +1128,45 @@ class ImageAccessor:
         """Gets the DOI of the image, if available.
 
         Returns:
-            DOI of the ee.Image dataset.
+            DOI of the :py:class:`ee.Image` dataset.
+
+        See Also:
+            - :docstring:`ee.Image.geetools.getCitation`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
-                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().getDOI()
+                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().geetools.getDOI()
         """
-        return ee_extra.STAC.core.getDOI(self._obj)
+        error_msg = "DOI not found in the STAC"
+        return self.getSTAC().get("sci:doi", error_msg)
 
     def getCitation(self) -> str:
         """Gets the citation of the image, if available.
 
         Returns:
-            Citation of the ee.Image dataset.
+            Citation of the :py:class:`ee.Image` dataset.
+
+        See Also:
+            - :docstring:`ee.Image.geetools.getDOI`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
 
-                ee.Initialize()
+                initialize_documentation()
 
-                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().getCitation()
+                ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().geetools.getCitation()
         """
-        return ee_extra.STAC.core.getCitation(self._obj)
+        error_msg = "Citation not found in the STAC"
+        return self.getSTAC().get("sci:citation", error_msg)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.Image:
         """Apply panchromatic sharpening to the Image.
@@ -1070,9 +1175,9 @@ class ImageAccessor:
         measure spectral distortion and set results as properties of the sharpened Image.
 
         Parameters:
-        method: The sharpening algorithm to apply. Current options are "SFIM" (Smoothing Filter-based Intensity Modulation), "HPFA" (High Pass Filter Addition), "PCS" (Principal Component Substitution), and "SM" (simple mean). Different sharpening methods will produce different quality sharpening results in different scenarios.
-        qa: One or more optional quality assessment names to apply after sharpening. Results will be stored as image properties with the pattern `geetools:metric`, e.g. `geetools:RMSE`.
-        **kwargs: Keyword arguments passed to ee.Image.reduceRegion() such as "geometry", "maxPixels", "bestEffort", etc. These arguments are only used for PCS sharpening and quality assessments.
+            method: The sharpening algorithm to apply. Current options are "SFIM" (Smoothing Filter-based Intensity Modulation), "HPFA" (High Pass Filter Addition), "PCS" (Principal Component Substitution), and "SM" (simple mean). Different sharpening methods will produce different quality sharpening results in different scenarios.
+            qa: One or more optional quality assessment names to apply after sharpening. Results will be stored as image properties with the pattern `geetools:metric`, e.g. `geetools:RMSE`.
+            **kwargs: Keyword arguments passed to ee.Image.reduceRegion() such as "geometry", "maxPixels", "bestEffort", etc. These arguments are only used for PCS sharpening and quality assessments.
 
         Returns:
             The Image with all sharpenable bands sharpened to the panchromatic resolution and quality assessments run and set as properties.
@@ -1086,11 +1191,9 @@ class ImageAccessor:
                 ee.Initialize()
 
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
-                sharp = source.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
+                sharp = source.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        return ee_extra.Algorithms.core.panSharpen(
-            img=self._obj, method=method, qa=qa, prefix="geetools", **kwargs
-        )
+        return pan_sharpen.panSharpen(src=self._obj, method=method, qa=qa, **kwargs)
 
     def tasseledCap(self) -> ee.Image:
         """Calculates tasseled cap brightness, wetness, and greenness components.
@@ -1098,22 +1201,47 @@ class ImageAccessor:
         Tasseled cap transformations are applied using coefficients published for these
         supported platforms:
 
-        * Sentinel-2 MSI Level 1C
-        * Landsat 9 OLI-2 SR
-        * Landsat 9 OLI-2 TOA
-        * Landsat 8 OLI SR
-        * Landsat 8 OLI TOA
-        * Landsat 7 ETM+ TOA
-        * Landsat 5 TM Raw DN
-        * Landsat 4 TM Raw DN
-        * Landsat 4 TM Surface Reflectance
-        * MODIS NBAR
+        * Sentinel-2 MSI Level 1C [1]_
+        * Landsat 9 OLI-2 SR [2]_
+        * Landsat 9 OLI-2 TOA [2]_
+        * Landsat 8 OLI SR [2]_
+        * Landsat 8 OLI TOA [2]_
+        * Landsat 7 ETM+ TOA [3]_
+        * Landsat 5 TM Raw DN [4]_
+        * Landsat 4 TM Raw DN [5]_
+        * Landsat 4 TM Surface Reflectance [6]_
+        * MODIS NBAR [7]_
 
         Parameters:
-            self: ee.Image to calculate tasseled cap components for. Must belong to a supported platform.
+            self: :py:class:`ee.Image` to calculate tasseled cap components for. Must belong to a supported platform.
 
         Returns:
             Image with the tasseled cap components as new bands.
+
+        References:
+            .. [1] Shi, T., & Xu, H. (2019). Derivation of Tasseled Cap Transformation
+                Coefficients for Sentinel-2 MSI At-Sensor Reflectance Data. IEEE Journal
+                of Selected Topics in Applied Earth Observations and Remote Sensing, 1-11.
+                doi:10.1109/jstars.2019.2938388
+            .. [2] Zhai, Y., Roy, D.P., Martins, V.S., Zhang, H.K., Yan, L., Li, Z. 2022.
+                Conterminous United States Landsat-8 top of atmosphere and surface reflectance
+                tasseled cap transformation coefficients. Remote Sensing of Environment,
+                274(2022). doi:10.1016/j.rse.2022.112992
+            .. [3] Huang, C., Wylie, B., Yang, L., Homer, C. and Zylstra, G., 2002.
+                Derivation of a tasselled cap transformation based on Landsat 7 at-satellite
+                reflectance. International journal of remote sensing, 23(8), pp.1741-1748.
+            .. [4] Crist, E.P., Laurin, R. and Cicone, R.C., 1986, September. Vegetation and
+                soils information contained in transformed Thematic Mapper data. In
+                Proceedings of IGARSS'86 symposium (pp. 1465-1470). Paris: European Space
+                Agency Publications Division.
+            .. [5] Crist, E.P. and Cicone, R.C., 1984. A physically-based transformation of
+                Thematic Mapper data---The TM Tasseled Cap. IEEE Transactions on Geoscience
+                and Remote sensing, (3), pp.256-263.
+            .. [6] Crist, E.P., 1985. A TM tasseled cap equivalent transformation for
+                reflectance factor data. Remote sensing of Environment, 17(3), pp.301-306.
+            .. [7] Lobser, S.E. and Cohen, W.B., 2007. MODIS tasselled cap: land cover
+                characteristics expressed through transformed MODIS data. International
+                Journal of Remote Sensing, 28(22), pp.5079-5101.
 
         Examples:
             .. code-block:: python
@@ -1123,24 +1251,72 @@ class ImageAccessor:
                 ee.Initialize()
 
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                img = img.tasseledCap()
+                img = img.geetools.tasseledCap()
         """
-        return ee_extra.Spectral.core.tasseledCap(self._obj)
+        # Get platform-specific coefficients
+        asset_id = ee.String(self._obj.get("system:id")).getInfo()
+        platform = ee.Asset(asset_id).parent.as_posix()
+        if platform not in PLATFORM_COEFFICIENTS:
+            raise Exception(
+                f"Sorry, satellite platform {platform} not supported for tasseled "
+                f"cap transformation! Use one of {list(PLATFORM_COEFFICIENTS.keys())}"
+            )
+        coeffs = PLATFORM_COEFFICIENTS[platform]
+
+        def calculate_and_add_components(img):
+            """Calculate tasseled cap components and add as new bands."""
+            # Select the required bands
+            img = img.select(coeffs["bands"])
+
+            # Calculate components: multiply each band by coefficients, then sum
+            components = []
+            for comp in ["TCB", "TCG", "TCW"]:
+                component = img.multiply(ee.Image(coeffs[comp])).reduce(ee.Reducer.sum()).rename(comp)
+                components.append(component)
+
+            return img.addBands(components)
+
+        # Apply to image or image collection
+        if isinstance(self._obj, ee.imagecollection.ImageCollection):
+            result = self._obj.map(calculate_and_add_components)
+        elif isinstance(self._obj, ee.image.Image):
+            result = calculate_and_add_components(self._obj)
+        else:
+            raise TypeError("Input must be ee.Image or ee.ImageCollection")
+
+        return result
 
     def matchHistogram(
         self,
         target: ee.Image,
-        bands: dict,
+        bands: dict[str, str],
         geometry: ee.Geometry | None = None,
         maxBuckets: int = 256,
+        scale: int = 30,
+        maxPixels: int = 65536 * 4 - 1,
+        bestEffort: bool = True,
     ) -> ee.Image:
         """Adjust the image's histogram to match a target image.
 
+        This method performs histogram matching on individual bands independently.
+        While this adjusts the value distribution of each band to match the target,
+        it does not account for the relationships between the bands. As a result,
+        you might observe changes in the hue of the image after applying this function,
+        as the relative intensities of the different color bands are altered independently.
+
+        For histogram matching that preserves the hue of the image, consider using the
+        `matchHistogramHSV` method available in `geetools`.
+
+        From: https://medium.com/google-earth/histogram-matching-c7153c85066d
+
         Parameters:
-        target: Image to match.
-        bands: A dictionary of band names to match, with source bands as keys and target bands as values.
-        geometry: The region to match histograms in that overlaps both images. If none is provided, the geometry of the source image will be used.
-        maxBuckets: The maximum number of buckets to use when building histograms. Will be rounded to the nearest power of 2.
+            target: Image to match.
+            bands: A dictionary of band names to match, with source bands as keys and target bands as values.
+            geometry: The region to match histograms in that overlaps both images. If none is provided, the geometry of the source image will be used.
+            maxBuckets: The maximum number of buckets to use when building histograms. Will be rounded to the nearest power of 2.
+            scale: the spatial resolution to compute the histograms.
+            maxPixels: The maximum number of pixels to compute the histogram.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
 
         Returns:
             The adjusted image containing the matched source bands.
@@ -1160,15 +1336,52 @@ class ImageAccessor:
                     "B3": "B2",
                     "B2": "B1"
                 }
-                matched = source.matchHistogram(target, bands)
+                matched = source.geetools.matchHistogram(target, bands)
         """
-        return ee_extra.Spectral.core.matchHistogram(
-            source=self._obj,
-            target=target,
-            bands=bands,
-            geometry=geometry,
-            maxBuckets=maxBuckets,
-        )
+
+        def lookup(sourceHist, targetHist):
+            """Create a lookup table to make sourceHist match targetHist."""
+            # Split the histograms by column and normalize the counts.
+            sourceValues = sourceHist.slice(1, 0, 1).project([0])
+            sourceCounts = sourceHist.slice(1, 1, 2).project([0])
+            sourceCounts = sourceCounts.divide(sourceCounts.get([-1]))  # divide each by the max
+            targetValues = targetHist.slice(1, 0, 1).project([0])
+            targetCounts = targetHist.slice(1, 1, 2).project([0])
+            targetCounts = targetCounts.divide(targetCounts.get([-1]))
+
+            # Find first position in target where targetCount >= srcCount[i], for each i.
+            lookup = sourceCounts.toList().map(lambda n: targetValues.get(targetCounts.gte(n).argmax()))
+            return ee.Dictionary({"x": sourceValues.toList(), "y": lookup})
+
+        bandsee = ee.Dictionary(bands)
+        geom = geometry or self._obj.geometry()
+        reducer = ee.Reducer.autoHistogram(maxBuckets=maxBuckets, cumulative=True)
+        args = dict(reducer=reducer, geometry=geom, scale=scale, maxPixels=maxPixels, bestEffort=bestEffort)
+
+        # Only use pixels in target that have a value in source
+        # (inside the footprint and unmasked).
+        sourceObj = self._obj.reduceRegion(**args)
+        targetObj = target.updateMask(self._obj.mask()).reduceRegion(**args)
+
+        sourceBands = bandsee.keys()
+
+        def interpolate(sband):
+            """Interpolate bands."""
+            tband = ee.String(bandsee.get(sband))
+            lk = lookup(sourceObj.getArray(sband), targetObj.getArray(tband))
+            x = ee.List(lk.get("x"))
+            y = ee.List(lk.get("y"))
+            result = ee.Image(
+                ee.Algorithms.If(
+                    x.size().eq(1),
+                    self._obj.select([sband]).remap(x, y),
+                    self._obj.select([sband]).interpolate(x, y),
+                )
+            )
+            return result
+
+        images = sourceBands.map(interpolate)
+        return self.fromList(images)
 
     def maskClouds(
         self,
@@ -1181,11 +1394,10 @@ class ImageAccessor:
         cloudDist: int = 1000,
         buffer: int = 250,
         cdi: int | None = None,
-    ):
+    ) -> ee.Image:
         """Masks clouds and shadows in an image (valid just for Surface Reflectance products).
 
         Parameters:
-            self: Image to mask.
             method: Method used to mask clouds. This parameter is ignored for Landsat products.
                 Available options:
                     - 'cloud_prob' : Use cloud probability.
@@ -1214,9 +1426,10 @@ class ImageAccessor:
                 S2 = (
                     ee.ImageCollection('COPERNICUS/S2_SR')
                     .first()
-                    .maskClouds(prob = 75,buffer = 300,cdi = -0.5))
+                    .geetools.maskClouds(prob = 75,buffer = 300,cdi = -0.5)
+                )
         """
-        return ee_extra.QA.clouds.maskClouds(
+        return clouds.maskClouds(
             self._obj,
             method,
             prob,
@@ -1229,7 +1442,7 @@ class ImageAccessor:
             cdi,
         )
 
-    def removeProperties(self, properties: list | ee.List) -> ee.Image:
+    def removeProperties(self, properties: list[str] | ee.List) -> ee.Image:
         """Remove a list of properties from an image.
 
         Args:
@@ -1246,7 +1459,7 @@ class ImageAccessor:
                 ee.Initialize()
 
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                image = image.removeProperties(["system:time_start"])
+                image = image.geetools.removeProperties(["system:time_start"])
         """
         properties = ee.List(properties)
         proxy = self._obj.multiply(1)  # drop properties
@@ -1263,7 +1476,7 @@ class ImageAccessor:
 
         Parameters:
             mask: The mask to compute the distance to.
-            kernel: The kernel type to use for the distance computation default to "euclidean".
+            kernel: The kernel type to use for the distance computation default to ``"euclidean"``.
             radius: The radius of the kernel.
             band_name: The name of the band to store the distance values.
 
@@ -1273,15 +1486,15 @@ class ImageAccessor:
         Examples:
             .. code-block:: python
 
-                    import ee, geetools
+                import ee, geetools
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    centerBuffer = image.geometry().centroid().buffer(100)
-                    BufferMask = ee.Image.constant(1).clip(centerBuffer)
-                    mask = ee.Image.constant(0).where(BufferMask, 1).clip(image.geometry())
-                    image = image.distanceToMask(mask)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                centerBuffer = image.geometry().centroid().buffer(100)
+                BufferMask = ee.Image.constant(1).clip(centerBuffer)
+                mask = ee.Image.constant(0).where(BufferMask, 1).clip(image.geometry())
+                image = image.geetools.distanceToMask(mask)
         """
         # gather the parameters
         kernel = getattr(ee.Kernel, kernel)(radius, "meters")
@@ -1294,25 +1507,25 @@ class ImageAccessor:
 
         return self._obj.addBands(final)
 
-    def distance(self, other: ee.image) -> ee.Image:
+    def distance(self, other: ee.Image) -> ee.Image:
         """Compute the sum of all spectral distance between two images.
 
         Parameters:
             other: The image to compute the distance to.
 
         Returns:
-            and Image with the euclidean distance between the two images for each band.
+            and Image with the Euclidean distance between the two images for each band.
 
         Examples:
             .. code-block:: python
 
-                    import ee, geetools
+                import ee, geetools
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    other = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    image = image.distance(other)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                other = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                image = image.geetools.distance(other)
         """
         # compute the distance
         distance = self._obj.subtract(other).pow(2).reduce("sum").sqrt().rename("sum_distance")
@@ -1334,24 +1547,23 @@ class ImageAccessor:
             scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
             band: The band to use. Defaults to the first band.
             proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. In most cases the user should not change this value, but in case of conflicts, choose a value that is out of the range of the image values.
-
-        Kwargs:
-            maxPixels: The maximum number of pixels to reduce.
-            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+            **kwargs:
+                - ``maxPixels``: The maximum number of pixels to reduce.
+                - ``tileScale``: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
-            The percentage of masked pixels within the region
+            The percentage of masked pixels within the region.
 
         Examples:
             .. code-block:: python
 
-                    import ee, geetools
+                import ee, geetools
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
-                    image = image.maskCoverRegion(aoi)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                image = image.geetools.maskCoverRegion(aoi)
         """
         # compute the mask cover
         image = self._obj.select(band or 0)
@@ -1388,24 +1600,23 @@ class ImageAccessor:
             band: The band to use. Defaults to the first band.
             proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. In most cases the user should not change this value, but in case of conflicts, choose a value that is out of the range of the image values.
             columnName: name of the column that will hold the value.
-
-        Kwargs:
-            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+            **kwargs:
+                - ``tileScale``: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
-            The passed table with the new column containing the percentage of masked pixels within the region
+            The passed table with the new column containing the percentage of masked pixels within the region.
 
         Examples:
             .. code-block:: python
 
-                    import ee, geetools
+                import ee, geetools
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    reg = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
-                    aoi = ee.FeatureCollection([ee.Feature(reg)])
-                    image = image.maskCoverRegions(aoi)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                reg = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                aoi = ee.FeatureCollection([ee.Feature(reg)])
+                image = image.geetools.maskCoverRegions(aoi)
         """
         # compute the mask cover
         properties = collection.propertyNames()  # original properties
@@ -1444,24 +1655,23 @@ class ImageAccessor:
             scale: The scale of the computation. In case you need a rough estimation use a higher scale than the original from the image.
             proxyValue: the value to use for counting the mask and avoid confusing 0s to masked values. Choose a value that is out of the range of the image values.
             propertyName: the name of the property where the value will be saved
-
-        Kwargs:
-            maxPixels: The maximum number of pixels to reduce.
-            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+            **kwargs:
+                - ``maxPixels``: The maximum number of pixels to reduce.
+                - ``tileScale``: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
-            The same image with the percentage of masked pixels as a property
+            The same image with the percentage of masked pixels as a property.
 
         Examples:
             .. code-block:: python
 
-                    import ee, geetools
+                import ee, geetools
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
-                    image = image.maskCoverRegion(aoi)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                aoi = ee.Geometry.Point([11.880190936531116, 42.0159494554553]).buffer(2000)
+                image = image.geetools.maskCoverRegion(aoi)
         """
         region = self._obj.geometry()
         value = self.maskCoverRegion(region, scale, None, proxyValue, **kwargs)
@@ -1469,7 +1679,7 @@ class ImageAccessor:
 
     def plot(
         self,
-        bands: list,
+        bands: list[str],
         region: ee.Geometry,
         ax: Axes | None = None,
         fc: ee.FeatureCollection = None,
@@ -1485,55 +1695,64 @@ class ImageAccessor:
             region: The geometry borders to plot the image on.
             ax: The matplotlib axis to plot the image on.
             fc: a FeatureCollection object to overlay on top of the image. Default is None, it can be a different object from the region.
-            cmap: The colormap to use for the image. Default is 'viridis'. can only ber used for single band images.
-            crs: The coordinate reference system of the image.
+            cmap: The colormap to use for the image. Default is ``viridis``. can only ber used for single band images.
+            crs: The coordinate reference system of the image. By default, we will use ``"EPSG:4326"``
             scale: The scale of the image.
-            color: The color of the overlaid feature collection. Default is "k" (black).
+            color: The color of the overlaid feature collection. Default is ``k`` (black).
 
         Examples:
             .. code-block:: python
 
-                    import ee, geetools
-                    import matplotlib.pyplot as plt
+                import ee, geetools
+                import matplotlib.pyplot as plt
 
-                    ee.Initialize()
+                ee.Initialize()
 
-                    image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
-                    fig, ax = plt.subplots()
-                    image.plot(["B2", "B3", "B4"], image.geometry(), ax)
+                image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
+                fig, ax = plt.subplots()
+                image.geetools.plot(["B4", "B3", "B2"], image.geometry(), ax)
         """
         if ax is None:
             fig, ax = plt.subplots()
+
+        # generate the grid params
+        grid_params = helpers.fit_geometry(
+            geometry=sg.shape(region.bounds().getInfo()),
+            grid_crs=crs,
+            grid_scale=(scale, -scale),
+        )
 
         # extract the image as a xarray dataset
         ds = xarray.open_dataset(
             ee.ImageCollection([self._obj]),
             engine="ee",
-            crs=crs,
-            scale=scale,
-            geometry=region.bounds(),
             request_byte_limit=REQUEST_BYTE_LIMIT,
+            **grid_params,
         )
 
         # extract all the bands as dataarrays objects
-        # x and y coordinates need to be transposed to match imshow requirements
-        bands_da = [ds[b][0, :, :].transpose() for b in bands]
+        bands_da = [ds[b][0, :, :] for b in bands]
 
-        # compute the extend of the image so the unit displayed for x and y are matching the required crs
-        proj = Transformer.from_crs(CRS("EPSG:4326"), CRS(crs), always_xy=True)
-        region_bounds = region.bounds().coordinates().get(0).getInfo()
-        min_x, min_y = proj.transform(*region_bounds[0])
-        max_x, max_y = proj.transform(*region_bounds[2])
+        # derive the extent directly from the affine transform in grid_params
+        # crs_transform = (a, b, c, d, e, f) where c=x_origin, f=y_origin
+        a, b, c, d, e, f = grid_params["crs_transform"]
+        x_shape, y_shape = grid_params["shape_2d"]
+        x_min, y_max = c, f
+        x_max = c + a * x_shape
+        y_min = f + e * y_shape  # e is negative (north-up)
 
-        # For single band image, we use the dataarray directly as source image
+        # set the parameters that will be use for single and multi-band display
+        params = dict(extent=[x_min, x_max, y_min, y_max], origin="upper")
+
+        # For single band image, we use the data array directly as source image
         # for multi band image, we need to stack the dataarrays to create a RGB image
         # and normalized them
         if len(bands) == 1:
-            ax.imshow(bands_da[0], extent=[min_x, max_x, min_y, max_y], cmap=cmap)
+            ax.imshow(bands_da[0], cmap=cmap, **params)
         else:
             da = np.dstack(bands_da)
             rgb_image = (da - np.min(da)) / (np.max(da) - np.min(da))
-            ax.imshow(rgb_image, extent=[min_x, max_x, min_y, max_y])
+            ax.imshow(rgb_image, **params)
 
         # add the feature collection if provided
         # we need to extract the geometries and plot them
@@ -1542,13 +1761,23 @@ class ImageAccessor:
             gdf = gdf.set_crs("EPSG:4326").to_crs(crs)
             gdf.boundary.plot(ax=ax, color=color)
 
+        # The default aspect for map plots is 'auto'; if however data are not projected (coordinates are long/lat),
+        #  the aspect is by default set to 1/cos(s_y * pi/180) with s_y the y coordinate of the middle of the
+        # region (the mean of the y range of bounding box) so that a long/lat square appears square in the
+        # middle of the plot. This implies an Equirectangular projection.
+        if CRS(crs).is_geographic:
+            y_coord = (y_min + y_max) / 2
+            ax.set_aspect(1 / np.cos(y_coord * np.pi / 180))
+        else:
+            ax.set_aspect("auto")
+
         # make sure the canvas is only rendered once.
         ax.figure.canvas.draw_idle()
 
         return ax
 
-    @classmethod
-    def fromList(cls, images: ee.List | list):
+    @staticmethod
+    def fromList(images: ee.List | list[ee.Image]) -> ee.Image:
         """Create a single image by passing a list of images.
 
         Warning: The bands cannot have repeated names, if so, it will throw an error (see examples).
@@ -1557,7 +1786,7 @@ class ImageAccessor:
             images: a list of ee.Image
 
         Returns:
-            A single ee.Image with one band per image in the passed list
+            A single :py:class:`ee.Image` with one band per image in the passed list
 
         Examples:
             .. code-block:: python
@@ -1581,20 +1810,199 @@ class ImageAccessor:
                 images = sequence.map(lambda i: ee.Image(ee.Number(i)).rename(ee.Number(i).int().format()))
                 image = ee.Image.geetools.fromList(images)
                 print(image.bandNames().getInfo())
-            > ee.ee_exception.EEException: Image.rename: Can't add a band named '2' to image because a band with this name already exists. Existing bands: [1, 2].
         """
         bandNames = ee.List(images).map(lambda i: ee.Image(i).bandNames()).flatten()
         ic = ee.ImageCollection.fromImages(images)
         return ic.toBands().rename(bandNames)
 
+    def bitsToBands(self, bits_info: dict, band: str | int = 0) -> ee.Image:
+        """Convert a band encoded in bits into binary bands.
+
+        Args:
+            bits_info: bits encodings information (client-side only).
+            band: name of the bit band. Defaults to first band.
+
+        Returns:
+            an image with one band per encoded bit.
+
+        Example:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ls = ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
+                bits = {
+                    '7': 'Water',
+                    '8-9': {
+                        '1': 'Low',
+                        '2': 'Medium',
+                        '3': 'High'
+                    }
+                }
+                decoded = ls.geetools.bitsToBands(bits, 'QA_PIXEL')
+        """
+        bitband = self._obj.select([band])
+        bits_info = format_bits_info(bits_info)
+        masks = []
+        for positions, values in bits_info.items():
+            start, end = positions.split("-")
+            start, end = ee.Image(int(start)), ee.Image(int(end)).add(1)
+            decoded = bitband.rightShift(end).leftShift(end).bitwiseXor(bitband).rightShift(start)
+            for position, val in values.items():
+                mask = ee.Image(int(position)).eq(decoded).rename(val)
+                masks.append(mask)
+        return ImageAccessor.fromList(masks)
+
+    def bitsMaskAll(self, bits_info: dict, classes: Optional[list] = None, band: str | int = 0) -> ee.Image:
+        """Create a mask using the bits information.
+
+        Args:
+            bits_info: bits encodings information (client-side only).
+            classes: name of the classes to use for the mask. If None it will use all classes in bits_info.
+            band: name of the bit band. Defaults to first band.
+
+        Returns:
+            an image with one band named 'all_mask', with 1s where ALL classes are present and 0s where not.
+
+        Example:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ls = ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
+                bits = {
+                    '5': 'Snow',
+                    '8-9': {
+                        '1': 'Low',
+                        '2': 'Medium',
+                        '3': 'High'
+                    }
+                }
+                # Detect confusion between snow and medium probability clouds
+                mask = ls.geetools.bitsMaskAll(bits, ['Snow', 'Medium'], 'QA_PIXEL')
+        """
+        masks = self.bitsToBands(bits_info, band)
+        masks = masks.select(classes) if classes else masks
+        return masks.reduce(ee.Reducer.allNonZero()).rename("all_mask")
+
+    def bitsMaskAny(self, bits_info: dict, classes: Optional[list] = None, band: str | int = 0) -> ee.Image:
+        """Create a mask using the bits information.
+
+        Args:
+            bits_info: bits encodings information (client-side only).
+            classes: name of the classes to use for the mask. If None it will use all classes in bits_info.
+            band: name of the bit band. Defaults to first band.
+
+        Returns:
+            an image with one band named 'any_mask', with 1s where ANY of the classes is present and 0s where not.
+
+        Example:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ls = ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
+                bits = {
+                    '7': 'Water',
+                    '8-9': {
+                        '1': 'Low',
+                        '2': 'Medium',
+                        '3': 'High'
+                    }
+                }
+                mask = ls.geetools.bitsMaskAny(bits, ['Water', 'High'], 'QA_PIXEL')
+        """
+        masks = self.bitsToBands(bits_info, band)
+        masks = masks.select(classes) if classes else masks
+        return masks.reduce(ee.Reducer.anyNonZero()).rename("any_mask")
+
+    def classToBands(self, class_info: dict, band: str | int = 0) -> ee.Image:
+        """Convert each class into a separate binary mask.
+
+        Args:
+            class_info: class information.
+            band: band that contains class information
+
+        Example:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                class_info = {
+                  '2': 'dark',
+                  '3': 'shadow',
+                  '7': 'clouds_low',
+                  '8': 'clouds_mid',
+                  '9': 'clouds_high',
+                  '10': 'cirrus'
+                }
+                image = ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
+                decoded = image.geetools.classToBands(class_info, "SCL")
+                decoded.getInfo()
+        """
+        class_info = format_class_info(class_info)
+        # I don't see the class info coming from the server, so it'll client side until I get challenged
+        images = []
+        for class_value, class_name in class_info.items():
+            class_value = int(class_value)
+            mask = self._obj.select([band]).eq(class_value).rename(class_name)
+            images.append(mask)
+        return self.fromList(images)
+
+    def classMask(self, class_info: dict, classes: Optional[list] = None, band: str | int = 0):
+        """Create a mask using the class information.
+
+         In this case there is no option for "all" or "any" because class bands cannot contain 2 classes in the same pixel value.
+
+        Args:
+            class_info: class information (client-side only).
+            classes: name of the classes to use for the mask. If None it will use all classes in bits_info.
+            band: name of the bit band. Defaults to first band.
+
+        Example:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                class_info = {
+                  '2': 'dark',
+                  '3': 'shadow',
+                  '7': 'clouds_low',
+                  '8': 'clouds_mid',
+                  '9': 'clouds_high',
+                  '10': 'cirrus'
+                }
+                image = ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
+                decoded = image.geetools.classMask(class_info, classes=["dark", "shadow"], band="SCL")
+                decoded.getInfo()
+        """
+        masks = self.classToBands(class_info, band)
+        masks = masks.select(classes) if classes else masks
+        return masks.reduce(ee.Reducer.anyNonZero()).rename("mask")
+
     def byBands(
         self,
-        regions: ee.featurecollection,
+        regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
-        bands: list = [],
+        bands: list[str] | None = None,
         regionId: str = "system:index",
-        labels: list = [],
+        labels: list[str] | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> ee.Dictionary:
         """Compute a reducer for each band of the image in each region.
 
@@ -1610,11 +2018,14 @@ class ImageAccessor:
 
         Parameters:
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale to use for the computation. Default is 10000m.
-            regionId: The property used to label region. Defaults to "system:index".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            regionId: The property used to label region. Defaults to ``"system:index"``.
             labels: The labels to use for the output dictionary. Default to the band names.
             bands: The bands to compute the reducer on. Default to all bands.
+            scale: The scale to use for the computation. Default is 10000m.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             A dictionary with all the bands as keys and their values in each region as a list.
@@ -1632,7 +2043,7 @@ class ImageAccessor:
 
                 ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
-                d = normClim.byBands(ecoregions, ee.Reducer.mean(), scale=10000)
+                d = normClim.geetools.byBands(ecoregions, ee.Reducer.mean(), scale=10000)
                 print(d.getInfo())
         """
         # get all the id values, they must be string so we are forced to cast them manually
@@ -1642,10 +2053,10 @@ class ImageAccessor:
         features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # get the bands to be used in the reducer
-        eeBands = ee.List(bands) if len(bands) else self._obj.bandNames()
+        eeBands = ee.List(bands) if bands is not None else self._obj.bandNames()
 
         # retrieve the label to use for each bands if provided
-        eeLabels = ee.List(labels) if len(labels) else eeBands
+        eeLabels = ee.List(labels) if labels is not None else eeBands
 
         # by default for 1 band image, the reducers are renaming the output band. To ensure it keeps
         #  the original band name we add setOutputs that is ignored for multi band images.
@@ -1656,7 +2067,14 @@ class ImageAccessor:
 
         # retrieve the reduce bands for each feature
         image = self._obj.select(eeBands).rename(eeLabels)
-        fc = image.reduceRegions(collection=regions, reducer=red, scale=scale)
+        fc = image.reduceRegions(
+            collection=regions,
+            reducer=red,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        )
 
         # extract the data as a list of dictionaries (one for each label) aggregating
         # the values for each feature
@@ -1666,12 +2084,15 @@ class ImageAccessor:
 
     def byRegions(
         self,
-        regions: ee.featurecollection,
+        regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
-        bands: list = [],
+        bands: list[str] | None = None,
         regionId: str = "system:index",
-        labels: list = [],
+        labels: list[str] | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> ee.Dictionary:
         """Compute a reducer in each region of the image for eah band.
 
@@ -1687,11 +2108,15 @@ class ImageAccessor:
 
         Parameters:
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale to use for the computation. Default is 10000m.
-            regionId: The property used to label region. Defaults to "system:index".
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
+            regionId: The property used to label region. Defaults to ``"system:index"``.
             labels: The labels to use for the output dictionary. Default to the band names.
             bands: The bands to compute the reducer on. Default to all bands.
+            scale: The scale to use for the computation. Default is 10000m.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
 
         Returns:
             A dictionary with all the bands as keys and their values in each region as a list.
@@ -1709,7 +2134,7 @@ class ImageAccessor:
 
                 ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
-                d = normClim.byregions(ecoregions, ee.Reducer.mean(), scale=10000)
+                d = normClim.geetools.byRegions(ecoregions, ee.Reducer.mean(), scale=10000)
                 print(d.getInfo())
         """
         # get all the id values, they must be string so we are forced to cast them manually
@@ -1719,10 +2144,10 @@ class ImageAccessor:
         features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # get the bands to be used in the reducer
-        bands = ee.List(bands) if len(bands) else self._obj.bandNames()
+        bands = ee.List(bands) if bands is not None else self._obj.bandNames()
 
         # retrieve the label to use for each bands if provided
-        labels = ee.List(labels) if len(labels) else bands
+        labels = ee.List(labels) if labels is not None else bands
 
         # by default for 1 band image, the reducers are renaming the output band. To ensure it keeps
         #  the original band name we add setOutputs that is ignored for multi band images.
@@ -1733,7 +2158,14 @@ class ImageAccessor:
 
         # retrieve the reduce bands for each feature
         image = self._obj.select(bands).rename(labels)
-        fc = image.reduceRegions(regions, red, scale)
+        fc = image.reduceRegions(
+            collection=regions,
+            reducer=red,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        )
 
         # extract the data as a list of dictionaries (one for each label) aggregating
         # we are force to turn the fc into a list because GEE don't accept to map a featureCollection
@@ -1748,16 +2180,19 @@ class ImageAccessor:
         type: str,
         regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
-        bands: list = [],
+        bands: list[str] | None = None,
         regionId: str = "system:index",
-        labels: list = [],
-        colors: list = [],
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> Axes:
         """Plot the reduced values for each region.
 
-        Each region will be plotted using the ``regionId`` as x-axis label defauting to "system:index" if not provided.
+        Each region will be plotted using the ``regionId`` as x-axis label defaulting to "system:index" if not provided.
         If no ``bands`` are provided, all bands will be plotted.
         If no ``labels`` are provided, the band names will be used.
 
@@ -1765,15 +2200,19 @@ class ImageAccessor:
             This method is client-side.
 
         Parameters:
-            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
+            type: The type of plot to use. Defaults to ``"bar"``. can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
-            rreducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale to use for the computation. Default is 10000m.
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
             bands: The bands to compute the reducer on. Default to all bands.
-            regionId: The property used to label region. Defaults to "system:index".
+            regionId: The property used to label region. Defaults to ``"system:index"``.
             labels: The labels to use for the output dictionary. Default to the band names.
             colors: The colors to use for the plot. Default to the default matplotlib colors.
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
+            scale: The scale to use for the computation. Default is 10000m.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+
 
         Returns:
             The matplotlib axis with the plot.
@@ -1782,7 +2221,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.byRegions`
             - :docstring:`ee.Image.geetools.byBands`
             - :docstring:`ee.Image.geetools.plot_by_bands`
-            - :docstring:`ee.Image.geetools.plot_hist
+            - :docstring:`ee.Image.geetools.plot_hist`
 
         Examples:
             .. code-block:: python
@@ -1794,11 +2233,20 @@ class ImageAccessor:
                 ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
 
-
-                normClim.plot_by_regions(ecoregions, ee.Reducer.mean(), scale=10000)
+                normClim.geetools.plot_by_regions(ecoregions, ee.Reducer.mean(), scale=10000)
         """
         # get the data from the server
-        data = self.byBands(regions, reducer, scale, bands, regionId, labels).getInfo()
+        data = self.byBands(
+            regions=regions,
+            reducer=reducer,
+            bands=bands,
+            regionId=regionId,
+            labels=labels,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        ).getInfo()
 
         # get all the id values, they must be string so we are forced to cast them manually
         # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
@@ -1808,8 +2256,8 @@ class ImageAccessor:
         features = features.getInfo()
 
         # extract the labels from the parameters
-        eeBands = ee.List(bands) if len(bands) else self._obj.bandNames()
-        labels = labels if len(labels) else eeBands.getInfo()
+        eeBands = ee.List(bands) if bands is not None else self._obj.bandNames()
+        labels = labels if labels is not None else eeBands.getInfo()
 
         # reorder the data according to the labels id set by the user
         data = {b: {f: data[b][f] for f in features} for b in labels}
@@ -1823,33 +2271,39 @@ class ImageAccessor:
         type: str,
         regions: ee.FeatureCollection,
         reducer: str | ee.Reducer = "mean",
-        scale: int = 10000,
-        bands: list = [],
+        bands: list[str] | None = None,
         regionId: str = "system:index",
-        labels: list = [],
-        colors: list = [],
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        tileScale: float = 1,
     ) -> Axes:
-        """Plot the reduced values for each bands.
+        """Plot the reduced values for each band.
 
-        Each band will be plotted using the ``labels`` as x-axis label defauting to band names if not provided.
+        Each band will be plotted using the ``labels`` as x-axis label defaulting to band names if not provided.
         If no ``bands`` are provided, all bands will be plotted.
-        If no ``regionId`` are provided, the "system;index" property will be used.
+        If no ``regionId`` are provided, the ``"system:index"`` property will be used.
 
 
         Warning:
             This method is client-side.
 
         Parameters:
-            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
+            type: The type of plot to use. Defaults to ``"bar"``. can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
             regions: The regions to compute the reducer in.
-            reducer: The name of the reducer or a reducer object to use. Default is "mean".
-            scale: The scale to use for the computation. Default is 10000m.
+            reducer: The name of the reducer or a reducer object to use. Default is ``"mean"``.
             bands: The bands to compute the reducer on. Default to all bands.
-            regionId: The property used to label region. Defaults to "system:index".
+            regionId: The property used to label region. Defaults to ``"system:index"``.
             labels: The labels to use for the output dictionary. Default to the band names.
             colors: The colors to use for the plot. Default to the default matplotlib colors.
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
+            scale: The scale to use for the computation. Default is 10000m.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
 
         Returns:
             The matplotlib axis with the plot.
@@ -1858,7 +2312,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.byRegions`
             - :docstring:`ee.Image.geetools.byBands`
             - :docstring:`ee.Image.geetools.plot_by_regions`
-            - :docstring:`ee.Image.geetools.plot_hist
+            - :docstring:`ee.Image.geetools.plot_hist`
 
         Examples:
             .. code-block:: python
@@ -1870,11 +2324,20 @@ class ImageAccessor:
                 ecoregions = ee.FeatureCollection("projects/google/charts_feature_example").select(["label", "value","warm"])
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
 
-
-                normClim.plot_by_bands(ecoregions, ee.Reducer.mean(), scale=10000)
+                normClim.geetools.plot_by_bands(ecoregions, ee.Reducer.mean(), scale=10000)
         """
         # get the data from the server
-        data = self.byRegions(regions, reducer, scale, bands, regionId, labels).getInfo()
+        data = self.byRegions(
+            regions=regions,
+            reducer=reducer,
+            bands=bands,
+            regionId=regionId,
+            labels=labels,
+            scale=scale,
+            crs=crs,
+            crsTransform=crsTransform,
+            tileScale=tileScale,
+        ).getInfo()
 
         # get all the id values, they must be string so we are forced to cast them manually
         # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
@@ -1884,8 +2347,8 @@ class ImageAccessor:
         features = features.getInfo()
 
         # extract the labels from the parameters
-        eeBands = ee.List(bands) if len(bands) else self._obj.bandNames()
-        labels = labels if len(labels) else eeBands.getInfo()
+        eeBands = ee.List(bands) if bands is not None else self._obj.bandNames()
+        labels = labels if labels is not None else eeBands.getInfo()
 
         # reorder the data according to the labels id set by the user
         data = {f: {b: data[f][b] for b in labels} for f in features}
@@ -1898,26 +2361,36 @@ class ImageAccessor:
         self,
         bins: int = 30,
         region: ee.Geometry | None = None,
-        bands: list = [],
-        labels: list = [],
-        colors: list = [],
-        scale: int = 10000,
+        bands: list[str] | None = None,
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         precision: int = 2,
         ax: Axes | None = None,
+        scale: int = 10000,
+        crs: str | None = None,
+        crsTransform: list | None = None,
+        bestEffort: bool = False,
+        maxPixels: int = 10**7,
+        tileScale: float = 1,
         **kwargs,
     ) -> Axes:
         """Plot the histogram of the image bands.
 
         Parameters:
             bins: The number of bins to use for the histogram. Default is 30.
+            region: The region to compute the histogram in. Default is the image geometry.
             bands: The bands to plot the histogram for. Default to all bands.
             labels: The labels to use for the output dictionary. Default to the band names.
             colors: The colors to use for the plot. Default to the default matplotlib colors.
+            precision: The number of decimal to keep for the histogram bins values. Default is 2.
             ax: The matplotlib axis to plot the data on. If None, a new figure is created.
             scale: The scale to use for the computation. Default is 10,000m.
-            prescision: The number of decimal to keep for the histogram bins values. Default is 2.
-            kwargs: Keyword arguments passed to the matplotlib fill_between() function.
-            region: The region to compute the histogram in. Default is the image geometry.
+            crs: The projection to work in. If unspecified, the projection of the image's first band is used. If specified in addition to scale, rescaled to the specified scale.
+            crsTransform: The list of CRS transform values. This is a row-major ordering of the 3x2 transform matrix. This option is mutually exclusive with 'scale', and replaces any transform already set on the projection.
+            bestEffort: If the polygon would contain too many pixels at the given scale, compute and use a larger scale which would allow the operation to succeed.
+            maxPixels: The maximum number of pixels to reduce. default to 10**7.
+            tileScale: A scaling factor between 0.1 and 16 used to adjust aggregation tile size; setting a larger tileScale (e.g., 2 or 4) uses smaller tiles and may enable computations that run out of memory with the default.
+            **kwargs: Keyword arguments passed to the `matplotlib.fill_between() <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.fill_between.html>`_ function.
 
         Returns:
             The matplotlib axis with the plot.
@@ -1926,7 +2399,7 @@ class ImageAccessor:
             - :docstring:`ee.Image.geetools.byRegions`
             - :docstring:`ee.Image.geetools.byBands`
             - :docstring:`ee.Image.geetools.plot_by_bands`
-            - :docstring:`ee.Image.geetools.plot_by_regions
+            - :docstring:`ee.Image.geetools.plot_by_regions`
 
 
         Examples:
@@ -1937,44 +2410,59 @@ class ImageAccessor:
                 ee.Initialize()
 
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm91m').toBands()
-                normClim.plot_hist()
+                normClim.geetools.plot_hist()
         """
         # extract the bands from the image
-        eeBands = ee.List(bands) if len(bands) == 0 else self._obj.bandNames()
-        eeLabels = ee.List(labels).flatten() if len(labels) == 0 else eeBands
-        labels = eeLabels.getInfo()
+        eeBands = ee.List(bands) if bands is not None else self._obj.bandNames()
+        eeLabels = ee.List(labels).flatten() if labels is not None else eeBands
+        new_labels: list[str] = eeLabels.getInfo()
+        new_colors: list[str] = colors if colors is not None else plt.get_cmap("tab10").colors
 
         # retrieve the region from the parameters
-        region = region if region else self._obj.geometry()
+        region = region if region is not None else self._obj.geometry()
 
         # extract the data from the server
         image = self._obj.select(eeBands).rename(eeLabels).clip(region)
 
-        # compute the min and ma values of the bands so w can scale the bins of the histogram
-        min = image.reduceRegion(ee.Reducer.min(), region, scale).values().reduce(ee.Reducer.min())
-        max = image.reduceRegion(ee.Reducer.max(), region, scale).values().reduce(ee.Reducer.max())
+        # set the common parameters of the 3 reducers
+        params = {
+            "geometry": region,
+            "scale": scale,
+            "crs": crs,
+            "crsTransform": crsTransform,
+            "bestEffort": bestEffort,
+            "maxPixels": maxPixels,
+            "tileScale": tileScale,
+        }
+
+        # compute the min and max values of the bands so w can scale the bins of the histogram
+        min = image.reduceRegion(**{"reducer": ee.Reducer.min(), **params})
+        min = min.values().reduce(ee.Reducer.min())
+
+        max = image.reduceRegion(**{"reducer": ee.Reducer.max(), **params})
+        max = max.values().reduce(ee.Reducer.max())
 
         # compute the histogram. The result is a dictionary with each band as key and the histogram
         # as values. The histograp is a list of [start of bin, value] pairs
-        reduce = image.reduceRegion(ee.Reducer.fixedHistogram(min, max, bins), region, scale)
-        raw_data = reduce.getInfo()
+        reducer = ee.Reducer.fixedHistogram(min, max, bins)
+        raw_data = image.reduceRegion(**{"reducer": reducer, **params}).getInfo()
 
-        # massage raw data to reqhape them as usable source for a Axes plot
+        # massage raw data to reshape them as usable source for an Axes plot
         # first extract the x coordinates of the plot as a list of bins borders
         # every value is duplicated but the first one to create a scale like display.
         # the values are treated the same way we simply drop the last duplication to get the same size.
         p = 10**precision  # multiplier use to truncate the float values
-        x = [int(d[0] * p) / p for d in raw_data[labels[0]] for _ in range(2)][1:]
-        data = {l: [int(d[1]) for d in raw_data[l] for _ in range(2)][:-1] for l in labels}
+        x = [int(d[0] * p) / p for d in raw_data[new_labels[0]] for _ in range(2)][1:]
+        data = {l: [int(d[1]) for d in raw_data[l] for _ in range(2)][:-1] for l in new_labels}
 
         # create the graph objcet if not provided
         if ax is None:
             fig, ax = plt.subplots()
 
         # display the histogram as a fill_between plot to respect GEE lib design
-        for i, label in enumerate(labels):
-            kwargs["facecolor"] = to_rgba(colors[i], 0.2)
-            kwargs["edgecolor"] = to_rgba(colors[i], 1)
+        for i, label in enumerate(new_labels):
+            kwargs["facecolor"] = to_rgba(new_colors[i], 0.2)
+            kwargs["edgecolor"] = to_rgba(new_colors[i], 1)
             ax.fill_between(x, data[label], label=label, **kwargs)
 
         # customize the layout of the axis
@@ -1986,3 +2474,34 @@ class ImageAccessor:
         ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
 
         return ax
+
+    @classmethod
+    def pixelArea(cls, area_unit: str = "m2", rename_to_units: bool = False) -> ee.Image:
+        """Extend the :py:method:`ee.Image.pixelArea` method by setting the unit of the output.
+
+        Args:
+            area_unit: the unit of the output area. can be one of "m2", "ha", "kha", "km2" or "acres".
+            rename_to_units: if ``True``, the output image will be renamed to the given unit.
+
+        Returns:
+            the area ``ee.Image`` using the given unit.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                hectares = ee.Image.geetools.pixelArea("ha").rename("ha")
+                acres = ee.Image.geetools.pixelArea("acres").rename("acres")
+                total = hectares.addBands(acres)
+
+                buffer = ee.Geometry.Point(0,0).buffer(100)
+                values = total.reduceRegion(ee.Reducer.mean(), buffer, 1)
+                values.getInfo()
+        """
+        name = area_unit if rename_to_units is True else "area"
+        divisor = area_units_to_m2(area_unit)
+        return ee.Image.pixelArea().divide(divisor).rename(name)

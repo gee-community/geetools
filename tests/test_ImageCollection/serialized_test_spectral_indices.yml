@@ -1,0 +1,252 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          functionInvocationValue:
+            arguments:
+              distance:
+                constantValue: 100
+              geometry:
+                functionInvocationValue:
+                  arguments:
+                    geometry:
+                      functionInvocationValue:
+                        arguments:
+                          feature:
+                            valueReference: '1'
+                        functionName: Image.geometry
+                    maxError:
+                      functionInvocationValue:
+                        arguments:
+                          value:
+                            constantValue: 1
+                        functionName: ErrorMargin
+                  functionName: Geometry.centroid
+            functionName: Geometry.buffer
+        image:
+          valueReference: '1'
+        reducer:
+          functionInvocationValue:
+            arguments: {}
+            functionName: Reducer.mean
+        scale:
+          constantValue: 1
+      functionName: Image.reduceRegion
+  '1':
+    functionInvocationValue:
+      arguments:
+        collection:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_0_0
+                  body: '2'
+              collection:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          collection:
+                            functionInvocationValue:
+                              arguments:
+                                baseAlgorithm:
+                                  functionDefinitionValue:
+                                    argumentNames:
+                                    - _MAPPING_VAR_0_0
+                                    body: '9'
+                                collection:
+                                  functionInvocationValue:
+                                    arguments:
+                                      id:
+                                        constantValue: COPERNICUS/S2_SR_HARMONIZED
+                                    functionName: ImageCollection.load
+                              functionName: Collection.map
+                          filter:
+                            functionInvocationValue:
+                              arguments:
+                                leftField:
+                                  constantValue: .all
+                                rightValue:
+                                  functionInvocationValue:
+                                    arguments:
+                                      geometry:
+                                        functionInvocationValue:
+                                          arguments:
+                                            collection:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  collection:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        collection:
+                                                          functionInvocationValue:
+                                                            arguments:
+                                                              tableId:
+                                                                constantValue: FAO/GAUL/2015/level2
+                                                            functionName: Collection.loadTable
+                                                        filter:
+                                                          functionInvocationValue:
+                                                            arguments:
+                                                              leftField:
+                                                                constantValue: ADM0_NAME
+                                                              rightValue:
+                                                                constantValue: Colombia
+                                                            functionName: Filter.equals
+                                                      functionName: Collection.filter
+                                                  filter:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        leftField:
+                                                          constantValue: ADM1_NAME
+                                                        rightValue:
+                                                          constantValue: Amazonas
+                                                      functionName: Filter.equals
+                                                functionName: Collection.filter
+                                          functionName: Collection.geometry
+                                    functionName: Feature
+                              functionName: Filter.intersects
+                        functionName: Collection.filter
+                    filter:
+                      functionInvocationValue:
+                        arguments:
+                          leftValue:
+                            functionInvocationValue:
+                              arguments:
+                                end:
+                                  constantValue: '2021-12-01'
+                                start:
+                                  constantValue: '2021-01-01'
+                              functionName: DateRange
+                          rightField:
+                            constantValue: system:time_start
+                        functionName: Filter.dateRangeContains
+                  functionName: Collection.filter
+            functionName: Collection.map
+      functionName: Collection.first
+  '2':
+    functionInvocationValue:
+      arguments:
+        dstImg:
+          functionInvocationValue:
+            arguments:
+              dstImg:
+                argumentReference: _MAPPING_VAR_0_0
+              srcImg:
+                functionInvocationValue:
+                  arguments:
+                    input:
+                      functionInvocationValue:
+                        arguments:
+                          image1:
+                            functionInvocationValue:
+                              arguments:
+                                image1:
+                                  valueReference: '3'
+                                image2:
+                                  valueReference: '5'
+                              functionName: Image.subtract
+                          image2:
+                            functionInvocationValue:
+                              arguments:
+                                image1:
+                                  valueReference: '3'
+                                image2:
+                                  valueReference: '5'
+                              functionName: Image.add
+                        functionName: Image.divide
+                    names:
+                      constantValue:
+                      - NDVI
+                  functionName: Image.rename
+            functionName: Image.addBands
+        srcImg:
+          functionInvocationValue:
+            arguments:
+              input:
+                functionInvocationValue:
+                  arguments:
+                    image1:
+                      functionInvocationValue:
+                        arguments:
+                          image1:
+                            valueReference: '7'
+                          image2:
+                            valueReference: '3'
+                        functionName: Image.subtract
+                    image2:
+                      functionInvocationValue:
+                        arguments:
+                          image1:
+                            valueReference: '7'
+                          image2:
+                            valueReference: '3'
+                        functionName: Image.add
+                  functionName: Image.divide
+              names:
+                constantValue:
+                - NDWI
+            functionName: Image.rename
+      functionName: Image.addBands
+  '3':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '4'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '4':
+    constantValue: B8
+  '5':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '6'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '6':
+    constantValue: B4
+  '7':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - valueReference: '8'
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select
+  '8':
+    constantValue: B3
+  '9':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - constantValue: B1
+            - constantValue: B2
+            - valueReference: '8'
+            - valueReference: '6'
+            - constantValue: B5
+            - constantValue: B6
+            - constantValue: B7
+            - valueReference: '4'
+            - constantValue: B8A
+            - constantValue: B9
+            - constantValue: B11
+            - constantValue: B12
+            - constantValue: SCL
+        input:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.select

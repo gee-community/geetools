@@ -1,10 +1,11 @@
-"""Toolbox for the `ee.FeatureCollection` class."""
+"""Toolbox for the :py:class:`ee.FeatureCollection` class."""
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Protocol
 
 import ee
 import geopandas as gpd
+import shapely
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
@@ -12,12 +13,21 @@ from .accessors import register_class_accessor
 from .utils import plot_data
 
 
+class GeoInterface(Protocol):
+    """Protocol that implement at least a ``__geo_interface__`` property."""
+
+    @property
+    def __geo_interface__(self) -> dict:
+        """The protocol must implement a ``__geo_interface__`` property."""
+        ...
+
+
 @register_class_accessor(ee.FeatureCollection, "geetools")
 class FeatureCollectionAccessor:
-    """Toolbox for the `ee.FeatureCollection` class."""
+    """Toolbox for the :py:class:`ee.FeatureCollection` class."""
 
     def __init__(self, obj: ee.FeatureCollection):
-        """Initialize the FeatureCollection class."""
+        """Initialize the :py:class:`ee.FeatureCollection` class."""
         self._obj = obj
 
     def toImage(
@@ -25,37 +35,149 @@ class FeatureCollectionAccessor:
         color: str | ee.String | int | ee.Number = 0,
         width: str | ee.String | int | ee.Number = "",
     ) -> ee.Image:
-        """Paint the current FeatureCollection to an Image.
+        """Paint the current :py:class:`ee.FeatureCollection` to an Image.
 
-        It's simply a wrapper on Image.paint() method
+        It's a simple wrapper on :py:meth:`ee.Image.paint` method.
 
         Args:
             color: The pixel value to paint into every band of the input image, either as a number which will be used for all features, or the name of a numeric property to take from each feature in the collection.
             width: Line width, either as a number which will be the line width for all geometries, or the name of a numeric property to take from each feature in the collection. If unspecified, the geometries will be filled instead of outlined.
+
+        Returns:
+            The painted image.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
+                from matplotlib.colors import ListedColormap
+
+                initialize_documentation()
+
+                # extract the featureCollection of the Vatican from the FAO gaul dataset
+                vatican = (
+                    ee.FeatureCollection("FAO/GAUL/2015/level0")
+                    .filter(ee.Filter.eq("ADM0_NAME", "Holy See"))
+                )
+
+                # transform the featureCollection into an image
+                img = vatican.geetools.toImage(color=1).rename("gaul")
+
+                # Define a custom colormap for the raster representation
+                # it will only have 1 color: teal for the first value and white for everything else
+                cmap = ListedColormap(['teal', 'white'])
+
+                # create the axes for the plots
+                fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+
+                # customize the layout of the 2 plots
+                for ax in axes:
+                    ax.set_xlabel("Longitude (°)")
+                    ax.set_ylabel("Latitude (°)")
+                    ax.set_xticks([])
+                    ax.set_yticks([])
+
+                # add the vector on the first plot
+                axes[0].set_title("Vector")
+                vatican.geetools.plot(ax=axes[0], color="teal", boundaries=True)
+
+                # add the raster on the second plot
+                axes[1].set_title("Raster")
+                img.geetools.plot(region=vatican.bounds(), bands=["gaul"], ax=axes[1], cmap=cmap)
+
+                fig.show()
         """
         params = {"color": color}
         width == "" or params.update(width=width)
         return ee.Image().paint(self._obj, **params)
 
-    def addId(
-        self, name: str | ee.String = "id", start: int | ee.Number = 1
-    ) -> ee.FeatureCollection:
-        """Add a unique numeric identifier, starting from parameter ``start``.
+    def toDictionary(
+        self,
+        keyColumn: str | ee.String = "system:index",
+        selectors: list[str] | ee.List | None = None,
+    ) -> ee.Dictionary:
+        """Convert to Dictionary.
+
+        Parameters:
+            keyColumn: the column to use as keys. Must contain unique values, if not it will fail.
+            selectors: a list of properties to add in the output. If the list is empty all properties will be added.
 
         Returns:
-            The parsed collection with a new id property
+            a :py:class:`ee.Dictionary` with values of keyColumn as keys and :py:class:`ee.Dictionary` as values. The output will look like:
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+                import json
+
+                initialize_documentation()
+
+                # Extracting the first 3 countries from the FAO GAUL dataset.
+                # and transform them into dictionary
+                countries = (
+                    ee.FeatureCollection("FAO/GAUL/2015/level0")
+                    .select(["ADM0_NAME", "ADM0_CODE"])
+                    .limit(3)
+                    .geetools.toDictionary()
+                )
+
+                print(json.dumps(countries.getInfo(), indent=2))
+        """
+        uniqueIds = self._obj.aggregate_array(keyColumn)
+        selectors = ee.List(selectors) if selectors is not None else self._obj.first().propertyNames()
+        keyColumn = ee.String(keyColumn)
+
+        features = self._obj.toList(self._obj.size())
+        values = features.map(lambda feat: ee.Feature(feat).toDictionary(selectors))
+        keys = uniqueIds.map(lambda uid: ee.String(ee.Algorithms.String(uid)))
+        return ee.Dictionary.fromLists(keys, values)
+
+    def addId(self, name: str | ee.String = "id", start: int | ee.Number = 1) -> ee.FeatureCollection:
+        """Add a unique numeric identifier, starting from parameter ``start``.
+
+        Args:
+            name: The name of the property to add. Defaults to ``"id"``.
+            start: The starting value of the id. Defaults to 1.
+
+        Returns:
+            The parsed collection with a new id property.
 
         Example:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
+                from matplotlib.colors import ListedColormap
 
-                ee.Initialize()
+                initialize_documentation()
 
-                fc = ee.FeatureCollection('FAO/GAUL/2015/level0')
-                fc = fc.geetools.addId()
-                print(fc.first().get('id').getInfo())
+                # create a featureCollection from the 3 first countries of the FAO GAUL dataset
+                # then add an id property to each feature and show them in the console
+                fc = (
+                    ee.FeatureCollection("FAO/GAUL/2015/level0")
+                    .filter(ee.Filter.inList("ADM0_NAME", ["France", "Germany", "Italy"]))
+                    .select(["ADM0_NAME", "ADM0_CODE"])
+                    .geetools.addId()
+                )
+
+                # create a figure to show the created featureCollection generated "id" property
+                fig, ax = plt.subplots(figsize=(10, 5))
+                cmap = ListedColormap(["#3AA3FF", "#F3FF3B", "#FF433B"])
+                fc.geetools.plot(ax=ax, property="id", cmap=cmap)
+
+                fig.colorbar(ax.collections[0], label="id value", ticks=[1, 2, 3])
+                ax.set_title("generated id of FAO countries")
+                ax.set_xlabel("Longitude (°)")
+                ax.set_ylabel("Latitude (°)")
+                ax.set_xticks([])
+                ax.set_yticks([])
+
+                fig.show()
         """
         start, name = ee.Number(start).toInt(), ee.String(name)
 
@@ -64,44 +186,90 @@ class FeatureCollectionAccessor:
         idByIndex = ee.Dictionary.fromLists(indexes, ids)
         return self._obj.map(lambda f: f.set(name, idByIndex.get(f.get("system:index"))))
 
-    def mergeGeometries(self) -> ee.Geometry:
-        """Merge the geometries the included features.
+    def mergeGeometries(self, maxError: float | int | ee.Number | None = None) -> ee.Geometry:
+        """Merge the geometries included in the features.
+
+        Args:
+            maxError: The maximum amount of error tolerated when performing any necessary re-projection.
 
         Returns:
-            the dissolved geometry
+            The dissolved geometry.
 
         Example:
             .. code-block:: python
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
-                ee.Initialize()
+                initialize_documentation()
 
-                fc = ee.FeatureCollection("FAO/GAUL/2015/level0")
-                fc =fc.filter(ee.Filter.inList("ADM0_CODE", [122, 237, 85]))
-                geom = fc.geetools.mergeGeometries()
-                print(geom.getInfo())
+                # create a FeatureCollection containing 2 bounding boxes
+                fc = ee.FeatureCollection([
+                    ee.Geometry.BBox(-1, -1, 1, 1),
+                    ee.Geometry.BBox(0, 0, 2, 2)
+                ])
+
+                # merge them into a single geometry
+                geometry = fc.geetools.mergeGeometries(maxError=.1)
+
+                # print the geometry on a matplotlib graph
+                fig, ax = plt.subplots(figsize=(10, 5))
+                c = ee.FeatureCollection(geometry).geetools.plot(boundaries=True, color="teal", ax=ax)
+
+                fig.show()
         """
         first = self._obj.first().geometry()
-        union = self._obj.iterate(lambda f, g: f.geometry().union(g), first)
-        return ee.Geometry(union).dissolve()
+        union = self._obj.iterate(lambda f, g: f.geometry().union(g, maxError=maxError), first)
+        return ee.Geometry(union).dissolve(maxError=maxError)
+
+    def columnNames(self) -> ee.List:
+        """Get the name of the columns (Feature's properties).
+
+        get a flatten list of all the columns names in the FeatureCollection including the ones that
+        are not in all features.
+
+        Returns:
+            A list of all the column names in the FeatureCollection.
+
+        Example:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                fc = ee.FeatureCollection([
+                    ee.Feature(ee.Geometry.Point([0, 0]), {"name": "A", "value": 1}),
+                    ee.Feature(ee.Geometry.Point([1, 1]), {"name": "B", "value": 2, "extra": "extra_value"})
+                ])
+
+                column_names = fc.geetools.columnNames()
+                column_names.getInfo()
+        """
+        temp_property_name = "__geetools_properties__"
+        fc = self._obj.map(lambda feat: feat.set(temp_property_name, feat.propertyNames()))
+        return fc.aggregate_array(temp_property_name).flatten().distinct()
 
     def toPolygons(self) -> ee.FeatureCollection:
         """Drop any geometry that is not a Polygon or a multipolygon.
 
-        This method is made to avoid errors when performing zonal statistics and/or other surfaces operations. These operations won't work on geometries that are Lines or points. The methods remove these geometry types from GEometryCollections and rremove features that don't have any polygon geometry
+        This method is made to avoid errors when performing zonal statistics and/or other surfaces operations.
+        These operations won't work on geometries that are Lines or points. The methods remove these geometry
+        types from GeometryCollections and remove features that don't have any polygon geometry.
 
         Returns:
-            The parsed collection with only polygon/MultiPolygon geometries
+            The parsed collection with only polygon/MultiPolygon geometries.
 
         Example:
             .. code-block:: python
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
-                ee.Initialize()
+                initialize_documentation()
 
                 point0 = ee.Geometry.Point([0,0], proj="EPSG:4326")
                 point1 = ee.Geometry.Point([0,1], proj="EPSG:4326")
@@ -113,7 +281,9 @@ class FeatureCollectionAccessor:
 
                 fc = ee.FeatureCollection([geometryCol])
                 fc = fc.geetools.toPolygons()
-                print(fc.getInfo())
+
+                fig, ax = plt.subplots(figsize=(5, 10))
+                fc.geetools.plot(boundaries=True, ax=ax)
         """
 
         def filterGeom(geom):
@@ -130,12 +300,12 @@ class FeatureCollectionAccessor:
     def byProperties(
         self,
         featureId: str | ee.String = "system:index",
-        properties: list | ee.List = [],
-        labels: list = [],
+        properties: list[str] | ee.List | None = None,
+        labels: list[str] | ee.List | None = None,
     ) -> ee.Dictionary:
-        """Get a dictionary with all feature values for each properties.
+        """Get a dictionary with all feature values for each property.
 
-        This method is returning a dictionary with all the properties as keys and their values in each feaure as a list.
+        This method is returning a dictionary with all the properties as keys and their values in each feature as a list.
 
         .. code-block::
 
@@ -148,49 +318,51 @@ class FeatureCollectionAccessor:
         The output remain server side and can be used to create a client side plot.
 
         Args:
-            featureId: The property used to label features. Defaults to "system:index".
-            properties: A list of properties to get the values from.
+            featureId: The property used to label features. Defaults to ``"system:index"``.
+            properties: A list of properties to get the values from. By default, all properties will be used.
             labels: A list of names to replace properties names. Default to the properties names.
 
         Returns:
-            A dictionary with all the properties as keys and their values in each feaure as a list.
+            A dictionary with all the properties as keys and their values in each feature as a list.
 
         See Also:
             - :docstring:`ee.FeatureCollection.geetools.byFeatures`
             - :docstring:`ee.FeatureCollection.geetools.plot_by_properties`
 
         Example:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
-                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
-                d = fc.geetools.byProperties(["ADM1_CODE", "ADM2_CODE"])
+                initialize_documentation()
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(3)
+                d = fc.geetools.byProperties(properties=["ADM1_CODE", "ADM2_CODE"])
                 d.getInfo()
         """
         # get all the id values, they must be string so we are forced to cast them manually
         # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
-        features = self._obj.aggregate_array(featureId)
+        feats = self._obj.aggregate_array(featureId)
         isString = lambda i: ee.Algorithms.ObjectType(i).compareTo("String").eq(0)  # noqa: E731
-        features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
+        feats = feats.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # retrieve properties for each feature
-        properties = ee.List(properties) if properties else self._obj.first().propertyNames()
-        properties = properties.remove(featureId)
-        values = properties.map(
-            lambda p: ee.Dictionary.fromLists(features, self._obj.aggregate_array(p))
-        )
+        eeProps = self._obj.first().propertyNames() if properties is None else ee.List(properties)
+        eeProps = eeProps.remove(featureId)
+        values = eeProps.map(lambda p: ee.Dictionary.fromLists(feats, self._obj.aggregate_array(p)))
 
         # get the label to use in the dictionary if requested
-        labels = ee.List(labels) if labels else properties
+        eeLabels = eeProps if labels is None else ee.List(labels)
 
-        return ee.Dictionary.fromLists(labels, values)
+        return ee.Dictionary.fromLists(eeLabels, values)
 
     def byFeatures(
         self,
         featureId: str | ee.String = "system:index",
-        properties: list | ee.List = [],
-        labels: list = [],
+        properties: list[str] | ee.List | None = None,
+        labels: list[str] | ee.List | None = None,
     ) -> ee.Dictionary:
         """Get a dictionary with all property values for each feature.
 
@@ -207,8 +379,8 @@ class FeatureCollectionAccessor:
         The output remain server side and can be used to create a client side plot.
 
         Args:
-            featureId: The property to use as the feature id. Defaults to "system:index". This property needs to be a string property.
-            properties: A list of properties to get the values from.
+            featureId: The property to use as the feature id. Defaults to ``"system:index"``. This property needs to be a string property.
+            properties: A list of properties to get the values from. By default, all properties will be used.
             labels: A list of names to replace properties names. Default to the properties names.
 
         Returns:
@@ -219,18 +391,24 @@ class FeatureCollectionAccessor:
             - :docstring:`ee.FeatureCollection.geetools.plot_by_features`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
-                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
-                d = fc.geetools.byFeature(featureId="ADM2_CODE", properties=["ADM0_CODE"])
+                initialize_documentation()
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(3)
+                d = fc.geetools.byFeatures(properties=["ADM0_CODE", "ADM1_CODE", "ADM2_CODE"])
                 d.getInfo()
+
+
         """
         # compute the properties and their labels
-        props = ee.List(properties) if properties else self._obj.first().propertyNames()
+        props = ee.List(properties) if properties is not None else self._obj.first().propertyNames()
         props = props.remove(featureId)
-        labels = ee.List(labels) if labels else props
+        labels = ee.List(labels) if labels is not None else props
 
         # create a function to get the properties of a feature
         # we need to map the featureCollection into a list as it's not possible to return something else than a
@@ -250,7 +428,7 @@ class FeatureCollectionAccessor:
     def reduceColumnsGroup(
         self, reducer: ee.Reducer, groupBy: str = "system:index", selectors: Optional[list] = None
     ) -> ee.Dictionary:
-        """Reduce a FeatureColletion column/s grouped by a key column.
+        """Reduce columns of a FeatureCollection, grouped by the values of a key column.
 
         Parameters:
             reducer: The reducer.
@@ -282,6 +460,26 @@ class FeatureCollectionAccessor:
                 },
               },
             }
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                # Each country can have multiple level-1 administrative units.
+                areas = (
+                    ee.FeatureCollection("FAO/GAUL/2015/level1")
+                    .filter(ee.Filter.stringStartsWith(leftField="ADM0_NAME", rightValue="Ar"))
+                )
+                result = areas.geetools.reduceColumnsGroup(
+                    reducer=ee.Reducer.mean().combine(ee.Reducer.sum(), sharedInputs=True),
+                    groupBy="ADM0_NAME",
+                    selectors=["Shape_Area"],
+                )
+                result.getInfo()
         """
         if selectors is None:
             selectors = self._obj.first().propertyNames()
@@ -304,29 +502,29 @@ class FeatureCollectionAccessor:
         self,
         type: str = "bar",
         featureId: str = "system:index",
-        properties: list = [],
-        labels: list = [],
-        colors: list = [],
+        properties: list[str] | None = None,
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         **kwargs,
     ) -> Axes:
-        """Plot the values of a ``ee.FeatureCollection`` by feature.
+        """Plot the values of a :py:class:`ee.FeatureCollection` by feature.
 
         Each feature property selected in properties will be plotted using the ``featureId`` as the x-axis.
         If no ``properties`` are provided, all properties will be plotted.
-        If no ``featureId`` is provided, the "system:index" property will be used.
+        If no ``featureId`` is provided, the ``"system:index"`` property will be used.
 
         Warning:
             This function is a client-side function.
 
         Args:
-            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
-            featureId: The property to use as the x-axis (name the features). Defaults to "system:index".
+            type: The type of plot to use. Defaults to ``"bar"``. can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
+            featureId: The property to use as the x-axis (name the features). Defaults to ``"system:index"``.
             properties: A list of properties to plot. Defaults to all properties.
-            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties length.
+            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties' length.
             colors: A list of colors to use for plotting the properties. If not provided, the default colors from the matplotlib library will be used.
-            ax: The matplotlib axes to use. If not provided, the plot will be send to a new figure.
-            kwargs: Additional arguments from the ``pyplot`` function.
+            ax: The matplotlib axes to use. If not provided, the plot will be sent to a new figure.
+            kwargs: Additional arguments from the ``pyplot`` type selected.
 
         See Also:
             - :docstring:`ee.FeatureCollection.geetools.byFeatures`
@@ -335,22 +533,35 @@ class FeatureCollectionAccessor:
             - :docstring:`ee.FeatureCollection.geetools.plot`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
+                initialize_documentation()
+
+                # start a plot object from matplotlib library
+                fig, ax = plt.subplots(figsize=(10, 5))
+
+                # plot on this object the 10 first items of the FAO GAUL level 2 feature collection
+                # for each one of them (marked with it's "ADM0_NAME" property) we plot the value of the "ADM1_CODE" and "ADM2_CODE" properties
                 fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
-                fc.geetools.plot_by_features(properties=["ADM1_CODE", "ADM2_CODE"])
+                fc.geetools.plot_by_features(featureId="ADM2_NAME", properties=["ADM1_CODE", "ADM2_CODE"], colors=["#61A0D4", "#D49461"], ax=ax)
+
+                # Modify the rotation of existing x-axis tick labels
+                for label in ax.get_xticklabels():
+                    label.set_rotation(45)
         """
         # Get the features and properties
-        props = ee.List(properties) if properties else self._obj.first().propertyNames().getInfo()
+        props = ee.List(properties) if properties is not None else self._obj.first().propertyNames().getInfo()
         props = props.remove(featureId)
 
         # get the data from server
         data = self.byProperties(featureId, props, labels).getInfo()
 
         # reorder the data according to the labels or properties set by the user
-        labels = labels if labels else props.getInfo()
+        labels = labels if labels is not None else props.getInfo()
         data = {k: data[k] for k in labels}
 
         return plot_data(type=type, data=data, label_name=featureId, colors=colors, ax=ax, **kwargs)
@@ -359,13 +570,13 @@ class FeatureCollectionAccessor:
         self,
         type: str = "bar",
         featureId: str = "system:index",
-        properties: list | ee.List = [],
-        labels: list = [],
-        colors: list = [],
+        properties: list[str] | ee.List | None = None,
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
         ax: Axes | None = None,
         **kwargs,
     ) -> Axes:
-        """Plot the values of a FeatureCollection by property.
+        """Plot the values of a :py:class:`ee.FeatureCollection` by property.
 
         Each features will be represented by a color and each property will be a bar of the bar chart.
 
@@ -373,12 +584,12 @@ class FeatureCollectionAccessor:
             This function is a client-side function.
 
         Args:
-            type: The type of plot to use. Defaults to "bar". can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
-            featureId: The property to use as the y-axis (name the features). Defaults to "system:index".
+            type: The type of plot to use. Defaults to ``"bar"``. can be any type of plot from the python lib ``matplotlib.pyplot``. If the one you need is missing open an issue!
+            featureId: The property to use as the y-axis (name the features). Defaults to ``"system:index"``.
             properties: A list of properties to plot. Defaults to all properties.
-            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties length.
+            labels: A list of labels to use for plotting the properties. If not provided, the default labels will be used. It needs to match the properties' length.
             colors: A list of colors to use for plotting the properties. If not provided, the default colors from the matplotlib library will be used.
-            ax: The matplotlib axes to use. If not provided, the plot will be send to a new figure.
+            ax: The matplotlib axes to use. If not provided, the plot will be sent to a new figure.
             kwargs: Additional arguments from the ``pyplot`` function.
 
         See Also:
@@ -388,23 +599,32 @@ class FeatureCollectionAccessor:
             - :docstring:`ee.FeatureCollection.geetools.plot`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
+                initialize_documentation()
+
+                # start a plot object from matplotlib library
+                fig, ax = plt.subplots(figsize=(10, 5))
+
+                # plot on this object the 10 first items of the FAO GAUL level 2 feature collection
+                # for each one of them (marked with it's "ADM2_NAME" property) we plot the value of the "ADM1_CODE" property
                 fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
-                fc.geetools.plot_by_properties(xProperties=["ADM1_CODE", "ADM2_CODE"])
+                fc.geetools.plot_by_properties(featureId="ADM2_NAME", properties=["ADM1_CODE"], ax=ax)
         """
         # Get the features and properties
         fc = self._obj
-        props = ee.List(properties) if properties else fc.first().propertyNames()
+        props = ee.List(properties) if properties is not None else fc.first().propertyNames()
         props = props.remove(featureId)
 
         # get the data from server
         data = self.byFeatures(featureId, props, labels).getInfo()
 
         # reorder the data according to the lapbes or properties set by the user
-        labels = labels if labels else props.getInfo()
+        labels = labels if labels is not None else props.getInfo()
         data = {f: {k: data[f][k] for k in labels} for f in data.keys()}
 
         return plot_data(type=type, data=data, label_name=featureId, colors=colors, ax=ax, **kwargs)
@@ -414,7 +634,7 @@ class FeatureCollectionAccessor:
         property: str | ee.String,
         label: str = "",
         ax: Axes | None = None,
-        color=None,
+        color: str | None = None,
         **kwargs,
     ) -> Axes:
         """Plot the histogram of a specific property.
@@ -425,9 +645,9 @@ class FeatureCollectionAccessor:
         Args:
             property: The property to display
             label: The label to use for the property. If not provided, the property name will be used.
-            ax: The matplotlib axes to use. If not provided, the plot will be send to the current axes (``plt.gca()``)
+            ax: The matplotlib axes to use. If not provided, the plot will be sent to the current axes (using :py:func:`matplotlib.pyplot.gca`).
             color: The color to use for the plot. If not provided, the default colors from the matplotlib library will be used.
-            kwargs: Additional arguments from the ``pyplot.hist`` function.
+            **kwargs: Additional arguments from the :py:func:`matplotlib.pyplot.hist` function.
 
         See Also:
             - :docstring:`ee.FeatureCollection.geetools.plot_by_features`
@@ -435,14 +655,27 @@ class FeatureCollectionAccessor:
             - :docstring:`ee.FeatureCollection.geetools.plot`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
                 import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
+                initialize_documentation()
+
+                # start a plot object from matplotlib library
+                fig, ax = plt.subplots(figsize=(10, 5))
+                ax.set_title('Histogram of Precipitation in July')
+                ax.set_xlabel('Precipitation (mm)')
+
+
+                # build the histogram of the precipitation band for the month of july in the PRISM dataset
                 normClim = ee.ImageCollection('OREGONSTATE/PRISM/Norm81m').toBands()
                 region = ee.Geometry.Rectangle(-123.41, 40.43, -116.38, 45.14)
                 climSamp = normClim.sample(region, 5000)
-                climSamp.geetools.plot_hist("07_ppt")
+                climSamp.geetools.plot_hist("07_ppt", ax=ax, bins=20)
+
+                fig.show()
         """
         # gather the data from parameters
         properties, labels = ee.List([property]), ee.List([label])
@@ -504,23 +737,41 @@ class FeatureCollectionAccessor:
             - :docstring:`ee.FeatureCollection.geetools.plot_hist`
 
         Examples:
-            .. code-block:: python
+            .. jupyter-execute::
 
-                import ee
-                import geetools
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+                from matplotlib import pyplot as plt
 
-                ee.Initialize()
+                initialize_documentation()
 
-                fc = ee.FeatureCollection("FAO/GAUL/2015/level2").limit(10)
-                fig, ax = plt.subplots()
-                fc.geetools.plot("ADM2_CODE", ax)
+                # start a plot object from matplotlib library
+                fig, ax = plt.subplots(figsize=(10, 5))
+
+                # plot france geometry on the map
+                france = (
+                    ee.FeatureCollection("FAO/GAUL/2015/level2")
+                    .filter(ee.Filter.eq("ADM0_NAME", "France"))
+                    .geetools.plot(boundaries=True, color="teal", ax=ax)
+                )
+
+                # style the figure
+                ax.set_title("France departments")
+                ax.set_xlabel("Longitude (°)")
+                ax.set_ylabel("Latitude (°)")
+                ax.set_xticks([])
+                ax.set_yticks([])
+
+                fig.show()
         """
         if ax is None:
             fig, ax = plt.subplots()
 
         # get the data from the server
         names = self._obj.first().propertyNames()
-        names = names.filter(ee.Filter.stringStartsWith("item", "system:").Not())
+        nonSystemNames = names.filter(ee.Filter.stringStartsWith("item", "system:").Not()).sort()
+        systemNames = names.filter(ee.Filter.stringStartsWith("item", "system:")).sort()
+        names = nonSystemNames.cat(systemNames)
         property = property if property != "" else names.get(0).getInfo()
         data = self._obj.select([property]).getInfo()
 
@@ -532,3 +783,159 @@ class FeatureCollectionAccessor:
             gdf.boundary.plot(ax=ax, color=color)
         else:
             gdf.plot(column=property, ax=ax, cmap=cmap)
+
+    @classmethod
+    def fromGeoInterface(
+        cls,
+        data: dict | GeoInterface,
+        crs: str = "EPSG:4326",
+    ) -> ee.FeatureCollection:
+        """Create a :py:class:`ee.FeatureCollection` from a geo interface.
+
+        The ``geo_interface`` is a protocol representing a vector collection as a python GeoJSON-like dictionary structure.
+        More information is available at https://gist.github.com/sgillies/2217756. Note that the :py:class:`ee.FeatureCollection`
+        constructor is only supporting data represented in EPSG:4326.
+
+        The user can either provide an object that implements the ``__geo_interface__`` method or a dictionary
+        that respects the protocol described in the link above.
+
+        Parameters:
+            data: The geo_interface to create the :py:class:`ee.FeatureCollection` from.
+            crs: The CRS of the input data. Defaults to "EPSG:4326".
+
+        Returns:
+            The created :py:class:`ee.FeatureCollection` from the geo_interface.
+
+        Examples:
+            .. code-block:: python
+
+                import geetools
+
+                data = {
+                    "type": "FeatureCollection",
+                    "features": [
+                        {
+                            "type": "Feature",
+                            "properties": {"name": "Coors Field"},
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [-104.99404, 39.75621]
+                            }
+                        }
+                    ]
+                }
+
+                fc = ee.FeatureCollection.geetools.fromGeoInterface(data, crs="EPSG:4326")
+        """
+        # clean the data
+        if hasattr(data, "__geo_interface__"):
+            data = data.__geo_interface__
+        elif not isinstance(data, dict):
+            raise ValueError("The data must be a geo_interface or a dictionary")
+
+        # ensure the geometries are 2D
+        gdf = gpd.GeoDataFrame.from_features(data["features"], crs=crs)
+        gdf.geometry = shapely.force_2d(gdf.geometry.values)
+        data = gdf.__geo_interface__
+
+        # create the feature collection
+        return ee.FeatureCollection(data)
+
+    def areaSort(self, ascending: bool = True) -> ee.FeatureCollection:
+        """Sort the features in the collection by area.
+
+        Args:
+            ascending: Whether to sort in ascending order.
+
+        Returns:
+            The sorted collection.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level0").limit(5)
+                fc = fc.geetools.areaSort()
+                fc.aggregate_array("ADM0_NAME").getInfo()
+        """
+        # generate an area property
+        name = "__geetools_area__"
+        fc = self._obj.map(lambda feat: feat.set(name, feat.geometry().area(1)))
+
+        # sort by area and remove the property from the output
+        properties = fc.first().propertyNames().remove(name)
+        return fc.sort(name, ascending).map(lambda feat: feat.select(properties))
+
+    def filterGeometryType(self, type_: str | ee.String) -> ee.FeatureCollection:
+        """Filter the collection by geometry type.
+
+        Only keep in the Final featureCollection the Feature with the specified geometry type.
+        Can be combined with ``breakGeometries`` to filter out multi geometries.
+
+        Args:
+            type_: The geometry type to filter on. Must be one of the `GEE compatible types <https://developers.google.com/earth-engine/guides/geometries>`__
+
+        Returns:
+            The filtered collection
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                geoms = [ee.Geometry.Point([0, 0]), ee.Geometry.Point([0, 0]).buffer(1)]
+                fc = ee.FeatureCollection([ee.Feature(g, {"test": "test"}) for g in geoms])
+                fc = fc.geetools.breakGeometries().geetools.filterGeometryType("Point")
+                fc.aggregate_array("test").getInfo()
+        """
+        # extract the properties of the features before filtering
+        # and create an extra column with the geometry type
+        type_, name = ee.String(type_), "__geetools_type__"
+        properties = self._obj.first().propertyNames()
+        fc = self._obj.map(lambda feat: feat.set(name, feat.geometry().type()))
+
+        # filter the collection and remove the extra column
+        fc = fc.filter(ee.Filter.eq(name, type_)).select(properties)
+
+        return ee.FeatureCollection(fc)
+
+    def breakGeometries(self) -> ee.FeatureCollection:
+        """Break every feature using geometries into it's constituents.
+
+        Each Geometry that is using a multi parts geometry type will be duplicated
+        into multiple features with each one carrying one of the constituent of the multiPolygon.
+
+        Returns:
+            ee.FeatureCollection: The collection with the broken down geometries
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                multipoint = ee.Geometry.MultiPoint([ee.Geometry.Point([0, 0]), ee.Geometry.Point([1, 0])])
+                fc = ee.FeatureCollection([ee.Feature(multipoint, {"test": "test"})])
+                fc = fc.geetools.breakGeometries()
+                fc.aggregate_array("test").getInfo()
+        """
+        # helper function to break the geometry of a feature
+        def split(feat):
+            feat = ee.Feature(feat)
+            geometries = feat.geometry().geometries()
+            return geometries.map(lambda g: ee.Feature(ee.Geometry(g), feat.toDictionary()))
+
+        # apply the function to the collection and flatten the list as each feature
+        # can have multiple geometries (thus list of list) and we want a single list
+        list = self._obj.toList(self._obj.size()).map(split).flatten()
+
+        return ee.FeatureCollection(list)

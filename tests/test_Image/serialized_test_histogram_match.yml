@@ -1,0 +1,641 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          functionInvocationValue:
+            arguments:
+              feature:
+                valueReference: '1'
+            functionName: Image.geometry
+        input:
+          valueReference: '1'
+        scale:
+          constantValue: 30
+      functionName: Image.clipToBoundsAndScale
+  '1':
+    functionInvocationValue:
+      arguments:
+        bottom:
+          functionInvocationValue:
+            arguments:
+              bandSelectors:
+                valueReference: '2'
+              input:
+                valueReference: '6'
+              newNames:
+                valueReference: '10'
+            functionName: Image.select
+        top:
+          functionInvocationValue:
+            arguments:
+              bandSelectors:
+                valueReference: '11'
+              input:
+                functionInvocationValue:
+                  arguments:
+                    input:
+                      functionInvocationValue:
+                        arguments:
+                          collection:
+                            functionInvocationValue:
+                              arguments:
+                                images:
+                                  valueReference: '12'
+                              functionName: ImageCollection.fromImages
+                        functionName: ImageCollection.toBands
+                    names:
+                      functionInvocationValue:
+                        arguments:
+                          list:
+                            functionInvocationValue:
+                              arguments:
+                                baseAlgorithm:
+                                  functionDefinitionValue:
+                                    argumentNames:
+                                    - _MAPPING_VAR_0_0
+                                    body: '30'
+                                dropNulls:
+                                  constantValue: false
+                                list:
+                                  valueReference: '12'
+                              functionName: List.map
+                        functionName: List.flatten
+                  functionName: Image.rename
+              newNames:
+                valueReference: '10'
+            functionName: Image.select
+      functionName: Image.blend
+  '10':
+    constantValue:
+    - N
+    - S
+    - R
+  '11':
+    constantValue:
+    - B8
+    - B11
+    - B4
+  '12':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_1_0
+            body: '13'
+        dropNulls:
+          constantValue: false
+        list:
+          functionInvocationValue:
+            arguments:
+              dictionary:
+                valueReference: '24'
+            functionName: Dictionary.keys
+      functionName: List.map
+  '13':
+    functionInvocationValue:
+      arguments:
+        condition:
+          functionInvocationValue:
+            arguments:
+              left:
+                functionInvocationValue:
+                  arguments:
+                    list:
+                      valueReference: '14'
+                  functionName: List.size
+              right:
+                constantValue: 1
+            functionName: Number.eq
+        falseCase:
+          functionInvocationValue:
+            arguments:
+              image:
+                valueReference: '28'
+              x:
+                valueReference: '14'
+              y:
+                valueReference: '29'
+            functionName: Image.interpolate
+        trueCase:
+          functionInvocationValue:
+            arguments:
+              from:
+                valueReference: '14'
+              image:
+                valueReference: '28'
+              to:
+                valueReference: '29'
+            functionName: Image.remap
+      functionName: If
+  '14':
+    functionInvocationValue:
+      arguments:
+        dictionary:
+          valueReference: '15'
+        key:
+          constantValue: x
+      functionName: Dictionary.get
+  '15':
+    dictionaryValue:
+      values:
+        x:
+          functionInvocationValue:
+            arguments:
+              array:
+                functionInvocationValue:
+                  arguments:
+                    array:
+                      functionInvocationValue:
+                        arguments:
+                          array:
+                            valueReference: '16'
+                          axis:
+                            constantValue: 1
+                          end:
+                            constantValue: 1
+                          start:
+                            constantValue: 0
+                        functionName: Array.slice
+                    axes:
+                      valueReference: '21'
+                  functionName: Array.project
+            functionName: Array.toList
+        y:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_0_0
+                  body: '22'
+              dropNulls:
+                constantValue: false
+              list:
+                functionInvocationValue:
+                  arguments:
+                    array:
+                      functionInvocationValue:
+                        arguments:
+                          left:
+                            valueReference: '27'
+                          right:
+                            functionInvocationValue:
+                              arguments:
+                                values:
+                                  functionInvocationValue:
+                                    arguments:
+                                      array:
+                                        valueReference: '27'
+                                      position:
+                                        valueReference: '26'
+                                    functionName: Array.get
+                              functionName: Array
+                        functionName: Array.divide
+                  functionName: Array.toList
+            functionName: List.map
+  '16':
+    functionInvocationValue:
+      arguments:
+        dictionary:
+          functionInvocationValue:
+            arguments:
+              bestEffort:
+                constantValue: true
+              geometry:
+                valueReference: '17'
+              image:
+                valueReference: '18'
+              maxPixels:
+                constantValue: 262143
+              reducer:
+                valueReference: '19'
+              scale:
+                constantValue: 30
+            functionName: Image.reduceRegion
+        key:
+          valueReference: '20'
+      functionName: Dictionary.getArray
+  '17':
+    functionInvocationValue:
+      arguments:
+        feature:
+          valueReference: '18'
+      functionName: Image.geometry
+  '18':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          functionInvocationValue:
+            arguments:
+              distance:
+                constantValue: 10000
+              geometry:
+                valueReference: '7'
+            functionName: Geometry.buffer
+        input:
+          functionInvocationValue:
+            arguments:
+              value:
+                functionInvocationValue:
+                  arguments:
+                    image1:
+                      functionInvocationValue:
+                        arguments:
+                          bandSelectors:
+                            valueReference: '11'
+                          input:
+                            functionInvocationValue:
+                              arguments:
+                                collection:
+                                  functionInvocationValue:
+                                    arguments:
+                                      collection:
+                                        functionInvocationValue:
+                                          arguments:
+                                            collection:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  collection:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        id:
+                                                          constantValue: COPERNICUS/S2_SR_HARMONIZED
+                                                      functionName: ImageCollection.load
+                                                  filter:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        leftField:
+                                                          constantValue: CLOUD_COVERAGE_ASSESSMENT
+                                                        rightValue:
+                                                          constantValue: 5
+                                                      functionName: Filter.lessThan
+                                                functionName: Collection.filter
+                                            filter:
+                                              valueReference: '8'
+                                          functionName: Collection.filter
+                                      filter:
+                                        valueReference: '9'
+                                    functionName: Collection.filter
+                              functionName: Collection.first
+                        functionName: Image.select
+                    image2:
+                      functionInvocationValue:
+                        arguments:
+                          value:
+                            constantValue: 10000
+                        functionName: Image.constant
+                  functionName: Image.divide
+            functionName: Image.toFloat
+      functionName: Image.clip
+  '19':
+    functionInvocationValue:
+      arguments:
+        cumulative:
+          constantValue: true
+        maxBuckets:
+          constantValue: 256
+      functionName: Reducer.autoHistogram
+  '2':
+    arrayValue:
+      values:
+      - valueReference: '3'
+      - valueReference: '4'
+      - valueReference: '5'
+  '20':
+    functionInvocationValue:
+      arguments:
+        input:
+          argumentReference: _MAPPING_VAR_1_0
+      functionName: String
+  '21':
+    constantValue:
+    - 0
+  '22':
+    functionInvocationValue:
+      arguments:
+        array:
+          functionInvocationValue:
+            arguments:
+              array:
+                functionInvocationValue:
+                  arguments:
+                    array:
+                      valueReference: '23'
+                    axis:
+                      constantValue: 1
+                    end:
+                      constantValue: 1
+                    start:
+                      constantValue: 0
+                  functionName: Array.slice
+              axes:
+                valueReference: '21'
+            functionName: Array.project
+        position:
+          functionInvocationValue:
+            arguments:
+              array:
+                functionInvocationValue:
+                  arguments:
+                    left:
+                      functionInvocationValue:
+                        arguments:
+                          left:
+                            valueReference: '25'
+                          right:
+                            functionInvocationValue:
+                              arguments:
+                                values:
+                                  functionInvocationValue:
+                                    arguments:
+                                      array:
+                                        valueReference: '25'
+                                      position:
+                                        valueReference: '26'
+                                    functionName: Array.get
+                              functionName: Array
+                        functionName: Array.divide
+                    right:
+                      functionInvocationValue:
+                        arguments:
+                          values:
+                            argumentReference: _MAPPING_VAR_0_0
+                        functionName: Array
+                  functionName: Array.gte
+            functionName: Array.argmax
+      functionName: Array.get
+  '23':
+    functionInvocationValue:
+      arguments:
+        dictionary:
+          functionInvocationValue:
+            arguments:
+              bestEffort:
+                constantValue: true
+              geometry:
+                valueReference: '17'
+              image:
+                functionInvocationValue:
+                  arguments:
+                    image:
+                      valueReference: '6'
+                    mask:
+                      functionInvocationValue:
+                        arguments:
+                          image:
+                            valueReference: '18'
+                        functionName: Image.mask
+                  functionName: Image.updateMask
+              maxPixels:
+                constantValue: 262143
+              reducer:
+                valueReference: '19'
+              scale:
+                constantValue: 30
+            functionName: Image.reduceRegion
+        key:
+          functionInvocationValue:
+            arguments:
+              input:
+                functionInvocationValue:
+                  arguments:
+                    dictionary:
+                      valueReference: '24'
+                    key:
+                      valueReference: '20'
+                  functionName: Dictionary.get
+            functionName: String
+      functionName: Dictionary.getArray
+  '24':
+    dictionaryValue:
+      values:
+        B11:
+          valueReference: '4'
+        B4:
+          valueReference: '5'
+        B8:
+          valueReference: '3'
+  '25':
+    functionInvocationValue:
+      arguments:
+        array:
+          functionInvocationValue:
+            arguments:
+              array:
+                valueReference: '23'
+              axis:
+                constantValue: 1
+              end:
+                constantValue: 2
+              start:
+                constantValue: 1
+            functionName: Array.slice
+        axes:
+          valueReference: '21'
+      functionName: Array.project
+  '26':
+    constantValue:
+    - -1
+  '27':
+    functionInvocationValue:
+      arguments:
+        array:
+          functionInvocationValue:
+            arguments:
+              array:
+                valueReference: '16'
+              axis:
+                constantValue: 1
+              end:
+                constantValue: 2
+              start:
+                constantValue: 1
+            functionName: Array.slice
+        axes:
+          valueReference: '21'
+      functionName: Array.project
+  '28':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          arrayValue:
+            values:
+            - argumentReference: _MAPPING_VAR_1_0
+        input:
+          valueReference: '18'
+      functionName: Image.select
+  '29':
+    functionInvocationValue:
+      arguments:
+        dictionary:
+          valueReference: '15'
+        key:
+          constantValue: y
+      functionName: Dictionary.get
+  '3':
+    constantValue: SR_B5
+  '30':
+    functionInvocationValue:
+      arguments:
+        image:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.bandNames
+  '4':
+    constantValue: SR_B6
+  '5':
+    constantValue: SR_B4
+  '6':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          functionInvocationValue:
+            arguments:
+              geometry:
+                functionInvocationValue:
+                  arguments:
+                    distance:
+                      constantValue: 20000
+                    geometry:
+                      valueReference: '7'
+                  functionName: Geometry.buffer
+            functionName: Geometry.bounds
+        input:
+          functionInvocationValue:
+            arguments:
+              value:
+                functionInvocationValue:
+                  arguments:
+                    image1:
+                      functionInvocationValue:
+                        arguments:
+                          image1:
+                            functionInvocationValue:
+                              arguments:
+                                bandSelectors:
+                                  valueReference: '2'
+                                input:
+                                  functionInvocationValue:
+                                    arguments:
+                                      collection:
+                                        functionInvocationValue:
+                                          arguments:
+                                            collection:
+                                              functionInvocationValue:
+                                                arguments:
+                                                  collection:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        collection:
+                                                          functionInvocationValue:
+                                                            arguments:
+                                                              id:
+                                                                constantValue: LANDSAT/LC08/C02/T1_L2
+                                                            functionName: ImageCollection.load
+                                                        filter:
+                                                          valueReference: '8'
+                                                      functionName: Collection.filter
+                                                  filter:
+                                                    functionInvocationValue:
+                                                      arguments:
+                                                        filter:
+                                                          functionInvocationValue:
+                                                            arguments:
+                                                              leftField:
+                                                                constantValue: CLOUD_COVER
+                                                              rightValue:
+                                                                constantValue: 5
+                                                            functionName: Filter.greaterThan
+                                                      functionName: Filter.not
+                                                functionName: Collection.filter
+                                            filter:
+                                              valueReference: '9'
+                                          functionName: Collection.filter
+                                    functionName: Collection.first
+                              functionName: Image.select
+                          image2:
+                            functionInvocationValue:
+                              arguments:
+                                value:
+                                  constantValue: 2.75e-05
+                              functionName: Image.constant
+                        functionName: Image.multiply
+                    image2:
+                      functionInvocationValue:
+                        arguments:
+                          value:
+                            constantValue: -0.2
+                        functionName: Image.constant
+                  functionName: Image.add
+            functionName: Image.toFloat
+      functionName: Image.clip
+  '7':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          functionInvocationValue:
+            arguments:
+              feature:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          collection:
+                            functionInvocationValue:
+                              arguments:
+                                collection:
+                                  functionInvocationValue:
+                                    arguments:
+                                      tableId:
+                                        constantValue: FAO/GAUL/2015/level2
+                                    functionName: Collection.loadTable
+                                filter:
+                                  functionInvocationValue:
+                                    arguments:
+                                      leftField:
+                                        constantValue: ADM0_NAME
+                                      rightValue:
+                                        constantValue: Colombia
+                                    functionName: Filter.equals
+                              functionName: Collection.filter
+                          filter:
+                            functionInvocationValue:
+                              arguments:
+                                leftField:
+                                  constantValue: ADM1_NAME
+                                rightValue:
+                                  constantValue: Amazonas
+                              functionName: Filter.equals
+                        functionName: Collection.filter
+                  functionName: Collection.first
+            functionName: Feature.geometry
+      functionName: Geometry.centroid
+  '8':
+    functionInvocationValue:
+      arguments:
+        leftField:
+          constantValue: .all
+        rightValue:
+          functionInvocationValue:
+            arguments:
+              geometry:
+                valueReference: '7'
+            functionName: Feature
+      functionName: Filter.intersects
+  '9':
+    functionInvocationValue:
+      arguments:
+        leftValue:
+          functionInvocationValue:
+            arguments:
+              end:
+                constantValue: '2024-01-01'
+              start:
+                constantValue: '2023-01-01'
+            functionName: DateRange
+        rightField:
+          constantValue: system:time_start
+      functionName: Filter.dateRangeContains

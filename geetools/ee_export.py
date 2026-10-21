@@ -9,7 +9,7 @@ from .utils import format_asset_id, format_description
 
 @register_class_accessor(ee.batch.Export, "geetools")
 class ExportAccessor:
-    """Toolbox for the ``ee.batch.Export`` class."""
+    """Toolbox for the :py:class:`ee.batch.Export` class."""
 
     def __init__(self, obj: ee.batch.Export):
         """Initialize the ExportAccessor class."""
@@ -41,10 +41,10 @@ class ExportAccessor:
 
             Parameters:
                 imagecollection: The image collection to export.
-                index_property: The property of the image to use as name. Default is "system:id".
+                index_property: The property of the image to use as name. Default is ``"system:id"``.
                 description: The description of the task.
                 assetId: The asset id where to export the image collection.
-                **kwargs: every parameter that you would use for a vanilla ee.batch.Export.image.toAsset
+                **kwargs: every parameter that you would use for a vanilla :py:meth:`ee.batch.Export.image.toAsset`
 
             Returns:
                 The task created.
@@ -61,8 +61,7 @@ class ExportAccessor:
                     collection = ee.ImageCollection("COPERNICUS/S2").limit(5)
 
                     # export the collection
-                    tasks = geetools.batch.Export.imagecollection.toAsset(collection, "system:index", "test export")
-                ```
+                    tasks = ee.batch.Export.geetools.imagecollection.toAsset(collection, "system:index", "test export")
             """
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
@@ -73,12 +72,11 @@ class ExportAccessor:
             ee.data.createAsset({"type": "IMAGE_COLLECTION"}, aid.as_posix())
 
             # loop over the collection and export each image
-            nb_images = imagecollection.size().getInfo()
-            imageList = imagecollection.toList(nb_images)
+            system_indices = imagecollection.aggregate_array("system:index").getInfo()
             task_list = []
-            for i in range(nb_images):
+            for sys_idx in system_indices:
                 # extract image information
-                locImage = ee.Image(imageList.get(i))
+                locImage = imagecollection.filter(ee.Filter.eq(index_property, sys_idx)).first()
                 loc_id = locImage.get(index_property).getInfo()
 
                 # override the parameters related to the image itself
@@ -108,10 +106,10 @@ class ExportAccessor:
 
             Parameters:
                 imagecollection: The image collection to export.
-                index_property: The property of the image to use as name. Default is "system:id".
+                index_property: The property of the image to use as name. Default is ``"system:id"``.
                 description: The description of the task.
                 folder: The folder id where to export the image collection. It will be stored at the root of the drive.
-                **kwargs: every parameter that you would use for a vanilla ee.batch.Export.image.toDrive
+                **kwargs: every parameter that you would use for a vanilla :py:meth:`ee.batch.Export.image.toDrive`
 
             Returns:
                 The list of created tasks
@@ -128,7 +126,7 @@ class ExportAccessor:
                     collection = ee.ImageCollection("COPERNICUS/S2").limit(5)
 
                     # export the collection
-                    tasks = geetools.batch.Export.imagecollection.toDrive(collection, "system:index", "test export")
+                    tasks = ee.batch.Export.geetools.imagecollection.toDrive(collection, "system:index", "test export")
             """
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
@@ -136,12 +134,11 @@ class ExportAccessor:
             fid = folder if folder else description
 
             # loop over the collection and export each image
-            nb_images = imagecollection.size().getInfo()
-            imageList = imagecollection.toList(nb_images)
+            system_indices = imagecollection.aggregate_array("system:index").getInfo()
             task_list = []
-            for i in range(nb_images):
+            for sys_idx in system_indices:
                 # extract image information
-                locImage = ee.Image(imageList.get(i))
+                locImage = imagecollection.filter(ee.Filter.eq(index_property, sys_idx)).first()
                 loc_id = locImage.get(index_property).getInfo()
 
                 # override the parameters related to the image itself
@@ -172,10 +169,10 @@ class ExportAccessor:
 
             Parameters:
                 imagecollection: The image collection to export.
-                index_property: The property of the image to use as name. Default is "system:id".
+                index_property: The property of the image to use as name. Default is ``"system:id"``.
                 description: The description of the task.
                 folder: The folder id where to export the image collection. It will be stored at the root of the drive.
-                **kwargs: every parameter that you would use for a vanilla ee.batch.Export.image.toCloudStorage
+                **kwargs: every parameter that you would use for a vanilla :py:meth:`ee.batch.Export.image.toCloudStorage`
 
             Returns:
                 The list of created tasks
@@ -192,7 +189,7 @@ class ExportAccessor:
                     collection = ee.ImageCollection("COPERNICUS/S2").limit(5)
 
                     # export the collection
-                    tasks = geetools.batch.Export.imagecollection.toDrive(collection, "system:index", "test export")
+                    tasks = ee.batch.Export.geetools.imagecollection.toDrive(collection, "system:index", "test export")
             """
             # sanity check on parameters
             # renaming them for mypy type reassignment and compactness
@@ -200,12 +197,11 @@ class ExportAccessor:
             fid = folder if folder else description
 
             # loop over the collection and export each image
-            nb_images = imagecollection.size().getInfo()
-            imageList = imagecollection.toList(nb_images)
+            system_indices = imagecollection.aggregate_array("system:index").getInfo()
             task_list = []
-            for i in range(nb_images):
+            for sys_idx in system_indices:
                 # extract image information
-                locImage = ee.Image(imageList.get(i))
+                locImage = imagecollection.filter(ee.Filter.eq(index_property, sys_idx)).first()
                 loc_id = locImage.get(index_property).getInfo()
 
                 # override the parameters related to the image itself

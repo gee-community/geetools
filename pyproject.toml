@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "geetools"
-version = "1.8.0"
+version = "1.19.0"
 description = "A collection of tools to work with Google Earth Engine Python API"
 keywords = [
   "python",
@@ -18,19 +18,19 @@ classifiers = [
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Build Tools",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
-    "earthengine-api>=1", # fully static implementation
+    "earthengine-api>=1.6.12", # _state module
     "requests",
     "pandas",
     "geopandas",
     "deprecated",
-    "ee-extra",
-    "xee>=0.0.11", # xee change dtype management
+    "xee>=0.1.0", # xee change API prototype for geometry setting
     "yamlable",
     "matplotlib",
     "anyascii",
@@ -63,7 +63,7 @@ Homepage = "https://github.com/gee-community/geetools"
     "httplib2",
     "pytest-regressions",
     "Pillow",
-    "pytest-gee>=0.3.5", # to make IC creation possible in the test suit
+    "pytest-gee>=0.6.0", # get the serialized regressions
     "jsonschema",
 ]
 doc = [
@@ -71,13 +71,14 @@ doc = [
   "pydata-sphinx-theme",
   "sphinx-copybutton",
   "sphinx-design",
-  "sphinx-autoapi==3.1.0a3",  # until v3.1 is released with the single page fix
+  "sphinx-autoapi",
   "ipykernel",
   "httplib2",
   "jupyter-sphinx",
   "myst-nb",
-  "pytest-gee",
+  "pytest-gee>=0.3.7", # avoid issue with rdt env variables
   "sphinx-icon",
+  "sphinx-last-updated-by-git",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -98,7 +99,7 @@ using = "PEP631:test;dev;doc"
 ignore-init-module-imports = true
 fix = true
 select = ["E", "F", "W", "I", "D", "RUF"]
-extend-exclude = ["geetools/__init__.py", "geetools/tools/_deprecated_imagecollection.py"]
+extend-exclude = ["geetools/__init__.py"]
 force-exclude = true # to make sure exclude is respected when used via pre-commit
 ignore = [
   "E501",  # line too long | Black take care of it
@@ -125,7 +126,7 @@ branch = true
 [tool.commitizen]
 tag_format = "v$major.$minor.$patch$prerelease"
 update_changelog_on_bump = false
-version = "1.8.0"
+version = "1.19.0"
 version_files = [
     "pyproject.toml:version",
     "geetools/__init__.py:__version__",
@@ -136,7 +137,7 @@ version_files = [
 skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb,**/*.yml"
 
 [tool.black]
-line-length = 100
+line-length = 110
 
 [tool.mypy]
 scripts_are_modules = true

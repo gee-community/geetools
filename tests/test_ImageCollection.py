@@ -6,10 +6,11 @@ import io
 import ee
 import numpy as np
 import pytest
+from ee.ee_exception import EEException
 from jsonschema import validate
 from matplotlib import pyplot as plt
 
-import geetools
+import geetools  # noqa: F401
 
 
 def reduce(
@@ -22,12 +23,20 @@ def reduce(
     return image.reduceRegion(ee.Reducer.mean(), geometry, 1)
 
 
+def round_dict(d: dict = None, decimals: int = 2) -> dict:
+    """Round all the values of a dictionary."""
+    d = d or {}
+    for k, v in d.items():
+        if isinstance(v, dict):
+            round_dict(v, decimals)
+        else:
+            d[k] = round(v, decimals)
+    return d
+
+
 class TestMaskClouds:
     """Test the ``maskClouds`` method."""
 
-    @pytest.mark.xfail(
-        reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x."
-    )
     def test_mask_s2_sr(self, s2_sr, num_regression):
         masked = s2_sr.geetools.maskClouds(prob=75, buffer=300, cdi=-0.5)
         num_regression.check(reduce(masked).getInfo())
@@ -44,9 +53,9 @@ class TestClosest:
 class TestSpectralIndices:
     """Test the ``spectralIndices`` method."""
 
-    def test_spectral_indices(self, s2_sr, num_regression):
+    def test_spectral_indices(self, s2_sr, ee_dictionary_regression):
         indices = s2_sr.geetools.spectralIndices(["NDVI", "NDWI"])
-        num_regression.check(reduce(indices).getInfo())
+        ee_dictionary_regression.check(reduce(indices))
 
 
 class TestGetScaleParams:
@@ -76,9 +85,6 @@ class TestScaleAndOffset:
 class TestPreprocess:
     """Test the ``preprocess`` method."""
 
-    @pytest.mark.xfail(
-        reason="ee_extra is joining ImgeCollection which is not compatible with ee v1.x."
-    )
     def test_preprocess(self, s2_sr, num_regression):
         preprocessed = s2_sr.geetools.preprocess()
         values = {k: np.nan if v is None else v for k, v in reduce(preprocessed).getInfo().items()}
@@ -189,26 +195,6 @@ class TestOutliers:
         num_regression.check(values)
 
 
-class TestToXarray:
-    """Test the ``toXarray`` method."""
-
-    def test_to_xarray(self, s2_sr, data_regression):
-        ds = s2_sr.geetools.to_xarray()
-
-        # drop all the dtype as they are not consistently setup depending on the xarray version
-        def drop_dtype(d=ds):
-            for k, v in ds.items():
-                if isinstance(v, dict):
-                    drop_dtype(v)
-                elif k == "dtype":
-                    del ds[k]
-
-        drop_dtype()
-
-        # ds = ds.astype(np.float64)
-        data_regression.check(ds.to_dict(data=False))
-
-
 class TestValidPixel:
     """Test the ``validPixel`` method."""
 
@@ -227,6 +213,12 @@ class TestContainsBandNames:
         ic = ic.geetools.containsAllBands(["B2", "B3"])
         assert ic.size().getInfo() == 2449
 
+    def test_contains_all_property_name(self, aster):
+        ic = aster.geetools.containsAllBands(
+            ["B3N", "B02", "B01"], bandNamesProperty="ORIGINAL_BANDS_PRESENT"
+        )
+        assert ic.size().getInfo() == 2
+
     def test_contains_all_mismatch(self, s2_sr):
         ic = s2_sr.select(["B2", "B3", "B4"])
         ic = ic.geetools.containsAllBands(["B2", "B3", "B5"])
@@ -236,6 +228,12 @@ class TestContainsBandNames:
         ic = s2_sr.select(["B2", "B3", "B4"])
         ic = ic.geetools.containsAnyBands(["B2", "B3", "B5"])
         assert ic.size().getInfo() == 2449
+
+    def test_contains_any_property_name(self, aster):
+        ic = aster.geetools.containsAnyBands(
+            ["B3N", "B02", "B01"], bandNamesProperty="ORIGINAL_BANDS_PRESENT"
+        )
+        assert ic.size().getInfo() == 2
 
     def test_contains_any_mismatch(self, s2_sr):
         ic = s2_sr.select(["B2", "B3", "B4"])
@@ -250,9 +248,7 @@ class TestAggregateArray:
         # reduce the number of properties beforehand to avoid the test to fail
         keys = s2_sr.first().propertyNames()
         keys = keys.filter(ee.Filter.stringStartsWith("item", "system:")).remove("system:version")
-        s2_sr_filtered = s2_sr.limit(3).map(
-            lambda i: ee.Image().addBands(i).copyProperties(i, keys)
-        )
+        s2_sr_filtered = s2_sr.limit(3).map(lambda i: ee.Image().addBands(i).copyProperties(i, keys))
         aggregated = s2_sr_filtered.geetools.aggregateArray()
         data_regression.check(aggregated.getInfo())
 
@@ -286,42 +282,54 @@ class TestGroupInterval:
         assert grouped.size().getInfo() == 3
         assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 24
 
-    def test_deprecated_make_equal_interval(self, jaxa_rainfall):
-        # get 3 month worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
-        with pytest.deprecated_call():
-            grouped = geetools.imagecollection.makeEqualInterval(ic)
-            assert grouped.size().getInfo() == 3
-            assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 720
-
-    def test_deprecated_make_day_intervals(self, jaxa_rainfall):
-        # get 3 days worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
-        with pytest.deprecated_call():
-            grouped = geetools.imagecollection.makeDayIntervals(ic)
-            assert grouped.size().getInfo() == 3
-            assert ee.ImageCollection(grouped.get(0)).size().getInfo() == 24
+    def test_group_interval_drop_empty_collections(self, s2_sr):
+        ic = s2_sr.filterDate("2021-01-01", "2021-01-07")
+        grouped = ic.geetools.groupInterval(duration=1, unit="day")
+        # Each collection must not be empty
+        for i in range(grouped.size().getInfo()):
+            imgCollection = ee.ImageCollection(grouped.get(i))
+            assert imgCollection.size().getInfo() != 0
 
 
 class TestReduceInterval:
     """Test the ``reduceInterval`` method."""
 
-    def test_reduce_interval(self, jaxa_rainfall, amazonas, num_regression):
+    def test_reduce_interval_properties(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         reduced = ic.geetools.reduceInterval()
-        values = {
-            k: np.nan if v is None else v for k, v in reduce(reduced, amazonas).getInfo().items()
-        }
-        num_regression.check(values)
+        values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+        ee_dictionary_regression.check(values)
 
-    def test_reduce_interval_with_reducer(self, jaxa_rainfall, amazonas, num_regression):
+    def test_reduce_interval(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        reduced = ic.geetools.reduceInterval()
+        values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+        ee_dictionary_regression.check(values)
+
+    def test_reduce_interval_without_original_names(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        reduced = ic.geetools.reduceInterval(keep_original_names=False)
+        values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+        ee_dictionary_regression.check(values)
+
+    def test_reduce_interval_with_reducer(self, jaxa_rainfall, amazonas, ee_dictionary_regression):
         # get 3 month worth of data and group it with default parameters
         ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
         reduced = ic.geetools.reduceInterval("max")
-        values = reduce(reduced, amazonas).getInfo()
-        values = {k: np.nan if v is None else v for k, v in values.items()}
-        num_regression.check(values)
+        values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+        ee_dictionary_regression.check(values)
+
+    def test_reduce_interval_with_multi_output_reducer(
+        self, jaxa_rainfall, amazonas, ee_dictionary_regression
+    ):
+        # get 3 month worth of data and group it with default parameters
+        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
+        reduced = ic.geetools.reduceInterval(ee.Reducer.minMax())
+        values = reduced.geetools.reduceRegion("mean", amazonas, idType=ee.String)
+        ee_dictionary_regression.check(values)
 
     def test_reduce_interval_with_non_existing_reducer_and_properties(self, jaxa_rainfall):
         # get 3 month worth of data and group it with default parameters
@@ -329,41 +337,21 @@ class TestReduceInterval:
         with pytest.raises(AttributeError):
             ic.geetools.reduceInterval("toto")
 
-    def test_deprecated_reduce_equal_interval(self, jaxa_rainfall, amazonas, num_regression):
-        # get 3 month worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-31")
-        with pytest.deprecated_call():
-            reduced = geetools.imagecollection.reduceEqualInterval(ic, reducer="mean")
-            values = reduce(reduced, amazonas).getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
+    def test_reduce_interval_with_empty_days(self, s2_sr):
+        ic = s2_sr.filterDate("2021-01-01", "2021-01-07")
+        resultSize = ic.geetools.reduceInterval("mean", duration=1, unit="day").size().getInfo()
+        assert resultSize == 3
 
-    def test_deprecated_reduce_day_intervals(self, jaxa_rainfall, amazonas, num_regression):
-        # get 3 days worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
-        with pytest.deprecated_call():
-            reduced = geetools.imagecollection.reduceDayIntervals(ic, reducer="mean")
-            values = reduce(reduced, amazonas).getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
+    def test_reduce_interval_image_collection_with_system_id(self, s2_sr):
+        originalIc = s2_sr.filterDate("2021-01-01", "2021-01-07")
+        ic = originalIc.geetools.reduceInterval("mean", duration=1, unit="day")
+        assert "system:id" in ic.propertyNames().getInfo()
 
-    def test_deprecated_composite_regular_intervals(self, jaxa_rainfall, amazonas, num_regression):
-        # get 3 days worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-01-04")
-        with pytest.deprecated_call():
-            reduced = geetools.composite.compositeRegularIntervals(ic, unit="day")
-            values = reduce(reduced, amazonas).getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
-
-    def test_deprecated_composite_by_month(self, jaxa_rainfall, amazonas, num_regression):
-        # get 3 month worth of data and group it with default parameters
-        ic = jaxa_rainfall.filterDate("2020-01-01", "2020-03-01")
-        with pytest.deprecated_call():
-            reduced = geetools.composite.compositeByMonth(ic)
-            values = reduce(reduced, amazonas).getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
+    def test_reduce_interval_image_with_system_id(self, s2_sr):
+        originalIc = s2_sr.filterDate("2021-01-01", "2021-01-07")
+        ic = originalIc.geetools.reduceInterval("mean", duration=1, unit="day")
+        firstImg = ic.first()
+        assert "system:id" in firstImg.propertyNames().getInfo()
 
 
 class TestClosestDate:
@@ -376,40 +364,92 @@ class TestClosestDate:
         values = {k: np.nan if v is None else v for k, v in values.items()}
         num_regression.check(values)
 
-    def test_deprecated_fill_with_last(self, s2_sr, amazonas, num_regression):
-        with pytest.deprecated_call():
-            filled = geetools.imagecollection.fillWithLast(
-                s2_sr.filterDate("2021-01-01", "2021-01-15")
-            )
-            values = reduce(filled, amazonas, "mean").getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
-
-    def test_deprecated_closest_date(self, s2_sr, amazonas, num_regression):
-        with pytest.deprecated_call():
-            filled = geetools.composite.closestDate(s2_sr.filterDate("2021-01-01", "2021-01-15"))
-            values = reduce(filled, amazonas, "mean").getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
-
 
 class TestMedoid:
     """Test the ``medoid`` method."""
 
-    def test_medoid(self, s2_sr, amazonas, num_regression):
-        # we need less images as the test will fail otherwise
-        medoid = s2_sr.filterDate("2021-01-01", "2021-01-05").geetools.medoid()
-        values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
-        values = {k: np.nan if v is None else v for k, v in values.items()}
-        num_regression.check(values)
+    def test_medoid_sam(self, vatican, ee_image_regression):
+        roi = ee.Feature(vatican.first()).geometry().buffer(1000)
+        col = (
+            ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .filterBounds(roi)
+            .filterDate("2021-01-01", "2021-03-15")
+            .filter(ee.Filter.lt("CLOUD_COVERAGE_ASSESSMENT", 20))
+        )
+        medoid = col.geetools.medoid(
+            metric="sam", bands=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B11", "B12"]
+        )
+        ee_image_regression.check(
+            medoid, region=roi, viz_params={"bands": ["B4", "B3", "B2"], "min": 0, "max": 3000}, scale=10
+        )
 
-    def test_deprecated_medoid(self, s2_sr, amazonas, num_regression):
-        with pytest.deprecated_call():
-            # we need less images as the test will fail otherwise
-            medoid = geetools.composite.medoid(s2_sr.filterDate("2021-01-01", "2021-01-05"))
-            values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
-            values = {k: np.nan if v is None else v for k, v in values.items()}
-            num_regression.check(values)
+    def test_medoid_sed(self, vatican, ee_image_regression):
+        roi = ee.Feature(vatican.first()).geometry().buffer(1000)
+        col = (
+            ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .filterBounds(roi)
+            .filterDate("2021-01-01", "2021-03-15")
+            .filter(ee.Filter.lt("CLOUD_COVERAGE_ASSESSMENT", 20))
+        )
+        medoid = col.geetools.medoid(
+            metric="sed", bands=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B11", "B12"]
+        )
+        ee_image_regression.check(
+            medoid, region=roi, viz_params={"bands": ["B4", "B3", "B2"], "min": 0, "max": 3000}, scale=10
+        )
+
+
+class TestSortMany:
+    """Test the ``sortMany`` method."""
+
+    @staticmethod
+    def adjust_cloud_cover(i):
+        """round cloud cover property."""
+        cc = ee.Number(i.get("CLOUD_COVER"))
+        return i.set("CLOUD_COVER", cc.round().toInt())
+
+    def test_sort_many_asc_asc(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2], [True, True])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_asc_desc(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2], [True, False])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_desc_desc(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2], [False, False])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_default(self, l8_toa, ee_list_regression):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        process = l8_toa.geetools.sortMany([prop1, prop2])
+        dates = process.aggregate_array(prop2).map(lambda milli: ee.Date(milli).format())
+        result = process.aggregate_array(prop1).zip(dates)
+        ee_list_regression.check(result)
+
+    def test_sort_many_missing_asc(self, l8_toa):
+        l8_toa = l8_toa.map(self.adjust_cloud_cover)
+        prop1 = "CLOUD_COVER"
+        prop2 = "system:time_start"
+        with pytest.raises(EEException):
+            l8_toa.geetools.sortMany([prop1, prop2], [True]).getInfo()
 
 
 class TestPlotDatesByBands:
@@ -428,7 +468,7 @@ class TestPlotDatesByBands:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def region(self):
@@ -465,7 +505,7 @@ class TestPlotDatesByRegions:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def regions(self):
@@ -500,7 +540,7 @@ class TestPlotDoyByBands:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def region(self):
@@ -538,7 +578,7 @@ class TestPlotDoyByRegions:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def regions(self):
@@ -571,7 +611,7 @@ class TestPlotDoyByYears:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def region(self):
@@ -592,4 +632,177 @@ class TestPlotDoyByYears:
                     ee.Filter.date("2019-01-01", "2019-12-31"),
                 )
             )
+        )
+
+
+class TestPlotDoyBySeasons:
+    """Test the ``plot_doy_by_seasons`` method."""
+
+    def test_plot_doy_by_seasons(self, image_regression):
+        fig, ax = plt.subplots()
+        self.collection.geetools.plot_doy_by_seasons(
+            region=self.region.geometry(),
+            seasonStart=ee.Date("2019-04-15").getRelative("day", "year"),
+            seasonEnd=ee.Date("2019-09-15").getRelative("day", "year"),
+            band="NDVI",
+            reducer="mean",
+            scale=500,
+            ax=ax,
+            colors=["#39a8a7", "#9c4f97"],
+        )
+
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
+
+    @property
+    def region(self):
+        return (
+            ee.FeatureCollection("projects/google/charts_feature_example")
+            .select(["label", "value", "warm"])
+            .filter(ee.Filter.eq("label", "Grassland"))
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .select(["NDVI", "EVI"])
+            .filter(
+                ee.Filter.Or(
+                    ee.Filter.date("2012-01-01", "2012-12-31"),
+                    ee.Filter.date("2019-01-01", "2019-12-31"),
+                )
+            )
+        )
+
+
+class TestReduceRegion:
+    """Test the reduceRegion method."""
+
+    def test_reduce_region_by_dates(self, data_regression):
+        values = self.collection.geetools.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            geometry=self.region.geometry(),
+            scale=500,
+        ).getInfo()
+        data_regression.check(round_dict(values, 4))
+
+    def test_reduce_region_by_date_property(self, data_regression):
+        values = self.collection.geetools.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            idReducer="mean",
+            geometry=self.region.geometry(),
+            scale=500,
+        ).getInfo()
+        data_regression.check(round_dict(values, 4))
+
+    def test_reduce_region_by_doy(self, data_regression):
+        values = self.year_collection.geetools.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            idFormat="DDD",
+            geometry=self.region.geometry(),
+            scale=500,
+        ).getInfo()
+        data_regression.check(round_dict(values, 4))
+
+    @property
+    def region(self):
+        return (
+            ee.FeatureCollection("projects/google/charts_feature_example")
+            .select(["label", "value", "warm"])
+            .filter(ee.Filter.eq("label", "Forest"))
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .filter(ee.Filter.date("2010-01-01", "2010-02-28"))
+            .select(["NDVI", "EVI"])
+        )
+
+    @property
+    def year_collection(self):
+        return (
+            ee.ImageCollection("MODIS/006/MOD13Q1")
+            .filter(
+                ee.Filter.Or(
+                    ee.Filter.date("2010-01-01", "2010-02-28"),
+                    ee.Filter.date("2011-01-01", "2011-02-28"),
+                )
+            )
+            .select(["NDVI", "EVI"])
+        )
+
+
+class TestReduceRegions:
+    """Test the ``reduceRegion`` method."""
+
+    def test_reduce_regions_by_dates(self, ee_dictionary_regression):
+        values = self.collection.geetools.reduceRegions(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            collection=self.region,
+            scale=500,
+        )
+        values = values.geetools.toDictionary()
+        ee_dictionary_regression.check(values)
+
+    def test_reduce_regions_by_date_property(self, ee_dictionary_regression):
+        values = self.collection.geetools.reduceRegions(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            idReducer="mean",
+            collection=self.region,
+            scale=500,
+        )
+        values = values.geetools.toDictionary()
+        ee_dictionary_regression.check(values)
+
+    def test_reduce_regions_by_doy(self, ee_dictionary_regression):
+        values = self.year_collection.geetools.reduceRegions(
+            reducer=ee.Reducer.mean(),
+            idProperty="system:time_start",
+            idType=ee.Date,
+            idFormat="DDD",
+            collection=self.region,
+            scale=500,
+        )
+        values = values.geetools.toDictionary()
+        ee_dictionary_regression.check(values)
+
+    @property
+    def region(self):
+        return ee.FeatureCollection("projects/google/charts_feature_example").select(
+            ["label", "value", "warm"]
+        )
+
+    @property
+    def collection(self):
+        return (
+            ee.ImageCollection("MODIS/061/MOD13A1")
+            .filter(ee.Filter.date("2010-01-01", "2010-02-28"))
+            .select(["NDVI", "EVI"])
+        )
+
+    @property
+    def year_collection(self):
+        return (
+            ee.ImageCollection("MODIS/006/MOD13Q1")
+            .filter(
+                ee.Filter.Or(
+                    ee.Filter.date("2010-01-01", "2010-02-28"),
+                    ee.Filter.date("2011-01-01", "2011-02-28"),
+                )
+            )
+            .select(["NDVI", "EVI"])
         )

@@ -11,6 +11,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+import geetools as geetools
+
 # add . to sys to import local extensions
 sys.path.append(str(Path(".").resolve()))
 
@@ -18,7 +20,7 @@ sys.path.append(str(Path(".").resolve()))
 project = "geetools"
 author = "Rodrigo E. Principe"
 copyright = f"2017-{datetime.now().year}, {author}"
-release = "1.8.0"
+release = "1.19.0"
 
 # -- General configuration -----------------------------------------------------
 extensions = [
@@ -28,6 +30,7 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinxcontrib.icon",
     "sphinx_design",
+    "sphinx_last_updated_by_git",
     "sphinx_copybutton",
     "autoapi.extension",
     "jupyter_sphinx",
@@ -54,12 +57,9 @@ elif version_match == "stable":
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
-html_logo = "_static/logo.png"
+html_logo = "_static/long-logo.png"
 html_favicon = "_static/logo.png"
 html_theme_options = {
-    "logo": {
-        "text": project,
-    },
     "use_edit_page_button": True,
     "icon_links": [
         {
@@ -86,6 +86,7 @@ html_theme_options = {
         "page-toc.html",
         "edit-this-page.html",
     ],
+    "article_footer_items": ["last-updated"],
     # remove the switcher for now as the version management is not satisfying
     # "switcher": {
     #    "json_url": json_url,
@@ -116,15 +117,20 @@ autoapi_options = [
     "special-members",
 ]
 autoapi_own_page_level = "method"
-autoapi_keep_files = False
+autoapi_keep_files = True
 
 # -- Options for intersphinx output --------------------------------------------
+# fmt: off
 intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
+    "ee": ("https://developers.google.com/earth-engine/apidocs", "https://raw.githubusercontent.com/gee-community/sphinx-inventory/refs/heads/main/inventory/earthengine-api.inv"),
 }
+# fmt: on
 
 # -- options for the autolabel extension ---------------------------------------
 autosectionlabel_prefix_document = True
 
 # -- options for myst-nb ------------------------------------------------------
-nb_execution_mode = "auto"
+nb_execution_mode = "force"
+nb_execution_timeout = 120

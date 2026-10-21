@@ -15,15 +15,17 @@ class Profiler:
     """A profiler context manager for Earth Engine Python API.
 
     Examples:
-        .. code-block:: python
+        .. jupyter-execute::
 
             import ee, geetools
+            from geetools.utils import initialize_documentation
 
-            ee.Initialize()
+            initialize_documentation()
 
-            with ee.Profiler() as p:
+            with ee.geetools.Profiler() as p:
                 ee.Number(3.14).add(0.00159).getInfo()
                 res = p.profile
+            res
     """
 
     _output_capture: io.StringIO | None = None
@@ -71,7 +73,7 @@ class Profiler:
         return int(number * 10 ** mapping[multiplier])
 
     def _to_dict(self, input: str) -> dict:
-        """Transform the output of a Earthengine profiler into a dictionary compatible with pandas DataFrame."""
+        """Transform the output of an Earthengine profiler into a dictionary compatible with pandas DataFrame."""
         # Split the string into lines
         lines = input.strip().splitlines()
 
@@ -79,17 +81,24 @@ class Profiler:
         # Initialize a dictionary to hold lists for each column
         headers = [anyascii(h.strip()) for h in lines[0].split()]
         result: dict = {header: [] for header in headers}
+        # functions to process/format each header
+        process = {
+            "EECU-s": lambda eecus: float(eecus) if eecus != "-" else None,
+            "CurrMem": lambda mem: self._memory(mem),  # Mem is a string to convert
+            "PeakMem": lambda mem: self._memory(mem),  # Mem is a string to convert
+            "Count": lambda count: int(count),  # Count is an integer
+            "Description": lambda desc: " ".join(desc)
+            if isinstance(desc, list)
+            else desc,  # Description can have multiple words
+        }
 
         # Process each line of data after the header
         for line in lines[1:]:
             # Split the line by spaces, considering multiple spaces as a separator
             # Handle missing values denoted by "-"
             parts = line.split()
-
+            part_result = dict(zip(headers, parts))
             # Populate the dictionary with values for each column
-            result[headers[0]].append(float(parts[0]) if parts[0] != "-" else None)  # EECU
-            result[headers[1]].append(self._memory(parts[1]))  # Mem is a string to convert
-            result[headers[2]].append(int(parts[2]))  # Count is an integer
-            result[headers[3]].append(" ".join(parts[3:]))  # Description can have multiple words
-
+            for head in headers:
+                result[head].append(process[head](part_result[head]))
         return result

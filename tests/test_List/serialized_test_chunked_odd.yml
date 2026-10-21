@@ -1,0 +1,128 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        element:
+          functionInvocationValue:
+            arguments:
+              list:
+                functionInvocationValue:
+                  arguments:
+                    index:
+                      constantValue: -1
+                    list:
+                      valueReference: '1'
+                  functionName: List.get
+              other:
+                functionInvocationValue:
+                  arguments:
+                    end:
+                      valueReference: '5'
+                    list:
+                      valueReference: '6'
+                    start:
+                      functionInvocationValue:
+                        arguments:
+                          left:
+                            valueReference: '5'
+                          right:
+                            functionInvocationValue:
+                              arguments:
+                                left:
+                                  valueReference: '5'
+                                right:
+                                  valueReference: '7'
+                              functionName: Number.mod
+                        functionName: Number.subtract
+                  functionName: List.slice
+            functionName: List.cat
+        index:
+          constantValue: -1
+        list:
+          valueReference: '1'
+      functionName: List.set
+  '1':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_0_0
+            body: '2'
+        dropNulls:
+          constantValue: false
+        list:
+          functionInvocationValue:
+            arguments:
+              end:
+                functionInvocationValue:
+                  arguments:
+                    left:
+                      valueReference: '7'
+                    right:
+                      constantValue: 1
+                  functionName: Number.subtract
+              start:
+                constantValue: 0
+            functionName: List.sequence
+      functionName: List.map
+  '2':
+    functionInvocationValue:
+      arguments:
+        end:
+          functionInvocationValue:
+            arguments:
+              left:
+                valueReference: '3'
+              right:
+                valueReference: '4'
+            functionName: Number.add
+        list:
+          valueReference: '6'
+        start:
+          valueReference: '3'
+      functionName: List.slice
+  '3':
+    functionInvocationValue:
+      arguments:
+        left:
+          argumentReference: _MAPPING_VAR_0_0
+        right:
+          valueReference: '4'
+      functionName: Number.multiply
+  '4':
+    functionInvocationValue:
+      arguments:
+        input:
+          functionInvocationValue:
+            arguments:
+              left:
+                valueReference: '5'
+              right:
+                valueReference: '7'
+            functionName: Number.divide
+      functionName: Number.floor
+  '5':
+    functionInvocationValue:
+      arguments:
+        list:
+          valueReference: '6'
+      functionName: List.size
+  '6':
+    constantValue:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+  '7':
+    functionInvocationValue:
+      arguments:
+        input:
+          constantValue: 4
+      functionName: Number.toInt

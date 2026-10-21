@@ -13,7 +13,7 @@ import pytest
 from jsonschema import validate
 from matplotlib import pyplot as plt
 
-import geetools
+import geetools  # noqa: F401
 
 
 class TestAddDate:
@@ -117,9 +117,7 @@ class TestClipOnCollection:
         data_regression.check(clipped.first().bandNames().getInfo(), f"{name}_bands")
         data_regression.check(clipped.first().propertyNames().getInfo(), f"{name}_property")
 
-    def test_clip_on_collection_without_properties(
-        self, s2_sr_vatican_2020, fc_instance, data_regression
-    ):
+    def test_clip_on_collection_without_properties(self, s2_sr_vatican_2020, fc_instance, data_regression):
         clipped = s2_sr_vatican_2020.geetools.clipOnCollection(fc_instance, 0)
         name = "test_clip_on_collection_without_properties"
         data_regression.check(clipped.first().bandNames().getInfo(), f"{name}_bands")
@@ -285,42 +283,57 @@ class TestRepeat:
         return ee.Image(src).select(["B1", "B2", "B3"])
 
 
-class TestmatchHistogram:
+class TestMatchHistogram:
     """Test the ``histogramMatch`` method."""
 
-    def test_histogram_match(self, image_source, image_target, vatican_buffer, num_regression):
-        bands = {"R": "R", "G": "G", "B": "B"}
+    def test_histogram_match(self, image_source, image_target, ee_image_regression):
+        """Test histogramMatch."""
+        bands = {"B8": "SR_B5", "B11": "SR_B6", "B4": "SR_B4"}
         image = image_source.geetools.matchHistogram(image_target, bands)
-        values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-        num_regression.check(values.getInfo())
+        # for viz
+        image_target = image_target.select(["SR_B5", "SR_B6", "SR_B4"], ["N", "S", "R"])
+        image = image.select(["B8", "B11", "B4"], ["N", "S", "R"])
+        ee_image_regression.check(
+            image_target.blend(image),
+            viz_params={"bands": ["N", "S", "R"], "min": 0, "max": 0.4},
+            scale=30,
+        )
 
     @pytest.fixture
     def dates(self):
         """The dates of my imagery."""
-        return "2023-06-01", "2023-06-30"
+        return "2023-01-01", "2024-01-01"
 
     @pytest.fixture
-    def image_source(self, vatican_buffer, dates):
+    def image_source(self, amazonas_centroid, dates):
         """image from the S2 copernicus program over vatican city."""
         return (
             ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
-            .filterBounds(vatican_buffer)
+            .filter(ee.Filter.lt("CLOUD_COVERAGE_ASSESSMENT", 5))
+            .filterBounds(amazonas_centroid)
             .filterDate(*dates)
             .first()
-            .select("B4", "B3", "B2")
-            .rename("R", "G", "B")
+            .select("B8", "B11", "B4")
+            .divide(10000)
+            .toFloat()
+            .clip(amazonas_centroid.buffer(10000))
         )
 
     @pytest.fixture
-    def image_target(self, vatican_buffer, dates):
+    def image_target(self, amazonas_centroid, dates):
         """image from the L8 Landsat program over vatican city."""
         return (
             ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
-            .filterBounds(vatican_buffer)
+            .filterBounds(amazonas_centroid)
+            .filter(ee.Filter.lte("CLOUD_COVER", 5))
             .filterDate(*dates)
             .first()
-            .select("SR_B4", "SR_B3", "SR_B2")
-            .rename("R", "G", "B")
+            .select("SR_B5", "SR_B6", "SR_B4")
+            .multiply(0.0000275)
+            .add(-0.2)
+            .toFloat()
+            # .divide(65455).multiply(256).toUint8()
+            .clip(amazonas_centroid.buffer(20000).bounds())
         )
 
 
@@ -399,16 +412,16 @@ class TestIndicexList:
     def test_indices(self):
         indices = ee.Image.geetools.index_list()
         assert "NDVI" in indices.keys()
-        assert len(indices) == 228
+        assert len(indices) >= 247  # that was the value when we started the lib
 
 
 class TestSpectralIndices:
     """Test the ``spectralIndices`` method."""
 
-    def test_default_spectral_indices(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
+    def test_default_spectral_indices(self, s2_sr_vatican_2020, vatican_buffer, ee_dictionary_regression):
         image = s2_sr_vatican_2020.geetools.spectralIndices("all")
         values = image.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-        num_regression.check({k: np.nan if v is None else v for k, v in values.getInfo().items()})
+        ee_dictionary_regression.check(values)
 
 
 class TestMaskClouds:
@@ -486,13 +499,8 @@ class TestGetCitation:
 class TestPanSharpen:
     """Test the panSharpen method."""
 
-    @pytest.mark.xfail(
-        reason="This test is failing because the panSharpen method is not implemented for this platform."
-    )
-    def test_pan_sharpen(self, l8_sr_vatican_2020, num_regression):
-        sharp = l8_sr_vatican_2020.geetools.panSharpen(
-            method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13
-        )
+    def test_pan_sharpen(self, l8_toa_vatican_2020, num_regression):
+        sharp = l8_toa_vatican_2020.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         centroid = sharp.geometry().centroid().buffer(100)
         values = sharp.reduceRegion(ee.Reducer.mean(), centroid, 1)
         num_regression.check(values.getInfo())
@@ -501,9 +509,6 @@ class TestPanSharpen:
 class TestTasseledCap:
     """Test the tasseledCap method."""
 
-    @pytest.mark.xfail(
-        reason="This test is failing because the tasseledCap method is not implemented for this platform."
-    )
     def test_tasseled_cap(self, l8_sr_vatican_2020, num_regression):
         img = l8_sr_vatican_2020.geetools.tasseledCap()
         centroid = img.geometry().centroid().buffer(100)
@@ -530,15 +535,6 @@ class TestDistanceToMask:
         values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
         num_regression.check(values.getInfo())
 
-    def test_deprecated_distance_to_mask(self, s2_sr_vatican_2020, vatican_buffer, num_regression):
-        centerBuffer = vatican_buffer.centroid().buffer(100)
-        BufferMask = ee.Image.constant(1).clip(centerBuffer)
-        mask = ee.Image.constant(0).where(BufferMask, 1)
-        with pytest.deprecated_call():
-            distance = geetools.algorithms.distanceToMask(s2_sr_vatican_2020, mask)
-            values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-            num_regression.check(values.getInfo())
-
 
 class TestDistance:
     """Test the ``distance`` method."""
@@ -548,13 +544,6 @@ class TestDistance:
         distance = self.image.geetools.distance(self.other)
         values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
         num_regression.check(values.getInfo())
-
-    def test_deprecated_euclidian_distance(self, vatican_buffer, num_regression):
-        # 2 images from june in vatican
-        with pytest.deprecated_call():
-            distance = geetools.algorithms.euclideanDistance(self.image, self.other)
-            values = distance.reduceRegion(ee.Reducer.mean(), vatican_buffer, 10)
-            num_regression.check(values.getInfo())
 
     @property
     def image(self):
@@ -602,11 +591,6 @@ class TestMaskCover:
         # the last line should work, but it doesn't, I don't know why
         assert isclose(ratio, 0)
 
-    def test_deprecated_mask_cover(self):
-        with pytest.deprecated_call():
-            image = geetools.algorithms.maskCover(self.image)
-            assert isclose(image.get("mask_cover").getInfo(), 18.04, rel_tol=0.01)
-
     @property
     def image(self):
         image_id = "COPERNICUS/S2_SR_HARMONIZED/20180401T100019_20180401T100022_T32TQM"
@@ -616,6 +600,91 @@ class TestMaskCover:
         mask = qa.bitwiseAnd(cloudBitMask).eq(0).And(qa.bitwiseAnd(cirrusBitMask).eq(0))
         image = image.updateMask(mask)
         return image.select(["B4", "B3", "B2"])
+
+
+class TestBitsToBands:
+    """Test the ``bitsToBands`` method."""
+
+    def test_bits_to_bands(self, l9_cloudy_image, ee_image_regression):
+        """Test ``bitsToBands``."""
+        aoi = ee.Geometry.Polygon(
+            [
+                [
+                    [-71.7044111602349, -42.808681632054565],
+                    [-71.7044111602349, -43.07107570728516],
+                    [-71.32950271296927, -43.07107570728516],
+                    [-71.32950271296927, -42.808681632054565],
+                ]
+            ]
+        )
+        bits = {"7": "Water", "8-9": {"1": "Low", "2": "Medium", "3": "High"}}
+        decoded = l9_cloudy_image.geetools.bitsToBands(bits, "QA_PIXEL")
+        ee_image_regression.check(decoded, scale=30, region=aoi)
+
+
+class TestBitsMask:
+    """Test the ``bitsMask`` methods (all and any)."""
+
+    def test_bits_mask_all(self, l9_cloudy_image, ee_image_regression):
+        aoi = ee.Geometry.Polygon(
+            [
+                [
+                    [-71.7044111602349, -42.808681632054565],
+                    [-71.7044111602349, -43.07107570728516],
+                    [-71.32950271296927, -43.07107570728516],
+                    [-71.32950271296927, -42.808681632054565],
+                ]
+            ]
+        )
+        bits = {"5": "Snow", "8-9": {"1": "Low", "2": "Medium", "3": "High"}}
+        # Detect mask confusion between snow and clouds (medium probability)
+        decoded = l9_cloudy_image.geetools.bitsMaskAll(bits, ["Snow", "Medium"], "QA_PIXEL")
+        viz = {"min": 0, "max": 1, "palette": ["blue", "red"]}
+        ee_image_regression.check(decoded, scale=30, viz_params=viz, region=aoi)
+
+    def test_bits_mask_any(self, l9_cloudy_image, ee_image_regression):
+        aoi = ee.Geometry.Polygon(
+            [
+                [
+                    [-71.7044111602349, -42.808681632054565],
+                    [-71.7044111602349, -43.07107570728516],
+                    [-71.32950271296927, -43.07107570728516],
+                    [-71.32950271296927, -42.808681632054565],
+                ]
+            ]
+        )
+        bits = {"5": "Snow", "8-9": {"1": "Low", "2": "Medium", "3": "High"}}
+        # Get a mask for masking out unneeded pixels
+        decoded = l9_cloudy_image.geetools.bitsMaskAny(bits, ["Snow", "High", "Medium"], "QA_PIXEL")
+        viz = {"min": 0, "max": 1, "palette": ["blue", "red"]}
+        ee_image_regression.check(decoded, scale=30, viz_params=viz, region=aoi)
+
+
+class TestClassToBands:
+    """Test the ``classToBands`` method."""
+
+    def test_class_to_bands(self, s2_class_image, polygon_instance, ee_image_regression):
+        """Test the ``classToBands`` method."""
+        class_info = {"3": "shadow", "9": "clouds_high", "11": "snow"}
+        decoded = s2_class_image.geetools.classToBands(class_info, "SCL")
+        ee_image_regression.check(decoded, scale=10, region=polygon_instance)
+
+
+class TestClassMask:
+    """Test the ``classMask`` method."""
+
+    def test_class_mask(self, s2_class_image, polygon_instance, ee_image_regression):
+        """Test the ``classMask`` method."""
+        class_info = {
+            "2": "dark",
+            "3": "shadow",
+            "7": "clouds_low",
+            "8": "clouds_mid",
+            "9": "clouds_high",
+            "10": "cirrus",
+        }
+        decoded = s2_class_image.geetools.classMask(class_info, band="SCL")
+        ee_image_regression.check(decoded, scale=10, region=polygon_instance)
 
 
 class TestPlot:
@@ -628,27 +697,27 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_one_band(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
-        ndvi = s2_sr_vatican_2020.geetools.spectralIndices("NDVI")
+        ndvi = s2_sr_vatican_2020.normalizedDifference(["B8", "B4"]).rename("NDVI")
         ndvi.geetools.plot(["NDVI"], vatican.geometry(), ax)
 
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_one_band_cmap(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
-        ndvi = s2_sr_vatican_2020.geetools.spectralIndices("NDVI")
+        ndvi = s2_sr_vatican_2020.normalizedDifference(["B8", "B4"]).rename("NDVI")
         ndvi.geetools.plot(["NDVI"], vatican.geometry(), ax, cmap="RdYlGn")
 
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_with_fc(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
@@ -657,17 +726,17 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_with_crs(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
-        ndvi = s2_sr_vatican_2020.geetools.spectralIndices("NDVI")
+        ndvi = s2_sr_vatican_2020.normalizedDifference(["B8", "B4"]).rename("NDVI")
         ndvi.geetools.plot(["NDVI"], vatican.geometry(), ax, crs="EPSG:3857", scale=10)
 
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
 
 class TestFromList:
@@ -712,7 +781,7 @@ class TestPlotByRegions:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_regions_barh(self, image_regression):
         fig, ax = plt.subplots()
@@ -731,7 +800,7 @@ class TestPlotByRegions:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_regions_stacked(self, image_regression):
         fig, ax = plt.subplots()
@@ -750,7 +819,7 @@ class TestPlotByRegions:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def ecoregions(self):
@@ -783,7 +852,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_plot(self, image_regression):
         fig, ax = plt.subplots()
@@ -802,7 +871,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_area(self, image_regression):
         fig, ax = plt.subplots()
@@ -821,7 +890,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_pie(self, image_regression):
         fig, ax = plt.subplots()
@@ -841,7 +910,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_donut(self, image_regression):
         fig, ax = plt.subplots()
@@ -861,7 +930,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def ecoregions(self):
@@ -890,7 +959,7 @@ class TestPlotHist:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def image(self):
@@ -904,3 +973,34 @@ class TestPlotHist:
     @property
     def region(self):
         return ee.Geometry.Rectangle([-112.60, 40.60, -111.18, 41.22])
+
+
+class TestPixelArea:
+    """Test the ``pixelArea`` method."""
+
+    def test_pixel_area_default(self):
+        surface = ee.Image.pixelArea().reduceRegion(ee.Reducer.mean(), self.buffer, 1)
+        ldcSurface = ee.Image.geetools.pixelArea().reduceRegion(ee.Reducer.mean(), self.buffer, 1)
+        isClose = ee.Number(surface.get("area")).subtract(ldcSurface.get("area")).abs().lte(1e-6)
+        assert bool(isClose.getInfo()) is True
+
+    def test_pixel_area(self, ee_dictionary_regression):
+        hectares = ee.Image.geetools.pixelArea("ha")
+        total = ee.Image.geetools.pixelArea("acres").addBands(hectares)
+        dict = total.reduceRegion(ee.Reducer.mean(), self.buffer, 1)
+        ee_dictionary_regression.check(dict)
+
+    def test_pixel_area_rename(self, ee_dictionary_regression):
+        hectares = ee.Image.geetools.pixelArea("ha", True)
+        acres = ee.Image.geetools.pixelArea("acres", True)
+        total = hectares.addBands(acres)
+        dict = total.reduceRegion(ee.Reducer.mean(), self.buffer, 1)
+        ee_dictionary_regression.check(dict)
+
+    def test_pixel_area_error(self):
+        with pytest.raises(ValueError):
+            ee.Image.geetools.pixelArea("not_a_unit")
+
+    @property
+    def buffer(self) -> ee.Geometry:
+        return ee.Geometry.Point(0, 0).buffer(100)

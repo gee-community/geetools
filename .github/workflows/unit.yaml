@@ -15,19 +15,19 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
-          python-version: "3.10"
+          python-version: "3.13"
       - uses: pre-commit/action@v3.0.1
 
   mypy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
-          python-version: "3.10"
+          python-version: "3.13"
       - name: Install nox
         run: pip install nox
       - name: run mypy checks
@@ -37,11 +37,11 @@ jobs:
     needs: [lint]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: 12rambau/setup-pandoc@test
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
-          python-version: "3.10"
+          python-version: "3.13"
       - name: Install nox
         run: pip install nox
       - name: build static docs
@@ -53,18 +53,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        # dropping 3.12 for now because of https://github.com/r-earthengine/ee_extra/issues/56
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         include:
           - os: macos-latest # macos test
-            python-version: "3.11"
+            python-version: "3.12"
           - os: windows-latest # windows test
-            python-version: "3.11"
+            python-version: "3.12"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install nox
@@ -72,11 +71,11 @@ jobs:
       - name: test with pytest
         run: nox -s ci-test
       - name: assess dead fixtures
-        if: ${{ matrix.python-version == '3.10' }}
+        if: ${{ matrix.python-version == '3.13' }}
         shell: bash
         run: nox -s dead-fixtures
-      - uses: actions/upload-artifact@v4
-        if: ${{ matrix.python-version == '3.10' }}
+      - uses: actions/upload-artifact@v7
+        if: ${{ matrix.python-version == '3.13' }}
         with:
           name: coverage
           path: coverage.xml
@@ -85,13 +84,13 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: coverage
       - name: codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
-          file: ./coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
           fail_ci_if_error: true

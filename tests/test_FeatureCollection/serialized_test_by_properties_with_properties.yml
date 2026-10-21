@@ -1,0 +1,104 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        keys:
+          valueReference: '1'
+        values:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_1_0
+                  body: '3'
+              dropNulls:
+                constantValue: false
+              list:
+                valueReference: '1'
+            functionName: List.map
+      functionName: Dictionary.fromLists
+  '1':
+    functionInvocationValue:
+      arguments:
+        element:
+          valueReference: '2'
+        list:
+          constantValue:
+          - 01_tmean
+          - 02_tmean
+      functionName: List.remove
+  '2':
+    constantValue: label
+  '3':
+    functionInvocationValue:
+      arguments:
+        keys:
+          functionInvocationValue:
+            arguments:
+              baseAlgorithm:
+                functionDefinitionValue:
+                  argumentNames:
+                  - _MAPPING_VAR_0_0
+                  body: '4'
+              dropNulls:
+                constantValue: false
+              list:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      valueReference: '5'
+                    property:
+                      valueReference: '2'
+                  functionName: AggregateFeatureCollection.array
+            functionName: List.map
+        values:
+          functionInvocationValue:
+            arguments:
+              collection:
+                valueReference: '5'
+              property:
+                functionInvocationValue:
+                  arguments:
+                    input:
+                      argumentReference: _MAPPING_VAR_1_0
+                  functionName: String
+            functionName: AggregateFeatureCollection.array
+      functionName: Dictionary.fromLists
+  '4':
+    functionInvocationValue:
+      arguments:
+        condition:
+          functionInvocationValue:
+            arguments:
+              left:
+                functionInvocationValue:
+                  arguments:
+                    string1:
+                      functionInvocationValue:
+                        arguments:
+                          value:
+                            argumentReference: _MAPPING_VAR_0_0
+                        functionName: ObjectType
+                    string2:
+                      constantValue: String
+                  functionName: String.compareTo
+              right:
+                constantValue: 0
+            functionName: Number.eq
+        falseCase:
+          functionInvocationValue:
+            arguments:
+              number:
+                argumentReference: _MAPPING_VAR_0_0
+            functionName: Number.format
+        trueCase:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: If
+  '5':
+    functionInvocationValue:
+      arguments:
+        tableId:
+          constantValue: projects/google/charts_feature_example
+      functionName: Collection.loadTable

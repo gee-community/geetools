@@ -1,4 +1,7 @@
 """Test the Date class methods."""
+from datetime import datetime as dt
+from zoneinfo import ZoneInfo
+
 import ee
 import pytest
 
@@ -9,10 +12,20 @@ class TestToDatetime:
     """Test the toDatetime method."""
 
     def test_to_datetime(self, date_instance):
-        datetime = date_instance.geetools.to_datetime()
-        assert datetime.year == 2020
-        assert datetime.month == 1
-        assert datetime.day == 1
+        py_dt = date_instance.geetools.to_datetime()
+        assert py_dt == dt(2020, 1, 1, tzinfo=ZoneInfo("UTC"))
+
+    def test_to_datetime_timezone(self, date_instance):
+        tz = ZoneInfo("America/Buenos_Aires")
+        py_dt = date_instance.geetools.to_datetime(tz)
+        # Buenos Aires time is -3
+        assert py_dt == dt(2019, 12, 31, 21, tzinfo=tz)
+
+    def test_to_datetime_str_timezone(self, date_instance):
+        str_tz = "America/Buenos_Aires"
+        py_dt = date_instance.geetools.to_datetime(str_tz)
+        # Buenos Aires time is -3
+        assert py_dt == dt(2019, 12, 31, 21, tzinfo=ZoneInfo(str_tz))
 
 
 class TestGetUnitSinceEpoch:
@@ -51,10 +64,21 @@ class TestFromDOY:
         date = ee.Date.geetools.fromDOY(1, 3)
         assert date.format("YYYY-MM-DD").getInfo() == "0003-01-01"
 
-    def test_wrong_doy(self):
-        # check that GEE can use > 365 doy
-        date = ee.Date.geetools.fromDOY(367, 2020)
-        assert date.format("YYYY-MM-DD").getInfo() == "2021-01-01"
+
+class TestToDOY:
+    """Test the toDOY method."""
+
+    def test_to_doy(self):
+        doy = ee.Date("2025-04-09").geetools.toDOY()
+        assert doy.getInfo() == 99
+
+    def test_to_doy_leap(self):
+        doy = ee.Date("2020-03-01").geetools.toDOY()
+        assert doy.getInfo() == 60
+
+    def test_to_doy_non_leap(self):
+        doy = ee.Date("2021-03-01").geetools.toDOY()
+        assert doy.getInfo() == 60
 
 
 class TestIsLeap:

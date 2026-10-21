@@ -1,0 +1,22 @@
+# Normalize text files to LF to avoid platform-specific line ending churn
+* text=auto eol=lf
+
+# Explicitly keep notebooks and source files on LF in working trees and in Git
+*.py text eol=lf
+*.ipynb text eol=lf
+*.rst text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.csv text eol=lf
+
+# Mark binary assets as binary to prevent newline conversion
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.svg binary

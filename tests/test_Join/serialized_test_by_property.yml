@@ -1,0 +1,109 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        baseAlgorithm:
+          functionDefinitionValue:
+            argumentNames:
+            - _MAPPING_VAR_0_0
+            body: '1'
+        collection:
+          functionInvocationValue:
+            arguments:
+              condition:
+                functionInvocationValue:
+                  arguments:
+                    leftField:
+                      valueReference: '3'
+                    rightField:
+                      valueReference: '3'
+                  functionName: Filter.equals
+              join:
+                functionInvocationValue:
+                  arguments:
+                    matchKey:
+                      valueReference: '2'
+                    outer:
+                      constantValue: false
+                  functionName: Join.saveFirst
+              primary:
+                functionInvocationValue:
+                  arguments:
+                    features:
+                      arrayValue:
+                        values:
+                        - functionInvocationValue:
+                            arguments:
+                              geometry:
+                                valueReference: '4'
+                              metadata:
+                                constantValue:
+                                  id: 1
+                                  prop_from_fc1: I am from fc1
+                            functionName: Feature
+                  functionName: Collection
+              secondary:
+                functionInvocationValue:
+                  arguments:
+                    features:
+                      arrayValue:
+                        values:
+                        - functionInvocationValue:
+                            arguments:
+                              geometry:
+                                valueReference: '4'
+                              metadata:
+                                constantValue:
+                                  id: 1
+                                  prop_from_fc2: I am from fc2
+                            functionName: Feature
+                  functionName: Collection
+            functionName: Join.apply
+      functionName: Collection.map
+  '1':
+    functionInvocationValue:
+      arguments:
+        object:
+          functionInvocationValue:
+            arguments:
+              input:
+                argumentReference: _MAPPING_VAR_0_0
+              propertySelectors:
+                functionInvocationValue:
+                  arguments:
+                    element:
+                      valueReference: '2'
+                    list:
+                      functionInvocationValue:
+                        arguments:
+                          element:
+                            argumentReference: _MAPPING_VAR_0_0
+                        functionName: Element.propertyNames
+                  functionName: List.remove
+            functionName: Feature.select
+        properties:
+          functionInvocationValue:
+            arguments:
+              element:
+                functionInvocationValue:
+                  arguments:
+                    object:
+                      argumentReference: _MAPPING_VAR_0_0
+                    property:
+                      valueReference: '2'
+                  functionName: Element.get
+            functionName: Element.toDictionary
+      functionName: Element.setMulti
+  '2':
+    constantValue: match
+  '3':
+    constantValue: id
+  '4':
+    functionInvocationValue:
+      arguments:
+        coordinates:
+          constantValue:
+          - 0
+          - 0
+      functionName: GeometryConstructors.Point

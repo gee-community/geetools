@@ -1,9 +1,12 @@
 """Utils methods for file and asset manipulation in the context of batch processing."""
 from __future__ import annotations
 
+import os
 import re
 from datetime import datetime as dt
 
+import ee
+import httplib2
 import numpy as np
 from anyascii import anyascii
 from matplotlib import pyplot as plt
@@ -71,7 +74,7 @@ def plot_data(
     type: str,
     data: dict,
     label_name: str,
-    colors: list = [],
+    colors: list[str] | None = None,
     ax: Axes | None = None,
     **kwargs,
 ) -> Axes:
@@ -90,11 +93,11 @@ def plot_data(
 
     Args:
         type: The type of plot to use. can be any type of plot from the python lib `matplotlib.pyplot`. If the one you need is missing open an issue!
-        data: the data to use as inputs of the graph. please follow the fomrmat specified in the documentation.
+        data: the data to use as inputs of the graph. Please follow the format specified in the documentation.
         label_name: The name of the property that was used to generate the labels
         property_names: The list of names that was used to name the values. They will be used to order the keys of the data dictionary.
         colors: A list of colors to use for the plot. If not provided, the default colors from the matplotlib library will be used.
-        ax: The matplotlib axes to use. If not provided, the plot will be send to a new figure.
+        ax: The matplotlib axes to use. If not provided, the plot will be sent to a new figure.
         kwargs: Additional arguments from the ``pyplot`` chat type selected.
     """
     # define the ax if not provided by the user
@@ -209,6 +212,7 @@ def plot_data(
         grid_axis = "both"
 
     elif type == "doy":
+        xmin, xmax = 366, 0  # inverted initialization to get the first iteration values
         for i, label in enumerate(labels):
             kwargs["color"] = colors[i]
             x, y = list(data[label].keys()), list(data[label].values())
@@ -219,6 +223,8 @@ def plot_data(
             idates = [int(d.strftime("%j")) - 1 for d in dates]
             ndates = [d.strftime("%B")[:3] for d in dates]
             ax.set_xticks(idates, ndates)
+            xmin, xmax = min(xmin, min(x)), max(xmax, max(x))
+        ax.set_xlim(xmin - 5, xmax + 5)
 
     else:
         raise ValueError(f"Type {type} is not (yet?) supported")
@@ -234,3 +240,142 @@ def plot_data(
     ax.figure.canvas.draw_idle()
 
     return ax
+
+
+def initialize_documentation():
+    """Initialize Earth Engine Python API in the context of the Documentation build.
+
+    Warning:
+        This method is only used in the documentation build and should not be used in a production environment.
+        ``geetools`` need to be imported prior to import this function.
+    """
+    # use a saved service account key if available
+    if "EARTHENGINE_SERVICE_ACCOUNT" in os.environ:
+        private_key = os.environ["EARTHENGINE_SERVICE_ACCOUNT"]
+        # small massage of the key to remove the quotes coming from RDT
+        private_key = private_key[1:-1] if re.compile(r"^'[^']*'$").match(private_key) else private_key
+        ee.Initialize.geetools.from_service_account(private_key)
+
+    elif "EARTHENGINE_PROJECT" in os.environ:
+        ee.Initialize(project=os.environ["EARTHENGINE_PROJECT"], http_transport=httplib2.Http())
+
+    else:
+        raise ValueError("EARTHENGINE_SERVICE_ACCOUNT or EARTHENGINE_PROJECT environment variable is missing")
+
+    pass
+
+
+def format_bandname(name: str, replacement: str = "_") -> str:
+    """Format a band name to be allowed in GEE."""
+    banned = list(".*/¿?[]{}+#$%&")
+    return str([name.replace(char, replacement) for char in banned][0])
+
+
+def format_bits_info(bits_info: dict) -> dict:
+    """Format the bits information to match the expected.
+
+    Args:
+        bits_info: the bits information.
+
+    Example:
+        .. code-block:: python
+
+            from geetools.utils import format_bitmask
+
+            bitmask = {
+                '0': 'shadows',
+                '1-2': {
+                    '0': 'no clouds',
+                    '1': 'high clouds',
+                    '2': 'mid clouds',
+                    '3': 'low clouds'
+                }
+            }
+            bitmask = format_bitmask(bitmask)
+    """
+    final_bit_info = {}
+    classes = []
+    for bit, info in bits_info.items():
+        parts = bit.split("-")
+        start = parts[0].strip()
+        end = parts[1].strip() if len(parts) > 1 else start
+        try:
+            start, end = int(start), int(end)
+        except ValueError:
+            raise ValueError(
+                f"start and end bits must be numeric. Found start: '{start}' end: '{end}' in '{bit}'"
+            )
+        formatted_key = f"{start}-{end}"
+        nbits = end - start + 1
+        # bits info can be a string or dict
+        if isinstance(info, str):
+            if nbits > 1:
+                raise ValueError(
+                    f"Cannot use a single information value for bits '{formatted_key}'. Use a dict instead."
+                )
+            if len(info) == 0:
+                raise ValueError(f"Value for '{bit}' must contain at least one character.")
+            if info in classes:
+                raise ValueError(f"Bits information cannot contain duplicated names. '{info}' is duplicated.")
+            classes.append(info)
+            formatted_info = {"1": format_bandname(info)}
+        elif isinstance(info, dict):
+            formatted_info = {}
+            for pos, value in info.items():
+                if value in classes:
+                    raise ValueError(
+                        f"Bits information cannot contain duplicated names. '{value}' is duplicated."
+                    )
+                classes.append(value)
+                value = format_bandname(value)
+                if len(value) == 0:
+                    raise ValueError(
+                        f"Value for '{bit}' in position '{pos}' must contain at least one character."
+                    )
+                try:
+                    pos = int(pos)
+                except ValueError:
+                    raise ValueError(f"Value '{pos}' not allowed as bit information in '{bit}'.")
+                if pos >= 2**nbits:
+                    raise ValueError(f"Value '{pos}' is out of range ('{bit}').")
+                formatted_info[str(pos)] = value
+        else:
+            raise ValueError(f"Type {type(info)} not allowed as bit information. Found {info}.")
+        final_bit_info[formatted_key] = formatted_info
+    return final_bit_info
+
+
+def format_class_info(class_info: dict) -> dict:
+    """Format the class information.
+
+    Args:
+        class_info: class information in a dict ({class value: class name})
+    """
+    final = {}
+    for class_value, class_name in class_info.items():
+        # make sure class value is an int, but store as str
+        final[str(int(class_value))] = format_bandname(class_name)
+    return final
+
+
+def area_units_to_m2(area_units: str) -> float:
+    """Convert area units to m2.
+
+    Args:
+        area_units (str): Area units to convert to m2.
+
+    Returns:
+        float: The conversion factor.
+    """
+    areas = {
+        "m2": 1,
+        "ha": 1e4,
+        "km2": 1e6,
+        "kha": 1e7,
+        "acres": 4046.86,
+    }
+
+    if area_units not in areas:
+        raise ValueError(f"Area units '{area_units}' not supported. Use one of {list(areas.keys())}")
+
+    return areas.get(area_units, 1)

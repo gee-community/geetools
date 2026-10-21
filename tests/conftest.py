@@ -3,15 +3,21 @@
 import string
 
 import ee
+import matplotlib
 import pytest
 import pytest_gee
 import requests
+
+matplotlib.use("Agg")  # Use a non-interactive backend for matplotlib
 
 S2_BAND_COMBO = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B11", "B12", "SCL"]
 """Sentinel-2 band combination."""
 
 L8_BAND_COMBO = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11"]
 """Landsat-8 band combination."""
+
+L8_SR_BAND_COMBO = ["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7", "ST_B10"]
+"""Landsat-8 Surface Reflectance band combination."""
 
 
 def pytest_configure() -> None:
@@ -64,6 +70,12 @@ def amazonas() -> ee.FeatureCollection:
 
 
 @pytest.fixture
+def amazonas_centroid(amazonas) -> ee.Geometry:
+    """Return the centroid of the Amazonas state from Colombia."""
+    return ee.Feature(amazonas.first()).geometry().centroid()
+
+
+@pytest.fixture
 def s2_sr(amazonas) -> ee.ImageCollection:
     """Return a copernicus based collection.
 
@@ -74,6 +86,16 @@ def s2_sr(amazonas) -> ee.ImageCollection:
         .select(S2_BAND_COMBO)
         .filterBounds(amazonas)
         .filterDate("2021-01-01", "2021-12-01")
+    )
+
+
+@pytest.fixture
+def aster(vatican) -> ee.ImageCollection:
+    """Aster collection in Vatican City for year 2020."""
+    return (
+        ee.ImageCollection("ASTER/AST_L1T_003")
+        .filterBounds(vatican.geometry())
+        .filterDate("2020-01-01", "2021-01-01")
     )
 
 
@@ -100,7 +122,14 @@ def s2_sr_vatican_2020():
 @pytest.fixture
 def l8_sr_vatican_2020():
     """A single image from 2020 on top of vatican city from L8 SR collection."""
-    src = "LANDSAT/LC08/C02/T1/LC08_191031_20130711"
+    src = "LANDSAT/LC08/C02/T1_L2/LC08_191031_20200104"
+    return ee.Image(src).select(L8_SR_BAND_COMBO)
+
+
+@pytest.fixture
+def l8_toa_vatican_2020():
+    """A single image from 2020 on top of vatican city from L8 TOA collection."""
+    src = "LANDSAT/LC08/C02/T1_TOA/LC08_191031_20200104"
     return ee.Image(src).select(L8_BAND_COMBO)
 
 
@@ -266,3 +295,36 @@ def stac_schema():
 def jaxa_rainfall():
     """Return the JAXA rain collection."""
     return ee.ImageCollection("JAXA/GPM_L3/GSMaP/v6/operational")
+
+
+@pytest.fixture
+def l9_cloudy_image():
+    """A Landsat 9 image that contains clouds, shadows, water and snow.
+
+    This image is located in Argentina and Chile (Patagonia).
+    """
+    return ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
+
+
+@pytest.fixture
+def s2_class_image():
+    """A Sentinel 2 image that contains clouds, shadows, water and snow.
+
+    This image is located in Argentina and Chile (Patagonia).
+    """
+    return ee.Image("COPERNICUS/S2_SR_HARMONIZED/20230120T142709_20230120T143451_T18GYT")
+
+
+@pytest.fixture
+def polygon_instance():
+    """Return a defined polygon instance."""
+    return ee.Geometry.Polygon(
+        [
+            [
+                [-71.84476689765019, -42.81816243454466],
+                [-71.84476689765019, -42.897690198549135],
+                [-71.72391728827519, -42.897690198549135],
+                [-71.72391728827519, -42.81816243454466],
+            ]
+        ]
+    )

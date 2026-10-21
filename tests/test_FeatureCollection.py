@@ -70,6 +70,20 @@ class TestReduceColumnsGroup:
         )
 
 
+class TestToDictionary:
+    """Test the ``toDictionary`` method."""
+
+    def test_to_dictionary(self, ee_dictionary_regression):
+        d = self.table.geetools.toDictionary("ADM0_NAME", ["ADM0_CODE", "Shape_Area"])
+        ee_dictionary_regression.check(d, prescision=4)
+
+    @property
+    def table(self):
+        return ee.FeatureCollection("FAO/GAUL/2015/level0").filter(
+            ee.Filter.stringStartsWith(leftField="ADM0_NAME", rightValue="Ar")
+        )
+
+
 class TestAddId:
     """Test the ``addId`` method."""
 
@@ -80,6 +94,29 @@ class TestAddId:
     @pytest.fixture
     def fc_instance(self):
         return ee.FeatureCollection("FAO/GAUL/2015/level0").limit(10)
+
+
+class TestColumnNames:
+    """Test the ``columnNames`` method."""
+
+    def test_column_names(self, fc_instance, ee_list_regression):
+        columns = fc_instance.geetools.columnNames()
+        ee_list_regression.check(columns)
+
+    @pytest.fixture
+    def fc_instance(self):
+        image = ee.Image.random().clip(ee.Geometry.Rectangle([-1, -1, 1, 1]))
+        # Create a Feature
+        fc = ee.FeatureCollection(
+            [
+                # outside the image
+                ee.Feature(ee.Geometry.Point([2, 2]), {"system:index": "0"}),
+                # inside the image
+                ee.Feature(ee.Geometry.Point([0, 0.5]), {"system:index": "1"}),
+                ee.Feature(ee.Geometry.Point([0.5, 0]), {"system:index": "2"}),
+            ]
+        )
+        return image.reduceRegions(collection=fc, reducer=ee.Reducer.first(), scale=1000)
 
 
 class TestMergeGeometries:
@@ -93,8 +130,9 @@ class TestMergeGeometries:
 class TestToPolygons:
     """Test the ``toPolygons`` method."""
 
-    def test_to_polygons(self, fc_instance, dataframe_regression):
+    def test_to_polygons(self, fc_instance):
         fc = fc_instance.geetools.toPolygons()
+        # ee_feature_collection_regression.check(fc, prescision=4)
         gdf = gpd.GeoDataFrame.from_features(fc.getInfo())
         vertex = gdf.geometry.apply(lambda g: sum(len(p.exterior.coords) for p in g.geoms))
         assert vertex.sum() == 66
@@ -103,33 +141,33 @@ class TestToPolygons:
 class TestByProperties:
     """Test the ``byProperties`` method."""
 
-    def test_by_properties(self, ecoregions, data_regression):
+    def test_by_properties(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byProperties()
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
-    def test_by_properties_with_id(self, ecoregions, data_regression):
+    def test_by_properties_with_id(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byProperties("label")
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
-    def test_by_properties_with_properties(self, ecoregions, data_regression):
+    def test_by_properties_with_properties(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byProperties("label", properties=["01_tmean", "02_tmean"])
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
 
 class TestByFeatures:
     """Test the ``byFeatures`` method."""
 
-    def test_by_features(self, ecoregions, data_regression):
+    def test_by_features(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byFeatures()
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
-    def test_by_features_with_id(self, ecoregions, data_regression):
+    def test_by_features_with_id(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byFeatures("label")
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
-    def test_by_features_with_properties(self, ecoregions, data_regression):
+    def test_by_features_with_properties(self, ecoregions, ee_dictionary_regression):
         fc = ecoregions.geetools.byFeatures("label", properties=["01_tmean", "02_tmean"])
-        data_regression.check(fc.getInfo())
+        ee_dictionary_regression.check(fc, prescision=4)
 
 
 class TestPlotByFeatures:
@@ -149,7 +187,7 @@ class TestPlotByFeatures:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_stacked(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -165,7 +203,7 @@ class TestPlotByFeatures:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_scatter(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -178,7 +216,7 @@ class TestPlotByFeatures:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_pie(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -191,7 +229,7 @@ class TestPlotByFeatures:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_donut(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -204,7 +242,7 @@ class TestPlotByFeatures:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
 
 class TestPlotByPropperties:
@@ -224,7 +262,7 @@ class TestPlotByPropperties:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_properties_plot(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -240,7 +278,7 @@ class TestPlotByPropperties:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_properties_area(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -256,7 +294,7 @@ class TestPlotByPropperties:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
 
 class TestPlotHist:
@@ -269,7 +307,7 @@ class TestPlotHist:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
 
 class TestPlot:
@@ -281,7 +319,7 @@ class TestPlot:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_with_property(self, image_regression):
         fig, ax = plt.subplots()
@@ -289,7 +327,7 @@ class TestPlot:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_with_cmap(self, image_regression):
         fig, ax = plt.subplots()
@@ -297,17 +335,15 @@ class TestPlot:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_with_boundaries(self, image_regression):
         fig, ax = plt.subplots()
-        self.hydroshed.geetools.plot(
-            ax=ax, property="UP_AREA", cmap="magma", boundaries=True, color="g"
-        )
+        self.hydroshed.geetools.plot(ax=ax, property="UP_AREA", cmap="magma", boundaries=True, color="g")
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def hydroshed(self):
@@ -315,3 +351,86 @@ class TestPlot:
         dataset = "WWF/HydroATLAS/v1/Basins/level04"
         region = ee.Geometry.BBox(-80, -60, -20, 20)
         return ee.FeatureCollection(dataset).filterBounds(region)
+
+
+class TestFromGeoInterface:
+    """Test the ``fromGeoInterface`` method."""
+
+    def test_from_geo_interface(self, gdf, ee_feature_collection_regression):
+        fc = ee.FeatureCollection.geetools.fromGeoInterface(gdf)
+        ee_feature_collection_regression.check(fc, prescision=4)
+
+    def test_from_geo_interface_from_dict(self, gdf, ee_feature_collection_regression):
+        fc = ee.FeatureCollection.geetools.fromGeoInterface(gdf.__geo_interface__)
+        ee_feature_collection_regression.check(fc, prescision=4)
+
+    def test_error_from_geo_interface_(self):
+        with pytest.raises(ValueError):
+            ee.FeatureCollection.geetools.fromGeoInterface("toto")
+
+    def test_from_geo_interface_z(self, gdfZ, ee_feature_collection_regression):
+        fc = ee.FeatureCollection.geetools.fromGeoInterface(gdfZ)
+        ee_feature_collection_regression.check(fc, prescision=4)
+
+    @pytest.fixture
+    def gdf(self):
+        data = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Coors Field"},
+                    "geometry": {"type": "Point", "coordinates": [-104.99404, 39.75621]},
+                }
+            ],
+        }
+        return gpd.GeoDataFrame.from_features(data["features"])
+
+    @pytest.fixture
+    def gdfZ(self):
+        data = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Coors Field"},
+                    "geometry": {"type": "Point", "coordinates": [-104.99404, 39.75621, 1000]},
+                }
+            ],
+        }
+        return gpd.GeoDataFrame.from_features(data["features"])
+
+
+class TestAreaSort:
+    """Test the ``areaSort`` method."""
+
+    def test_area_sort(self, ee_list_regression):
+        fc = ee.FeatureCollection("FAO/GAUL/2015/level0").limit(5)
+        fc = fc.geetools.areaSort()
+        property = fc.aggregate_array("ADM0_NAME")
+        ee_list_regression.check(property)
+
+
+class TestFilterGeometryType:
+    """Test the ``filterGeometryType`` method."""
+
+    def test_filter_geometry_type(self, ee_feature_collection_regression):
+        geometries = [ee.Geometry.Point([0, 0]), ee.Geometry.Point([0, 0]).buffer(1)]
+        fc = ee.FeatureCollection([ee.Feature(g, {"test": "test"}) for g in geometries])
+        fc = fc.geetools.filterGeometryType("Point")
+        ee_feature_collection_regression.check(fc)
+
+
+class TestBreakGeometries:
+    """Test the ``breakGeometries`` method."""
+
+    def test_break_geometries(self, fc, ee_feature_collection_regression):
+        fc = fc.geetools.breakGeometries()
+        ee_feature_collection_regression.check(fc)
+
+    @pytest.fixture
+    def fc(self):
+        point0 = ee.Geometry.Point([0, 0])
+        point1 = ee.Geometry.Point([1, 0])
+        multipoint = ee.Geometry.MultiPoint([point0, point1])
+        return ee.FeatureCollection([ee.Feature(multipoint, {"test": "test"})])

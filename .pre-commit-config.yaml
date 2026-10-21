@@ -33,7 +33,7 @@ repos:
   #        stages: [pre-commit]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.4
+    rev: v2.4.1
     hooks:
       - id: codespell
         stages: [pre-commit]
@@ -42,8 +42,8 @@ repos:
 
   # waiting for https://github.com/gee-community/geetools/issues/337
   # so notebooks can again be executed from the documentation
-  #- repo: "https://github.com/kynan/nbstripout"
-  #  rev: "0.5.0"
-  #  hooks:
-  #    - id: nbstripout
-  #      stages: [pre-commit]
+  - repo: "https://github.com/kynan/nbstripout"
+    rev: "0.5.0"
+    hooks:
+      - id: nbstripout
+        stages: [pre-commit]

@@ -35,7 +35,7 @@
     :alt: Test Coverage
 
 .. |docs| image:: https://img.shields.io/readthedocs/geetools?logo=readthedocs&logoColor=white
-    :target: https://geetools.readthedocs.io/en/stable/
+    :target: https://app.readthedocs.org/projects/geetools/
     :alt: Documentation Status
 
 
@@ -83,7 +83,7 @@ This small example wrapping of the excellent ``ee_extra`` package functionalitie
    import pygaul # another gee-community package to access FAO GAUl 2015 dataset
 
    # we assume you are already authenticated to GEE
-   ee.Initialize.geetools.from_account("toto") # yes we also support multi users
+   ee.Initialize.geetools.from_user() # yes we also support multi users
 
    amazonas = pygaul.Items(name="Amazonas").centroid()
 
