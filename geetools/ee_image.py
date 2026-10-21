@@ -1,16 +1,10 @@
 """Toolbox for the :py:class:`ee.Image` class."""
 from __future__ import annotations
 
+import warnings
 from typing import Any, Optional
 
 import ee
-
-# import ee_extra
-# import ee_extra.Algorithms.core
-# import ee_extra.QA.clouds
-# import ee_extra.QA.pipelines
-# import ee_extra.Spectral.core
-# import ee_extra.STAC.core
 import geopandas as gpd
 import numpy as np
 import requests
@@ -18,11 +12,16 @@ import xarray
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.colors import to_rgba
-from pyproj import CRS, Transformer
+from pyproj import CRS
+from shapely import geometry as sg
+from xee import helpers
 from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
-from .utils import format_class_info, plot_data
+from .constants import EE_CATALOG_SCALE_OFFSET_URL
+from .extra import clouds, pan_sharpen, spectral_indices
+from .extra.tasseled_cap import PLATFORM_COEFFICIENTS
+from .utils import area_units_to_m2, format_bits_info, format_class_info, plot_data
 
 
 @register_class_accessor(ee.Image, "geetools")
@@ -854,6 +853,7 @@ class ImageAccessor:
         beta: float | int = 0.05,
         k: float | int = 0.0,
         fdelta: float | int = 0.581,
+        epsilon: float | int = 1.0,
         kernel: str = "RBF",
         sigma: str = "0.5 * (a + b)",
         p: float | int = 2.0,
@@ -861,7 +861,7 @@ class ImageAccessor:
         lambdaN: float | int = 858.5,
         lambdaR: float | int = 645.0,
         lambdaG: float | int = 555.0,
-        online: float | int = False,
+        online: bool = False,
     ) -> ee.Image:
         """Computes one or more spectral indices (indices are added as bands) for an image from the Awesome List of Spectral Indices.
 
@@ -891,6 +891,7 @@ class ImageAccessor:
             beta: Calibration parameter used for NDSIns, default = 0.05
             k: Slope parameter by soil used for NIRvH2, default = 0.0
             fdelta: Adjustment factor used for SEVI, default = 0.581
+            epsilon: Adjustment constant used for EBI, default to 1.0
             kernel: Kernel used for kernel indices, default = 'RBF'
                 Available options:
                     - 'linear' : Linear Kernel.
@@ -919,16 +920,33 @@ class ImageAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        return spectral_indices.spectralIndices(
+            src=self._obj,
+            index=index,
+            G=G,
+            C1=C1,
+            C2=C2,
+            L=L,
+            cexp=cexp,
+            nexp=nexp,
+            alpha=alpha,
+            slope=slope,
+            intercept=intercept,
+            gamma=gamma,
+            omega=omega,
+            beta=beta,
+            k=k,
+            fdelta=fdelta,
+            epsilon=epsilon,
+            kernel=kernel,
+            sigma=sigma,
+            p=p,
+            c=c,
+            lambdaN=lambdaN,
+            lambdaR=lambdaR,
+            lambdaG=lambdaG,
+            online=online,
         )
-        # return ee_extra.Spectral.core.spectralIndices(
-        #     self._obj, index, G, C1, C2, L, cexp, nexp, alpha, slope, intercept, gamma, omega,
-        #     beta, k, fdelta, kernel, sigma, p, c, lambdaN, lambdaR, lambdaG, online,
-        #     drop=False,
-        # )
 
     def getScaleParams(self) -> dict[str, float]:
         """Gets the scale parameters for each band of the image.
@@ -950,12 +968,10 @@ class ImageAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getScaleParams()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.STAC.core.getScaleParams(self._obj)
+        response = requests.get(EE_CATALOG_SCALE_OFFSET_URL, timeout=10)
+        response.raise_for_status()
+        bands = response.json().get(ee.Asset(self._obj.get("system:id").getInfo()).parent, {})
+        return {band: data["scale"] for band, data in bands.items()}
 
     def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
@@ -977,12 +993,10 @@ class ImageAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').first().geetools.getOffsetParams()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.STAC.core.getOffsetParams(self._obj)
+        response = requests.get(EE_CATALOG_SCALE_OFFSET_URL, timeout=10)
+        response.raise_for_status()
+        bands = response.json().get(ee.Asset(self._obj.get("system:id").getInfo()).parent, {})
+        return {band: data["offset"] for band, data in bands.items()}
 
     def scaleAndOffset(self) -> ee.Image:
         """Scales bands on an image according to their scale and offset parameters.
@@ -1003,12 +1017,27 @@ class ImageAccessor:
 
                 S2 = ee.ImageCollection('COPERNICUS/S2_SR').first().geetools.scaleAndOffset()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.STAC.core.scaleAndOffset(self._obj)
+        scale_params = self.getScaleParams()
+        offset_params = self.getOffsetParams()
+
+        if scale_params is None or offset_params is None:
+            warnings.warn("This platform is not supported for scaling and offsetting.")
+            return self._obj
+
+        scale_image = ee.Dictionary(scale_params).toImage()
+        offset_image = ee.Dictionary(offset_params).toImage()
+
+        def apply_scale_offset(img):
+            """Apply scale and offset transformation to image."""
+            bands = img.bandNames()
+            scale_list = scale_image.bandNames()
+            bands = bands.filter(ee.Filter.inList("item", scale_list))
+            selected_scale = scale_image.select(bands)
+            selected_offset = offset_image.select(bands)
+            scaled = img.select(bands).multiply(selected_scale).add(selected_offset)
+            return ee.Image(scaled.copyProperties(img, img.propertyNames()))
+
+        return apply_scale_offset(self._obj)
 
     def preprocess(self, **kwargs) -> ee.Image:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image.
@@ -1037,12 +1066,27 @@ class ImageAccessor:
                     .geetools.preprocess()
                 )
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
+        # Set default parameters for maskClouds
+        mask_clouds_defaults = {
+            "method": "cloud_prob",
+            "prob": 60,
+            "maskCirrus": True,
+            "maskShadows": True,
+            "scaledImage": False,
+            "dark": 0.15,
+            "cloudDist": 1000,
+            "buffer": 250,
+            "cdi": None,
+        }
+
+        # Merge provided kwargs with defaults (kwargs take precedence)
+        mask_clouds_params = {**mask_clouds_defaults, **kwargs}
+
+        # Apply maskClouds then scaleAndOffset
+        masked = self.maskClouds(**mask_clouds_params)
+        preprocessed = masked.geetools.scaleAndOffset()
+
+        return preprocessed
 
     def getSTAC(self) -> dict[str, Any]:
         """Gets the STAC of the image.
@@ -1099,9 +1143,8 @@ class ImageAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().geetools.getDOI()
         """
-        stac = self.getSTAC()
         error_msg = "DOI not found in the STAC"
-        return stac.get("sci:doi", error_msg)
+        return self.getSTAC().get("sci:doi", error_msg)
 
     def getCitation(self) -> str:
         """Gets the citation of the image, if available.
@@ -1122,9 +1165,8 @@ class ImageAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').first().geetools.getCitation()
         """
-        stac = self.getSTAC()
         error_msg = "Citation not found in the STAC"
-        return stac.get("sci:citation", error_msg)
+        return self.getSTAC().get("sci:citation", error_msg)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.Image:
         """Apply panchromatic sharpening to the Image.
@@ -1151,14 +1193,7 @@ class ImageAccessor:
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
                 sharp = source.geetools.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.Algorithms.core.panSharpen(
-        #     img=self._obj, method=method, qa=qa, prefix="geetools", **kwargs
-        # )
+        return pan_sharpen.panSharpen(src=self._obj, method=method, qa=qa, **kwargs)
 
     def tasseledCap(self) -> ee.Image:
         """Calculates tasseled cap brightness, wetness, and greenness components.
@@ -1197,7 +1232,7 @@ class ImageAccessor:
                 reflectance. International journal of remote sensing, 23(8), pp.1741-1748.
             .. [4] Crist, E.P., Laurin, R. and Cicone, R.C., 1986, September. Vegetation and
                 soils information contained in transformed Thematic Mapper data. In
-                Proceedings of IGARSS`86 symposium (pp. 1465-1470). Paris: European Space
+                Proceedings of IGARSS'86 symposium (pp. 1465-1470). Paris: European Space
                 Agency Publications Division.
             .. [5] Crist, E.P. and Cicone, R.C., 1984. A physically-based transformation of
                 Thematic Mapper data---The TM Tasseled Cap. IEEE Transactions on Geoscience
@@ -1218,12 +1253,38 @@ class ImageAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 img = img.geetools.tasseledCap()
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
-        )
-        # return ee_extra.Spectral.core.tasseledCap(self._obj)
+        # Get platform-specific coefficients
+        asset_id = ee.String(self._obj.get("system:id")).getInfo()
+        platform = ee.Asset(asset_id).parent.as_posix()
+        if platform not in PLATFORM_COEFFICIENTS:
+            raise Exception(
+                f"Sorry, satellite platform {platform} not supported for tasseled "
+                f"cap transformation! Use one of {list(PLATFORM_COEFFICIENTS.keys())}"
+            )
+        coeffs = PLATFORM_COEFFICIENTS[platform]
+
+        def calculate_and_add_components(img):
+            """Calculate tasseled cap components and add as new bands."""
+            # Select the required bands
+            img = img.select(coeffs["bands"])
+
+            # Calculate components: multiply each band by coefficients, then sum
+            components = []
+            for comp in ["TCB", "TCG", "TCW"]:
+                component = img.multiply(ee.Image(coeffs[comp])).reduce(ee.Reducer.sum()).rename(comp)
+                components.append(component)
+
+            return img.addBands(components)
+
+        # Apply to image or image collection
+        if isinstance(self._obj, ee.imagecollection.ImageCollection):
+            result = self._obj.map(calculate_and_add_components)
+        elif isinstance(self._obj, ee.image.Image):
+            result = calculate_and_add_components(self._obj)
+        else:
+            raise TypeError("Input must be ee.Image or ee.ImageCollection")
+
+        return result
 
     def matchHistogram(
         self,
@@ -1368,23 +1429,18 @@ class ImageAccessor:
                     .geetools.maskClouds(prob = 75,buffer = 300,cdi = -0.5)
                 )
         """
-        raise NotImplementedError(
-            "The ee_extra package is lacking maintainer for several years, it is now incompatible with "
-            "all the latest version of Python due to use of deprecated pkg_resources. "
-            " We will try to fix this in the future, but for now please use the ee_extra package directly."
+        return clouds.maskClouds(
+            self._obj,
+            method,
+            prob,
+            maskCirrus,
+            maskShadows,
+            scaledImage,
+            dark,
+            cloudDist,
+            buffer,
+            cdi,
         )
-        # return ee_extra.QA.clouds.maskClouds(
-        #     self._obj,
-        #     method,
-        #     prob,
-        #     maskCirrus,
-        #     maskShadows,
-        #     scaledImage,
-        #     dark,
-        #     cloudDist,
-        #     buffer,
-        #     cdi,
-        # )
 
     def removeProperties(self, properties: list[str] | ee.List) -> ee.Image:
         """Remove a list of properties from an image.
@@ -1659,28 +1715,34 @@ class ImageAccessor:
         if ax is None:
             fig, ax = plt.subplots()
 
+        # generate the grid params
+        grid_params = helpers.fit_geometry(
+            geometry=sg.shape(region.bounds().getInfo()),
+            grid_crs=crs,
+            grid_scale=(scale, -scale),
+        )
+
         # extract the image as a xarray dataset
         ds = xarray.open_dataset(
             ee.ImageCollection([self._obj]),
             engine="ee",
-            crs=crs,
-            scale=scale,
-            geometry=region.bounds(),
             request_byte_limit=REQUEST_BYTE_LIMIT,
+            **grid_params,
         )
 
         # extract all the bands as dataarrays objects
-        # x and y coordinates need to be transposed to match imshow requirements
-        bands_da = [ds[b][0, :, :].transpose() for b in bands]
+        bands_da = [ds[b][0, :, :] for b in bands]
 
-        # compute the extend of the image so the unit displayed for x and y are matching the required crs
-        proj = Transformer.from_crs(CRS("EPSG:4326"), CRS(crs), always_xy=True)
-        region_bounds = region.bounds().coordinates().get(0).getInfo()
-        min_x, min_y = proj.transform(*region_bounds[0])
-        max_x, max_y = proj.transform(*region_bounds[2])
+        # derive the extent directly from the affine transform in grid_params
+        # crs_transform = (a, b, c, d, e, f) where c=x_origin, f=y_origin
+        a, b, c, d, e, f = grid_params["crs_transform"]
+        x_shape, y_shape = grid_params["shape_2d"]
+        x_min, y_max = c, f
+        x_max = c + a * x_shape
+        y_min = f + e * y_shape  # e is negative (north-up)
 
         # set the parameters that will be use for single and multi-band display
-        params = dict(extent=[min_x, max_x, min_y, max_y], origin="lower")
+        params = dict(extent=[x_min, x_max, y_min, y_max], origin="upper")
 
         # For single band image, we use the data array directly as source image
         # for multi band image, we need to stack the dataarrays to create a RGB image
@@ -1704,7 +1766,7 @@ class ImageAccessor:
         # region (the mean of the y range of bounding box) so that a long/lat square appears square in the
         # middle of the plot. This implies an Equirectangular projection.
         if CRS(crs).is_geographic:
-            y_coord = np.mean([min_y, max_y])
+            y_coord = (y_min + y_max) / 2
             ax.set_aspect(1 / np.cos(y_coord * np.pi / 180))
         else:
             ax.set_aspect("auto")
@@ -1752,6 +1814,113 @@ class ImageAccessor:
         bandNames = ee.List(images).map(lambda i: ee.Image(i).bandNames()).flatten()
         ic = ee.ImageCollection.fromImages(images)
         return ic.toBands().rename(bandNames)
+
+    def bitsToBands(self, bits_info: dict, band: str | int = 0) -> ee.Image:
+        """Convert a band encoded in bits into binary bands.
+
+        Args:
+            bits_info: bits encodings information (client-side only).
+            band: name of the bit band. Defaults to first band.
+
+        Returns:
+            an image with one band per encoded bit.
+
+        Example:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ls = ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
+                bits = {
+                    '7': 'Water',
+                    '8-9': {
+                        '1': 'Low',
+                        '2': 'Medium',
+                        '3': 'High'
+                    }
+                }
+                decoded = ls.geetools.bitsToBands(bits, 'QA_PIXEL')
+        """
+        bitband = self._obj.select([band])
+        bits_info = format_bits_info(bits_info)
+        masks = []
+        for positions, values in bits_info.items():
+            start, end = positions.split("-")
+            start, end = ee.Image(int(start)), ee.Image(int(end)).add(1)
+            decoded = bitband.rightShift(end).leftShift(end).bitwiseXor(bitband).rightShift(start)
+            for position, val in values.items():
+                mask = ee.Image(int(position)).eq(decoded).rename(val)
+                masks.append(mask)
+        return ImageAccessor.fromList(masks)
+
+    def bitsMaskAll(self, bits_info: dict, classes: Optional[list] = None, band: str | int = 0) -> ee.Image:
+        """Create a mask using the bits information.
+
+        Args:
+            bits_info: bits encodings information (client-side only).
+            classes: name of the classes to use for the mask. If None it will use all classes in bits_info.
+            band: name of the bit band. Defaults to first band.
+
+        Returns:
+            an image with one band named 'all_mask', with 1s where ALL classes are present and 0s where not.
+
+        Example:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ls = ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
+                bits = {
+                    '5': 'Snow',
+                    '8-9': {
+                        '1': 'Low',
+                        '2': 'Medium',
+                        '3': 'High'
+                    }
+                }
+                # Detect confusion between snow and medium probability clouds
+                mask = ls.geetools.bitsMaskAll(bits, ['Snow', 'Medium'], 'QA_PIXEL')
+        """
+        masks = self.bitsToBands(bits_info, band)
+        masks = masks.select(classes) if classes else masks
+        return masks.reduce(ee.Reducer.allNonZero()).rename("all_mask")
+
+    def bitsMaskAny(self, bits_info: dict, classes: Optional[list] = None, band: str | int = 0) -> ee.Image:
+        """Create a mask using the bits information.
+
+        Args:
+            bits_info: bits encodings information (client-side only).
+            classes: name of the classes to use for the mask. If None it will use all classes in bits_info.
+            band: name of the bit band. Defaults to first band.
+
+        Returns:
+            an image with one band named 'any_mask', with 1s where ANY of the classes is present and 0s where not.
+
+        Example:
+            .. code-block:: python
+
+                import ee, geetools
+
+                ee.Initialize()
+
+                ls = ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
+                bits = {
+                    '7': 'Water',
+                    '8-9': {
+                        '1': 'Low',
+                        '2': 'Medium',
+                        '3': 'High'
+                    }
+                }
+                mask = ls.geetools.bitsMaskAny(bits, ['Water', 'High'], 'QA_PIXEL')
+        """
+        masks = self.bitsToBands(bits_info, band)
+        masks = masks.select(classes) if classes else masks
+        return masks.reduce(ee.Reducer.anyNonZero()).rename("any_mask")
 
     def classToBands(self, class_info: dict, band: str | int = 0) -> ee.Image:
         """Convert each class into a separate binary mask.
@@ -2305,3 +2474,34 @@ class ImageAccessor:
         ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
 
         return ax
+
+    @classmethod
+    def pixelArea(cls, area_unit: str = "m2", rename_to_units: bool = False) -> ee.Image:
+        """Extend the :py:method:`ee.Image.pixelArea` method by setting the unit of the output.
+
+        Args:
+            area_unit: the unit of the output area. can be one of "m2", "ha", "kha", "km2" or "acres".
+            rename_to_units: if ``True``, the output image will be renamed to the given unit.
+
+        Returns:
+            the area ``ee.Image`` using the given unit.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                hectares = ee.Image.geetools.pixelArea("ha").rename("ha")
+                acres = ee.Image.geetools.pixelArea("acres").rename("acres")
+                total = hectares.addBands(acres)
+
+                buffer = ee.Geometry.Point(0,0).buffer(100)
+                values = total.reduceRegion(ee.Reducer.mean(), buffer, 1)
+                values.getInfo()
+        """
+        name = area_unit if rename_to_units is True else "area"
+        divisor = area_units_to_m2(area_unit)
+        return ee.Image.pixelArea().divide(divisor).rename(name)

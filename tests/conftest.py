@@ -16,6 +16,9 @@ S2_BAND_COMBO = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B
 L8_BAND_COMBO = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11"]
 """Landsat-8 band combination."""
 
+L8_SR_BAND_COMBO = ["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7", "ST_B10"]
+"""Landsat-8 Surface Reflectance band combination."""
+
 
 def pytest_configure() -> None:
     """Initialize earth engine according to the environment."""
@@ -119,7 +122,14 @@ def s2_sr_vatican_2020():
 @pytest.fixture
 def l8_sr_vatican_2020():
     """A single image from 2020 on top of vatican city from L8 SR collection."""
-    src = "LANDSAT/LC08/C02/T1/LC08_191031_20130711"
+    src = "LANDSAT/LC08/C02/T1_L2/LC08_191031_20200104"
+    return ee.Image(src).select(L8_SR_BAND_COMBO)
+
+
+@pytest.fixture
+def l8_toa_vatican_2020():
+    """A single image from 2020 on top of vatican city from L8 TOA collection."""
+    src = "LANDSAT/LC08/C02/T1_TOA/LC08_191031_20200104"
     return ee.Image(src).select(L8_BAND_COMBO)
 
 
@@ -285,6 +295,15 @@ def stac_schema():
 def jaxa_rainfall():
     """Return the JAXA rain collection."""
     return ee.ImageCollection("JAXA/GPM_L3/GSMaP/v6/operational")
+
+
+@pytest.fixture
+def l9_cloudy_image():
+    """A Landsat 9 image that contains clouds, shadows, water and snow.
+
+    This image is located in Argentina and Chile (Patagonia).
+    """
+    return ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
 
 
 @pytest.fixture

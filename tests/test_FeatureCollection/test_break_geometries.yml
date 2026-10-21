@@ -1,0 +1,20 @@
+features:
+- geometry:
+    coordinates:
+    - 0.0
+    - 0.0
+    type: Point
+  id: '0'
+  properties:
+    test: test
+  type: Feature
+- geometry:
+    coordinates:
+    - 1.0
+    - 0.0
+    type: Point
+  id: '1'
+  properties:
+    test: test
+  type: Feature
+type: FeatureCollection

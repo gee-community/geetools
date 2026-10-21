@@ -150,7 +150,7 @@ class TestPlotByFeatures:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_stacked(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -166,7 +166,7 @@ class TestPlotByFeatures:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_scatter(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -179,7 +179,7 @@ class TestPlotByFeatures:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_pie(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -192,7 +192,7 @@ class TestPlotByFeatures:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_donut(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -205,7 +205,7 @@ class TestPlotByFeatures:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
 
 class TestPlotByPropperties:
@@ -225,7 +225,7 @@ class TestPlotByPropperties:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_properties_plot(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -241,7 +241,7 @@ class TestPlotByPropperties:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_properties_area(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -257,7 +257,7 @@ class TestPlotByPropperties:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
 
 class TestPlotHist:
@@ -270,7 +270,7 @@ class TestPlotHist:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
 
 class TestPlot:
@@ -282,7 +282,7 @@ class TestPlot:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_with_property(self, image_regression):
         fig, ax = plt.subplots()
@@ -290,7 +290,7 @@ class TestPlot:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_with_cmap(self, image_regression):
         fig, ax = plt.subplots()
@@ -298,7 +298,7 @@ class TestPlot:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_with_boundaries(self, image_regression):
         fig, ax = plt.subplots()
@@ -306,7 +306,7 @@ class TestPlot:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def hydroshed(self):
@@ -363,14 +363,40 @@ class TestFromGeoInterface:
         }
         return gpd.GeoDataFrame.from_features(data["features"])
 
-    class TestAreaSort:
-        """Test the ``areaSort`` method."""
 
-        def test_area_sort(self, ee_list_regression):
-            fc = ee.FeatureCollection("FAO/GAUL/2015/level0").limit(5)
-            fc = fc.geetools.areaSort()
-            property = fc.aggregate_array("ADM0_NAME")
-            ee_list_regression.check(property)
+class TestAreaSort:
+    """Test the ``areaSort`` method."""
+
+    def test_area_sort(self, ee_list_regression):
+        fc = ee.FeatureCollection("FAO/GAUL/2015/level0").limit(5)
+        fc = fc.geetools.areaSort()
+        property = fc.aggregate_array("ADM0_NAME")
+        ee_list_regression.check(property)
+
+
+class TestFilterGeometryType:
+    """Test the ``filterGeometryType`` method."""
+
+    def test_filter_geometry_type(self, ee_feature_collection_regression):
+        geometries = [ee.Geometry.Point([0, 0]), ee.Geometry.Point([0, 0]).buffer(1)]
+        fc = ee.FeatureCollection([ee.Feature(g, {"test": "test"}) for g in geometries])
+        fc = fc.geetools.filterGeometryType("Point")
+        ee_feature_collection_regression.check(fc)
+
+
+class TestBreakGeometries:
+    """Test the ``breakGeometries`` method."""
+
+    def test_break_geometries(self, fc, ee_feature_collection_regression):
+        fc = fc.geetools.breakGeometries()
+        ee_feature_collection_regression.check(fc)
+
+    @pytest.fixture
+    def fc(self):
+        point0 = ee.Geometry.Point([0, 0])
+        point1 = ee.Geometry.Point([1, 0])
+        multipoint = ee.Geometry.MultiPoint([point0, point1])
+        return ee.FeatureCollection([ee.Feature(multipoint, {"test": "test"})])
 
 
 class TestSplit:

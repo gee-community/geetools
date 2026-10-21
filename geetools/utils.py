@@ -271,6 +271,80 @@ def format_bandname(name: str, replacement: str = "_") -> str:
     return str([name.replace(char, replacement) for char in banned][0])
 
 
+def format_bits_info(bits_info: dict) -> dict:
+    """Format the bits information to match the expected.
+
+    Args:
+        bits_info: the bits information.
+
+    Example:
+        .. code-block:: python
+
+            from geetools.utils import format_bitmask
+
+            bitmask = {
+                '0': 'shadows',
+                '1-2': {
+                    '0': 'no clouds',
+                    '1': 'high clouds',
+                    '2': 'mid clouds',
+                    '3': 'low clouds'
+                }
+            }
+            bitmask = format_bitmask(bitmask)
+    """
+    final_bit_info = {}
+    classes = []
+    for bit, info in bits_info.items():
+        parts = bit.split("-")
+        start = parts[0].strip()
+        end = parts[1].strip() if len(parts) > 1 else start
+        try:
+            start, end = int(start), int(end)
+        except ValueError:
+            raise ValueError(
+                f"start and end bits must be numeric. Found start: '{start}' end: '{end}' in '{bit}'"
+            )
+        formatted_key = f"{start}-{end}"
+        nbits = end - start + 1
+        # bits info can be a string or dict
+        if isinstance(info, str):
+            if nbits > 1:
+                raise ValueError(
+                    f"Cannot use a single information value for bits '{formatted_key}'. Use a dict instead."
+                )
+            if len(info) == 0:
+                raise ValueError(f"Value for '{bit}' must contain at least one character.")
+            if info in classes:
+                raise ValueError(f"Bits information cannot contain duplicated names. '{info}' is duplicated.")
+            classes.append(info)
+            formatted_info = {"1": format_bandname(info)}
+        elif isinstance(info, dict):
+            formatted_info = {}
+            for pos, value in info.items():
+                if value in classes:
+                    raise ValueError(
+                        f"Bits information cannot contain duplicated names. '{value}' is duplicated."
+                    )
+                classes.append(value)
+                value = format_bandname(value)
+                if len(value) == 0:
+                    raise ValueError(
+                        f"Value for '{bit}' in position '{pos}' must contain at least one character."
+                    )
+                try:
+                    pos = int(pos)
+                except ValueError:
+                    raise ValueError(f"Value '{pos}' not allowed as bit information in '{bit}'.")
+                if pos >= 2**nbits:
+                    raise ValueError(f"Value '{pos}' is out of range ('{bit}').")
+                formatted_info[str(pos)] = value
+        else:
+            raise ValueError(f"Type {type(info)} not allowed as bit information. Found {info}.")
+        final_bit_info[formatted_key] = formatted_info
+    return final_bit_info
+
+
 def format_class_info(class_info: dict) -> dict:
     """Format the class information.
 
@@ -282,3 +356,26 @@ def format_class_info(class_info: dict) -> dict:
         # make sure class value is an int, but store as str
         final[str(int(class_value))] = format_bandname(class_name)
     return final
+
+
+def area_units_to_m2(area_units: str) -> float:
+    """Convert area units to m2.
+
+    Args:
+        area_units (str): Area units to convert to m2.
+
+    Returns:
+        float: The conversion factor.
+    """
+    areas = {
+        "m2": 1,
+        "ha": 1e4,
+        "km2": 1e6,
+        "kha": 1e7,
+        "acres": 4046.86,
+    }
+
+    if area_units not in areas:
+        raise ValueError(f"Area units '{area_units}' not supported. Use one of {list(areas.keys())}")
+
+    return areas.get(area_units, 1)

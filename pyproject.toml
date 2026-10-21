@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "geetools"
-version = "1.17.4"
+version = "1.19.0"
 description = "A collection of tools to work with Google Earth Engine Python API"
 keywords = [
   "python",
@@ -30,7 +30,7 @@ dependencies = [
     "pandas",
     "geopandas",
     "deprecated",
-    "xee>=0.0.11", # xee change dtype management
+    "xee>=0.1.0", # xee change API prototype for geometry setting
     "yamlable",
     "matplotlib",
     "anyascii",
@@ -99,7 +99,7 @@ using = "PEP631:test;dev;doc"
 ignore-init-module-imports = true
 fix = true
 select = ["E", "F", "W", "I", "D", "RUF"]
-extend-exclude = ["geetools/__init__.py", "geetools/tools/_deprecated_imagecollection.py"]
+extend-exclude = ["geetools/__init__.py"]
 force-exclude = true # to make sure exclude is respected when used via pre-commit
 ignore = [
   "E501",  # line too long | Black take care of it
@@ -126,7 +126,7 @@ branch = true
 [tool.commitizen]
 tag_format = "v$major.$minor.$patch$prerelease"
 update_changelog_on_bump = false
-version = "1.17.4"
+version = "1.19.0"
 version_files = [
     "pyproject.toml:version",
     "geetools/__init__.py:__version__",

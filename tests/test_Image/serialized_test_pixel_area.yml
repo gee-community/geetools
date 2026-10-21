@@ -1,0 +1,73 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          functionInvocationValue:
+            arguments:
+              distance:
+                constantValue: 100
+              geometry:
+                functionInvocationValue:
+                  arguments:
+                    coordinates:
+                      constantValue:
+                      - 0
+                      - 0
+                  functionName: GeometryConstructors.Point
+            functionName: Geometry.buffer
+        image:
+          functionInvocationValue:
+            arguments:
+              dstImg:
+                functionInvocationValue:
+                  arguments:
+                    input:
+                      functionInvocationValue:
+                        arguments:
+                          image1:
+                            valueReference: '1'
+                          image2:
+                            functionInvocationValue:
+                              arguments:
+                                value:
+                                  constantValue: 4046.86
+                              functionName: Image.constant
+                        functionName: Image.divide
+                    names:
+                      valueReference: '2'
+                  functionName: Image.rename
+              srcImg:
+                functionInvocationValue:
+                  arguments:
+                    input:
+                      functionInvocationValue:
+                        arguments:
+                          image1:
+                            valueReference: '1'
+                          image2:
+                            functionInvocationValue:
+                              arguments:
+                                value:
+                                  constantValue: 10000.0
+                              functionName: Image.constant
+                        functionName: Image.divide
+                    names:
+                      valueReference: '2'
+                  functionName: Image.rename
+            functionName: Image.addBands
+        reducer:
+          functionInvocationValue:
+            arguments: {}
+            functionName: Reducer.mean
+        scale:
+          constantValue: 1
+      functionName: Image.reduceRegion
+  '1':
+    functionInvocationValue:
+      arguments: {}
+      functionName: Image.pixelArea
+  '2':
+    constantValue:
+    - area
