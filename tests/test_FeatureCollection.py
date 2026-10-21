@@ -397,3 +397,14 @@ class TestBreakGeometries:
         point1 = ee.Geometry.Point([1, 0])
         multipoint = ee.Geometry.MultiPoint([point0, point1])
         return ee.FeatureCollection([ee.Feature(multipoint, {"test": "test"})])
+
+
+class TestSplit:
+    """Test the ``split`` method."""
+
+    def test_split(self, ee_dictionary_regression):
+        asset = "FAO/GAUL/2015/level0"
+        fc = ee.FeatureCollection(asset).limit(10)
+        fc = ee.FeatureCollection(fc.geetools.split(3).get(0))
+        dict = fc.geetools.toDictionary()
+        ee_dictionary_regression.check(dict)
