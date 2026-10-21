@@ -5,6 +5,7 @@ from typing import Protocol
 
 import ee
 import geopandas as gpd
+import shapely
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
@@ -127,9 +128,7 @@ class FeatureCollectionAccessor:
                 print(json.dumps(countries.getInfo(), indent=2))
         """
         uniqueIds = self._obj.aggregate_array(keyColumn)
-        selectors = (
-            ee.List(selectors) if selectors is not None else self._obj.first().propertyNames()
-        )
+        selectors = ee.List(selectors) if selectors is not None else self._obj.first().propertyNames()
         keyColumn = ee.String(keyColumn)
 
         features = self._obj.toList(self._obj.size())
@@ -137,9 +136,7 @@ class FeatureCollectionAccessor:
         keys = uniqueIds.map(lambda uid: ee.String(ee.Algorithms.String(uid)))
         return ee.Dictionary.fromLists(keys, values)
 
-    def addId(
-        self, name: str | ee.String = "id", start: int | ee.Number = 1
-    ) -> ee.FeatureCollection:
+    def addId(self, name: str | ee.String = "id", start: int | ee.Number = 1) -> ee.FeatureCollection:
         """Add a unique numeric identifier, starting from parameter ``start``.
 
         Args:
@@ -225,6 +222,35 @@ class FeatureCollectionAccessor:
         first = self._obj.first().geometry()
         union = self._obj.iterate(lambda f, g: f.geometry().union(g, maxError=maxError), first)
         return ee.Geometry(union).dissolve(maxError=maxError)
+
+    def columnNames(self) -> ee.List:
+        """Get the name of the columns (Feature's properties).
+
+        get a flatten list of all the columns names in the FeatureCollection including the ones that
+        are not in all features.
+
+        Returns:
+            A list of all the column names in the FeatureCollection.
+
+        Example:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                fc = ee.FeatureCollection([
+                    ee.Feature(ee.Geometry.Point([0, 0]), {"name": "A", "value": 1}),
+                    ee.Feature(ee.Geometry.Point([1, 1]), {"name": "B", "value": 2, "extra": "extra_value"})
+                ])
+
+                column_names = fc.geetools.columnNames()
+                column_names.getInfo()
+        """
+        temp_property_name = "__geetools_properties__"
+        fc = self._obj.map(lambda feat: feat.set(temp_property_name, feat.propertyNames()))
+        return fc.aggregate_array(temp_property_name).flatten().distinct()
 
     def toPolygons(self) -> ee.FeatureCollection:
         """Drop any geometry that is not a Polygon or a multipolygon.
@@ -318,23 +344,19 @@ class FeatureCollectionAccessor:
         """
         # get all the id values, they must be string so we are forced to cast them manually
         # the default casting is broken from Python side: https://issuetracker.google.com/issues/329106322
-        features = self._obj.aggregate_array(featureId)
+        feats = self._obj.aggregate_array(featureId)
         isString = lambda i: ee.Algorithms.ObjectType(i).compareTo("String").eq(0)  # noqa: E731
-        features = features.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
+        feats = feats.map(lambda i: ee.Algorithms.If(isString(i), i, ee.Number(i).format()))
 
         # retrieve properties for each feature
-        properties = (
-            ee.List(properties) if properties is not None else self._obj.first().propertyNames()
-        )
-        properties = properties.remove(featureId)
-        values = properties.map(
-            lambda p: ee.Dictionary.fromLists(features, self._obj.aggregate_array(p))
-        )
+        eeProps = self._obj.first().propertyNames() if properties is None else ee.List(properties)
+        eeProps = eeProps.remove(featureId)
+        values = eeProps.map(lambda p: ee.Dictionary.fromLists(feats, self._obj.aggregate_array(p)))
 
         # get the label to use in the dictionary if requested
-        labels = ee.List(labels) if labels is not None else properties
+        eeLabels = eeProps if labels is None else ee.List(labels)
 
-        return ee.Dictionary.fromLists(labels, values)
+        return ee.Dictionary.fromLists(eeLabels, values)
 
     def byFeatures(
         self,
@@ -459,11 +481,7 @@ class FeatureCollectionAccessor:
                     label.set_rotation(45)
         """
         # Get the features and properties
-        props = (
-            ee.List(properties)
-            if properties is not None
-            else self._obj.first().propertyNames().getInfo()
-        )
+        props = ee.List(properties) if properties is not None else self._obj.first().propertyNames().getInfo()
         props = props.remove(featureId)
 
         # get the data from server
@@ -694,7 +712,11 @@ class FeatureCollectionAccessor:
             gdf.plot(column=property, ax=ax, cmap=cmap)
 
     @classmethod
-    def fromGeoInterface(cls, data: dict | GeoInterface) -> ee.FeatureCollection:
+    def fromGeoInterface(
+        cls,
+        data: dict | GeoInterface,
+        crs: str = "EPSG:4326",
+    ) -> ee.FeatureCollection:
         """Create a :py:class:`ee.FeatureCollection` from a geo interface.
 
         The ``geo_interface`` is a protocol representing a vector collection as a python GeoJSON-like dictionary structure.
@@ -706,7 +728,7 @@ class FeatureCollectionAccessor:
 
         Parameters:
             data: The geo_interface to create the :py:class:`ee.FeatureCollection` from.
-            crs: The CRS to use for the FeatureCollection. Default to ``EPSG:4326``.
+            crs: The CRS of the input data. Defaults to "EPSG:4326".
 
         Returns:
             The created :py:class:`ee.FeatureCollection` from the geo_interface.
@@ -738,5 +760,109 @@ class FeatureCollectionAccessor:
         elif not isinstance(data, dict):
             raise ValueError("The data must be a geo_interface or a dictionary")
 
+        # ensure the geometries are 2D
+        gdf = gpd.GeoDataFrame.from_features(data["features"], crs=crs)
+        gdf.geometry = shapely.force_2d(gdf.geometry.values)
+        data = gdf.__geo_interface__
+
         # create the feature collection
         return ee.FeatureCollection(data)
+
+    def areaSort(self, ascending: bool = True) -> ee.FeatureCollection:
+        """Sort the features in the collection by area.
+
+        Args:
+            ascending: Whether to sort in ascending order.
+
+        Returns:
+            The sorted collection.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                fc = ee.FeatureCollection("FAO/GAUL/2015/level0").limit(5)
+                fc = fc.geetools.areaSort()
+                fc.aggregate_array("ADM0_NAME").getInfo()
+        """
+        # generate an area property
+        name = "__geetools_area__"
+        fc = self._obj.map(lambda feat: feat.set(name, feat.geometry().area(1)))
+
+        # sort by area and remove the property from the output
+        properties = fc.first().propertyNames().remove(name)
+        return fc.sort(name, ascending).map(lambda feat: feat.select(properties))
+
+    def filterGeometryType(self, type_: str | ee.String) -> ee.FeatureCollection:
+        """Filter the collection by geometry type.
+
+        Only keep in the Final featureCollection the Feature with the specified geometry type.
+        Can be combined with ``breakGeometries`` to filter out multi geometries.
+
+        Args:
+            type_: The geometry type to filter on. Must be one of the `GEE compatible types <https://developers.google.com/earth-engine/guides/geometries>`__
+
+        Returns:
+            The filtered collection
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                geoms = [ee.Geometry.Point([0, 0]), ee.Geometry.Point([0, 0]).buffer(1)]
+                fc = ee.FeatureCollection([ee.Feature(g, {"test": "test"}) for g in geoms])
+                fc = fc.geetools.breakGeometries().geetools.filterGeometryType("Point")
+                fc.aggregate_array("test").getInfo()
+        """
+        # extract the properties of the features before filtering
+        # and create an extra column with the geometry type
+        type_, name = ee.String(type_), "__geetools_type__"
+        properties = self._obj.first().propertyNames()
+        fc = self._obj.map(lambda feat: feat.set(name, feat.geometry().type()))
+
+        # filter the collection and remove the extra column
+        fc = fc.filter(ee.Filter.eq(name, type_)).select(properties)
+
+        return ee.FeatureCollection(fc)
+
+    def breakGeometries(self) -> ee.FeatureCollection:
+        """Break every feature using geometries into it's constituents.
+
+        Each Geometry that is using a multi parts geometry type will be duplicated
+        into multiple features with each one carrying one of the constituent of the multiPolygon.
+
+        Returns:
+            ee.FeatureCollection: The collection with the broken down geometries
+
+        Examples:
+            .. code-block:: python
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                multipoint = ee.Geometry.MultiPoint([ee.Geometry.Point([0, 0]), ee.Geometry.Point([1, 0])])
+                fc = ee.FeatureCollection([ee.Feature(multipoint, {"test": "test"})])
+                fc = fc.geetools.breakGeometries()
+                fc.aggregate_array("test").getInfo()
+        """
+        # helper function to break the geometry of a feature
+        def split(feat):
+            feat = ee.Feature(feat)
+            geometries = feat.geometry().geometries()
+            return geometries.map(lambda g: ee.Feature(ee.Geometry(g), feat.toDictionary()))
+
+        # apply the function to the collection and flatten the list as each feature
+        # can have multiple geometries (thus list of list) and we want a single list
+        list = self._obj.toList(self._obj.size()).map(split).flatten()
+
+        return ee.FeatureCollection(list)

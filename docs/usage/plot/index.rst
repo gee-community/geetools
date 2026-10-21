@@ -81,7 +81,7 @@ If you are used to the :py:mod:`pyplot <matplotlib.pyplot>` interface of matplot
 
 .. code-block:: python
 
-   # get all hydroshed from the the south amercias within the WWF/HydroATLAS dataset.
+   # get all hydroshed from the the south americas within the WWF/HydroATLAS dataset.
    region = ee.Geometry.BBox(-80, -60, -20, 20);
    fc = ee.FeatureCollection('WWF/HydroATLAS/v1/Basins/level04').filterBounds(region)
 

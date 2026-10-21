@@ -253,18 +253,14 @@ def initialize_documentation():
     if "EARTHENGINE_SERVICE_ACCOUNT" in os.environ:
         private_key = os.environ["EARTHENGINE_SERVICE_ACCOUNT"]
         # small massage of the key to remove the quotes coming from RDT
-        private_key = (
-            private_key[1:-1] if re.compile(r"^'[^']*'$").match(private_key) else private_key
-        )
+        private_key = private_key[1:-1] if re.compile(r"^'[^']*'$").match(private_key) else private_key
         ee.Initialize.geetools.from_service_account(private_key)
 
     elif "EARTHENGINE_PROJECT" in os.environ:
         ee.Initialize(project=os.environ["EARTHENGINE_PROJECT"], http_transport=httplib2.Http())
 
     else:
-        raise ValueError(
-            "EARTHENGINE_SERVICE_ACCOUNT or EARTHENGINE_PROJECT environment variable is missing"
-        )
+        raise ValueError("EARTHENGINE_SERVICE_ACCOUNT or EARTHENGINE_PROJECT environment variable is missing")
 
     pass
 
@@ -362,3 +358,26 @@ def format_class_info(class_info: dict) -> dict:
         # make sure class value is an int, but store as str
         final[str(int(class_value))] = format_bandname(class_name)
     return final
+
+
+def area_units_to_m2(area_units: str) -> float:
+    """Convert area units to m2.
+
+    Args:
+        area_units (str): Area units to convert to m2.
+
+    Returns:
+        float: The conversion factor.
+    """
+    areas = {
+        "m2": 1,
+        "ha": 1e4,
+        "km2": 1e6,
+        "kha": 1e7,
+        "acres": 4046.86,
+    }
+
+    if area_units not in areas:
+        raise ValueError(f"Area units '{area_units}' not supported. Use one of {list(areas.keys())}")
+
+    return areas.get(area_units, 1)

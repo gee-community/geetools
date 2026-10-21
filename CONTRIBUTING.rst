@@ -66,10 +66,22 @@ Lastly, activate the pre-commit hooks by running:
 
 This will install the necessary dependencies to run pre-commit every time you make a commit with Git.
 
+Windows line endings
+^^^^^^^^^^^^^^^^^^^^
+
+On Windows, set Git to keep LF line endings in this repository to avoid large CRLF/LF-only diffs during ``nox -s lint``:
+
+.. code-block:: console
+
+    git config --local core.autocrlf false
+    git config --local core.eol lf
+
+You only need to run these commands once per clone.
+
 Initialize GEE available
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-All the ``geetools`` package is build around the Google Earth Engine API. It is thus impossible to work wihin it if you are not registered. Please follow `Google instructions <https://developers.google.com/earth-engine/guides/access>`__ to use the tool.
+All the ``geetools`` package is build around the Google Earth Engine API. It is thus impossible to work within it if you are not registered. Please follow `Google instructions <https://developers.google.com/earth-engine/guides/access>`__ to use the tool.
 
 Once you get access to GEE, you have 2 authentication options to work within `geetools`:
 

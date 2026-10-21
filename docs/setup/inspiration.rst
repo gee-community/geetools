@@ -1,5 +1,5 @@
-Aknowledgment
-=============
+Acknowledgment
+==============
 
 This project was inspired by other very cool initiatives and we would like to acknowledge them here.
 

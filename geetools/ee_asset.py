@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import os
 import re
+from datetime import date, datetime
 from pathlib import PurePosixPath
 
 import ee
 import ee.data
+from ee._state import get_state
 
 from .accessors import _register_extention
 from .utils import format_description
@@ -23,7 +25,7 @@ class Asset(os.PathLike):
             An asset cannot be an absolute path like in a normal filesystem and thus any trailing "/" will be removed.
         """
         if len(args) == 0:
-            self._path = f"projects/{ee.data._cloud_api_user_project}/assets/"
+            self._path = f"projects/{get_state().cloud_api_user_project}/assets/"
         else:
             self._path = args[0]._path if isinstance(args[0], Asset) else PurePosixPath(*args)
             project_assets = PurePosixPath(str(self._path)[1:])
@@ -77,10 +79,6 @@ class Asset(os.PathLike):
         """make the Asset object hashable."""
         return hash(self.as_posix())
 
-    def __getattr__(self, name):
-        """Return the attribute of the path object."""
-        return getattr(self, name)
-
     @classmethod
     def home(cls) -> Asset:
         """Return the root asset folder of the used cloud project.
@@ -93,7 +91,7 @@ class Asset(os.PathLike):
 
                 ee.Asset.home()
         """
-        return cls(f"projects/{ee.data._cloud_api_user_project}/assets/")
+        return cls(f"projects/{get_state().cloud_api_user_project}/assets/")
 
     def as_posix(self) -> str:
         """Return the asset id as a posix path.
@@ -165,7 +163,7 @@ class Asset(os.PathLike):
             return True
         else:
             if raised is True:
-                user_project = ee.data._cloud_api_user_project
+                user_project = get_state().cloud_api_user_project
                 msg = f"Asset {self.as_posix()} is not in the same project as the user ({user_project})"
                 raise ValueError(msg)
             else:
@@ -389,6 +387,20 @@ class Asset(os.PathLike):
         """
         return self.is_type("FOLDER", raised)
 
+    def is_container(self, raised: bool = True) -> bool:
+        """Return ``True`` if the asset is a container object.
+
+        Args:
+            raised: If True, raise an exception if the asset is not a folder. Defaults to True.
+
+        Examples:
+            .. code-block:: python
+
+                asset = ee.Asset("projects/ee-geetools/assets/folder")
+                asset.is_container()
+        """
+        return self.is_project(raised) or self.is_folder(raised) or self.is_image_collection(raised)
+
     @property
     def type(self) -> str:
         """Return the asset type.
@@ -467,9 +479,7 @@ class Asset(os.PathLike):
         """
         # sanity check on variables
         if not (self.is_project() or self.is_folder() or self.is_image_collection()):
-            raise ValueError(
-                f"Asset {self.as_posix()} is not a container and cannot contain other assets."
-            )
+            raise ValueError(f"Asset {self.as_posix()} is not a container and cannot contain other assets.")
 
         # no need for recursion if recursive is false we directly return the result of th API call
         if recursive is False:
@@ -546,7 +556,7 @@ class Asset(os.PathLike):
         self.is_absolute(raised=True)
         return self.parts[1]
 
-    def move(self, new_asset: Asset, overwrite: bool = False) -> Asset:
+    def move(self, new_asset: os.PathLike, overwrite: bool = False) -> Asset:
         """Move the asset to a target destination.
 
         Move this asset (any type) to the given target, and return a new ``Asset`` instance
@@ -569,6 +579,7 @@ class Asset(os.PathLike):
                 asset.move(new_asset, overwrite=False)
         """
         # copy the assets
+        new_asset = new_asset if isinstance(new_asset, Asset) else ee.Asset(str(new_asset))
         self.copy(new_asset, overwrite=overwrite)
 
         # delete the original
@@ -653,7 +664,7 @@ class Asset(os.PathLike):
         self.exists(raised=True)
         return self.delete(recursive, dry_run)
 
-    def copy(self, new_asset: Asset, overwrite: bool = False) -> Asset:
+    def copy(self, new_asset: os.PathLike, overwrite: bool = False) -> Asset:
         """Copy the asset to a target destination.
 
         Copy this asset (any type) to the given target, and return a new ``Asset`` instance
@@ -676,6 +687,7 @@ class Asset(os.PathLike):
                 asset.copy(new_asset, overwrite=False)
         """
         # exit if the destination asset exist and overwrite is False
+        new_asset = new_asset if isinstance(new_asset, Asset) else ee.Asset(str(new_asset))
         if new_asset.exists() and overwrite is False:
             raise ValueError(f"Asset {new_asset.as_posix()} already exists.")
 
@@ -758,6 +770,12 @@ class Asset(os.PathLike):
         Args:
             **kwargs: The properties to set key, value pairs. To name normal properties simply use the name as key. For system properties, prefix it with "system:". Note that only the "time_start" and "time_end" are editable.
 
+        Warning:
+            GEE is not accepting any data type for the ``time_start`` and ``time_end`` properties. TO simplify
+            usage this method will be accepting :py:class:`datetime.datetime`, :py:class:`datetime.date`,
+            :py:class:`int` (in milliseconds) and :py:class:`str` (in ISO format with a "Z" at the end).
+            If any other type is used, it will be converted to a string (and will most likely fail in GEE).
+
         Examples:
             .. code-block:: python
 
@@ -765,7 +783,32 @@ class Asset(os.PathLike):
                 start = dt.datetime(2021, 1, 1).timestamp() * 1000
                 asset = ee.Asset("projects/ee-geetools/assets/folder/image")
                 asset.setProperties(**{"description": "new_description", "system:time_start": start})
+
+            .. code-block:: python
+                # dates can also be set in ISO format
+                asset.setProperties(**{"description": "new_description", "system:time_start": "2021-01-01T00:00:00Z"})
+
+
         """
+        # time_start and time_end are only supporting the "str" format which is inconsistent with the API
+        # return statement. To comply with a user expectation, we will do the conversions on our side.
+        def date_in_str(d: str | int | float | datetime | date) -> str:
+            if isinstance(d, (datetime, date)):
+                d = d.isoformat() + "Z"  # add the Z to indicate UTC time as EE don't read ISO
+            elif isinstance(d, (int, float)):
+                d = datetime.fromtimestamp(int(d) / 1000).isoformat() + "Z"
+            return str(d)  # if any other format is used, we will simply return it as a string
+
+        # early exit if kwargs is empty
+        if len(kwargs) == 0:
+            return self
+
+        # Convert the system properties to the correct format
+        if "system:time_start" in kwargs:
+            kwargs["system:time_start"] = date_in_str(kwargs.pop("system:time_start"))
+        if "system:time_end" in kwargs:
+            kwargs["system:time_end"] = date_in_str(kwargs.pop("system:time_end"))
+
         # We need to retrieve the system properties.
         # They are named as in the server API and renamed inside this function.
         # The method raise error when we try to set something else that the authorized one.
@@ -773,7 +816,7 @@ class Asset(os.PathLike):
         system = {k: v for k, v in kwargs.items() if k.startswith("system:")}
         for key in system.keys():
             if key not in legit_keys:
-                raise ValueError(f"Property {key} is not a valid system property.")
+                raise ValueError(f"Property {key} is not a valid/editable system property.")
         system = {legit_keys[k]: v for k, v in system.items()}
 
         # Specifying an update mask of 'properties' results in full replacement,

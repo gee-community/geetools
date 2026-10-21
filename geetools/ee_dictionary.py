@@ -87,9 +87,7 @@ class DictionaryAccessor:
         """
         return ee.List(list).map(lambda key: self._obj.get(key))
 
-    def toTable(
-        self, valueType: Literal["dict", "list", "value"] = "value"
-    ) -> ee.FeatureCollection:
+    def toTable(self, valueType: Literal["dict", "list", "value"] = "value") -> ee.FeatureCollection:
         """Convert a :py:class:`ee.Dictionary` to a :py:class:`ee.FeatureCollection` with no geometries (table).
 
         There are 3 different type of values handled by this method:

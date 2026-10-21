@@ -1,6 +1,7 @@
 """Toolbox for the :py:func:`ee.Authenticate` function."""
 from __future__ import annotations
 
+import json
 import os
 from contextlib import suppress
 from pathlib import Path
@@ -17,7 +18,7 @@ class AuthenticateAccessor:
     """Create an accessor for the :py:func:`ee.Authenticate` function."""
 
     @staticmethod
-    def new_user(name: str = "", credential_pathname: str | os.PathLike = ""):
+    def new_user(name: str = "", credential_pathname: str | os.PathLike = "", key_data: dict | None = None):
         """Authenticate the user and save the credentials in a specific folder.
 
         Equivalent to :py:func:`ee.Authenticate` but where the registered user will not be the default one (the one you get when running :py:func:`ee.Initialize`).
@@ -25,6 +26,7 @@ class AuthenticateAccessor:
         Args:
             name: The name of the user. If not set, it will reauthenticate default.
             credential_pathname: The path to the folder where the credentials are stored. If not set, it uses the default path.
+            key_data: The json private key of the service account as a dict object. If not set, it will use the web-based authentication.
 
         Example:
             .. code-block:: python
@@ -48,10 +50,22 @@ class AuthenticateAccessor:
         default = Path(ee.oauth.get_credentials_path())
 
         with TemporaryDirectory() as dir:
+
+            # move the existing credentials to a safe place
             with suppress(FileNotFoundError):
                 move(default, Path(dir) / default.name)
-            ee.Authenticate()
+
+                # save the credentials passed to key_data or alternatively run the
+                # web-based authentication that will write the credentials to the same file
+                if key_data is not None:
+                    default.write_text(json.dumps(key_data))
+                else:
+                    ee.Authenticate()
+
+            # move the new credentials to the desired name
             move(default, credential_path / name)
+
+            # restore the previous default credentials
             with suppress(FileNotFoundError):
                 move(Path(dir) / default.name, default)
 

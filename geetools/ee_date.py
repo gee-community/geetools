@@ -48,6 +48,10 @@ class DateAccessor:
     def fromDOY(cls, doy: int, year: int) -> ee.Date:
         """Create a date from a day of year and a year.
 
+        This method is computing doy from a year agnostic representation, the year parameter being
+        only used to compute a complete date. the doy should have been generated from the
+        :py:meth:`geetools.DateAccessor.toDOY` method.
+
         Parameters:
             doy: The day of year.
             year: The year.
@@ -67,6 +71,16 @@ class DateAccessor:
                 d.format("YYYY-MM-DD").getInfo()
         """
         d, y = ee.Number(doy).toInt(), ee.Number(year).toInt()
+
+        # create the 2 masks to adjust the day of year
+        divisibleBy4 = y.mod(4).eq(0)
+        divisibleBy100 = y.mod(100).eq(0)
+        divisibleBy400 = y.mod(400).eq(0)
+        isNotLeap = divisibleBy400.Or(divisibleBy4.And(divisibleBy100.Not())).Not().toInt()
+        isAfterMarch = d.gte(60).toInt()
+
+        d = d.subtract(isNotLeap.multiply(isAfterMarch))
+
         return ee.Date.fromYMD(y, 1, 1).advance(d.subtract(1), "day")
 
     @classmethod
@@ -166,6 +180,37 @@ class DateAccessor:
         isLeap = divisibleBy400.Or(divisibleBy4.And(divisibleBy100.Not()))
 
         return isLeap.toInt()
+
+    def toDOY(self) -> ee.Number:
+        """Convert a date to a day of year.
+
+        This method is computing a year agnostic day of year. It means that the year will always be described
+        as a 366 day interval and the day of year will be between 0 and 365. it means that for non
+        leap year all days will be shifted by 1 after the 28th of February. Thus the 1st of march will
+        always be the 60th day of year.
+
+        Returns:
+            The day of year.
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                doy = ee.Date('2020-01-01').geetools.toDOY()
+                doy.getInfo()
+        """
+        # create the 2 masks for day offset
+        isNotLeap = self.isLeap().Not()
+        isAfterMarch = self._obj.get("month").gte(3).toInt()
+
+        # create the day of year
+        doy = self._obj.getRelative("day", "year")
+
+        return doy.add(isNotLeap.multiply(isAfterMarch))
 
     @staticmethod
     def check_unit(unit: str) -> None:

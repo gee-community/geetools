@@ -4,24 +4,17 @@ from __future__ import annotations
 import uuid
 import warnings
 from datetime import datetime as dt
-from typing import Any, Iterable
+from typing import Any
 
 import ee
-import ee_extra
-import ee_extra.Algorithms.core
-import ee_extra.ImageCollection.core
-import ee_extra.QA.clouds
-import ee_extra.QA.pipelines
-import ee_extra.Spectral.core
-import ee_extra.STAC.core
 import requests
-import xarray
 from ee import apifunction
 from matplotlib.axes import Axes
-from xarray import Dataset
-from xee.ext import REQUEST_BYTE_LIMIT
 
 from .accessors import register_class_accessor
+from .constants import EE_CATALOG_SCALE_OFFSET_URL
+from .extra import clouds, pan_sharpen, spectral_indices
+from .extra.tasseled_cap import PLATFORM_COEFFICIENTS
 from .utils import plot_data
 
 PY_DATE_FORMAT = "%Y-%m-%dT%H-%M-%S"
@@ -88,7 +81,7 @@ class ImageCollectionAccessor:
                 )
 
         """
-        return ee_extra.QA.clouds.maskClouds(
+        return clouds.maskClouds(
             self._obj,
             method,
             prob,
@@ -101,9 +94,7 @@ class ImageCollectionAccessor:
             cdi,
         )
 
-    def closest(
-        self, date: ee.Date | str, tolerance: int = 1, unit: str = "month"
-    ) -> ee.ImageCollection:
+    def closest(self, date: ee.Date | str, tolerance: int = 1, unit: str = "month") -> ee.ImageCollection:
         """Gets the closest image (or set of images if the collection intersects a region that requires multiple scenes) to the specified date.
 
         Parameters:
@@ -130,7 +121,30 @@ class ImageCollectionAccessor:
                 )
                 s2.size().getInfo()
         """
-        return ee_extra.ImageCollection.core.closest(self._obj, date, tolerance, unit)
+        if isinstance(date, str):
+            date = ee.Date(date)
+
+        unit_to_days = {
+            "year": 365,
+            "month": 30,
+            "week": 7,
+            "day": 1,
+            "hour": 1 / 24,
+            "minute": 1 / (24 * 60),
+            "second": 1 / (24 * 3600),
+        }
+        tolerance_days = tolerance * unit_to_days.get(unit, 30)
+
+        filtered = self._obj.filterDate(
+            date.advance(-tolerance_days, "day"),
+            date.advance(tolerance_days, "day"),
+        )
+
+        with_diff = filtered.map(
+            lambda img: img.set("date_diff", ee.Image(img).date().difference(date, "day").abs())
+        )
+        min_diff = with_diff.reduceColumns(ee.Reducer.min(), ["date_diff"]).get("min")
+        return with_diff.filter(ee.Filter.eq("date_diff", min_diff))
 
     def spectralIndices(
         self,
@@ -149,6 +163,7 @@ class ImageCollectionAccessor:
         beta: float | int = 0.05,
         k: float | int = 0.0,
         fdelta: float | int = 0.581,
+        epsilon: float | int = 1.0,
         kernel: str = "RBF",
         sigma: str = "0.5 * (a + b)",
         p: float | int = 2.0,
@@ -186,6 +201,7 @@ class ImageCollectionAccessor:
             beta: Calibration parameter used for NDSIns, default = 0.05
             k: Slope parameter by soil used for NIRvH2, default = 0.0
             fdelta: Adjustment factor used for SEVI, default = 0.581
+            epsilon: Adjustment constant used for EBI, default = 1.0
             kernel: Kernel used for kernel indices, default = 'RBF'
                 Available options:
                     - 'linear' : Linear Kernel.
@@ -214,13 +230,33 @@ class ImageCollectionAccessor:
                 image = ee.Image('COPERNICUS/S2_SR/20190828T151811_20190828T151809_T18GYT')
                 image = image.geetools.spectralIndices(["NDVI", "NDFI"])
         """
-        # fmt: off
-        return ee_extra.Spectral.core.spectralIndices(
-            self._obj, index, G, C1, C2, L, cexp, nexp, alpha, slope, intercept, gamma, omega,
-            beta, k, fdelta, kernel, sigma, p, c, lambdaN, lambdaR, lambdaG, online,
-            drop=False,
+        return spectral_indices.spectralIndices(
+            src=self._obj,
+            index=index,
+            G=G,
+            C1=C1,
+            C2=C2,
+            L=L,
+            cexp=cexp,
+            nexp=nexp,
+            alpha=alpha,
+            slope=slope,
+            intercept=intercept,
+            gamma=gamma,
+            omega=omega,
+            beta=beta,
+            k=k,
+            fdelta=fdelta,
+            epsilon=epsilon,
+            kernel=kernel,
+            sigma=sigma,
+            p=p,
+            c=c,
+            lambdaN=lambdaN,
+            lambdaR=lambdaR,
+            lambdaG=lambdaG,
+            online=online,
         )
-        # fmt: on
 
     def getScaleParams(self) -> dict[str, float]:
         """Gets the scale parameters for each band of the image.
@@ -242,7 +278,10 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').geetools.getScaleParams()
         """
-        return ee_extra.STAC.core.getScaleParams(self._obj)
+        response = requests.get(EE_CATALOG_SCALE_OFFSET_URL, timeout=10)
+        response.raise_for_status()
+        bands = response.json().get(ee.String(self._obj.get("system:id")).getInfo(), {})
+        return {band: data["scale"] for band, data in bands.items()}
 
     def getOffsetParams(self) -> dict[str, float]:
         """Gets the offset parameters for each band of the image.
@@ -264,7 +303,10 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('MODIS/006/MOD11A2').geetools.getOffsetParams()
         """
-        return ee_extra.STAC.core.getOffsetParams(self._obj)
+        response = requests.get(EE_CATALOG_SCALE_OFFSET_URL, timeout=10)
+        response.raise_for_status()
+        bands = response.json().get(ee.String(self._obj.get("system:id")).getInfo(), {})
+        return {band: data["offset"] for band, data in bands.items()}
 
     def scaleAndOffset(self) -> ee.ImageCollection:
         """Scales bands on an image according to their scale and offset parameters.
@@ -285,7 +327,20 @@ class ImageCollectionAccessor:
 
                 S2 = ee.ImageCollection('COPERNICUS/S2_SR').scaleAndOffset()
         """
-        return ee_extra.STAC.core.scaleAndOffset(self._obj)
+        scale_params = self.getScaleParams()
+        offset_params = self.getOffsetParams()
+        if not scale_params and not offset_params:
+            warnings.warn("This platform is not supported for scaling and offsetting.")
+            return self._obj
+        scale_image = ee.Dictionary(scale_params).toImage()
+        offset_image = ee.Dictionary(offset_params).toImage()
+
+        def apply_scale_offset(img: ee.Image) -> ee.Image:
+            bands = img.bandNames().filter(ee.Filter.inList("item", scale_image.bandNames()))
+            scaled = img.select(bands).multiply(scale_image.select(bands)).add(offset_image.select(bands))
+            return ee.Image(scaled.copyProperties(img, img.propertyNames()))
+
+        return self._obj.map(apply_scale_offset)
 
     def preprocess(self, **kwargs) -> ee.ImageCollection:
         """Pre-processes the image: masks clouds and shadows, and scales and offsets the image collection.
@@ -311,7 +366,21 @@ class ImageCollectionAccessor:
                 ee.Initialize()
                 S2 = ee.ImageCollection('COPERNICUS/S2_SR').preprocess()
         """
-        return ee_extra.QA.pipelines.preprocess(self._obj, **kwargs)
+        masked = clouds.maskClouds(
+            self._obj,
+            **{
+                "method": kwargs.get("method", "cloud_prob"),
+                "prob": kwargs.get("prob", 60),
+                "maskCirrus": kwargs.get("maskCirrus", True),
+                "maskShadows": kwargs.get("maskShadows", True),
+                "scaledImage": kwargs.get("scaledImage", False),
+                "dark": kwargs.get("dark", 0.15),
+                "cloudDist": kwargs.get("cloudDist", 1000),
+                "buffer": kwargs.get("buffer", 250),
+                "cdi": kwargs.get("cdi", None),
+            },
+        )
+        return masked.geetools.scaleAndOffset()
 
     def getSTAC(self) -> dict[str, Any]:
         """Gets the STAC of the image collection.
@@ -368,7 +437,8 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getDOI()
         """
-        return ee_extra.STAC.core.getDOI(self._obj)
+        msg = "The DOI is not available for this collection. Please check the STAC for more information."
+        return self.getSTAC().get("sci:doi", msg)
 
     def getCitation(self) -> str:
         """Gets the citation of the image, if available.
@@ -389,7 +459,8 @@ class ImageCollectionAccessor:
 
                 ee.ImageCollection('NASA/GPM_L3/IMERG_V06').geetools.getCitation()
         """
-        return ee_extra.STAC.core.getCitation(self._obj)
+        error_msg = "Citation not available for this collection. Please check the STAC for more information."
+        return self.getSTAC().get("sci:citation", error_msg)
 
     def panSharpen(self, method: str = "SFIM", qa: str = "", **kwargs) -> ee.ImageCollection:
         """Apply panchromatic sharpening to the :py:class:`ee.ImageCollection` images.
@@ -416,9 +487,7 @@ class ImageCollectionAccessor:
                 source = ee.Image("LANDSAT/LC08/C01/T1_TOA/LC08_047027_20160819")
                 sharp = source.panSharpen(method="HPFA", qa=["MSE", "RMSE"], maxPixels=1e13)
         """
-        return ee_extra.Algorithms.core.panSharpen(
-            img=self._obj, method=method, qa=qa or None, prefix="geetools", **kwargs
-        )
+        return self._obj.map(lambda img: pan_sharpen.panSharpen(img, method=method, qa=qa or None, **kwargs))
 
     def tasseledCap(self) -> ee.ImageCollection:
         """Calculates tasseled cap brightness, wetness, and greenness components for all images in the collection.
@@ -479,7 +548,23 @@ class ImageCollectionAccessor:
                 ic = ee.ImageCollection("LANDSAT/LT05/C01/T1")
                 ic = ic.geetools.tasseledCap()
         """
-        return ee_extra.Spectral.core.tasseledCap(self._obj)
+        dataset_id = ee.String(self._obj.get("system:id")).getInfo()
+        if dataset_id not in PLATFORM_COEFFICIENTS:
+            raise Exception(
+                f"Sorry, satellite platform {dataset_id} not supported for tasseled "
+                f"cap transformation! Use one of {list(PLATFORM_COEFFICIENTS.keys())}"
+            )
+        coeffs = PLATFORM_COEFFICIENTS[dataset_id]
+
+        def apply_tc(img: ee.Image) -> ee.Image:
+            img = img.select(coeffs["bands"])
+            components = [
+                img.multiply(ee.Image(coeffs[comp])).reduce(ee.Reducer.sum()).rename(comp)
+                for comp in ["TCB", "TCG", "TCW"]
+            ]
+            return img.addBands(components)
+
+        return self._obj.map(apply_tc)
 
     def append(self, image: ee.Image) -> ee.ImageCollection:
         """Append an image to the existing image collection.
@@ -603,7 +688,7 @@ class ImageCollectionAccessor:
         s = ee.Image(zero).rename("integral").set("last", zero)
 
         # compute the approximation of the integral using the trapezoidal method
-        # each local interval is aproximated by the corresponding trapez and the
+        # each local interval is approximated by the corresponding trapez and the
         # sum is updated
         def computeIntegral(image, integral):
             image = ee.Image(image).select(band)
@@ -697,72 +782,6 @@ class ImageCollectionAccessor:
 
         return ee.ImageCollection(ic)
 
-    def to_xarray(
-        self,
-        drop_variables: str | Iterable[str] | None = None,
-        io_chunks: object = None,
-        n_images: int = -1,
-        mask_and_scale: bool = True,
-        decode_times: bool = True,
-        decode_timedelta: bool | None = None,
-        use_cftime: bool | None = None,
-        concat_characters: bool = True,
-        decode_coords: bool = True,
-        crs: str | None = None,
-        scale: float | int | None = None,
-        projection: ee.Projection | None = None,
-        geometry: ee.Geometry | None = None,
-        primary_dim_name: str | None = None,
-        primary_dim_property: str | None = None,
-        ee_mask_value: float | None = None,
-        request_byte_limit: int = REQUEST_BYTE_LIMIT,
-    ) -> Dataset:
-        """Open an Earth Engine :py:class:`ee.ImageCollection` as an ``xarray.Dataset``.
-
-        Args:
-            drop_variables: Variables or bands to drop before opening.
-            io_chunks: Specifies the chunking strategy for loading data from EE. By default, this automatically calculates optional chunks based on the ``request_byte_limit``.
-            n_images: The max number of EE images in the collection to open. Useful when there are a large number of images in the collection since calculating collection size can be slow. -1 indicates that all images should be included.
-            mask_and_scale: Lazily scale (using scale_factor and add_offset) and mask (using _FillValue).
-            decode_times: Decode cf times (e.g., integers since "hours since 2000-01-01") to np.datetime64.
-            decode_timedelta: If True, decode variables and coordinates with time units in {"days", "hours", "minutes", "seconds", "milliseconds", "microseconds"} into timedelta objects. If False, leave them encoded as numbers. If None (default), assume the same value of decode_time.
-            use_cftime: Only relevant if encoded dates come from a standard calendar (e.g. "gregorian", "proleptic_gregorian", "standard", or not specified).  If None (default), attempt to decode times to ``np.datetime64[ns]`` objects; if this is not possible, decode times to ``cftime.datetime`` objects. If True, always decode times to ``cftime.datetime`` objects, regardless of whether or not they can be represented using ``np.datetime64[ns]`` objects.  If False, always decode times to ``np.datetime64[ns]`` objects; if this is not possible raise an error.
-            concat_characters: Should character arrays be concatenated to strings, for example: ["h", "e", "l", "l", "o"] -> "hello"
-            decode_coords: bool or {"coordinates", "all"}, Controls which variables are set as coordinate variables: - "coordinates" or True: Set variables referred to in the ``'coordinates'`` attribute of the datasets or individual variables as coordinate variables. - "all": Set variables referred to in ``'grid_mapping'``, ``'bounds'`` and other attributes as coordinate variables.
-            crs: The coordinate reference system (a CRS code or WKT string). This defines the frame of reference to coalesce all variables upon opening. By default, data is opened with 'EPSG:4326'.
-            scale: The scale in the ``crs`` or ``projection``'s units of measure -- either meters or degrees. This defines the scale that all data is represented in upon opening. By default, the scale is 1° when the CRS is in degrees or 10,000 when in meters.
-            projection: Specify an ``ee.Projection`` object to define the ``scale`` and ``crs`` (or other coordinate reference system) with which to coalesce all variables upon opening. By default, the scale and reference system is set by the ``crs`` and ``scale`` arguments.
-            geometry: Specify an ``ee.Geometry`` to define the regional bounds when opening the data. When not set, the bounds are defined by the CRS's ``area_of_use`` boundaries. If those aren't present, the bounds are derived from the geometry of the first image of the collection.
-            primary_dim_name: Override the name of the primary dimension of the output Dataset. By default, the name is 'time'.
-            primary_dim_property: Override the ``ee.Image`` property for which to derive the values of the primary dimension. By default, this is 'system:time_start'.
-            ee_mask_value: Value to mask to EE nodata values. By default, this is 'np.iinfo(np.int32).max' i.e. 2147483647.
-            request_byte_limit: the max allowed bytes to request at a time from Earth Engine. By default, it is 48MBs.
-
-        Returns:
-            An ``xarray.Dataset`` that streams in remote data from Earth Engine.
-        """
-        return xarray.open_dataset(
-            self._obj,
-            engine="ee",
-            drop_variables=drop_variables,
-            io_chunks=io_chunks,
-            n_images=n_images,
-            mask_and_scale=mask_and_scale,
-            decode_times=decode_times,
-            decode_timedelta=decode_timedelta,
-            use_cftime=use_cftime,
-            concat_characters=concat_characters,
-            decode_coords=decode_coords,
-            crs=crs,
-            scale=scale,
-            projection=projection,
-            geometry=geometry,
-            primary_dim_name=primary_dim_name,
-            primary_dim_property=primary_dim_property,
-            ee_mask_value=ee_mask_value,
-            request_byte_limit=request_byte_limit,
-        )
-
     def validPixel(self, band: str | ee.String = "") -> ee.Image:
         """Compute the number of valid pixels in the specified band.
 
@@ -835,11 +854,9 @@ class ImageCollectionAccessor:
         filterCombination = apifunction.ApiFunction.call_(filter, ee.List(filterList))
 
         # apply this filter and remove the temporary property. Exclude parameter is additive so
-        # we do a blank multiplication to remove all the properties beforhand
+        # we do a blank multiplication to remove all the properties beforehand
         ic = ee.ImageCollection(self._obj.filter(filterCombination))
-        ic = ic.map(
-            lambda i: ee.Image(i.multiply(1).copyProperties(i, exclude=[bandNamesProperty]))
-        )
+        ic = ic.map(lambda i: ee.Image(i.multiply(1).copyProperties(i, exclude=[bandNamesProperty])))
 
         return ee.ImageCollection(ic)
 
@@ -969,17 +986,15 @@ class ImageCollectionAccessor:
         """
         sizeName = "__geetools_generated_size__"  # set generated properties name
 
-        # as everything is relyin on the "system:time_start" property
-        # we sort the image collection in the first place. In most collection it will change nothing
-        # so free of charge unless for plumbing
-        ic = self._obj.sort("system:time_start")
+        # create an ic variable to avoid calling self._obj multiple times
+        # and extract the property names to copy
+        ic = self._obj
         toCopy = ic.first().propertyNames()
 
         # transform the interval into a duration in milliseconds
         # I can use the DateRangeAccessor as it's imported earlier in the __init__.py file
         # I don't know if it should be properly imported here, let's see with user feedback
-        timeList = ic.aggregate_array("system:time_start")
-        start, end = timeList.get(0), timeList.get(-1)
+        start, end = ic.aggregate_min("system:time_start"), ic.aggregate_max("system:time_start")
         DateRangeList = ee.DateRange(start, end).geetools.split(duration, unit)
         imageCollectionList = DateRangeList.map(
             lambda dr: ic.filterDate(ee.DateRange(dr).start(), ee.DateRange(dr).end())
@@ -994,9 +1009,7 @@ class ImageCollectionAccessor:
             return ee.ImageCollection(ic.copyProperties(ic, properties=toCopy))
 
         imageCollectionList = (
-            imageCollectionList.map(add_size)
-            .filter(ee.Filter.gt(sizeName, 0))
-            .map(delete_size_property)
+            imageCollectionList.map(add_size).filter(ee.Filter.gt(sizeName, 0)).map(delete_size_property)
         )
 
         return ee.List(imageCollectionList)
@@ -1123,11 +1136,22 @@ class ImageCollectionAccessor:
 
         return ee.ImageCollection(imageList)
 
-    def medoid(self) -> ee.Image:
+    def medoid(self, bands: list | None = None, metric: str = "sam") -> ee.Image:
         """Compute the medoid of the :py:class:`ee.ImageCollection`.
 
         The medoid is the image that has the smallest sum of distances to all other images in the collection.
-        The distance is computed using the Euclidean distance between the pixels of the images.
+        The distance is computed pixelwise using the selected spectral distance metric.
+        No band normalization is applied internally, so the result depends on the scale of the
+        selected bands. In practice, this means inputs should already be on a meaningful and
+        comparable scale, for example reflectance bands after applying scale and offset factors.
+
+        Args:
+            bands: The list of bands to consider when computing the medoid. Defaults to None, which uses all bands.
+            metric: The spectral distance metric to use. One of ``"sam"`` (spectral angle mapper),
+                ``"sid"`` (spectral information divergence), ``"sed"`` (squared Euclidean distance),
+                or ``"emd"`` (earth movers distance). Defaults to ``"sam"``. ``"sam"`` is often a
+                good default for spectral composites because it emphasizes spectral shape over magnitude,
+                while magnitude-based metrics such as ``"sed"`` are more sensitive to band scaling.
 
         Returns:
             An Image that is the medoid of the :py:class:`ee.ImageCollection`.
@@ -1149,42 +1173,80 @@ class ImageCollectionAccessor:
                 print(medoid.getInfo())
         """
         # create a random name for the sum of distances band to avoid conflicts
-        sumOfDistancesName = uuid.uuid4().hex
+        sumOfDistancesName = "geetools_sum_of_distances"
 
         # discover bandname from the first image of the collection
-        bandNames = self._obj.first().bandNames()
+        originalBandNames = self._obj.first().bandNames()
+        bandNames = ee.List(bands or originalBandNames)
 
-        # normalize the band used to compute the distance
-        # first extract the min and max value of each band pixelwizse along the stac and then
-        # normalize the pixel values.
-        minMax = self._obj.reduce(ee.Reducer.minMax())
-
-        def normalizeBands(image):
-            def normalizeBand(bandName):
-                band = image.select([bandName])
-                bandMin = minMax.select(ee.String(bandName).cat("_min"))
-                bandMax = minMax.select(ee.String(bandName).cat("_max"))
-                return band.subtract(bandMin).divide(bandMax.subtract(bandMin))
-
-            return ee.ImageCollection(bandNames.map(normalizeBand)).toBands().rename(bandNames)
-
-        normalized = self._obj.map(normalizeBands)
+        collection = self._obj
 
         # compute the distance between each image and all the others
         def computeSumDistance(image):
             def computeDistance(other):
-                return image.subtract(other).pow(2).reduce(ee.Reducer.sum()).sqrt()
+                other = other.select(bandNames)
+                distance = image.select(bandNames).spectralDistance(other, metric=metric)
+                # multiply by -1 to invert the distance so that smaller distances become larger values for quality mosaic
+                return distance.multiply(-1)
 
-            sumDistances = normalized.map(computeDistance).reduce(ee.Reducer.sum())
+            sumDistances = collection.map(computeDistance).reduce(ee.Reducer.sum())
             return image.addBands(sumDistances.rename(sumOfDistancesName))
 
-        sumDistance = normalized.map(computeSumDistance)
+        sumDistance = collection.map(computeSumDistance)
 
         # use the computed sum of distances as a sorting band for a quality mossaic
         # to get the image with the smallest sum of distances
         medoid = sumDistance.qualityMosaic(sumOfDistancesName)
 
-        return ee.Image(medoid).select(bandNames)
+        return ee.Image(medoid).select(originalBandNames)
+
+    def sortMany(
+        self, properties: ee.List | list, ascending: ee.List | list | None = None
+    ) -> ee.ImageCollection:
+        """Sort an ImageCollection using more than 1 property.
+
+        The properties are set in the order of priority. The first property is the most important one,
+        in case of a tie, the second property is used to break the tie, and so on.
+
+        Warning:
+            This method will raise an error if the 2 parameter are not the same size.
+
+        Args:
+            properties: the list of properties to sort by.
+            ascending: the list of order. If not passed all properties will be sorted ascending
+
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                # order the 500 first images of the NOAA forecast by forecasted date. in case of tie,
+                # order by creation date. We limit to 500 to not exceed GEE computation limits²
+                ic = ee.ImageCollection("NOAA/GFS0P25").limit(500)
+                icSorted = ic.geetools.sortMany(["forecast_time", "creation_time"])
+
+                # print the sorted list of images with forecast and creation time properties for the 10 first
+                icSorted = icSorted.limit(10)
+                info = icSorted.toList(icSorted.size()).map(lambda x: ee.Dictionary({
+                    "forecast_time": ee.Date(ee.Image(x).get("forecast_time")).format(),
+                    "creation_time": ee.Date(ee.Image(x).get("creation_time")).format()
+                }))
+                for item in info.getInfo():
+                    print(f"Forecast Time: {item['forecast_time']}, Creation Time: {item['creation_time']}")
+        """
+        # sanity checks
+        props = ee.List(properties)
+        asc = ee.List(ascending or props.map(lambda _: True))
+
+        # Compute the sort chain in reverse order so that the first key is the primary one and so on.
+        ic = self._obj
+        propertiesIndex = ee.List.sequence(0, props.size().subtract(1)).reverse()
+        ic = propertiesIndex.iterate(lambda i, c: ee.ImageCollection(c).sort(props.get(i), asc.get(i)), ic)
+
+        return ee.ImageCollection(ic)
 
     def datesByBands(
         self,
@@ -1449,9 +1511,7 @@ class ImageCollectionAccessor:
 
         # reduce every sub ImageCollection in the list into images (it's the temporal reduction)
         # and aggregate the result as a single ImageCollection
-        timeRed = (
-            getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
-        )
+        timeRed = getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
 
         def timeReduce(c: ee.ImageCollection) -> ee.image:
             c = ee.ImageCollection(c)
@@ -1464,9 +1524,7 @@ class ImageCollectionAccessor:
         # spatially reduce the generated imagecollection over the region for each band
         doyList = ic.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
         spatialRed = (
-            getattr(ee.Reducer, spatialReducer)()
-            if isinstance(spatialReducer, str)
-            else spatialReducer
+            getattr(ee.Reducer, spatialReducer)() if isinstance(spatialReducer, str) else spatialReducer
         )
 
         def spatialReduce(label: ee.String) -> ee.Dictionary:
@@ -1555,9 +1613,7 @@ class ImageCollectionAccessor:
 
         # reduce every sub ImageCollection in the list into images (it's the temporal reduction)
         # and aggregate the result as a single ImageCollection
-        timeRed = (
-            getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
-        )
+        timeRed = getattr(ee.Reducer, timeReducer)() if isinstance(timeReducer, str) else timeReducer
 
         def timeReduce(c: ee.ImageCollection) -> ee.image:
             c = ee.ImageCollection(c)
@@ -1570,9 +1626,7 @@ class ImageCollectionAccessor:
         # reduce the data for each region
         doyList = ic.aggregate_array(doy_metadata).map(lambda d: ee.Number(d).int().format())
         spatialRed = (
-            getattr(ee.Reducer, spatialReducer)()
-            if isinstance(spatialReducer, str)
-            else spatialReducer
+            getattr(ee.Reducer, spatialReducer)() if isinstance(spatialReducer, str) else spatialReducer
         )
         image = ic.toBands().rename(doyList)
         reduced = image.reduceRegions(
@@ -2672,9 +2726,7 @@ class ImageCollectionAccessor:
             def splitId(loc_id: ee.String) -> ee.Feature:
                 loc_id = ee.String(loc_id)
                 loc_f = ee.Feature(f).select([loc_id.cat("_.*")])
-                oldNames = loc_f.propertyNames().filter(
-                    ee.Filter.stringStartsWith("item", "system:").Not()
-                )
+                oldNames = loc_f.propertyNames().filter(ee.Filter.stringStartsWith("item", "system:").Not())
                 newNames = oldNames.map(lambda n: ee.String(n).replace(loc_id.cat("_"), ""))
                 loc_f = ee.Feature(ee.Feature(loc_f).select(oldNames, newNames))
                 loc_f = ee.Feature(loc_f.copyProperties(f, properties=originalProps))
