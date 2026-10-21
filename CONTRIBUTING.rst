@@ -66,6 +66,18 @@ Lastly, activate the pre-commit hooks by running:
 
 This will install the necessary dependencies to run pre-commit every time you make a commit with Git.
 
+Windows line endings
+^^^^^^^^^^^^^^^^^^^^
+
+On Windows, set Git to keep LF line endings in this repository to avoid large CRLF/LF-only diffs during ``nox -s lint``:
+
+.. code-block:: console
+
+    git config --local core.autocrlf false
+    git config --local core.eol lf
+
+You only need to run these commands once per clone.
+
 Initialize GEE available
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
