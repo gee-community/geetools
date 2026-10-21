@@ -461,6 +461,24 @@ class FeatureCollectionAccessor:
               },
             }
 
+        Examples:
+            .. jupyter-execute::
+
+                import ee, geetools
+                from geetools.utils import initialize_documentation
+
+                initialize_documentation()
+
+                fc = ee.FeatureCollection([
+                    ee.Feature(None, {"region": "north", "area": 2}),
+                    ee.Feature(None, {"region": "north", "area": 4}),
+                    ee.Feature(None, {"region": "south", "area": 6}),
+                ])
+                grouped = fc.geetools.reduceColumnsGroup(
+                    reducer=ee.Reducer.mean(), groupBy="region", selectors=["area"]
+                )
+                grouped.getInfo()
+
         """
         if selectors is None:
             selectors = self._obj.first().propertyNames()
