@@ -4,14 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "01:00"
-      timezone: "Europe/Berlin"
 
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "01:00"
-      timezone: "Europe/Berlin"
