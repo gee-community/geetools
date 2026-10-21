@@ -1855,9 +1855,7 @@ class ImageAccessor:
                 masks.append(mask)
         return ImageAccessor.fromList(masks)
 
-    def bitsMaskAll(
-        self, bits_info: dict, classes: Optional[list] = None, band: str | int = 0
-    ) -> ee.Image:
+    def bitsMaskAll(self, bits_info: dict, classes: Optional[list] = None, band: str | int = 0) -> ee.Image:
         """Create a mask using the bits information.
 
         Args:
@@ -1891,9 +1889,7 @@ class ImageAccessor:
         masks = masks.select(classes) if classes else masks
         return masks.reduce(ee.Reducer.allNonZero()).rename("all_mask")
 
-    def bitsMaskAny(
-        self, bits_info: dict, classes: Optional[list] = None, band: str | int = 0
-    ) -> ee.Image:
+    def bitsMaskAny(self, bits_info: dict, classes: Optional[list] = None, band: str | int = 0) -> ee.Image:
         """Create a mask using the bits information.
 
         Args:

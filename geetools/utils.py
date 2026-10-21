@@ -316,9 +316,7 @@ def format_bits_info(bits_info: dict) -> dict:
             if len(info) == 0:
                 raise ValueError(f"Value for '{bit}' must contain at least one character.")
             if info in classes:
-                raise ValueError(
-                    f"Bits information cannot contain duplicated names. '{info}' is duplicated."
-                )
+                raise ValueError(f"Bits information cannot contain duplicated names. '{info}' is duplicated.")
             classes.append(info)
             formatted_info = {"1": format_bandname(info)}
         elif isinstance(info, dict):

@@ -306,6 +306,7 @@ def l9_cloudy_image():
     return ee.Image("LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508")
 
 
+@pytest.fixture
 def s2_class_image():
     """A Sentinel 2 image that contains clouds, shadows, water and snow.
 
