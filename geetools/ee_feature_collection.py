@@ -428,7 +428,7 @@ class FeatureCollectionAccessor:
     def reduceColumnsGroup(
         self, reducer: ee.Reducer, groupBy: str = "system:index", selectors: Optional[list] = None
     ) -> ee.Dictionary:
-        """Reduce columns of a FeatureCollection, grouped by the values of a key column.
+        """Reduce a FeatureColletion column/s grouped by a key column.
 
         Parameters:
             reducer: The reducer.
@@ -461,25 +461,6 @@ class FeatureCollectionAccessor:
               },
             }
 
-        Examples:
-            .. jupyter-execute::
-
-                import ee, geetools
-                from geetools.utils import initialize_documentation
-
-                initialize_documentation()
-
-                # Each country can have multiple level-1 administrative units.
-                areas = (
-                    ee.FeatureCollection("FAO/GAUL/2015/level1")
-                    .filter(ee.Filter.stringStartsWith(leftField="ADM0_NAME", rightValue="Ar"))
-                )
-                result = areas.geetools.reduceColumnsGroup(
-                    reducer=ee.Reducer.mean().combine(ee.Reducer.sum(), sharedInputs=True),
-                    groupBy="ADM0_NAME",
-                    selectors=["Shape_Area"],
-                )
-                result.getInfo()
         """
         if selectors is None:
             selectors = self._obj.first().propertyNames()
