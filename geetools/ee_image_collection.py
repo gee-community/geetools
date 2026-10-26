@@ -1088,9 +1088,10 @@ class ImageCollectionAccessor:
 
         reducedImagesList = imageCollectionList.map(reduce)
 
-        if not count_images_per_interval:
+        # we are forced to drop all the properties to remove 1
+        if count_images_per_interval is False:
             reducedImagesList = reducedImagesList.map(
-                lambda i: ee.Image(i).copyProperties(i, exclude=[sizeName])
+                lambda i: ee.Image(i).multiply(1).copyProperties(i, exclude=[sizeName])
             )
 
         # set back the original properties
