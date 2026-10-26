@@ -1,0 +1,261 @@
+result: '0'
+values:
+  '0':
+    functionInvocationValue:
+      arguments:
+        geometry:
+          functionInvocationValue:
+            arguments:
+              coordinates:
+                constantValue:
+                - - - -71.7044111602349
+                    - -42.808681632054565
+                  - - -71.7044111602349
+                    - -43.07107570728516
+                  - - -71.32950271296927
+                    - -43.07107570728516
+                  - - -71.32950271296927
+                    - -42.808681632054565
+              evenOdd:
+                constantValue: true
+            functionName: GeometryConstructors.Polygon
+        input:
+          functionInvocationValue:
+            arguments:
+              input:
+                functionInvocationValue:
+                  arguments:
+                    image:
+                      functionInvocationValue:
+                        arguments:
+                          bandSelectors:
+                            arrayValue:
+                              values:
+                              - valueReference: '1'
+                              - valueReference: '2'
+                              - valueReference: '3'
+                          input:
+                            functionInvocationValue:
+                              arguments:
+                                input:
+                                  functionInvocationValue:
+                                    arguments:
+                                      collection:
+                                        functionInvocationValue:
+                                          arguments:
+                                            images:
+                                              valueReference: '4'
+                                          functionName: ImageCollection.fromImages
+                                    functionName: ImageCollection.toBands
+                                names:
+                                  functionInvocationValue:
+                                    arguments:
+                                      list:
+                                        functionInvocationValue:
+                                          arguments:
+                                            baseAlgorithm:
+                                              functionDefinitionValue:
+                                                argumentNames:
+                                                - _MAPPING_VAR_0_0
+                                                body: '11'
+                                            dropNulls:
+                                              constantValue: false
+                                            list:
+                                              valueReference: '4'
+                                          functionName: List.map
+                                    functionName: List.flatten
+                              functionName: Image.rename
+                        functionName: Image.select
+                    reducer:
+                      functionInvocationValue:
+                        arguments: {}
+                        functionName: Reducer.anyNonZero
+                  functionName: Image.reduce
+              names:
+                constantValue:
+                - any_mask
+            functionName: Image.rename
+        scale:
+          constantValue: 30
+      functionName: Image.clipToBoundsAndScale
+  '1':
+    constantValue: Snow
+  '10':
+    functionInvocationValue:
+      arguments:
+        image1:
+          functionInvocationValue:
+            arguments:
+              value:
+                constantValue: 9
+            functionName: Image.constant
+        image2:
+          valueReference: '5'
+      functionName: Image.add
+  '11':
+    functionInvocationValue:
+      arguments:
+        image:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.bandNames
+  '2':
+    constantValue: High
+  '3':
+    constantValue: Medium
+  '4':
+    arrayValue:
+      values:
+      - functionInvocationValue:
+          arguments:
+            input:
+              functionInvocationValue:
+                arguments:
+                  image1:
+                    valueReference: '5'
+                  image2:
+                    functionInvocationValue:
+                      arguments:
+                        image1:
+                          functionInvocationValue:
+                            arguments:
+                              image1:
+                                functionInvocationValue:
+                                  arguments:
+                                    image1:
+                                      functionInvocationValue:
+                                        arguments:
+                                          image1:
+                                            valueReference: '6'
+                                          image2:
+                                            valueReference: '7'
+                                        functionName: Image.rightShift
+                                    image2:
+                                      valueReference: '7'
+                                  functionName: Image.leftShift
+                              image2:
+                                valueReference: '6'
+                            functionName: Image.bitwiseXor
+                        image2:
+                          valueReference: '8'
+                      functionName: Image.rightShift
+                functionName: Image.eq
+            names:
+              arrayValue:
+                values:
+                - valueReference: '1'
+          functionName: Image.rename
+      - functionInvocationValue:
+          arguments:
+            input:
+              functionInvocationValue:
+                arguments:
+                  image1:
+                    valueReference: '5'
+                  image2:
+                    valueReference: '9'
+                functionName: Image.eq
+            names:
+              constantValue:
+              - Low
+          functionName: Image.rename
+      - functionInvocationValue:
+          arguments:
+            input:
+              functionInvocationValue:
+                arguments:
+                  image1:
+                    functionInvocationValue:
+                      arguments:
+                        value:
+                          constantValue: 2
+                      functionName: Image.constant
+                  image2:
+                    valueReference: '9'
+                functionName: Image.eq
+            names:
+              arrayValue:
+                values:
+                - valueReference: '3'
+          functionName: Image.rename
+      - functionInvocationValue:
+          arguments:
+            input:
+              functionInvocationValue:
+                arguments:
+                  image1:
+                    functionInvocationValue:
+                      arguments:
+                        value:
+                          constantValue: 3
+                      functionName: Image.constant
+                  image2:
+                    valueReference: '9'
+                functionName: Image.eq
+            names:
+              arrayValue:
+                values:
+                - valueReference: '2'
+          functionName: Image.rename
+  '5':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 1
+      functionName: Image.constant
+  '6':
+    functionInvocationValue:
+      arguments:
+        bandSelectors:
+          constantValue:
+          - QA_PIXEL
+        input:
+          functionInvocationValue:
+            arguments:
+              id:
+                constantValue: LANDSAT/LC09/C02/T1_L2/LC09_232090_20220508
+            functionName: Image.load
+      functionName: Image.select
+  '7':
+    functionInvocationValue:
+      arguments:
+        image1:
+          valueReference: '8'
+        image2:
+          valueReference: '5'
+      functionName: Image.add
+  '8':
+    functionInvocationValue:
+      arguments:
+        value:
+          constantValue: 5
+      functionName: Image.constant
+  '9':
+    functionInvocationValue:
+      arguments:
+        image1:
+          functionInvocationValue:
+            arguments:
+              image1:
+                functionInvocationValue:
+                  arguments:
+                    image1:
+                      functionInvocationValue:
+                        arguments:
+                          image1:
+                            valueReference: '6'
+                          image2:
+                            valueReference: '10'
+                        functionName: Image.rightShift
+                    image2:
+                      valueReference: '10'
+                  functionName: Image.leftShift
+              image2:
+                valueReference: '6'
+            functionName: Image.bitwiseXor
+        image2:
+          functionInvocationValue:
+            arguments:
+              value:
+                constantValue: 8
+            functionName: Image.constant
+      functionName: Image.rightShift

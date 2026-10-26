@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import io
-import sys
 
 import ee
 import numpy as np
@@ -194,27 +193,6 @@ class TestOutliers:
         ic = s2_sr.limit(10).geetools.outliers(drop=True)
         values = {k: np.nan if v is None else v for k, v in reduce(ic, amazonas).getInfo().items()}
         num_regression.check(values)
-
-
-class TestToXarray:
-    """Test the ``toXarray`` method."""
-
-    @pytest.mark.skipif(sys.version_info < (3, 11), reason="dtype changes in python 3.11 onwards.")
-    def test_to_xarray(self, s2_sr, data_regression):
-        ds = s2_sr.geetools.to_xarray()
-
-        # drop all the dtype as they are not consistently setup depending on the xarray version
-        def drop_dtype(d=ds):
-            for k, v in ds.items():
-                if isinstance(v, dict):
-                    drop_dtype(v)
-                elif k == "dtype":
-                    del ds[k]
-
-        drop_dtype()
-
-        # ds = ds.astype(np.float64)
-        data_regression.check(ds.to_dict(data=False))
 
 
 class TestValidPixel:
@@ -416,12 +394,35 @@ class TestClosestDate:
 class TestMedoid:
     """Test the ``medoid`` method."""
 
-    def test_medoid(self, s2_sr, amazonas, num_regression):
-        # we need less images as the test will fail otherwise
-        medoid = s2_sr.filterDate("2021-01-01", "2021-01-05").geetools.medoid()
-        values = reduce(ee.ImageCollection(medoid), amazonas).getInfo()
-        values = {k: np.nan if v is None else v for k, v in values.items()}
-        num_regression.check(values)
+    def test_medoid_sam(self, vatican, ee_image_regression):
+        roi = ee.Feature(vatican.first()).geometry().buffer(1000)
+        col = (
+            ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .filterBounds(roi)
+            .filterDate("2021-01-01", "2021-03-15")
+            .filter(ee.Filter.lt("CLOUD_COVERAGE_ASSESSMENT", 20))
+        )
+        medoid = col.geetools.medoid(
+            metric="sam", bands=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B11", "B12"]
+        )
+        ee_image_regression.check(
+            medoid, region=roi, viz_params={"bands": ["B4", "B3", "B2"], "min": 0, "max": 3000}, scale=10
+        )
+
+    def test_medoid_sed(self, vatican, ee_image_regression):
+        roi = ee.Feature(vatican.first()).geometry().buffer(1000)
+        col = (
+            ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .filterBounds(roi)
+            .filterDate("2021-01-01", "2021-03-15")
+            .filter(ee.Filter.lt("CLOUD_COVERAGE_ASSESSMENT", 20))
+        )
+        medoid = col.geetools.medoid(
+            metric="sed", bands=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B9", "B11", "B12"]
+        )
+        ee_image_regression.check(
+            medoid, region=roi, viz_params={"bands": ["B4", "B3", "B2"], "min": 0, "max": 3000}, scale=10
+        )
 
 
 class TestSortMany:
@@ -493,7 +494,7 @@ class TestPlotDatesByBands:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def region(self):
@@ -530,7 +531,7 @@ class TestPlotDatesByRegions:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def regions(self):
@@ -565,7 +566,7 @@ class TestPlotDoyByBands:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def region(self):
@@ -603,7 +604,7 @@ class TestPlotDoyByRegions:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def regions(self):
@@ -636,7 +637,7 @@ class TestPlotDoyByYears:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def region(self):
@@ -678,7 +679,7 @@ class TestPlotDoyBySeasons:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def region(self):

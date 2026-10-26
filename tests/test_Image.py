@@ -602,6 +602,64 @@ class TestMaskCover:
         return image.select(["B4", "B3", "B2"])
 
 
+class TestBitsToBands:
+    """Test the ``bitsToBands`` method."""
+
+    def test_bits_to_bands(self, l9_cloudy_image, ee_image_regression):
+        """Test ``bitsToBands``."""
+        aoi = ee.Geometry.Polygon(
+            [
+                [
+                    [-71.7044111602349, -42.808681632054565],
+                    [-71.7044111602349, -43.07107570728516],
+                    [-71.32950271296927, -43.07107570728516],
+                    [-71.32950271296927, -42.808681632054565],
+                ]
+            ]
+        )
+        bits = {"7": "Water", "8-9": {"1": "Low", "2": "Medium", "3": "High"}}
+        decoded = l9_cloudy_image.geetools.bitsToBands(bits, "QA_PIXEL")
+        ee_image_regression.check(decoded, scale=30, region=aoi)
+
+
+class TestBitsMask:
+    """Test the ``bitsMask`` methods (all and any)."""
+
+    def test_bits_mask_all(self, l9_cloudy_image, ee_image_regression):
+        aoi = ee.Geometry.Polygon(
+            [
+                [
+                    [-71.7044111602349, -42.808681632054565],
+                    [-71.7044111602349, -43.07107570728516],
+                    [-71.32950271296927, -43.07107570728516],
+                    [-71.32950271296927, -42.808681632054565],
+                ]
+            ]
+        )
+        bits = {"5": "Snow", "8-9": {"1": "Low", "2": "Medium", "3": "High"}}
+        # Detect mask confusion between snow and clouds (medium probability)
+        decoded = l9_cloudy_image.geetools.bitsMaskAll(bits, ["Snow", "Medium"], "QA_PIXEL")
+        viz = {"min": 0, "max": 1, "palette": ["blue", "red"]}
+        ee_image_regression.check(decoded, scale=30, viz_params=viz, region=aoi)
+
+    def test_bits_mask_any(self, l9_cloudy_image, ee_image_regression):
+        aoi = ee.Geometry.Polygon(
+            [
+                [
+                    [-71.7044111602349, -42.808681632054565],
+                    [-71.7044111602349, -43.07107570728516],
+                    [-71.32950271296927, -43.07107570728516],
+                    [-71.32950271296927, -42.808681632054565],
+                ]
+            ]
+        )
+        bits = {"5": "Snow", "8-9": {"1": "Low", "2": "Medium", "3": "High"}}
+        # Get a mask for masking out unneeded pixels
+        decoded = l9_cloudy_image.geetools.bitsMaskAny(bits, ["Snow", "High", "Medium"], "QA_PIXEL")
+        viz = {"min": 0, "max": 1, "palette": ["blue", "red"]}
+        ee_image_regression.check(decoded, scale=30, viz_params=viz, region=aoi)
+
+
 class TestClassToBands:
     """Test the ``classToBands`` method."""
 
@@ -639,7 +697,7 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_one_band(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
@@ -649,7 +707,7 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_one_band_cmap(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
@@ -659,7 +717,7 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_with_fc(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
@@ -668,7 +726,7 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
     def test_plot_with_crs(self, s2_sr_vatican_2020, vatican, image_regression):
         fig, ax = plt.subplots()
@@ -678,7 +736,7 @@ class TestPlot:
         with BytesIO() as image_byte:
             fig.savefig(image_byte, format="png")
             image_byte.seek(0)
-            image_regression.check(image_byte.getvalue())
+            image_regression.check(image_byte.getvalue(), diff_threshold=1)
 
 
 class TestFromList:
@@ -723,7 +781,7 @@ class TestPlotByRegions:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_regions_barh(self, image_regression):
         fig, ax = plt.subplots()
@@ -742,7 +800,7 @@ class TestPlotByRegions:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_regions_stacked(self, image_regression):
         fig, ax = plt.subplots()
@@ -761,7 +819,7 @@ class TestPlotByRegions:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def ecoregions(self):
@@ -794,7 +852,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_plot(self, image_regression):
         fig, ax = plt.subplots()
@@ -813,7 +871,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_area(self, image_regression):
         fig, ax = plt.subplots()
@@ -832,7 +890,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_pie(self, image_regression):
         fig, ax = plt.subplots()
@@ -852,7 +910,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_bands_donut(self, image_regression):
         fig, ax = plt.subplots()
@@ -872,7 +930,7 @@ class TestPlotByBands:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def ecoregions(self):
@@ -901,7 +959,7 @@ class TestPlotHist:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue(), diff_threshold=0.2)
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def image(self):

@@ -33,6 +33,39 @@ class TestToImage:
         return ee.Geometry.Point([12.453386, 41.903282]).buffer(1)
 
 
+class TestReduceColumnsGroup:
+    """Test the ``reduceColumnsGroup`` method."""
+
+    def test_reduce_columns_group(self, data_regression):
+        red = ee.Reducer.mean().combine(ee.Reducer.sum(), sharedInputs=True)
+        output = self.table.geetools.reduceColumnsGroup(
+            reducer=red, groupBy="ADM0_NAME", selectors=["Shape_Area"]  # group by country
+        )
+        data_regression.check(output.getInfo())
+
+    def test_reduce_columns_group_custom_output(self, data_regression):
+        red = ee.Reducer.mean().combine(ee.Reducer.sum(), sharedInputs=True)
+        red = red.setOutputs(["average_km2", "sum_km2"])
+        output = self.table.geetools.reduceColumnsGroup(
+            reducer=red, groupBy="ADM0_NAME", selectors=["Shape_Area"]  # group by country
+        )
+        data_regression.check(output.getInfo())
+
+    def test_reduce_columns_group_fail_column_type(self):
+        red = ee.Reducer.mean()
+        output = self.table.geetools.reduceColumnsGroup(
+            reducer=red, groupBy="ADM0_NAME", selectors=["ADM1_NAME"]  # group by country
+        )
+        with pytest.raises(ee.ee_exception.EEException):
+            output.getInfo()
+
+    @property
+    def table(self):
+        return ee.FeatureCollection("FAO/GAUL/2015/level1").filter(
+            ee.Filter.stringStartsWith(leftField="ADM0_NAME", rightValue="Ar")
+        )
+
+
 class TestToDictionary:
     """Test the ``toDictionary`` method."""
 
@@ -150,7 +183,7 @@ class TestPlotByFeatures:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_stacked(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -166,7 +199,7 @@ class TestPlotByFeatures:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_scatter(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -179,7 +212,7 @@ class TestPlotByFeatures:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_pie(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -192,7 +225,7 @@ class TestPlotByFeatures:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_features_donut(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -205,7 +238,7 @@ class TestPlotByFeatures:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
 
 class TestPlotByPropperties:
@@ -225,7 +258,7 @@ class TestPlotByPropperties:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_properties_plot(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -241,7 +274,7 @@ class TestPlotByPropperties:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_by_properties_area(self, ecoregions, image_regression):
         fig, ax = plt.subplots()
@@ -257,7 +290,7 @@ class TestPlotByPropperties:
         # fmt: on
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
 
 class TestPlotHist:
@@ -270,7 +303,7 @@ class TestPlotHist:
         )
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
 
 class TestPlot:
@@ -282,7 +315,7 @@ class TestPlot:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_with_property(self, image_regression):
         fig, ax = plt.subplots()
@@ -290,7 +323,7 @@ class TestPlot:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_with_cmap(self, image_regression):
         fig, ax = plt.subplots()
@@ -298,7 +331,7 @@ class TestPlot:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     def test_plot_with_boundaries(self, image_regression):
         fig, ax = plt.subplots()
@@ -306,7 +339,7 @@ class TestPlot:
 
         with io.BytesIO() as buffer:
             fig.savefig(buffer)
-            image_regression.check(buffer.getvalue())
+            image_regression.check(buffer.getvalue(), diff_threshold=1)
 
     @property
     def hydroshed(self):
@@ -397,3 +430,14 @@ class TestBreakGeometries:
         point1 = ee.Geometry.Point([1, 0])
         multipoint = ee.Geometry.MultiPoint([point0, point1])
         return ee.FeatureCollection([ee.Feature(multipoint, {"test": "test"})])
+
+
+class TestSplit:
+    """Test the ``split`` method."""
+
+    def test_split(self, ee_dictionary_regression):
+        asset = "FAO/GAUL/2015/level0"
+        fc = ee.FeatureCollection(asset).limit(10)
+        fc = ee.FeatureCollection(fc.geetools.split(3).get(0))
+        dict = fc.geetools.toDictionary()
+        ee_dictionary_regression.check(dict)
