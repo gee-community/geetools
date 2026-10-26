@@ -11,6 +11,8 @@ from jsonschema import validate
 from matplotlib import pyplot as plt
 
 import geetools  # noqa: F401
+from geetools.ee_image_collection import ImageCollectionAccessor
+from geetools.utils import plot_data
 
 
 def reduce(
@@ -675,6 +677,50 @@ class TestPlotDoyBySeasons:
                 )
             )
         )
+
+
+class TestPlotDoyNormalization:
+    def test_plot_doy_by_seasons_aligns_non_leap_years(self, monkeypatch):
+        raw_data = {
+            "2012": {"58": 1, "59": 2, "60": 3, "365": 4},
+            "2019": {"58": 5, "59": 6, "364": 7},
+        }
+
+        class Result:
+            def getInfo(self):
+                return raw_data
+
+        accessor = ImageCollectionAccessor(None)
+
+        def doy_by_seasons(**kwargs):
+            return Result()
+
+        accessor.doyBySeasons = doy_by_seasons
+        plotted = {}
+        axes = object()
+
+        def capture_plot_data(*args, **kwargs):
+            plotted["data"] = args[1]
+            plotted["doy_is_leap_year"] = kwargs["doy_is_leap_year"]
+            return axes
+
+        monkeypatch.setattr("geetools.ee_image_collection.plot_data", capture_plot_data)
+
+        result = accessor.plot_doy_by_seasons("NDVI", None, 0, 366)
+
+        assert result is axes
+        assert plotted["data"] == {
+            "2012": {58: 1, 59: 2, 60: 3, 365: 4},
+            "2019": {58: 5, 60: 6, 365: 7},
+        }
+        assert plotted["doy_is_leap_year"]
+
+    def test_plot_data_uses_leap_year_month_ticks(self):
+        _, ax = plt.subplots()
+
+        plot_data("doy", {"year": {0: 1, 365: 2}}, "Day of Year", ax=ax, doy_is_leap_year=True)
+
+        assert ax.get_xticks()[2] == 60
 
 
 class TestReduceRegion:

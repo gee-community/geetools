@@ -1,6 +1,7 @@
 """Toolbox for the :py:class:`ee.ImageCollection` class."""
 from __future__ import annotations
 
+import calendar
 import uuid
 import warnings
 from datetime import datetime as dt
@@ -2246,6 +2247,7 @@ class ImageCollectionAccessor:
 
         This method is plotting the reduced data for each image in the collection by years for a single band.
         To set the start and end of the season, use the :py:meth:`ee.Date.getRelative` or :py:class:`time.struct_time` method to get the day of the year.
+        For plotting, non-leap-year DOY values from March 1 onward are shifted by one day to align with leap years. The ``doyBySeasons`` method retains Earth Engine's original DOY values.
 
         Parameters:
             band: The band to reduce.
@@ -2323,14 +2325,15 @@ class ImageCollectionAccessor:
             tileScale=tileScale,
         ).getInfo()
 
-        # transform all the dates strings into int object and reorder the dictionary
-        def to_int(d):
-            return {int(k): v for k, v in d.items()}
+        # normalize non-leap year DOYs to the leap-year calendar for plotting
+        def to_int(d, year):
+            offset = 0 if calendar.isleap(int(year)) else 1
+            return {int(k) + (offset if int(k) >= 59 else 0): v for k, v in d.items()}
 
-        data = {l: dict(sorted(to_int(raw_data[l]).items())) for l in raw_data}
+        data = {l: dict(sorted(to_int(raw_data[l], l).items())) for l in raw_data}
 
         # create the plot
-        ax = plot_data("doy", data, "Day of Year", colors, ax)
+        ax = plot_data("doy", data, "Day of Year", colors, ax, doy_is_leap_year=True)
 
         return ax
 
@@ -2352,6 +2355,7 @@ class ImageCollectionAccessor:
         """Plot the reduced data for each image in the collection by years for a single band.
 
         This method is plotting the reduced data for each image in the collection by years for a single band.
+        Non-leap-year DOY values from March 1 onward are shifted by one day for plotting, while ``doyByYears`` retains Earth Engine's original DOY values.
 
         Parameters:
             band: The band to reduce.
