@@ -12,6 +12,13 @@ To summarize, these functions are added to GEE objects inside a member called ``
 
 The first step is as always to authenticate to GEE and import the **geetools** package.
 
+Optional: Google Cloud Storage
+------------------------------
+
+You only need a Google Cloud Storage (GCS) bucket if you plan to transfer data between Earth Engine and Cloud Storage. This setup is optional; it is not required to use **geetools** or to export to Google Drive or Earth Engine assets.
+
+Create a bucket in the Google Cloud project you use with Earth Engine, for example from the `Google Cloud Console <https://console.cloud.google.com/storage/browser>`__. Bucket names must be globally unique, so you can use your project ID as the bucket name if it is available. For more information, see Google's guide to `creating storage buckets <https://cloud.google.com/storage/docs/creating-buckets>`__.
+
 .. code-block:: python
 
     import ee
