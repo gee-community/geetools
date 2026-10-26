@@ -39,6 +39,9 @@ __summary__ = "A set of useful tools to use with Google Earth Engine Python" "AP
 __uri__ = "http://geetools.readthedocs.io"
 __version__ = "1.19.0"
 
+user_agent = ee.data.getUserAgent()
+ee.data.setUserAgent(f"{user_agent} geetools" if user_agent else "geetools")
+
 __author__ = "Rodrigo E. Principe"
 __email__ = "fitoprincipe82@gmail.com"
 
