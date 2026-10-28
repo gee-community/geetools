@@ -35,6 +35,10 @@ class FeatureCollectionAccessor:
     def grid(cls, size: int | float | ee.Number, crs: str | ee.String = "EPSG:4326") -> ee.FeatureCollection:
         """Create a global feature grid with square cells in the requested CRS.
 
+        Warning:
+            Generating this grid is a very costly operation. It is strongly recommended to export the
+            resulting feature collection to an Earth Engine asset before using it in other computations.
+
         Args:
             size: The cell side length in the units of the CRS.
             crs: The CRS of the grid. Defaults to ``"EPSG:4326"``.
