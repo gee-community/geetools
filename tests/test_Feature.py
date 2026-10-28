@@ -4,6 +4,29 @@ import ee
 import geetools  # noqa: F401
 
 
+class TestCell:
+    """Test the ``cell`` method."""
+
+    def test_cell(self):
+        cell = ee.Feature.geetools.cell(20)
+        assert cell.get("id").getInfo() == "EPSG:4326_20_E00-S00"
+        assert cell.geometry().coordinates().getInfo() == [
+            [[-180, -90], [-160, -90], [-160, -70], [-180, -70], [-180, -90]]
+        ]
+
+    def test_cell_with_indexes(self):
+        cell = ee.Feature.geetools.cell(20, ix=5, iy=5)
+        assert cell.get("id").getInfo() == "EPSG:4326_20_E05-S05"
+
+    def test_cell_with_size_10_and_indexes(self):
+        cell = ee.Feature.geetools.cell(10, ix=10, iy=10)
+        assert cell.get("id").getInfo() == "EPSG:4326_10_E10-S10"
+
+    def test_cell_with_projected_crs(self):
+        cell = ee.Feature.geetools.cell(1000, crs="EPSG:3857")
+        assert cell.get("id").getInfo() == "EPSG:3857_1000_E00-S00"
+
+
 class TestToFeatureCollection:
     """Test the ``toFeatureCollection`` method."""
 
