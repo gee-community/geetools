@@ -1,4 +1,5 @@
 """Test the ``Geometry`` class."""
+import geetools as geetools
 
 
 class TestKeepType:
@@ -21,5 +22,8 @@ class TestKeepType:
         geom = geom_instance.geetools.keepType(("Point", "LineString"), exclude=True)
         geojson = geom.getInfo()
 
+        # verify that he kpt all the polygons and multipolygons
+        # and reconstructed the multipolygons correctly as a polygon (side effect)
         assert geojson["type"] == "GeometryCollection"
-        assert {geometry["type"] for geometry in geojson["geometries"]} == {"Polygon", "MultiPolygon"}
+        assert len(geojson["geometries"]) == 4
+        assert {geometry["type"] for geometry in geojson["geometries"]} == {"Polygon"}
