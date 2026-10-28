@@ -588,16 +588,34 @@ values:
             functionName: String
       functionName: Element.set
   '4':
-    constantValue: d9cb70454332446aa9d741b3186117c3
+    constantValue: 626fb8fdd03245c6971850647368fee8
   '5':
     functionInvocationValue:
       arguments:
         destination:
-          argumentReference: _MAPPING_VAR_0_0
-        exclude:
-          arrayValue:
-            values:
-            - valueReference: '6'
+          functionInvocationValue:
+            arguments:
+              image1:
+                argumentReference: _MAPPING_VAR_0_0
+              image2:
+                functionInvocationValue:
+                  arguments:
+                    value:
+                      constantValue: 1
+                  functionName: Image.constant
+            functionName: Image.multiply
+        properties:
+          functionInvocationValue:
+            arguments:
+              element:
+                valueReference: '6'
+              list:
+                functionInvocationValue:
+                  arguments:
+                    element:
+                      argumentReference: _MAPPING_VAR_0_0
+                  functionName: Element.propertyNames
+            functionName: List.remove
         source:
           argumentReference: _MAPPING_VAR_0_0
       functionName: Image.copyProperties

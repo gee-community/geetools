@@ -1076,7 +1076,7 @@ class ImageCollectionAccessor:
             warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
             bandNames = self._obj.first().bandNames()
 
-        def reduce(ic):
+        def reduce(ic) -> ee.Image:
             ic = ee.ImageCollection(ic)
             start = ic.aggregate_min("system:time_start")
             end = ic.aggregate_max("system:time_end")
@@ -1091,7 +1091,9 @@ class ImageCollectionAccessor:
         # we are forced to drop all the properties to remove 1
         if count_images_per_interval is False:
             reducedImagesList = reducedImagesList.map(
-                lambda i: ee.Image(i).multiply(1).copyProperties(i, exclude=[sizeName])
+                lambda i: ee.Image(i)
+                .multiply(1)
+                .copyProperties(i, ee.Image(i).propertyNames().remove(sizeName))
             )
 
         # set back the original properties
