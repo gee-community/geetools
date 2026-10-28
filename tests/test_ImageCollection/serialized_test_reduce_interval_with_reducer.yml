@@ -12,7 +12,7 @@ values:
                 functionDefinitionValue:
                   argumentNames:
                   - _MAPPING_VAR_10_0
-                  body: '21'
+                  body: '20'
               dropNulls:
                 constantValue: false
               list:
@@ -35,29 +35,37 @@ values:
     functionInvocationValue:
       arguments:
         collection:
-          argumentReference: _MAPPING_VAR_0_0
-      functionName: Collection.first
+          functionInvocationValue:
+            arguments:
+              id:
+                constantValue: JAXA/GPM_L3/GSMaP/v6/operational
+            functionName: ImageCollection.load
+        filter:
+          functionInvocationValue:
+            arguments:
+              leftValue:
+                functionInvocationValue:
+                  arguments:
+                    end:
+                      constantValue: '2020-03-31'
+                    start:
+                      constantValue: '2020-01-01'
+                  functionName: DateRange
+              rightField:
+                valueReference: '9'
+            functionName: Filter.dateRangeContains
+      functionName: Collection.filter
   '11':
     functionInvocationValue:
       arguments:
-        destination:
+        collection:
           argumentReference: _MAPPING_VAR_0_0
-        properties:
-          functionInvocationValue:
-            arguments:
-              element:
-                valueReference: '8'
-            functionName: Element.propertyNames
-        source:
-          argumentReference: _MAPPING_VAR_0_0
-      functionName: Element.copyProperties
+      functionName: Collection.first
   '12':
-    constantValue: __geetools_generated_size__
-  '13':
     functionInvocationValue:
       arguments:
         key:
-          valueReference: '12'
+          valueReference: '6'
         object:
           argumentReference: _MAPPING_VAR_0_0
         value:
@@ -67,11 +75,11 @@ values:
                 argumentReference: _MAPPING_VAR_0_0
             functionName: Collection.size
       functionName: Element.set
-  '14':
+  '13':
     functionInvocationValue:
       arguments:
         collection:
-          valueReference: '9'
+          valueReference: '10'
         filter:
           functionInvocationValue:
             arguments:
@@ -82,26 +90,26 @@ values:
                       functionInvocationValue:
                         arguments:
                           dateRange:
-                            valueReference: '15'
+                            valueReference: '14'
                         functionName: DateRange.end
                     start:
                       functionInvocationValue:
                         arguments:
                           dateRange:
-                            valueReference: '15'
+                            valueReference: '14'
                         functionName: DateRange.start
                   functionName: DateRange
               rightField:
-                valueReference: '7'
+                valueReference: '9'
             functionName: Filter.dateRangeContains
       functionName: Collection.filter
-  '15':
+  '14':
     functionInvocationValue:
       arguments:
         start:
           argumentReference: _MAPPING_VAR_0_0
       functionName: DateRange
-  '16':
+  '15':
     functionInvocationValue:
       arguments:
         end:
@@ -116,7 +124,7 @@ values:
                       constantValue: 1
                   functionName: Number.add
               list:
-                valueReference: '17'
+                valueReference: '16'
             functionName: List.get
         start:
           functionInvocationValue:
@@ -124,10 +132,10 @@ values:
               index:
                 argumentReference: _MAPPING_VAR_0_0
               list:
-                valueReference: '17'
+                valueReference: '16'
             functionName: List.get
       functionName: DateRange
-  '17':
+  '16':
     functionInvocationValue:
       arguments:
         list:
@@ -137,13 +145,13 @@ values:
                 functionInvocationValue:
                   arguments:
                     input:
-                      valueReference: '18'
+                      valueReference: '17'
                   functionName: Number.toFloat
               list:
                 functionInvocationValue:
                   arguments:
                     end:
-                      valueReference: '18'
+                      valueReference: '17'
                     start:
                       functionInvocationValue:
                         arguments:
@@ -151,7 +159,7 @@ values:
                             functionInvocationValue:
                               arguments:
                                 dateRange:
-                                  valueReference: '19'
+                                  valueReference: '18'
                               functionName: DateRange.start
                         functionName: Date.millis
                     step:
@@ -169,36 +177,70 @@ values:
                   functionName: List.sequence
             functionName: List.add
       functionName: List.distinct
-  '18':
+  '17':
     functionInvocationValue:
       arguments:
         date:
           functionInvocationValue:
             arguments:
               dateRange:
-                valueReference: '19'
+                valueReference: '18'
             functionName: DateRange.end
       functionName: Date.millis
-  '19':
+  '18':
     functionInvocationValue:
       arguments:
         end:
           functionInvocationValue:
             arguments:
               collection:
-                valueReference: '9'
+                valueReference: '10'
               property:
-                valueReference: '7'
+                valueReference: '9'
             functionName: AggregateFeatureCollection.max
         start:
           functionInvocationValue:
             arguments:
               collection:
-                valueReference: '9'
+                valueReference: '10'
               property:
-                valueReference: '7'
+                valueReference: '9'
             functionName: AggregateFeatureCollection.min
       functionName: DateRange
+  '19':
+    functionInvocationValue:
+      arguments:
+        collection:
+          functionInvocationValue:
+            arguments:
+              collection:
+                functionInvocationValue:
+                  arguments:
+                    collection:
+                      functionInvocationValue:
+                        arguments:
+                          tableId:
+                            constantValue: FAO/GAUL/2015/level2
+                        functionName: Collection.loadTable
+                    filter:
+                      functionInvocationValue:
+                        arguments:
+                          leftField:
+                            constantValue: ADM0_NAME
+                          rightValue:
+                            constantValue: Colombia
+                        functionName: Filter.equals
+                  functionName: Collection.filter
+              filter:
+                functionInvocationValue:
+                  arguments:
+                    leftField:
+                      constantValue: ADM1_NAME
+                    rightValue:
+                      constantValue: Amazonas
+                  functionName: Filter.equals
+            functionName: Collection.filter
+      functionName: Collection.geometry
   '2':
     functionInvocationValue:
       arguments:
@@ -233,7 +275,7 @@ values:
                                         functionDefinitionValue:
                                           argumentNames:
                                           - _MAPPING_VAR_0_0
-                                          body: '11'
+                                          body: '7'
                                       dropNulls:
                                         constantValue: false
                                       list:
@@ -243,7 +285,7 @@ values:
                                               functionInvocationValue:
                                                 arguments:
                                                   leftField:
-                                                    valueReference: '12'
+                                                    valueReference: '6'
                                                   rightValue:
                                                     constantValue: 0
                                                 functionName: Filter.greaterThan
@@ -254,7 +296,7 @@ values:
                                                     functionDefinitionValue:
                                                       argumentNames:
                                                       - _MAPPING_VAR_0_0
-                                                      body: '13'
+                                                      body: '12'
                                                   dropNulls:
                                                     constantValue: false
                                                   list:
@@ -264,7 +306,7 @@ values:
                                                           functionDefinitionValue:
                                                             argumentNames:
                                                             - _MAPPING_VAR_0_0
-                                                            body: '14'
+                                                            body: '13'
                                                         dropNulls:
                                                           constantValue: false
                                                         list:
@@ -274,7 +316,7 @@ values:
                                                                 functionDefinitionValue:
                                                                   argumentNames:
                                                                   - _MAPPING_VAR_0_0
-                                                                  body: '16'
+                                                                  body: '15'
                                                               dropNulls:
                                                                 constantValue: false
                                                               list:
@@ -287,7 +329,7 @@ values:
                                                                             functionInvocationValue:
                                                                               arguments:
                                                                                 list:
-                                                                                  valueReference: '17'
+                                                                                  valueReference: '16'
                                                                               functionName: List.size
                                                                           right:
                                                                             constantValue: 2
@@ -306,10 +348,10 @@ values:
                       functionInvocationValue:
                         arguments:
                           element:
-                            valueReference: '9'
+                            valueReference: '10'
                         functionName: Element.propertyNames
                     source:
-                      valueReference: '9'
+                      valueReference: '10'
                   functionName: Element.copyProperties
               filter:
                 functionInvocationValue:
@@ -320,46 +362,12 @@ values:
                       functionInvocationValue:
                         arguments:
                           geometry:
-                            valueReference: '20'
+                            valueReference: '19'
                         functionName: Feature
                   functionName: Filter.intersects
             functionName: Collection.filter
       functionName: Collection.map
   '20':
-    functionInvocationValue:
-      arguments:
-        collection:
-          functionInvocationValue:
-            arguments:
-              collection:
-                functionInvocationValue:
-                  arguments:
-                    collection:
-                      functionInvocationValue:
-                        arguments:
-                          tableId:
-                            constantValue: FAO/GAUL/2015/level2
-                        functionName: Collection.loadTable
-                    filter:
-                      functionInvocationValue:
-                        arguments:
-                          leftField:
-                            constantValue: ADM0_NAME
-                          rightValue:
-                            constantValue: Colombia
-                        functionName: Filter.equals
-                  functionName: Collection.filter
-              filter:
-                functionInvocationValue:
-                  arguments:
-                    leftField:
-                      constantValue: ADM1_NAME
-                    rightValue:
-                      constantValue: Amazonas
-                  functionName: Filter.equals
-            functionName: Collection.filter
-      functionName: Collection.geometry
-  '21':
     functionInvocationValue:
       arguments:
         keys:
@@ -369,11 +377,11 @@ values:
                 functionDefinitionValue:
                   argumentNames:
                   - _MAPPING_VAR_0_0
-                  body: '22'
+                  body: '21'
               dropNulls:
                 constantValue: false
               list:
-                valueReference: '25'
+                valueReference: '24'
             functionName: List.map
         values:
           functionInvocationValue:
@@ -382,13 +390,13 @@ values:
                 functionInvocationValue:
                   arguments:
                     dictionary:
-                      valueReference: '26'
-                    selectors:
                       valueReference: '25'
+                    selectors:
+                      valueReference: '24'
                   functionName: Dictionary.select
             functionName: Dictionary.values
       functionName: Dictionary.fromLists
-  '22':
+  '21':
     functionInvocationValue:
       arguments:
         start:
@@ -397,26 +405,26 @@ values:
           functionInvocationValue:
             arguments:
               input:
-                valueReference: '23'
+                valueReference: '22'
               regex:
-                valueReference: '24'
+                valueReference: '23'
               replacement:
                 constantValue: ''
             functionName: String.replace
       functionName: String.slice
-  '23':
+  '22':
     functionInvocationValue:
       arguments:
         input:
           argumentReference: _MAPPING_VAR_0_0
       functionName: String
-  '24':
+  '23':
     functionInvocationValue:
       arguments:
         input:
           argumentReference: _MAPPING_VAR_10_0
       functionName: String
-  '25':
+  '24':
     functionInvocationValue:
       arguments:
         filter:
@@ -425,22 +433,22 @@ values:
               leftField:
                 constantValue: item
               rightValue:
-                valueReference: '24'
+                valueReference: '23'
             functionName: Filter.stringStartsWith
         list:
           functionInvocationValue:
             arguments:
               dictionary:
-                valueReference: '26'
+                valueReference: '25'
             functionName: Dictionary.keys
       functionName: List.filter
-  '26':
+  '25':
     functionInvocationValue:
       arguments:
         bestEffort:
           constantValue: false
         geometry:
-          valueReference: '20'
+          valueReference: '19'
         image:
           functionInvocationValue:
             arguments:
@@ -457,7 +465,7 @@ values:
                                   functionDefinitionValue:
                                     argumentNames:
                                     - _MAPPING_VAR_6_0
-                                    body: '27'
+                                    body: '26'
                                 dropNulls:
                                   constantValue: false
                                 list:
@@ -475,7 +483,7 @@ values:
                             functionDefinitionValue:
                               argumentNames:
                               - _MAPPING_VAR_7_0
-                              body: '29'
+                              body: '28'
                           dropNulls:
                             constantValue: false
                           list:
@@ -490,7 +498,7 @@ values:
         tileScale:
           constantValue: 1
       functionName: Image.reduceRegion
-  '27':
+  '26':
     functionInvocationValue:
       arguments:
         input:
@@ -516,9 +524,9 @@ values:
                   functionName: Reducer.first
             functionName: ImageCollection.reduce
         names:
-          valueReference: '28'
+          valueReference: '27'
       functionName: Image.rename
-  '28':
+  '27':
     functionInvocationValue:
       arguments:
         image:
@@ -528,19 +536,37 @@ values:
                 valueReference: '2'
             functionName: Collection.first
       functionName: Image.bandNames
-  '29':
+  '28':
     functionInvocationValue:
       arguments:
         baseAlgorithm:
           functionDefinitionValue:
             argumentNames:
             - _MAPPING_VAR_0_0
-            body: '30'
+            body: '29'
         dropNulls:
           constantValue: false
         list:
-          valueReference: '28'
+          valueReference: '27'
       functionName: List.map
+  '29':
+    functionInvocationValue:
+      arguments:
+        string1:
+          functionInvocationValue:
+            arguments:
+              string1:
+                functionInvocationValue:
+                  arguments:
+                    input:
+                      argumentReference: _MAPPING_VAR_7_0
+                  functionName: String
+              string2:
+                constantValue: _
+            functionName: String.cat
+        string2:
+          valueReference: '22'
+      functionName: String.cat
   '3':
     functionInvocationValue:
       arguments:
@@ -561,27 +587,41 @@ values:
                   functionName: Element.get
             functionName: String
       functionName: Element.set
-  '30':
+  '4':
+    constantValue: 626fb8fdd03245c6971850647368fee8
+  '5':
     functionInvocationValue:
       arguments:
-        string1:
+        destination:
           functionInvocationValue:
             arguments:
-              string1:
+              image1:
+                argumentReference: _MAPPING_VAR_0_0
+              image2:
                 functionInvocationValue:
                   arguments:
-                    input:
-                      argumentReference: _MAPPING_VAR_7_0
-                  functionName: String
-              string2:
-                constantValue: _
-            functionName: String.cat
-        string2:
-          valueReference: '23'
-      functionName: String.cat
-  '4':
-    constantValue: f227e2dcc0ce4360bbdea6df3c7437a3
-  '5':
+                    value:
+                      constantValue: 1
+                  functionName: Image.constant
+            functionName: Image.multiply
+        properties:
+          functionInvocationValue:
+            arguments:
+              element:
+                valueReference: '6'
+              list:
+                functionInvocationValue:
+                  arguments:
+                    element:
+                      argumentReference: _MAPPING_VAR_0_0
+                  functionName: Element.propertyNames
+            functionName: List.remove
+        source:
+          argumentReference: _MAPPING_VAR_0_0
+      functionName: Image.copyProperties
+  '6':
+    constantValue: __geetools_generated_size__
+  '7':
     functionInvocationValue:
       arguments:
         key:
@@ -590,88 +630,76 @@ values:
           functionInvocationValue:
             arguments:
               key:
-                valueReference: '7'
+                valueReference: '8'
               object:
                 functionInvocationValue:
                   arguments:
-                    destination:
+                    key:
+                      valueReference: '9'
+                    object:
                       functionInvocationValue:
                         arguments:
-                          input:
+                          destination:
                             functionInvocationValue:
                               arguments:
-                                collection:
-                                  argumentReference: _MAPPING_VAR_0_0
-                                reducer:
+                                input:
                                   functionInvocationValue:
-                                    arguments: {}
-                                    functionName: Reducer.max
-                              functionName: ImageCollection.reduce
-                          names:
+                                    arguments:
+                                      collection:
+                                        argumentReference: _MAPPING_VAR_0_0
+                                      reducer:
+                                        functionInvocationValue:
+                                          arguments: {}
+                                          functionName: Reducer.max
+                                    functionName: ImageCollection.reduce
+                                names:
+                                  functionInvocationValue:
+                                    arguments:
+                                      image:
+                                        functionInvocationValue:
+                                          arguments:
+                                            collection:
+                                              valueReference: '10'
+                                          functionName: Collection.first
+                                    functionName: Image.bandNames
+                              functionName: Image.rename
+                          properties:
                             functionInvocationValue:
                               arguments:
-                                image:
-                                  valueReference: '8'
-                              functionName: Image.bandNames
-                        functionName: Image.rename
-                    properties:
+                                element:
+                                  valueReference: '11'
+                              functionName: Element.propertyNames
+                          source:
+                            valueReference: '11'
+                        functionName: Image.copyProperties
+                    value:
                       functionInvocationValue:
                         arguments:
-                          element:
-                            valueReference: '10'
-                        functionName: Element.propertyNames
-                    source:
-                      valueReference: '10'
-                  functionName: Image.copyProperties
+                          collection:
+                            argumentReference: _MAPPING_VAR_0_0
+                          property:
+                            valueReference: '9'
+                        functionName: AggregateFeatureCollection.min
+                  functionName: Element.set
               value:
                 functionInvocationValue:
                   arguments:
                     collection:
                       argumentReference: _MAPPING_VAR_0_0
                     property:
-                      valueReference: '7'
-                  functionName: AggregateFeatureCollection.min
+                      valueReference: '8'
+                  functionName: AggregateFeatureCollection.max
             functionName: Element.set
         value:
           functionInvocationValue:
             arguments:
-              collection:
+              object:
                 argumentReference: _MAPPING_VAR_0_0
               property:
                 valueReference: '6'
-            functionName: AggregateFeatureCollection.max
+            functionName: Element.get
       functionName: Element.set
-  '6':
-    constantValue: system:time_end
-  '7':
-    constantValue: system:time_start
   '8':
-    functionInvocationValue:
-      arguments:
-        collection:
-          valueReference: '9'
-      functionName: Collection.first
+    constantValue: system:time_end
   '9':
-    functionInvocationValue:
-      arguments:
-        collection:
-          functionInvocationValue:
-            arguments:
-              id:
-                constantValue: JAXA/GPM_L3/GSMaP/v6/operational
-            functionName: ImageCollection.load
-        filter:
-          functionInvocationValue:
-            arguments:
-              leftValue:
-                functionInvocationValue:
-                  arguments:
-                    end:
-                      constantValue: '2020-03-31'
-                    start:
-                      constantValue: '2020-01-01'
-                  functionName: DateRange
-              rightField:
-                valueReference: '7'
-            functionName: Filter.dateRangeContains
-      functionName: Collection.filter
+    constantValue: system:time_start

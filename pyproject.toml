@@ -57,7 +57,7 @@ Homepage = "https://github.com/gee-community/geetools"
     "commitizen"
 ]
 "test" = [
-    "pytest",
+    "pytest<9.2.0", # https://github.com/jllorencetti/pytest-deadfixtures/issues/62
     "pytest-cov",
     "pytest-deadfixtures",
     "httplib2",
