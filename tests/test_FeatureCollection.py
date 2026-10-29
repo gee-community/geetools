@@ -33,6 +33,31 @@ class TestToImage:
         return ee.Geometry.Point([12.453386, 41.903282]).buffer(1)
 
 
+class TestGrid:
+    """Test the ``grid`` method."""
+
+    def test_grid_size_and_ids(self):
+        grid = ee.FeatureCollection.geetools.grid(20)
+        assert grid.size().getInfo() == 162
+        assert grid.first().get("id").getInfo() == "EPSG:4326_20_E00-S00"
+        assert grid.first().get("equator_cell_size_m").getInfo() > 0
+
+    def test_grid_with_float_size(self):
+        grid = ee.FeatureCollection.geetools.grid(60.0)
+        assert grid.size().getInfo() == 18
+        assert grid.first().get("id").getInfo() == "EPSG:4326_60_E00-S00"
+
+    def test_grid_projected_crs(self):
+        grid = ee.FeatureCollection.geetools.grid(10_000_000, "EPSG:3857")
+        assert grid.size().getInfo() > 0
+        assert grid.first().get("id").getInfo() == "EPSG:3857_10000000_E00-S00"
+
+    def test_grid_polar_crs(self):
+        grid = ee.FeatureCollection.geetools.grid(2_000_000, "EPSG:3031")
+        assert grid.size().getInfo() == 16
+        assert grid.first().get("equator_cell_size_m").getInfo() is None
+
+
 class TestReduceColumnsGroup:
     """Test the ``reduceColumnsGroup`` method."""
 

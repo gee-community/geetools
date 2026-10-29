@@ -8,6 +8,7 @@ import geopandas as gpd
 import shapely
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
+from pyproj import CRS, Transformer
 
 from .accessors import register_class_accessor
 from .utils import plot_data
@@ -29,6 +30,68 @@ class FeatureCollectionAccessor:
     def __init__(self, obj: ee.FeatureCollection):
         """Initialize the :py:class:`ee.FeatureCollection` class."""
         self._obj = obj
+
+    @classmethod
+    def grid(cls, size: int | float | ee.Number, crs: str | ee.String = "EPSG:4326") -> ee.FeatureCollection:
+        """Create a global feature grid with square cells in the requested CRS.
+
+        Warning:
+            Generating this grid is a very costly operation. It is strongly recommended to export the
+            resulting feature collection to an Earth Engine asset before using it in other computations.
+
+        Args:
+            size: The cell side length in the units of the CRS.
+            crs: The CRS of the grid. Defaults to ``"EPSG:4326"``.
+
+        Returns:
+            A feature collection whose cells have an ``id`` property.
+        """
+        size, crs = ee.Number(size), ee.String(crs)
+        crs_value = crs.getInfo()
+        # Earth Engine cannot currently compute projection bounds server-side; pyproj supplies the area of use.
+        # https://gis.stackexchange.com/questions/471100/how-to-get-the-bounds-of-a-projection-in-gee
+        # https://issuetracker.google.com/issues/313937471
+        geographic_bounds = CRS(crs_value).area_of_use.bounds
+        transformer = Transformer.from_crs(4326, crs_value, always_xy=True)
+        x_min, y_min, x_max, y_max = transformer.transform_bounds(*geographic_bounds, densify_pts=100)
+
+        distance_transformer = Transformer.from_crs(crs_value, 3857, always_xy=True)
+        x1 = distance_transformer.transform(x_min, 0)[0]
+        x2 = distance_transformer.transform(x_min + size.getInfo(), 0)[0]
+        equator_cell_size = int(abs(x2 - x1)) or None
+
+        x_min, y_min = ee.Number(x_min).toDouble(), ee.Number(y_min).toDouble()
+        x_max, y_max = ee.Number(x_max).toDouble(), ee.Number(y_max).toDouble()
+        longitudes = ee.List.sequence(x_min, x_max, size).add(x_max).distinct()
+        latitudes = ee.List.sequence(y_min, y_max, size).add(y_max).distinct()
+        longitude_indexes = ee.List.sequence(0, longitudes.size().subtract(2))
+        latitude_indexes = ee.List.sequence(0, latitudes.size().subtract(2))
+
+        def rectangle(i: ee.Number, j: ee.Number) -> ee.Feature:
+            i, j = ee.Number(i).toInt(), ee.Number(j).toInt()
+            coordinates = [
+                longitudes.get(i),
+                latitudes.get(j),
+                longitudes.get(i.add(1)),
+                latitudes.get(j.add(1)),
+            ]
+            cell_id = ee.String("{proj}_{size}_E{ix}-S{iy}").geetools.format(
+                {
+                    "proj": ee.Projection(crs).crs(),
+                    "size": size.format(),
+                    "ix": i.format("%02d"),
+                    "iy": j.format("%02d"),
+                }
+            )
+            return ee.Feature(
+                ee.Geometry.Rectangle(coordinates, crs, geodesic=False, evenOdd=True),
+                {"id": cell_id, "equator_cell_size_m": equator_cell_size},
+            )
+
+        def column(i: ee.Number) -> ee.List:
+            return latitude_indexes.map(lambda j: rectangle(i, j))
+
+        return ee.FeatureCollection(ee.List(ee.List(longitude_indexes).map(column)).flatten())
 
     def toImage(
         self,

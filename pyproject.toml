@@ -29,6 +29,7 @@ dependencies = [
     "requests",
     "pandas",
     "geopandas",
+    "pyproj>=3.1", # include the requires python
     "deprecated",
     "xee>=0.1.0", # xee change API prototype for geometry setting
     "yamlable",
