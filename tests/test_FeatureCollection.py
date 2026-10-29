@@ -40,6 +40,7 @@ class TestGrid:
         grid = ee.FeatureCollection.geetools.grid(20)
         assert grid.size().getInfo() == 162
         assert grid.first().get("id").getInfo() == "EPSG:4326_20_E00-S00"
+        assert grid.first().get("equator_cell_size_m").getInfo() > 0
 
     def test_grid_with_float_size(self):
         grid = ee.FeatureCollection.geetools.grid(60.0)
@@ -54,6 +55,7 @@ class TestGrid:
     def test_grid_polar_crs(self):
         grid = ee.FeatureCollection.geetools.grid(2_000_000, "EPSG:3031")
         assert grid.size().getInfo() == 16
+        assert grid.first().get("equator_cell_size_m").getInfo() is None
 
 
 class TestReduceColumnsGroup:

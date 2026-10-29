@@ -58,7 +58,7 @@ class FeatureCollectionAccessor:
         distance_transformer = Transformer.from_crs(crs_value, 3857, always_xy=True)
         x1 = distance_transformer.transform(x_min, 0)[0]
         x2 = distance_transformer.transform(x_min + size.getInfo(), 0)[0]
-        equator_cell_size = int(abs(x2 - x1))
+        equator_cell_size = int(abs(x2 - x1)) or None
 
         x_min, y_min = ee.Number(x_min).toDouble(), ee.Number(y_min).toDouble()
         x_max, y_max = ee.Number(x_max).toDouble(), ee.Number(y_max).toDouble()
