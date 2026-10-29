@@ -46,9 +46,11 @@ class FeatureAccessor:
 
         x_min, y_min = ee.Number(x_min).toDouble(), ee.Number(y_min).toDouble()
         x_max, y_max = ee.Number(x_max).toDouble(), ee.Number(y_max).toDouble()
-        longitudes = ee.List.sequence(x_min, x_max, size).add(x_max).distinct()
-        latitudes = ee.List.sequence(y_min, y_max, size).add(y_max).distinct()
         ix, iy = ee.Number(ix).toInt(), ee.Number(iy).toInt()
+        x_left = x_min.add(size.multiply(ix))
+        x_right = x_left.add(size).min(x_max)
+        y_bottom = y_min.add(size.multiply(iy))
+        y_top = y_bottom.add(size).min(y_max)
 
         cell_id = ee.String("{proj}_{size}_E{ix}-S{iy}").geetools.format(
             {
@@ -59,7 +61,7 @@ class FeatureAccessor:
             }
         )
         rectangle = ee.Geometry.Rectangle(
-            [longitudes.get(ix), latitudes.get(iy), longitudes.get(ix.add(1)), latitudes.get(iy.add(1))],
+            [x_left, y_bottom, x_right, y_top],
             crs,
             geodesic=False,
             evenOdd=True,
