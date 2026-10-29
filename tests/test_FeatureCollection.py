@@ -51,6 +51,10 @@ class TestGrid:
         assert grid.size().getInfo() > 0
         assert grid.first().get("id").getInfo() == "EPSG:3857_10000000_E00-S00"
 
+    def test_grid_polar_crs(self):
+        grid = ee.FeatureCollection.geetools.grid(2_000_000, "EPSG:3031")
+        assert grid.size().getInfo() == 16
+
 
 class TestReduceColumnsGroup:
     """Test the ``reduceColumnsGroup`` method."""
