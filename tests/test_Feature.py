@@ -26,6 +26,11 @@ class TestCell:
         cell = ee.Feature.geetools.cell(1000, crs="EPSG:3857")
         assert cell.get("id").getInfo() == "EPSG:3857_1000_E00-S00"
 
+    def test_cell_with_polar_crs(self):
+        cell = ee.Feature.geetools.cell(2_000_000, crs="EPSG:3031")
+        assert cell.get("id").getInfo() == "EPSG:3031_2000000_E00-S00"
+        assert cell.geometry().coordinates().getInfo()
+
 
 class TestToFeatureCollection:
     """Test the ``toFeatureCollection`` method."""

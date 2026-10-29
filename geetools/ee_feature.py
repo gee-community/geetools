@@ -40,10 +40,9 @@ class FeatureAccessor:
         # Earth Engine cannot currently compute projection bounds server-side; pyproj supplies the area of use.
         # https://gis.stackexchange.com/questions/471100/how-to-get-the-bounds-of-a-projection-in-gee
         # https://issuetracker.google.com/issues/313937471
-        crs_x_min, crs_y_min, crs_x_max, crs_y_max = CRS(crs_value).area_of_use.bounds
+        geographic_bounds = CRS(crs_value).area_of_use.bounds
         transformer = Transformer.from_crs(4326, crs_value, always_xy=True)
-        x_min, y_min = transformer.transform(crs_x_min, crs_y_min)
-        x_max, y_max = transformer.transform(crs_x_max, crs_y_max)
+        x_min, y_min, x_max, y_max = transformer.transform_bounds(*geographic_bounds, densify_pts=100)
 
         x_min, y_min = ee.Number(x_min).toFloat(), ee.Number(y_min).toFloat()
         x_max, y_max = ee.Number(x_max).toFloat(), ee.Number(y_max).toFloat()
@@ -62,6 +61,8 @@ class FeatureAccessor:
         rectangle = ee.Geometry.Rectangle(
             [longitudes.get(ix), latitudes.get(iy), longitudes.get(ix.add(1)), latitudes.get(iy.add(1))],
             crs,
+            geodesic=False,
+            evenOdd=True,
         )
         return ee.Feature(rectangle, {"id": cell_id})
 
