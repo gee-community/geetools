@@ -44,8 +44,8 @@ class FeatureAccessor:
         transformer = Transformer.from_crs(4326, crs_value, always_xy=True)
         x_min, y_min, x_max, y_max = transformer.transform_bounds(*geographic_bounds, densify_pts=100)
 
-        x_min, y_min = ee.Number(x_min).toFloat(), ee.Number(y_min).toFloat()
-        x_max, y_max = ee.Number(x_max).toFloat(), ee.Number(y_max).toFloat()
+        x_min, y_min = ee.Number(x_min).toDouble(), ee.Number(y_min).toDouble()
+        x_max, y_max = ee.Number(x_max).toDouble(), ee.Number(y_max).toDouble()
         longitudes = ee.List.sequence(x_min, x_max, size).add(x_max).distinct()
         latitudes = ee.List.sequence(y_min, y_max, size).add(y_max).distinct()
         ix, iy = ee.Number(ix).toInt(), ee.Number(iy).toInt()

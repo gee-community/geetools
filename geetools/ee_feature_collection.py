@@ -60,8 +60,8 @@ class FeatureCollectionAccessor:
         x2 = distance_transformer.transform(x_min + size.getInfo(), 0)[0]
         equator_cell_size = int(abs(x2 - x1))
 
-        x_min, y_min = ee.Number(x_min).toFloat(), ee.Number(y_min).toFloat()
-        x_max, y_max = ee.Number(x_max).toFloat(), ee.Number(y_max).toFloat()
+        x_min, y_min = ee.Number(x_min).toDouble(), ee.Number(y_min).toDouble()
+        x_max, y_max = ee.Number(x_max).toDouble(), ee.Number(y_max).toDouble()
         longitudes = ee.List.sequence(x_min, x_max, size).add(x_max).distinct()
         latitudes = ee.List.sequence(y_min, y_max, size).add(y_max).distinct()
         longitude_indexes = ee.List.sequence(0, longitudes.size().subtract(2))
