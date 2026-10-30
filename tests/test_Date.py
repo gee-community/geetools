@@ -103,3 +103,16 @@ class TestNow:
     def test_now(self):
         date = ee.Date.geetools.now()
         assert date.getInfo() is not None
+
+    def test_now_uses_utc_timezone(self, monkeypatch):
+        from datetime import timezone
+
+        class FixedDateTime:
+            @staticmethod
+            def now(tz=None):
+                assert tz is timezone.utc
+                return dt(2020, 1, 1, tzinfo=timezone.utc)
+
+        monkeypatch.setattr("geetools.ee_date.datetime", FixedDateTime)
+        date = ee.Date.geetools.now()
+        assert date.getInfo() == "2020-01-01T00:00:00"
