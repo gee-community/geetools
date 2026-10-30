@@ -11,7 +11,7 @@ import requests
 import xarray
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
-from matplotlib.colors import to_rgba
+from matplotlib.colors import BoundaryNorm, to_rgba
 from pyproj import CRS
 from shapely import geometry as sg
 from xee import helpers
@@ -1687,6 +1687,7 @@ class ImageAccessor:
         crs: str = "EPSG:4326",
         scale: float = 0.0001,  # 0.0001 is the default scale for Sentinel-2
         color="k",
+        discrete: bool = False,
     ) -> Axes:
         """Plot the image on a matplotlib axis.
 
@@ -1699,6 +1700,7 @@ class ImageAccessor:
             crs: The coordinate reference system of the image. By default, we will use ``"EPSG:4326"``
             scale: The scale of the image.
             color: The color of the overlaid feature collection. Default is ``k`` (black).
+            discrete: Whether to use a discrete colormap for single band images. Default is ``False``.
 
         Examples:
             .. code-block:: python
@@ -1714,6 +1716,8 @@ class ImageAccessor:
         """
         if ax is None:
             fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
 
         # generate the grid params
         grid_params = helpers.fit_geometry(
@@ -1748,7 +1752,25 @@ class ImageAccessor:
         # for multi band image, we need to stack the dataarrays to create a RGB image
         # and normalized them
         if len(bands) == 1:
-            ax.imshow(bands_da[0], cmap=cmap, **params)
+            data = bands_da[0]
+            if not discrete:
+                ax.imshow(data, cmap=cmap, **params)
+            # if discrete is True, we need to create a colormap manually
+            # and use the unique values in the data as labels
+            else:
+                labels = np.unique(data).astype(int)
+                data_idx = np.zeros_like(data, dtype=int)
+
+                for i, val in enumerate(labels):
+                    data_idx[data == val] = i
+
+                cmap = plt.get_cmap(cmap)
+                bounds = np.arange(len(labels) + 1) - 0.5
+                norm = BoundaryNorm(bounds, cmap.N)
+                im = ax.imshow(data_idx, cmap=cmap, norm=norm, **params)
+                cbar = fig.colorbar(im, ticks=range(len(labels)))
+                cbar.ax.set_yticklabels(labels)
+
         else:
             da = np.dstack(bands_da)
             rgb_image = (da - np.min(da)) / (np.max(da) - np.min(da))
