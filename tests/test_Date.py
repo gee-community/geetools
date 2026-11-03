@@ -115,4 +115,4 @@ class TestNow:
 
         monkeypatch.setattr("geetools.ee_date.datetime", FixedDateTime)
         date = ee.Date.geetools.now()
-        assert date.getInfo() == "2020-01-01T00:00:00"
+        assert date.millis().getInfo() == 1577836800000
