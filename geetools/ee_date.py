@@ -84,9 +84,9 @@ class DateAccessor:
         return ee.Date.fromYMD(y, 1, 1).advance(d.subtract(1), "day")
 
     @classmethod
-    def now(cls), tz: tzinfo = timezone.utc -> ee.Date:
+        def now(cls, tz: tzinfo = timezone.utc) -> ee.Date:
         """Create a date on current date.
-        Args:
+            Args:
                     tz: The timezone to use for the current date. Defaults to ``timezone.utc``.
                     
         Returns:
