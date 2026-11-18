@@ -103,3 +103,30 @@ class TestNow:
     def test_now(self):
         date = ee.Date.geetools.now()
         assert date.getInfo() is not None
+
+    def test_now_uses_utc_timezone(self, monkeypatch):
+        from datetime import timezone
+
+        class FixedDateTime:
+            @staticmethod
+            def now(tz=None):
+                assert tz is timezone.utc
+                return dt(2020, 1, 1, tzinfo=timezone.utc)
+
+        monkeypatch.setattr("geetools.ee_date.datetime", FixedDateTime)
+        date = ee.Date.geetools.now()
+        assert date.millis().getInfo() == 1577836800000
+    def test_now_accepts_custom_timezone(self, monkeypatch):
+        from datetime import timedelta, timezone
+
+        custom_tz = timezone(timedelta(hours=2))
+
+        class FixedDateTime:
+            @staticmethod
+            def now(tz=None):
+                assert tz is custom_tz
+                return dt(2020, 1, 1, 2, 0, tzinfo=custom_tz)
+
+        monkeypatch.setattr("geetools.ee_date.datetime", FixedDateTime)
+        date = ee.Date.geetools.now(tz=custom_tz)
+        assert date.millis().getInfo() == 1577836800000

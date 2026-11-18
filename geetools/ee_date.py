@@ -1,7 +1,7 @@
 """Extra methods for the :py:class:`ee.Date` class."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone, tzinfo
 from zoneinfo import ZoneInfo
 
 import ee
@@ -84,9 +84,11 @@ class DateAccessor:
         return ee.Date.fromYMD(y, 1, 1).advance(d.subtract(1), "day")
 
     @classmethod
-    def now(cls) -> ee.Date:
+        def now(cls, tz: tzinfo = timezone.utc) -> ee.Date:
         """Create a date on current date.
-
+            Args:
+                    tz: The timezone to use for the current date. Defaults to ``timezone.utc``.
+                    
         Returns:
             The current date.
 
@@ -101,7 +103,7 @@ class DateAccessor:
                 d = ee.Date.geetools.now()
                 d.format("YYYY-MM-dd").getInfo()
         """
-        return ee.Date(datetime.now().isoformat())
+        return ee.Date(datetime.now(tz).isoformat())
 
     def to_datetime(self, tz: str | ZoneInfo = ZoneInfo("UTC")) -> datetime:
         """Convert a :py:class:`ee.Date` to a :py:class:`datetime.datetime`.
