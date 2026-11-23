@@ -26,20 +26,6 @@ repos:
       - id: ruff
         stages: [pre-commit]
 
-  #  - repo: https://github.com/PyCQA/doc8
-  #    rev: "v1.1.1"
-  #    hooks:
-  #      - id: doc8
-  #        stages: [pre-commit]
-
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
-    hooks:
-      - id: codespell
-        stages: [pre-commit]
-        additional_dependencies:
-          - tomli
-
   # waiting for https://github.com/gee-community/geetools/issues/337
   # so notebooks can again be executed from the documentation
   - repo: "https://github.com/kynan/nbstripout"
