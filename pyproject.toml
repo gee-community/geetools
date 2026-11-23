@@ -134,9 +134,6 @@ version_files = [
     "docs/conf.py:release",
 ]
 
-[tool.codespell]
-skip = "geetools/tools/*,geetools/classification.py,**/*.ipynb,**/*.yml"
-
 [tool.black]
 line-length = 110
 
