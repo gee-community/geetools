@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from pathlib import PurePosixPath
 
@@ -587,7 +588,9 @@ class Asset(os.PathLike):
 
         return new_asset
 
-    def delete(self, recursive: bool = False, dry_run: bool | None = None) -> list:
+    def delete(
+        self, recursive: bool = False, dry_run: bool | None = None, max_workers: int | None = None
+    ) -> list:
         """Remove the asset.
 
         This method will delete an asset (any type) asset and all its potential children. By default, it is not recursive and will raise an error if the container is not empty.
@@ -600,6 +603,7 @@ class Asset(os.PathLike):
         Args:
             recursive: If True, delete all the children and the container asset. Defaults to False.
             dry_run: If True, do not delete the asset simply pass them to the output list. Defaults to True.
+            max_workers: Maximum number of worker threads to use when deleting assets at each nesting level. Defaults to None.
 
         Returns:
             The list of deleted assets.
@@ -620,8 +624,7 @@ class Asset(os.PathLike):
         # in non dry mode, the function store the asset names in a dictionary AND delete them.
         output = []
 
-        def delete(asset):
-            output.append(str(asset))
+        def delete_one(asset):
             dry_run is True or ee.data.deleteAsset(str(asset))
 
         is_container = self.is_folder() or self.is_image_collection()
@@ -641,10 +644,15 @@ class Asset(os.PathLike):
             # delete all items starting from the more nested ones
             assets_ordered = dict(sorted(assets_ordered.items(), reverse=True))
             for lvl in assets_ordered:
-                [delete(asset) for asset in assets_ordered[lvl]]
+                level_assets = assets_ordered[lvl]
+                output.extend(str(asset) for asset in level_assets)
+                if not dry_run:
+                    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                        list(executor.map(delete_one, level_assets))
 
         # delete the initial folder/asset
-        delete(self)
+        output.append(str(self))
+        delete_one(self)
 
         return output
 
